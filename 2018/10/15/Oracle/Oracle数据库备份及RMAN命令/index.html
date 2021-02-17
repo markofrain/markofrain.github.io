@@ -1,0 +1,727 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Oracle数据库备份及RMAN命令 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Oracle/Oracle数据库备份及RMAN命令" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Oracle数据库备份及RMAN命令
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD%E5%8F%8ARMAN%E5%91%BD%E4%BB%A4/" class="article-date">
+  <time datetime="2018-10-15T06:25:58.000Z" itemprop="datePublished">2018-10-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.7k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">6分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Oracle数据库数据备份"><a href="#Oracle数据库数据备份" class="headerlink" title="Oracle数据库数据备份"></a>Oracle数据库数据备份</h1><ol>
+<li><p>数据库归档模式由非归档模式改为归档模式 命令窗口中通过此命令查看</p>
+<p>archive log list;</p>
+</li>
+</ol>
+<p>改为归档模式</p>
+<pre><code>shutdown immediate;-- 关闭数据库
+startup mount;-- 启动数据库到mount状态
+alter database archivelog;-- 修改数据库为归档模式
+alter database open;-- 打开数据库</code></pre><h2 id="实例恢复与介质恢复"><a href="#实例恢复与介质恢复" class="headerlink" title="实例恢复与介质恢复"></a>实例恢复与介质恢复</h2><p>实例的恢复</p>
+<pre><code>startup nomount；--读取pfile，没有实例恢复
+altert mount database;--读取控制文件，没有实例回复
+alter database open;--检查控制文件，数据文件头(检查数据库完整性)，发生实例恢复</code></pre><p>直接startup，将默认执行这三个命令 实例恢复的过程</p>
+<pre><code>--前滚 
+rolling forward
+--读取状态为current和active状态的日志(redo log)，将发生crash时，没有来得及写道磁盘上的数据块，使用redo的信息来回复
+--打开数据库
+alter database open
+--回滚
+rolling back 数据库打开之后做</code></pre><p>当实例恢复无法恢复时，使用介质恢复。基于备份 需要介质恢复:</p>
+<ul>
+<li>数据文件丢失，损坏</li>
+<li>在线日志文件丢失，损坏</li>
+</ul>
+<h2 id="exp-imp导入导出"><a href="#exp-imp导入导出" class="headerlink" title="exp/imp导入导出"></a>exp/imp导入导出</h2><p>导出具体分为：导出表，导出方案，导出数据库三种方式。 导出使用exp命令完成，该命令常用选项有:</p>
+<ul>
+<li>userid:用户名/口令</li>
+<li>tables:导出指定的表名列表</li>
+<li>owner:导出指定的所有者用户名列表</li>
+<li>full:导出全部内容，默认n，可设置为y</li>
+<li>file:输出文件</li>
+<li>ROWS：导出数行，默认y</li>
+<li>INDEXES：导出索引，默认y</li>
+</ul>
+<p>full=y和owner能同时使用，会导致报错，EXP-00026：指定了冲突模式,需要删除full=y full为全库导出，owner=导出指定用户下的所有objects 导出导入命令在cmd中执行，不能在sqlplus中，exp帮助执行命令,exp help=y</p>
+<h2 id="RMAN备份"><a href="#RMAN备份" class="headerlink" title="RMAN备份"></a>RMAN备份</h2><p>在RMAN工具中，同样可以使用sql语句（管理类）,如在rman中开启数据库alter database open; RMAN使用<strong>服务器</strong>会话来完成备份操作，从RMAN客户端连接到服务器将产生一个服务器会话 RMAN备份内容包括：整个数据库,表空间,数据文件,指定的数据文件,控制文件,归档日志文件,参数文件等 RMAN备份类型分为:</p>
+<ul>
+<li>完整备份(full)或增量备份(incremental)</li>
+<li>一致性备份(consistent)或不一致性备份(inconsistent)</li>
+<li>热备份(open)或冷备份(closed)，冷备份时数据库必须处于mount状态，冷备份可以为一致性备份或非一致性备份</li>
+</ul>
+<h3 id="全备份"><a href="#全备份" class="headerlink" title="全备份"></a>全备份</h3><p>一般总是备份数据文件，控制文件，归档日志。参数文件和密码文件可选备份 进入恢复管理器</p>
+<pre><code>rman target sys/password@连接字符串</code></pre><p>备份全库</p>
+<pre><code>backup database;--备份全库，包括数据文件，控制文件，归档文件</code></pre><p>备份完毕后显示文件位置,同时备份了控制文件和SPFILE 表空间备份</p>
+<pre><code>backup tablespace users;--users为表空间名称</code></pre><p>文件备份</p>
+<pre><code>backup datafile 9;--这个数字表示数据文件的文件号</code></pre><p>备份集列表查看</p>
+<pre><code>list backupset;</code></pre><p>归档文件全备份</p>
+<pre><code>backup archivelog all;</code></pre><p>还原备份文件,restore表示还原</p>
+<pre><code>restore database;</code></pre><p>介质恢复(还原备份之后，需要进行介质恢复)</p>
+<pre><code>recover database;</code></pre><p>当介质无法恢复，且报错时，确认是否备份完整(肯定没问题的)rman中还原备份,重新启动oracle服务，此时依然是mounted状态，重新alter database open,查看报错信息，进行介质恢复recover database，然后重新open。 还原表空间</p>
+<pre><code>restore tablespace users;--users</code></pre><p>还原数据文件</p>
+<pre><code>restore datafile 4;--4为文件号</code></pre><p>如果数据文件丢失，那么如果强制启动，不对数据文件表空间做一致性检查，则</p>
+<pre><code>alter database datafile 4 offline;--4表示当前缺失文件的文件号</code></pre><p>如果文件恢复完毕，那么文件依然是offline状态，所以需要进行online</p>
+<pre><code>select file#,status from v$datafile;
+
+alter database datafile 4 online;
+
+
+delete backupset;--删除所有备份集,全部删除
+
+
+delete obsolete;--删除过期的，依据保留策略</code></pre><p>检查数据库文件中出现的物理损坏的数据库</p>
+<pre><code>backup check logical validate database;</code></pre><h4 id="SHOW-ALL配置"><a href="#SHOW-ALL配置" class="headerlink" title="SHOW ALL配置"></a>SHOW ALL配置</h4><pre><code>CONFIGURE RETENTION POLICY TO REDUNDANCY  --配置保留冗余备份集数量
+CONFIGURE RETENTION POLICY TO REDUNDANCY 2;--配置数量为2
+
+CONFIGURE BACKUP OPTIMIZATION OFF;--配置备份优化为关闭,可设置为ON
+
+CONFIGURE CONTROLFILE AUTOBACKUP ON;--配置控制文件自动备份，ON为是，否则为OFF</code></pre><h4 id="控制文件"><a href="#控制文件" class="headerlink" title="控制文件"></a>控制文件</h4><pre><code>list backup of controlfile;--rman查看所有控制文件
+
+
+alter system set control_file_record_keep_time=30;--设置控制文件保存时间天数
+
+
+backup current controlfile;备份当前控制文件</code></pre><h4 id="归档日志"><a href="#归档日志" class="headerlink" title="归档日志"></a>归档日志</h4><pre><code>backup archivelog all;--备份所有归档日志
+
+
+list archivelog all;--列出归档日志
+
+
+list backup of archivelog all;--列出归档日志的备份
+
+
+delete expired archivelog all;--删除过期归档日志
+
+
+select * from v$recovery_file_dest;--查看归档日志存放位置以及空间大小
+
+
+select * from v$flash_recovery_area_usage;--查看你归档日志使用情况,空间占用率,percent_space_used为使用百分比
+
+
+alter system set db_recovery_file_dest_size=21474836480;--更改归档日志使用空间大小(20*1024*1024*1024)</code></pre><h4 id="report命令"><a href="#report命令" class="headerlink" title="report命令"></a>report命令</h4><pre><code>report need backup;--列出需要备份的，依据配置的保留策略
+
+report need backup days 2 database;--列出超过两天没有备份的
+
+report obsolete;--查看过期的，依据保留策略</code></pre><h4 id="crosscheck-检查命令"><a href="#crosscheck-检查命令" class="headerlink" title="crosscheck 检查命令"></a>crosscheck 检查命令</h4><pre><code>crosscheck backup of tablespace tb_name;检查表空间备份
+
+crosscheck archivelog all;--检查所有归档日志
+
+crosscheck backup of database;--检查数据库备份
+
+crosscheck backup of controlfile;--检查控制文件备份
+
+crosscheck backup of spfile；--检查备份spfile</code></pre><h4 id="检查与恢复"><a href="#检查与恢复" class="headerlink" title="检查与恢复"></a>检查与恢复</h4><pre><code>validate backupset 16;--检查备份集16的有效性
+
+restore database validate;--还原并校验
+
+restore database preview;--还原备份文件预览</code></pre><h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>差异增量:节约备份时间，但是恢复时间长 累计增量:多占用磁盘空间，恢复时间短 备份级别:(0,1,2,3) 增量备份 等级为1，0表示全库备份</p>
+<pre><code>backup incremental level 1 database;--默认为差异增量</code></pre><p>当为1时，先全库备份level 0，在备份level 1。首先会检查是否由父备份，也就是level 0，没有就备份level 0，然后再备份level 1；如果有则直接备份level 1 当进行增量后，list backupset时，显示的备份集列表，类型不再时FULL，而是Incr，并且有lv等级。</p>
+<ul>
+<li>还原时，有多少备份集使用多少，最后使用归档。</li>
+<li>原则:最近一次0级备份+最近一次1级备份+最近一次2级备份(如果有)+归档+online redo。</li>
+<li>备份还原和会比归档要快。</li>
+<li>当增量时，restore database会还原备份文件，而recover database则会恢复增量数据，并非之前的介质恢复</li>
+</ul>
+<h4 id="策略配置"><a href="#策略配置" class="headerlink" title="策略配置"></a>策略配置</h4><p>参考网址:<a target="_blank" rel="noopener" href="https://blog.csdn.net/liqfyiyi/article/details/7017087">https://blog.csdn.net/liqfyiyi/article/details/7017087</a> 基于时间备份保留策略</p>
+<pre><code>CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF n DAYS;</code></pre><p>取消备份保留策略</p>
+<pre><code>CONFIGURE RETENTION POLICY TO NONE;</code></pre>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/10/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD%E5%8F%8ARMAN%E5%91%BD%E4%BB%A4/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RMAN/" rel="tag">RMAN</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/10/15/Oracle/Oracle%20RMAN%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Oracle RMAN命令总结
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/10/15/Oracle/Oracle%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F%E3%80%81%E8%A1%A8%E7%A9%BA%E9%97%B4%E6%9F%A5%E8%AF%A2/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Oracle修改表空间大小、表空间查询</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

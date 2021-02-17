@@ -1,0 +1,658 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    项目开发中遇到的问题 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-常用代码/项目开发中遇到的问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  项目开发中遇到的问题
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-08-08T01:19:18.000Z" itemprop="datePublished">2018-08-08</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.6k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <ol>
+<li><p>idea连接oracle数据库 首先不要忘了开启服务和监听程序，另外jdbc配置信息，driver不要写错，oracle.jdbc.driver.OracleDriver不要写成oracle.jdbc.OracleDriver</p>
+</li>
+<li><p>pl/sql工具，idea database，sqlplus都能连接成功，账号密码也是对的，配置也没问题，但是就是没法连接上数据库</p>
+</li>
+</ol>
+<p>Cannot create PoolableConnectionFactory (ORA-01017: invalid username/password; logon denied 这个问题的最终结果以前也遇到过，没往这边想 首先就是一一核对配置信息和用户名密码。可能没有问题 然后就你的数据库配置文件了，在spring 中配置database bean，其中什么问题，${username}可能无法的到配置文件的值，所以你还是手写吧，或者jdbc.username=xxx解决</p>
+<ol start="3">
+<li>关于Bean装配的问题，Dao接口始终无法装配，不管是@Autowired还是Resource，都无法解决。</li>
+</ol>
+<p>但是有说接口不能装配，但是事实上可以装配，具体什么情况不太知道。然后查了applicationContext.xml配置，包括SqlSessionFactoryBean的配置和MapperScannerConfigurer的配置。 于是，当你认真发现时，MapperScannerConfigurer的basePackage属性的配置有些异样，因为你的包结构的问题，如果你不清楚basePackage设置什么，那么很可能将他设置成了mapper.xml所在的包。应该是dao的包。 所以basePackage配置有误，value设置到dao包</p>
+<ol start="4">
+<li>当有出现，无法找到mapper的方法时，例如:not find xxx.xxx.xxx.UserMapper.getUser()方法。</li>
+</ol>
+<p>查看是否配置了SqlSessionFactoryBean的mapperLocations参数,如果配置完成了，若再发现，找不到某某类，那么你的Mapper.xml文件里要注意实体类的名称，是别名还是完全限定名，可能着这个地方出现了问题。</p>
+<ol start="5">
+<li>java.sql.SQLSyntaxErrorException: ORA-00933: SQL 命令未正确结束</li>
+</ol>
+<p>初次使用mybatis时，可能犯的错误就是，sql语句后面的分号问题，在学数据库时一定要加分号，而在myabtis mapper中语句后加了分号就导致出现此问题。所以去掉分号就好了。</p>
+<ol start="6">
+<li>springmvc 引入静态资源文件，比如进入jquery.js，有时出现200，有时出现304，但无论如何不能通过$(function(){});函数中获得任何内容</li>
+</ol>
+<p>大部分网上都没有出现这种情况，都只是静态文件位置放错了，然后说三种进入静态文件的方法。 一个在web.xml，一个是mvc:resources，一个是mvc:deault-servlet-handler，这三种方法都对，配置任意一个都是正确的。 这时，<strong>你要检查引入js文件的script标签，它必须有一个开始标签和闭合标签，不能是自闭标签。否则，一定是无法使用的。这是新手不注意的错误。</strong></p>
+<ol start="7">
+<li>关于jstl库c标签的问题，c:if中test不能使用表达式，或c:xx标签怎么怎么不可用</li>
+</ol>
+<p>这个情况，你就要检查taglib标签是否引入错了，uri，一个是<a target="_blank" rel="noopener" href="http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误">http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误</a></p>
+<ol start="8">
+<li>mybatis接口方法的重载问题</li>
+</ol>
+<p>在mybatis中，dao接口是不可以有重载方法的</p>
+<ol start="9">
+<li><p>在$(function(){});中定义js方法，外部或onclick，onfocus等标签中属性无法调用，因为它相当于匿名函数，不可调用里面的方法，而你又需要jquery选择器操作，所以你只能通过window.function_name=function(){}的方式定义，外部才能访问到。</p>
+</li>
+<li><p>防止表单重复提交</p>
+</li>
+</ol>
+<p>网上大部分都是注解+拦截器。所有的几乎都是一个模板，但是设置完成后，重复提交的话只是会跳到空白页，没办法正常显示数据，我们想要的是，第一次正常请求提交，第二次之后再点击只是在请求前被拦截器拦截到，检查重复了，我们不管它。就相当于第二次点一下就跟没反应一样。但是网上还是没找到的。 除此之外，就是使用禁用按钮了，click事件后form submit()提交，时候就禁用按钮，也就提交了一次了。</p>
+<ol start="11">
+<li>Neither BindingResult nor plain target object for bean name ‘user’ available as request attribute</li>
+</ol>
+<p>此问题是spring form表单的问题，因为form标签的modelAttrubute属性在绑定之前必须有一个实例才能够绑定，所以进login之前需要把一个空实例传过去。 于是网上大部分处理这些问题的解决方案是：在进入登录页面的方法，参数加上对象User user，或者处理登录时，对象User添加@ModelAttribute注解，而且参数名和form表单的ModelAttribute值一致。但是经过这样的测试之后还是不行的。 最终谷歌了一下，发现不能直接放在参数上不管，而是手动把空对象放到model对象中传递到页面</p>
+<ol start="12">
+<li>数据校验，validator数据校验，对象前添加@Valid注解，这是必须的，但是其后紧跟的就是BindingResult对象，这个不能丢</li>
+</ol>
+<p>通过Errors对象的hasErrors判断是否有错误，有错误直接返回到页面去。 数据校验，spring-servlet.xml配置时，bean ReloadableResourceBundleMessageSource的baseName属性为classpath:ValidationMessages，classpath:要加上，后面的文件后缀去掉,如果你这样做的话IDEA会报错，不用管不妨碍项目启动</p>
+<ol start="13">
+<li>aop切面，环绕通知，环绕通知相当于前置通知、返回通知、异常通知的合体。但是在我的一个简单的项目中出现了问题</li>
+</ol>
+<p>说不能使用POST什么的，而其他的三个完全没问题，只有环绕，项目运行登录时调用了一个方法，就出现一行异常，该网页无法正常运作 如果问题仍然存在，请与网站所有者联系。 HTTP ERROR 405，然后请求地址是正确的登录请求地址。 问题的原因可能某处出现了错误，但是错误没有抛出,因为切面比较特殊，不想其他地方错误了直接抛出错误，所以需要在业务层，把操作try-catch起来 (废弃)问题位置在，环绕通知的返回值，它的joinPoint.proceed();方法是继续目标执行。你必须返回它的值，也就是说该方法必须有返回值的。所以，因为之前是无返回值void，才出现了问题。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98/" rel="tag">开发问题</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/08/08/Linux/CentOS7%E4%BD%BF%E7%94%A8yum%E5%AE%89%E8%A3%85MySQL5.7%E5%91%BD%E4%BB%A4/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            CentOS7使用yum安装MySQL5.7命令
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/08/01/Javascript/%E5%89%8D%E7%AB%AFjs%E6%8F%92%E4%BB%B6%E6%8A%80%E6%9C%AF%E6%95%B4%E5%90%88/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">前端js插件技术整合</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

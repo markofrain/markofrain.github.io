@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Vue2.0组件1 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Vue/Vue2.0组件1" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Vue2.0组件1
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E7%BB%84%E4%BB%B61/" class="article-date">
+  <time datetime="2018-05-28T14:29:42.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.9k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>组件 (Component) 是 Vue.js 最强大的功能之一。组件可以扩展 HTML 元素，封装可重用的代码。 组件是自定义元素，Vue.js 的编译器为它添加特殊功能。</p>
+<h2 id="使用组件"><a href="#使用组件" class="headerlink" title="## 使用组件"></a>## 使用组件</h2><h3 id="组件的注册与使用"><a href="#组件的注册与使用" class="headerlink" title="组件的注册与使用"></a>组件的注册与使用</h3><h4 id="全局注册"><a href="#全局注册" class="headerlink" title="全局注册"></a>全局注册</h4><p>我们需要通过一个全局的API来构造。 <strong>Vue.extend(options)</strong> <strong>用法:</strong>使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象。 同时还需要一个API通过这个构造器来注册组件，之后才能使用。 <strong>Vue.component(id, [definition])</strong> <strong>用法:</strong>注册或获取全局组件。注册还会自动使用给定的id设置组件的名称。注意:他仅仅是个构造器而已。 <strong>示例:</strong></p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;my-global&gt;&lt;/my-global&gt;
+&lt;/div&gt;
+
+var myComponent = Vue.extend(&#123;
+    template:&apos;&lt;div&gt;&lt;h2&gt;This is the use of a global component&lt;/h2&gt;&lt;/div&gt;&apos;
+&#125;);
+Vue.component(&apos;my-global&apos;,myComponent);</code></pre><p>通过测试后，我们发现最终被渲染为:</p>
+<pre><code>&lt;div&gt;
+    &lt;h2&gt;This is the use of a global component&lt;/h2&gt;
+&lt;/div&gt;</code></pre><p><my-global></my-global>就可以使用组件。 template属性就是模板，该组件将被渲染后代替。 你可以写两个标签</p>
+<pre><code>&lt;my-global&gt;&lt;/my-global&gt;
+&lt;my-global&gt;&lt;/my-global&gt;</code></pre><p><strong>但是注意:</strong>这两个组件是相互独立的，虽然是通过各构造器注册的，但各自独立，局部的注册也是一样的。 这样写，又定义构造器，又注册，再使用，未免有些麻烦，也不常用。可以简短点写。</p>
+<pre><code>//我们是直接可以这样写的，也是全局注册最常用的方式
+Vue.component(&apos;my-global&apos;,&#123;
+    template:&apos;&lt;div&gt;&lt;h2&gt;This is the use of a global component&lt;/h2&gt;&lt;/div&gt;&apos;
+&#125;);</code></pre><h4 id="局部注册"><a href="#局部注册" class="headerlink" title="局部注册"></a>局部注册</h4><p>即在某个Vue实例中通过components选项中注册。 <strong>示例:</strong></p>
+<pre><code>data:&#123;
+    msg:&apos;Hello Vue2.0&apos;
+&#125;,
+components:&#123;
+    &apos;my-local&apos;:&#123;
+        data:function()&#123;
+            return &#123;
+                msg:&apos;Hello Vue2.0---Local&apos;
+            &#125;
+        &#125;,
+        template:&apos;&lt;div&gt;&lt;h2&gt;&#123; &#123;msg&#125;&#125;&lt;/h2&gt;&lt;/div&gt;&apos;
+    &#125;
+&#125;</code></pre><p>好了，这就是局部的注册，我们这里在template属性里使用了模板语法{ {}}，而不过要在子组件中使用模板的到属性值得话，就必须使用子组件自己的data，虽然是子组件，但也不能直接使用父组件的data。需要定义data，注意，<strong>组件的data必须是一个函数</strong>，属性由函数返回，多个属性使用对象{}的方式。</p>
+<blockquote>
+<p>官方原话：构造 Vue 实例时传入的各种选项大多数都可以在组件里使用。只有一个例外：data 必须是函数 如果这么做，那么 Vue 会停止运行，并在控制台发出警告，告诉你在组件实例中 data 必须是一个函数</p>
+</blockquote>
+<p>所以此时，打印的语句为Hello Vue2.0—Local。 如果有Vue的开发工具插件vue-devtools，我们就可以看到。 <img src="http://i2.51cto.com/images/blog/201804/21/aeebe30bf0af8d5604e740fc9b253266.png?x-oss-process=image/watermark,size_16,text_QDUxQ1RP5Y2a5a6i,color_FFFFFF,t_100,g_se,x_10,y_10,shadow_90,type_ZmFuZ3poZW5naGVpdGk=" alt="vue-devtools工具查看到组件图"> 应官方的要求，这个id，即组件定义的这个标签名不强制遵循 W3C 规则 (小写，并且包含一个短杠)。但是在vue-devtool中就被改成这种名字了，驼峰命名法吧。当然我们可以定义name属性，它是通过name属性来显示的，默认的值就是id变成驼峰，我们可以自己写name。依然是没问题的。</p>
+<h4 id="引用模板"><a href="#引用模板" class="headerlink" title="引用模板"></a>引用模板</h4><p>如果我们的template属性中的内容太多，未免会造成麻烦，不仅影响美感，还容易出错，所以我们通过template标签定义引用。</p>
+<pre><code>//挂载元素div外定义的模板
+&lt;template id=&quot;templ&quot;&gt;
+    &lt;ul&gt;
+        &lt;li v-for=&quot;(val,key) in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/template&gt;
+components:&#123;
+    &apos;my-local&apos;:&#123;
+        name:&apos;MyLocal2&apos;,
+        data:function()&#123;
+            return &#123;
+                msg:&apos;Hello Vue2.0---Local&apos;,
+                arr:[&apos;what&apos;,&apos;are&apos;,&apos;you&apos;,&apos;doing&apos;]
+            &#125;
+        &#125;,
+        template:&apos;#templ&apos;
+    &#125;
+&#125;</code></pre><p>我们在挂载元素div外定义模板元素template，然后添加一个id元素，在子组件template属性中，通过’#templ’对其引用。 然而有一中易错误现象，当在template元素中使用两个独立的标签时会出错。</p>
+<pre><code>&lt;template id=&quot;templ&quot;&gt;
+    &lt;ul&gt;
+        &lt;li v-for=&quot;(val,key) in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p&gt;你好，你是谁&lt;/p&gt;&lt;!-- 或是&#123; &#123;msg&#125;&#125; --&gt;
+&lt;/template&gt;</code></pre><p>此时它会给你一个错误，这个错误主要说的就是，“<strong>模板中有且仅有一个根元素</strong>”,就是说要么你template标签中有一个ul，要么有一个p，你只能在template中有一个根元素，所以你需要做的是<strong>添加一个div标签在所有标签的最外层作为根元素</strong>。</p>
+<h4 id="DOM-模板解析注意事项"><a href="#DOM-模板解析注意事项" class="headerlink" title="DOM 模板解析注意事项"></a>DOM 模板解析注意事项</h4><p>这篇就不写了，看官网的<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/guide/components.html#DOM-%E6%A8%A1%E6%9D%BF%E8%A7%A3%E6%9E%90%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">DOM 模板解析注意事项</a>来详细看，最后的要求就是说<strong>尽可能使用字符串模板。</strong></p>
+<h3 id="动态组件的渲染"><a href="#动态组件的渲染" class="headerlink" title="动态组件的渲染"></a>动态组件的渲染</h3><p>有时候你可能由于一个if判断，根据数据该选择到底显示渲染哪个组件。此时就需要动态渲染。 动态渲染需要使用到内置的组件<strong>component</strong>，如果可能的话还有<strong>keep-alive</strong>。 component的作用就是<strong>渲染一个“元组件”为动态组件。依 is 的值，来决定哪个组件被渲染。</strong> 我们需要做的就是设置这个is的值，值得内容是什么，就显示名字叫什么组件。</p>
+<h4 id="component"><a href="#component" class="headerlink" title="component"></a>component</h4><p>示例:</p>
+<pre><code>//我们再定义一个子组件
+&apos;my-chen&apos;:&#123;
+    data:function()&#123;
+        return &#123;
+            msg:&apos;My name is Xiaoxiaochen Xiansen&apos;
+        &#125;
+    &#125;,
+    template:&apos;&lt;p&gt;&#123; &#123;msg&#125;&#125;&lt;/p&gt;&apos;
+&#125;
+//同时，为Vue实例添加一个currentView属性
+data:&#123;
+    currentView:&apos;my-local&apos;
+&#125;
+//Vue实例挂载处。:is就是v-bind:is的简写
+&lt;div id=&quot;app&quot;&gt;
+    &lt;component :is=&quot;currentView&quot;&gt;&lt;/component&gt;
+&lt;/div&gt;</code></pre><p>然后测试，默认显示的就是my-local组件的模板内容，通过按钮点击的方式改变currentView的值就可以动态的改变组件了。</p>
+<h4 id="keep-alive"><a href="#keep-alive" class="headerlink" title="keep-alive"></a>keep-alive</h4><p>如果你想把切换出去的组件保留在内存中，可以保留它的状态或避免重新渲染，那么你就可以使用<strong>keep-alive</strong>内置组件了。 <strong><keep-alive></strong>包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们。 只需要把这个标签套在component标签的外边就好了。</p>
+<pre><code>&lt;keep-alive&gt;
+    &lt;component :is=&quot;currentView&quot;&gt;
+        &lt;!-- 非活动组件将被缓存！ --&gt;
+    &lt;/component&gt;
+&lt;/keep-alive&gt;</code></pre><p>2.它有两个属性可以设置“<strong>include</strong>”和“<strong>exclude</strong>”，值为字符串或正则表达式,只有匹配的组件才会被缓存或不缓存。 <strong>示例:</strong></p>
+<pre><code>&lt;!-- 逗号分隔字符串 --&gt;
+&lt;keep-alive include=&quot;a,b&quot;&gt;
+  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
+&lt;/keep-alive&gt;
+
+&lt;!-- 正则表达式 (使用 `v-bind`) --&gt;
+&lt;keep-alive :include=&quot;/a|b/&quot;&gt;
+  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
+&lt;/keep-alive&gt;
+
+&lt;!-- 数组 (使用 `v-bind`) --&gt;
+&lt;keep-alive :include=&quot;[&apos;a&apos;, &apos;b&apos;]&quot;&gt;
+  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
+&lt;/keep-alive&gt;</code></pre><p>匹配首先检查组件自身的 name 选项，如果 name 选项不可用，则匹配它的局部注册名称 (父组件 components 选项的键值)。匿名组件不能被匹配。</p>
+<blockquote>
+<p><keep-alive> 不会在函数式组件中正常工作，因为它们没有缓存实例。</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/05/28/Vue/Vue2.0%E7%BB%84%E4%BB%B61/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B62/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Vue2.0组件2
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/05/28/Vue/Vue2.0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Vue2.0自定义指令</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

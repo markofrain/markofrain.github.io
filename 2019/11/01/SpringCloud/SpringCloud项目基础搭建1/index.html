@@ -1,0 +1,903 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    SpringCloud项目基础搭建1 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-SpringCloud/SpringCloud项目基础搭建1" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  SpringCloud项目基础搭建1
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/" class="article-date">
+  <time datetime="2019-11-01T12:57:49.000Z" itemprop="datePublished">2019-11-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">3.1k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">14分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>首先从可以通信开始，然后再配置负载均衡熔断器之类的。<br>首先，学完了springcloud之后，许多名词，虽然了解一点，但是他们之间的关系还是不太明确清晰。<br>分布式微服务，既然是分布式肯定会通信的，离不开ip的。</p>
+<p>服务注册:也就是注册中心，通俗一点就是 将服务提供者注册到这个服务中心中，<strong>由注册中心来进行资源调配管理，上线下线等</strong>，服务提供者可以同时注册多个，可以负载均衡。</p>
+<p>服务提供者:就是平常写的一套单机程序，controller，service,mapper一整套代码，它能对外提供接口，因此被称为提供者，他需要注册到注册中心去</p>
+<p>服务消费者:也就是对外部开放的,而提供者可以不对外开放，也就是说，浏览器直接调用服务消费者的代码，而在后台，直接由服务消费者请求服务提供者，而中间请求的过程就是请求服务注册中心，由他来确定请求哪个服务提供者的服务。</p>
+<p>简而言之,服务注册是管理所有的服务，服务提供者对内，服务消费者对外。<br>服务消费者通过什么调用请求注册中心调用服务提供者,Feign。<br>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。</p>
+<p>虽然说到这，基本简单的微服务已经形成了，但是还无法明确项目搭建的机构。Feign，服务消费者，服务提供者该往哪写。</p>
+<h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>springcloud如果没有教程入门，可能还没进门就卡死在外。<br>springboot 与springcloud，springcloud是依赖springboot的，而springboot的版本有1.x和2.x，而2.x又分为2.1和2.2。而springcloud的版本号却不是以数字命名，这就很难搞。而且两者版本的依赖是有非常严格的，否则就会莫名的出错，甚至连项目都起不来。springboot2.1和2.2也有很大的区别，以及springcloud的不同版本引用有有较大的改动。<br>还有就是依赖的问题,老版本的eureka依赖名教eureka，而新版本的叫eureka-server，feign也有老版和新版,为openfeign和feign。<br>通过教程的学习以及多次尝试，最后找到匹配的版本。</p>
+<p><strong>父工程POM</strong></p>
+<pre><code>&lt;parent&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+    &lt;version&gt;2.1.6.RELEASE&lt;/version&gt;
+    &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+&lt;/parent&gt;
+&lt;properties&gt;
+    &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;spring-cloud.version&gt;Greenwich.BUILD-SNAPSHOT&lt;/spring-cloud.version&gt;
+&lt;/properties&gt;
+
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;!--&lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;--&gt;
+    &lt;!--&lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-oauth2-client&lt;/artifactId&gt;
+    &lt;/dependency&gt;--&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;mysql&lt;/groupId&gt;
+        &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+        &lt;exclusions&gt;
+            &lt;exclusion&gt;
+                &lt;groupId&gt;org.junit.vintage&lt;/groupId&gt;
+                &lt;artifactId&gt;junit-vintage-engine&lt;/artifactId&gt;
+            &lt;/exclusion&gt;
+        &lt;/exclusions&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+        &lt;artifactId&gt;druid&lt;/artifactId&gt;
+        &lt;version&gt;1.1.16&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+
+&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring-cloud.version&#125;&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;</code></pre><p>以上的版本匹配是:<br>SpringBoot:2.1.6.RELEASE<br>SpringCloud:Greenwich.BUILD-SNAPSHOT<br>这个是没有问题的。</p>
+<h2 id="服务注册"><a href="#服务注册" class="headerlink" title="服务注册"></a>服务注册</h2><p>服务注册是用eureka,分为eureka-server和eureka-client。<br>server及服务注册中心本身，他也是服务，但他不需要注册自己，只作为服务管理者。<br>模块名:eureka-server<br><strong>POM文件</strong></p>
+<pre><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre><p>依赖security的原因是，这个springcloud的版本对安全要求更严格，当然也有方法来阻止这种安全检查。<br><strong>application.yml</strong></p>
+<pre><code>server:
+  port: 7001
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/
+spring:
+  security:
+    user:
+      name: root
+      password: root</code></pre><p>以上配置文件标识注册中心端口为7001，注册服务地址为defaultZone的值地址，然后是配置一下security的用户名密码，这个用户名密码需要在eureka-client连接时写上。<br>此处需要添加对security的配置</p>
+<pre><code>@EnableWebSecurity
+public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter &#123;
+    @Override
+    protected void configure(HttpSecurity http) throws Exception &#123;
+        // Configure HttpSecurity as needed (e.g. enable http basic).
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
+        http.csrf().disable();
+        //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
+        // 如果是form方式,不能使用url格式登录
+        http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
+    &#125;
+&#125;</code></pre><p>然后就是启动类了,只需要@EnableEurekaServer注解</p>
+<pre><code>@EnableEurekaServer
+@SpringBootApplication
+public class EurekaServerApplication &#123;
+    public static void main(String[] args) &#123;
+        SpringApplication.run(EurekaServerApplication.class,args);
+    &#125;
+&#125;</code></pre><p>最后访问localhost:7001即可进入页面，如果有密码，则输入security配置的即可。</p>
+<h2 id="服务提供者"><a href="#服务提供者" class="headerlink" title="服务提供者"></a>服务提供者</h2><p>接下来讲就是服务提供者，就是一般的访问数据库的，我只列出Controller的简单代码。</p>
+<pre><code>@RestController
+public class UserController &#123;
+
+    @Autowired
+    private UserService userService;
+
+    @ResponseBody
+    @PostMapping(&quot;/user/add&quot;)
+    public boolean add(@RequestBody User user)&#123;
+        return userService.add(user);
+    &#125;
+
+    @ResponseBody
+    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
+    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
+        return userService.get(id);
+    &#125;
+
+    @ResponseBody
+    @GetMapping(&quot;/user/list&quot;)
+    public List&lt;User&gt; list()&#123;
+        return userService.list();
+    &#125;
+&#125;</code></pre><p>接下来，重要的还是配置文件</p>
+<pre><code>server:
+  port: 9001
+eureka:
+  instance:
+    instance-id: springcloud8001
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://root:root@localhost:7001/eureka/
+spring:
+  application:
+    name: SPRING-PROD
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
+    driver-class-name: com.mysql.jdbc.Driver              # mysql驱动包
+    url: jdbc:mysql://localhost:3306/cloud1?serverTimezone=UTC&amp;characterEncoding=utf-8              # 数据库名称
+    username: root
+    password: root
+    dbcp2:
+      min-idle: 5                                           # 数据库连接池的最小维持连接数
+      initial-size: 5                                       # 初始化连接数
+      max-total: 5                                          # 最大连接数
+      max-wait-millis: 200                                  # 等待连接获取的最大超时时间
+mybatis:
+  type-aliases-package: com.fsats.user.entity    # 所有Entity别名类所在包
+  mapper-locations:
+    - classpath:mapper/**/*.xml                       # mapper映射文件
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl</code></pre><p>以上配置表示,服务提供者的端口,eureka.instance.instance-id表示注册在服务上的显示的名称。而spring.application.name就比较重要了，是当前服务的应用名称,多个相同的服务提供者负载均衡，instance-id可以不同，但这个值一定要一样，他表示一个独立的微服务应用。而且feign使用也是需要这个应用名称的。<br>剩下的就是mybatis和连接数据库了。<br>这个service提供者，我使用了新模块，并在新模块cloudservice里再新建的user-service模块,因此把依赖放到父模块cloudservice里。</p>
+<pre><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.fsats&lt;/groupId&gt;
+        &lt;artifactId&gt;user-api&lt;/artifactId&gt;
+        &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;2.0.1&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-jetty&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre><p>启动类的话只需要加上@EnableEurekaClient注解即可。</p>
+<p>服务提供者的主要内容就是，作为服务提供外部访问，然后把自己注册到服务注册中心去。</p>
+<p>在上面依赖里依赖了user-api，它是feign客户端，是服务消费者与服务提供者沟通的桥梁。<br>如果桥梁呢,首先这个api定义后，服务提供者和服务消费者都可以依赖他，提供者可以获取实体类，也可以在自己模块定义实体类。<br>先看一下UserFeignClient类</p>
+<pre><code>@FeignClient(value = &quot;SPRING-PROD&quot;)
+public interface UserFeignClient&#123;
+
+    @PostMapping(&quot;/user/add&quot;)
+    boolean add(@RequestBody User user);
+
+    @GetMapping(&quot;/user/&#123;id&#125;&quot;)
+    User get(@PathVariable(&quot;id&quot;) Long id);
+
+    @GetMapping(&quot;/user/list&quot;)
+    List&lt;User&gt; list();
+
+&#125;</code></pre><p>它就表示一个feign客户端,主要调用SPRING-PROD应用里的请求。<br>那么，逻辑明显了，服务消费者通过自己的请求，然后注入这个UserFeignClient类，便可以操作了。这个类的方法因为已经标识了应用名称，所以他会以webservice的方式和方法上定义的请求路径去请求这个地址。并把结果给服务消费者。<br>那么很显然，服务消费者是一定需要这个类的包的，但是如何知道这个feign，那就是通过另一个注解@EnableFeignClients扫描，在服务提供者类里扫描包含@FeignClient注解的方法,因为已经引入api这个包了，所以一定是扫描的上的，并且如果扫描上，直接被注入容器中。</p>
+<h2 id="服务消费者"><a href="#服务消费者" class="headerlink" title="服务消费者"></a>服务消费者</h2><p>服务消费者也属于服务，但可以不注册。<br>看一下yml</p>
+<pre><code>server:
+  port: 8001
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://root:root@localhost:7001/eureka
+    register-with-eureka: false
+
+info:
+  app.name: springcloud-test-8001
+  company.name: www.fsats.com
+  build.artifactId: $project.artifactId$
+  build.version: $project.version$</code></pre><p>register-with-eureka表示，不在注册中心注册自己，虽然这里已经定义了路径，但是是没有注册的。info后面的可以去掉，这个是服务的相关定义信息。</p>
+<p><strong>POM文件</strong></p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.fsats&lt;/groupId&gt;
+    &lt;artifactId&gt;user-api&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>接下来需要在启动类中标注@EnableFeignClients注解</p>
+<pre><code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+&#125;</code></pre><p>其中，basePackage表示扫描的注解基础路径,此处填写api模块的包名。</p>
+<pre><code>@RestController
+public class UserController &#123;
+
+    //@Autowired
+    private IUserClient iUserClient;
+
+    @PostMapping(&quot;/consumer/user/add&quot;)
+    public boolean add(User user)&#123;
+        return this.iUserClient.add(user);
+    &#125;
+
+    @GetMapping(&quot;/consumer/user/get/&#123;id&#125;&quot;)
+    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
+        return this.iUserClient.get(id);
+    &#125;
+
+    @GetMapping(&quot;/consumer/user/list&quot;)
+    public List&lt;User&gt; list(User user)&#123;
+        return this.iUserClient.list();
+    &#125;
+&#125;</code></pre><p>在Controller中，既然启动类上已经扫描feignClient了，这里也不需要@AutoWired注解也是可以请求的。<br>另外，这个PostMapping在postman使用里测试，不能在params里写参数并使用post提交，必须在Body里，选择raw，然后填写json格式数据才能正确提交。因为feignClient里定义了@RequestBody注解。</p>
+<p>包结构如下:</p>
+<p><img src="https://i.loli.net/2019/11/01/GkJfy9WDsbRLmZC.png" alt="TIM截图20191101131246.png"></p>
+<p>项目下载地址:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/71">https://nas.tsaving.cn/file/download/71</a></p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            SpringCloud项目基础搭建2
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">SpringCloud微服务快速学习零碎文档</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

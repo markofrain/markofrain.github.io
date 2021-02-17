@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    SpringCloud项目基础搭建2 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-SpringCloud/SpringCloud项目基础搭建2" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  SpringCloud项目基础搭建2
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/" class="article-date">
+  <time datetime="2019-11-03T09:01:49.000Z" itemprop="datePublished">2019-11-03</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">4.5k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">18分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>基本结构已经搭起来了,使用的是feign进行访问的。<br>接下来我们继续完善这个项目，做到更加的适用可靠。<br>项目均使用的yml配置文件，但是文章中使用properties的.符号来代替文章格式显示的问题。</p>
+<p>以下项目的配置，如果说出现报错的问题，也就是说最开始没问题，改了哪个不影响的地方却突然出问题。任何问题首先clean，重新package，在重新启动一下。看看有没有解决，如果开没有解决，就检查一下当前报错应用的配置文件，最后再去百度上搜。</p>
+<h2 id="配置服务的info信息"><a href="#配置服务的info信息" class="headerlink" title="配置服务的info信息"></a>配置服务的info信息</h2><p>服务的info信息可以再注册中心查看，可以描述说明当前服务主要是干什么的。访问服务即可进入一个json打开的页面。<br>我们来注册服务者的info信息,项目结构在上一篇已经有了。下面的依赖actuator可以直接放在cloudservice这个模块中就可以</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>然后再build元素里添加如下内容</p>
+<pre><code>&lt;build&gt;
+    &lt;finalName&gt;USER-SERVICE&lt;/finalName&gt;
+    &lt;resources&gt;
+        &lt;resource&gt;
+            &lt;directory&gt;src/main/resources&lt;/directory&gt;
+            &lt;filtering&gt;true&lt;/filtering&gt;
+        &lt;/resource&gt;
+    &lt;/resources&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;
+            &lt;configuration&gt;
+                &lt;delimiters&gt;
+                    &lt;delimit&gt;$&lt;/delimit&gt;
+                &lt;/delimiters&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></pre><p>最后,服务的info信息在application.yml里配置。</p>
+<pre><code>info:
+  app.name: USER-SERVICE-9001
+  company.name: www.fsats.com
+  build.artifactId: @project.artifactId@
+  build.version: @project.version@</code></pre><p>这里呢，其实应该是$符号不该是@,因为已经在pom中定义过了，但是总是个别问题出现，网上也有情况，这里也不描述为什么出现这总情况，不深究这些。</p>
+<p>默认呢,actuator会给我们两个接口,info和health分别表示应用信息和健康指标,还有一个单独的根节点访问。另外还有其他的访问节点，但是并没有默认对外暴露，在官方文档上都有，可以进行开启。</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/info">http://192.168.88.1:9001/actuator/info</a></li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/health">http://192.168.88.1:9001/actuator/health</a></li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator">http://192.168.88.1:9001/actuator</a></li>
+</ul>
+<p>文档<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。">https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。</a><br>我们在application.yml中输入management.endpoints.web就可以自动提示叫base-path的，他的路径默认值是/actuator，也就是访问的名称，是可以改的，然后引入端点的话是management.endpoints.web.exposure.include，它是一个数组，默认值就是info和health,我们可以依据文档上新增,如果要引入全部的话可以吧值写成 “*” ，注意包含双引号。然后访问actuator就可以显示了。</p>
+<p>如果想修改访问名称，也就是映射，可以设置path-mapping属性，他是一个map形式。</p>
+<p>哦对了，这个东西页面可以直接在eureka页面中点服务的名称就可以跳转到actuator页面了。其他的可以看官网和其他博客看。</p>
+<h2 id="注册实例名称的修改和左下角ip更改"><a href="#注册实例名称的修改和左下角ip更改" class="headerlink" title="注册实例名称的修改和左下角ip更改"></a>注册实例名称的修改和左下角ip更改</h2><p>注册实例id是唯一的通过eureka.instance.instance-id设置一个值。这样页面上就会变。然后你碰status后，左下角不是ip路径而是服务名称，要改成ip的话只需要配置eureka.instance.prefer-ip-address: true即可。</p>
+<h2 id="eureka服务实例的自我保护机制-了解"><a href="#eureka服务实例的自我保护机制-了解" class="headerlink" title="eureka服务实例的自我保护机制(了解)"></a>eureka服务实例的自我保护机制(了解)</h2><p>自我保护机制是应对注册进注册中心的服务的，当服务注册进后，服务会向注册中心发送特定消息(心跳)，eureka server会接收到,在一定时间内(默认90秒，可以修改)没有收到某个微服务的心跳，eureka server便会移除这个注册服务实例，而某些情况可能只是网络通信的原因导致心跳消息无法及时发送到，导致实例被移除，因此引入了自我保护机制，该微服务实例并不会移除。</p>
+<p>那自我保护机制是怎么个机制，如果接受的心跳在15分钟内低于应收总量的85%，那么这个实例就会处于保护状态，那么这个实例就不会过期。而如果收到的请求回到那个阙值，就会关闭保护机制。</p>
+<p>但如果开启了保护机制，万一请求到这个实例，那么就处于非正常的请求，可能是空的或者是错误请求。我们可以取消保护机制，那么在一定时间内该实例就会被下线，不会再注册中心中出现。</p>
+<p>eureka server关闭自我保护:eureka.server.enable-self-preservation: false<br>微服务注册客户端设置心跳:</p>
+<ul>
+<li>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态</li>
+<li>lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</li>
+</ul>
+<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>首先eureka是注册中心，所有服务都注册于此，但难免某个服务所在的服务器出现问题或网络出现问题，这样，当某用户在请求时，刚好将请求分配到这个服务实例去响应，然而却无法通信，可能就会出现无响应或者请求阻塞等问题。<br>这也是，如果eureka server的自我保护机制中如果出现了这种问题，那么请求不也有问题了么。</p>
+<p>因此就有负载均衡来解决这个问题，通常的单机应用程序，可以使用nginx，多台服务器启动多个程序，并使用nginx来进行负载均衡，属于集中式的。<br>而我们现在要说的Netflix Ribbon是进程式的，可以嵌入到消费者服务中，从注册中心中获取哪个服务地址有用，在选择适合的服务器请求</p>
+<p>因为Ribbon是嵌入到服务消费者中的，因此在eureka-consumer中配置<br>添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-ribbon&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>然后第二步时创建数据库,分别再创建cloud2和cloud3，用来表示另外两个userservice服务的各自的库，并把user表给建上。</p>
+<p>然后第三步是,新建模块userservice2和userservice3,将java下的包和resources下的mapper及application.yml拷贝一份。然后修改，端口号为9002和9002，修改instance-id的命名，修改数据库分别为cloud2和cloud3,修改info.app.name的名字。<br><strong>除了更改配置文件，其他的是完全一模一样的</strong>。</p>
+<p>然后就可以测试了，之前在单个服务的时候已经测试过了，cloud1里面也已经有数据了，然后当我们执行<a target="_blank" rel="noopener" href="http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。">http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。</a><br>我们看一下现在包的结构:</p>
+<p><img src="https://i.loli.net/2019/11/02/l4De82QVfRWxihN.png" alt="title"></p>
+<p>然后我们说一下负载均衡的策略，默认的轮询模式已经知道是怎么个形式了。拿一个表，列出其他的模式</p>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RoundRobinRule</td>
+<td>轮询,按照定义顺序一次循环访问</td>
+</tr>
+<tr>
+<td>RandomRule</td>
+<td>随机进行访问</td>
+</tr>
+<tr>
+<td>AvailabilityFilteringRule</td>
+<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问</td>
+</tr>
+<tr>
+<td>WeightedResponseTimeRule</td>
+<td>根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule</td>
+</tr>
+<tr>
+<td>RetryRule</td>
+<td>先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务</td>
+</tr>
+<tr>
+<td>BestAvailableRule</td>
+<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务</td>
+</tr>
+<tr>
+<td>ZoneAvoidanceRule</td>
+<td>复合判断server所在区域的性能和server的可用性选择服务器</td>
+</tr>
+</tbody></table>
+<p>如果要修改默认的策略，只需要注入对应的Bean就好了。处于cfg包里</p>
+<pre><code>@Configuration
+public class MyConfiguration &#123;
+
+    @Bean
+    public IRule myRule()&#123;
+        return new RandomRule();
+    &#125;
+&#125;</code></pre><p>当然这是对当前应用所有请求都是用这个规则，如果你的这个消费者模块想要处理两个模块的请求，可以分开处理请求规则。你可以在启动类上标注注解</p>
+<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
+@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+&#125;</code></pre><p>这个注解使用的是应对单个模块SPRING-PROD，configuration属性就是规则类。如果因为业务需要这个应用程序处理两个模块的业务，那么么可以使用@RibbonClients注解。另外，在注解上标注的和通用配置的不能重复。否则会报错说找到两个匹配的规则。</p>
+<p><strong>自定义规则</strong><br>自定义规则也是在configuration中配置，可以继承AbstractLoadBalancerRule类来配置规则。<br>我们在cfg包里创建MyRule类</p>
+<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
+
+    @Override
+    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
+
+    &#125;
+
+    private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次
+    private int currentIndex = 0;    // 当前提供服务的机器号
+
+    public Server choose(ILoadBalancer lb, Object key) &#123;
+        if (lb == null) &#123;
+            return null;
+        &#125;
+        Server server = null;
+
+        while (server == null) &#123;
+            if (Thread.interrupted()) &#123;
+                return null;
+            &#125;
+            List&lt;Server&gt; upList = lb.getReachableServers();
+            List&lt;Server&gt; allList = lb.getAllServers();
+
+            int serverCount = allList.size();
+            if (serverCount == 0) &#123;
+                return null;
+            &#125;
+            if (total &lt; 5) &#123;
+                server = upList.get(currentIndex);
+                total++;
+            &#125; else &#123;
+                total = 0;
+                currentIndex++;
+                if (currentIndex &gt;= upList.size()) &#123;
+                    currentIndex = 0;
+                &#125;
+            &#125;
+            if (server == null) &#123;
+                Thread.yield();
+                continue;
+            &#125;
+            if (server.isAlive()) &#123;
+                return (server);
+            &#125;
+            server = null;
+            Thread.yield();
+        &#125;
+
+        return server;
+
+    &#125;
+
+    @Override
+    public Server choose(Object o) &#123;
+        return choose(getLoadBalancer(),o);
+    &#125;
+&#125;</code></pre><p>该类定义规则是每个服务都请求5次后再请求下一个服务。然后更改MyConfiguration的注入的规则Bean，注入MyRule。然后修改注解上的配置类MyConfiguration.class,或者直接把MyRule.class写在configuration属性上。</p>
+<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>服务器负载均衡的策略已经说好了，那如果程序出现异常错误，请求超时等等其他问题该怎么办，如果特殊原因把某个服务停了，而刚好请求到这里该怎么办。<br>断路器，字面意思就如电路保险丝一样。<br>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</p>
+<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>如果执行一个方法报错了，怎么办，我们来模拟一下:<br>在consumer添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>在UserController中添加方法,请求路径get改为getn,然后添加注解，配置fallbackMethod为某个方法名称</p>
+<pre><code>@HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
+@GetMapping(&quot;/consumer/user/getn/&#123;id&#125;&quot;)
+public User getWithNull(@PathVariable(&quot;id&quot;) Long id)&#123;
+    User user = iUserClient.get(id);
+    if (user==null)&#123;
+        throw new RuntimeException();
+    &#125;
+    return user;
+&#125;
+
+public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
+    return new User().setId((long) 0).setName(&quot;没有找到记录&quot;).setAge((long) 21);
+&#125;</code></pre><p>然后给consumer启动类添加@EnableCircuitBreaker注解。即可测试，发现如果数据入库请求请求到cloud2或cloud3，就会获取null，然后抛出异常，就执行requestErrorGet方法了。</p>
+<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。<br>所以服务降级的配置在api模块上，api模块要请求服务提供者，但服务提供者挂了。那么这个就会被触发。但是如果同时配置服务熔断，那么会先执行服务熔断@HystrixCommand注解上的fallbackMethod。因此这里我们先把这个注解注释掉。</p>
+<p>配置api模块,在feign包同级创建fallback包，创建类</p>
+<pre><code>@Component
+public class UserClientFallbackFactory implements FallbackFactory&lt;IUserClient&gt; &#123;
+    @Override
+    public IUserClient create(Throwable throwable) &#123;
+        return new IUserClient() &#123;
+            @Override
+            public boolean add(User user) &#123;
+                return false;
+            &#125;
+
+            @Override
+            public User get(Long id) &#123;
+                return new User().setId((long) 0).setName(&quot;服务降级&quot;).setAge((long) 0);
+            &#125;
+
+            @Override
+            public List&lt;User&gt; list() &#123;
+                return new ArrayList&lt;&gt;();
+            &#125;
+        &#125;;
+    &#125;
+&#125;</code></pre><p>然后再feign中IUserClient接口类上的@FeighClient注解上新增属性fallbackFactory,然后现在是这样的@FeignClient(value = “SPRING-PROD”,fallbackFactory = UserClientFallbackFactory.class)<br>最后在consumer上加上配置，开启feign和Hystrix，feign.hystrix.enabled:true</p>
+<p>接下来测试，首先把consumer的@HystrixCommand注解注释掉，这个会在服务降级之前处理。/consumer/user/getn/1<br>我们只启动ecurekaServer和consumer来测试，服务提供者均不启动，当我们请求get的时候，因为api那请求服务提供者不了啊，所以就进入那个类的方法里，打印了服务降级的信息。<br>那我们此时再启动三个服务提供者，会发现有时候有结果，有时候报错，因为cloud1有数据，而且服务熔断的注释被注掉了，所以请求到另两个的时候会报错。<br>现在，再停止consumer，把@HystrixCommand服务熔断注释解开，在重新启动，再请求发现，有的是返回正确信息，有的返回没有记录(cloud2，cloud3)。</p>
+<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
+<p>我们为三个userservice添加依赖，可以放在父pom里</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>然后为各自启动类添加@EnableHystrixDashboard注解<br>因2.0版本情况原因，还需要在userservice中配置一段代码,才能访问</p>
+<pre><code>@Configuration
+public class MyConfiguration &#123;
+
+    @Bean
+    public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
+        ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
+        registration.addUrlMappings(&quot;/hystrix.stream&quot;);
+        return registration;
+    &#125;
+&#125;</code></pre><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
+<p>不过奇怪的是，一直loding中，没有图像显示,因为他必须要在经过请求的方法上添加@HystrixCommand注解来监控，因此需要在userservice的UserController的方法上添加此注解。然后再多次请求就有结果了。</p>
+<p>不过更奇怪的是，再服务熔断的时候不是配置在consumer中了么。可见好像配置的位置不怎么正确，不过功能依据注解，还是可以使用的。<br>但是，我们尝试把consumer的服务熔断给取消掉，然后由userservice来处理服务熔断这个问题，发现，是没有问题的。可以放在userservice中，那么这个监控的问题就顺理成章了。</p>
+<p>此时我们的consumer就还是feign和ribbon负载均衡了。而uservice则承载着服务熔断和服务监控，而api依旧是负责服务降级的问题。</p>
+<p>我列一下userservice的UserController和启动类</p>
+<pre><code>@RestController
+public class UserController &#123;
+
+    @Autowired
+    private UserService userService;
+
+    @ResponseBody
+    @PostMapping(&quot;/user/add&quot;)
+    public boolean add(@RequestBody User user)&#123;
+        return userService.add(user);
+    &#125;
+    @HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
+    @ResponseBody
+    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
+    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
+        User user = userService.get(id);
+        if (user==null)&#123;
+            throw  new RuntimeException();
+        &#125;
+        return user;
+    &#125;
+
+    @ResponseBody
+    @GetMapping(&quot;/user/list&quot;)
+    public List&lt;User&gt; list()&#123;
+        return userService.list();
+    &#125;
+
+    public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
+        return new User().setAge((long) 0).setName(&quot;Asd&quot;).setId((long) 0);
+    &#125;
+&#125;
+
+@EnableCircuitBreaker
+@EnableHystrixDashboard
+@EnableEurekaClient
+@SpringBootApplication
+public class UserServiceApplication &#123;
+    public static void main(String[] args) &#123;
+        SpringApplication.run(UserServiceApplication.class,args);
+    &#125;
+&#125;</code></pre><p>application.yml是没变的，pom是父pom添加的依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>consumer的启动类</p>
+<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
+@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+
+&#125;</code></pre><p>项目下载:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/72">https://nas.tsaving.cn/file/download/72</a></p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2019/12/07/Hadoop/%E8%B6%85%E7%AE%80%E5%8D%95%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8Fhadoop/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            超简单基础搭建分布式hadoop
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">SpringCloud项目基础搭建1</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

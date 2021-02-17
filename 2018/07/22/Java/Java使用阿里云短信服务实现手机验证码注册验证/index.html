@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Java使用阿里云短信服务实现手机验证码注册验证 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Java/Java使用阿里云短信服务实现手机验证码注册验证" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Java使用阿里云短信服务实现手机验证码注册验证
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/22/Java/Java%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91%E7%9F%AD%E4%BF%A1%E6%9C%8D%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%89%8B%E6%9C%BA%E9%AA%8C%E8%AF%81%E7%A0%81%E6%B3%A8%E5%86%8C%E9%AA%8C%E8%AF%81/" class="article-date">
+  <time datetime="2018-07-22T08:42:03.000Z" itemprop="datePublished">2018-07-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.4k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="java使用阿里云短信服务发送短信验证"><a href="#java使用阿里云短信服务发送短信验证" class="headerlink" title="java使用阿里云短信服务发送短信验证"></a>java使用阿里云短信服务发送短信验证</h2><h3 id="查看短信服务API文档"><a href="#查看短信服务API文档" class="headerlink" title="查看短信服务API文档"></a>查看短信服务API文档</h3><p><a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/55284.html?spm=a2c4g.11186623.6.557.e5v3e6">Java API文档</a></p>
+<h3 id="阿里账号短信服务方面设置"><a href="#阿里账号短信服务方面设置" class="headerlink" title="阿里账号短信服务方面设置"></a>阿里账号短信服务方面设置</h3><ol>
+<li>创建阿里云账号</li>
+<li>开通短信服务，之后获取访问密钥，AccessKeyId和AccessKeySecret，通过添加子账号并赋予短信操作权限，或直接在之前的子账户中添加短信操作权限。创建用户的时候会给你一个密钥</li>
+<li>在短信控制台添加短信签名和短信模板，审核时间最多再两个小时以内，短信模板选择验证码</li>
+<li>短信模板的id和短信签名的名称需要在代码中用到</li>
+</ol>
+<h3 id="java操作短信发送"><a href="#java操作短信发送" class="headerlink" title="java操作短信发送"></a>java操作短信发送</h3><ol>
+<li><p>添加maven依赖包</p>
+<dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20160810</version>
+    </dependency>
+    <dependency>
+      <groupId>com.aliyun</groupId>
+      <artifactId>aliyun-java-sdk-core</artifactId>
+      <version>3.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.aliyun</groupId>
+      <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+
+
+</li>
+</ol>
+<p>这是阿里云短信服务所需要的必要包，其他项目测试需要用的框架包自己添加。</p>
+<ol start="2">
+<li><p>添加API文档中的样例程序</p>
+<p>//设置超时时间-可自行调整<br>System.setProperty(“sun.net.client.defaultConnectTimeout”, “10000”);<br>System.setProperty(“sun.net.client.defaultReadTimeout”, “10000”);<br>//初始化ascClient需要的几个参数<br>final String product = “Dysmsapi”;//短信API产品名称（短信产品名固定，无需修改）<br>final String domain = “dysmsapi.aliyuncs.com”;//短信API产品域名（接口地址固定，无需修改）<br>//替换成你的AK<br>final String accessKeyId = “yourAccessKeyId”;//你的accessKeyId,参考本文档步骤2<br>final String accessKeySecret = “yourAccessKeySecret”;//你的accessKeySecret，参考本文档步骤2<br>//初始化ascClient,暂时不支持多region（请勿修改）<br>IClientProfile profile = DefaultProfile.getProfile(“cn-hangzhou”, accessKeyId,<br>accessKeySecret);<br>DefaultProfile.addEndpoint(“cn-hangzhou”, “cn-hangzhou”, product, domain);<br>IAcsClient acsClient = new DefaultAcsClient(profile);<br> //组装请求对象<br> SendSmsRequest request = new SendSmsRequest();<br> //使用post提交<br> request.setMethod(MethodType.POST);<br> //必填:待发送手机号。支持以逗号分隔的形式进行批量调用，批量上限为1000个手机号码,批量调用相对于单条调用及时性稍有延迟,验证码类型的短信推荐使用单条调用的方式；发送国际/港澳台消息时，接收号码格式为00+国际区号+号码，如“0085200000000”<br> request.setPhoneNumbers(“1500000000”);<br> //必填:短信签名-可在短信控制台中找到<br> request.setSignName(“云通信”);<br> //必填:短信模板-可在短信控制台中找到<br> request.setTemplateCode(“SMS_1000000”);<br> //可选:模板中的变量替换JSON串,如模板内容为”亲爱的${name},您的验证码为${code}”时,此处的值为<br> //友情提示:如果JSON中需要带换行符,请参照标准的JSON协议对换行符的要求,比如短信内容中包含\r\n的情况在JSON中需要表示成\r\n,否则会导致JSON在服务端解析失败<br> request.setTemplateParam(“{&quot;name&quot;:&quot;Tom&quot;, &quot;code&quot;:&quot;123&quot;}”);<br> //可选-上行短信扩展码(扩展码字段控制在7位或以下，无特殊需求用户请忽略此字段)<br> //request.setSmsUpExtendCode(“90997”);<br> //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者<br> //request.setOutId(“yourOutId”);<br>//请求失败这里会抛ClientException异常<br>SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);<br>if(sendSmsResponse.getCode() != null &amp;&amp; sendSmsResponse.getCode().equals(“OK”)) {<br>//请求成功<br>}</p>
+</li>
+<li><p>只需修改密钥所用的两个属性；</p>
+</li>
+<li><p>setPhoneNumbers方法，值为注册手机号码；</p>
+</li>
+<li><p>短信模板id和短信签名名称；</p>
+</li>
+<li><p>模板参数：填写模板时，${code}就是参数，可以自行添加</p>
+</li>
+</ol>
+<p>最后sendSmsResponse对象的getCode方法可以活的响应码，返回OK码即发送成功。 SendSmsRequest对象即请求对象，其设置的参数，就包含上面的四个属性，详细的有 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180722160432.png" alt="入参列表"> SendSmsResponse对象即响应对象，其属性如下 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180722160500.png" alt="出参列表"></p>
+<h3 id="前后台页面设置"><a href="#前后台页面设置" class="headerlink" title="前后台页面设置"></a>前后台页面设置</h3><h4 id="前台设置"><a href="#前台设置" class="headerlink" title="前台设置"></a>前台设置</h4><p>添加form表单，添加phone，checkcode文本框和button表单按钮 步骤: 当点击该按钮时，获得电话号码，并发送ajax请求，后台通过phone执行消息发送，这边前台将执行success函数，在其中设置timer函数计时。 注:如下情况都没有写出，只是测试一个短信发送。将在之后写出详细的代码 1. 电话号码验证，用户名验证等没有写； 2. 后台随机验证码没有写，可通过一个表来解决,以避免session域数据过多导致压力增大 3. 后台的验证码有效时间，就可以通过表解决，一个号码对相应一个验证码和一个时间，如若超过有效期，则无法注册,重新发送 4. 验证码失效，后台传递信息提示前台 5. 单击注册按钮前，进行ajax验证 验证码，不过不对则，拒绝注册请求 <strong>代码:</strong></p>
+<pre><code>$(function()&#123;
+    var curcount = 0;
+    var intervalTimer = null;
+    $(&quot;input[type=button]&quot;).click(function()&#123;
+        var phone = $(&quot;input[name=phone]&quot;).val();
+        $.post(&quot;check&quot;,&#123;phone:phone&#125;,function(data)&#123;
+            if(data==&quot;true&quot;)&#123;
+                curcount= 60;
+                //设置按钮禁用
+                $(&quot;input[type=button]&quot;).attr(&quot;disabled&quot;,&quot;disabled&quot;);
+                //循环回调函数，每一秒均设置按钮显示的秒数
+                intervalTimer = window.setInterval(function()&#123;
+                    $(&quot;#send&quot;).val(&quot;请&quot;+curcount+&quot;后重新发送&quot;);
+                    curcount = curcount-1;
+                    timer(curcount);//每次循环，每次调用判断
+                &#125;,1000);
+            &#125;
+        &#125;);
+    &#125;);
+    //计时判断，当读秒为0时，恢复按钮可用
+    function timer(curcount)&#123;
+        if(curcount==0)&#123;
+            window.clearInterval(intervalTimer);// 停止计时器
+            $(&quot;input[type=button]&quot;).removeAttr(&quot;disabled&quot;);// 启用按钮
+            $(&quot;input[type=button]&quot;).val(&quot;发送验证码&quot;);
+        &#125;
+    &#125;
+
+&#125;);</code></pre><h4 id="后台设置"><a href="#后台设置" class="headerlink" title="后台设置"></a>后台设置</h4><p>如果使用的时Spring MVC框架，则在方法上添加@ResponseBody注解，返回一个值或json字符串，注意添加了Gson的json包。 后台代码就是上面的代码，修改一下信息，方法就是普通的ajax请求方法。 之后完整的代码在后面写出来。 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/dysmsapi.zip">目前代码示例</a> 项目使用IDEA+Maven</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/07/22/Java/Java%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91%E7%9F%AD%E4%BF%A1%E6%9C%8D%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%89%8B%E6%9C%BA%E9%AA%8C%E8%AF%81%E7%A0%81%E6%B3%A8%E5%86%8C%E9%AA%8C%E8%AF%81/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E9%87%8A%E4%B9%89/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Jeesite开源项目SSM基础搭建——系统管理释义
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/07/07/Java/JAXB%E2%80%94%E2%80%94%E4%BB%8EJava%E5%AF%B9%E8%B1%A1%E5%88%B0XML%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">JAXB——从Java对象到XML的序列化和反序列化</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

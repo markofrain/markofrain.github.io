@@ -1,0 +1,783 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Ubuntu18.04虚拟机互通之后该做的配置 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Linux/Ubuntu18.04虚拟机互通之后该做的配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Ubuntu18.04虚拟机互通之后该做的配置
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2018-09-22T15:21:47.000Z" itemprop="datePublished">2018-09-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.3k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="安装ssh-openssh-server-vsftpd"><a href="#安装ssh-openssh-server-vsftpd" class="headerlink" title="安装ssh,openssh-server,vsftpd"></a>安装ssh,openssh-server,vsftpd</h2><ol>
+<li><p>设置root密码</p>
+<p>sudo passwd root<br>提示输入当前主机密码<br>输入root新密码<br>再次输入root新密码</p>
+</li>
+</ol>
+<p>一共输入3次密码。</p>
+<ol start="2">
+<li>关于apt锁怎么怎么，无法获得锁，无法对状态列表目录加锁 问题?</li>
+</ol>
+<p>首先看是否说让root用户执行，然后如果行不通，则使用命令把锁删掉</p>
+<pre><code>如/var/lib/dpkg/lock     //这个lock就是一个锁文件
+
+rm -r /var/lib/dpkg/lock        //把它删了
+
+如果还有类似 /var/cache/apt/archive/lock  //同样把lock文件删了</code></pre><ol start="3">
+<li><p>安装ssh</p>
+<p>sudo apt install ssh</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>安装openssh-server</p>
+<p>sudo apt install openssh-server</p>
+</li>
+</ol>
+<p>如果安装之后连接xshell时，总是说密码不对,则设置</p>
+<pre><code>sudo vi /etc/ssh/sshd_config
+
+找到第32行左右的PermitRootLogin ，把它后面的字符串删了，改成yes，然后去掉前面的#符号
+
+/etc/init.d/ssh restart //重启服务</code></pre><ol start="5">
+<li><p>安装vsftpd</p>
+<p>sudo apt install vsftpd</p>
+</li>
+</ol>
+<p>修改配置文件</p>
+<pre><code>sudo vi /etc/vsftpd.conf
+
+把write_enable=YES前的#符号去掉</code></pre><p>修改ftpusers文件</p>
+<pre><code>sudo vi /etc/ftpusers
+
+再root前添加#//注释root
+
+service vsftpd restart  //最后修改完成过后重启服务</code></pre><h2 id="修改hosts文件"><a href="#修改hosts文件" class="headerlink" title="修改hosts文件"></a>修改hosts文件</h2><pre><code>sudo vi /etc/hosts
+
+在ip     主机名对应行下添加当前主机的静态ip和主机名，以及从主机slave的静态ip和主机名
+
+192.168.135.100     master
+192.168.135.101     slave1</code></pre><p>尝试master中ping slave1,slave1中ping master</p>
+<h2 id="实现ssh免密登陆"><a href="#实现ssh免密登陆" class="headerlink" title="实现ssh免密登陆"></a>实现ssh免密登陆</h2><ol>
+<li><p>master安装ssh</p>
+<p>apt install ssh</p>
+</li>
+</ol>
+<p>2.实现免密命令</p>
+<pre><code>root@master:/home/master# **ssh-keygen -t rsa**
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):    //enter
+Created directory &apos;/root/.ssh&apos;.
+Enter passphrase (empty for no passphrase):                 //enter
+Enter same passphrase again:                                //enter
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:7SXnZWtdsmdD5bze0HGjuN80zBV8jw0mvKosdqEphWU root@master
+The key&apos;s randomart image is:
++---[RSA 2048]----+
+|                 |
+|           .  .  |
+|            o ooo|
+|      E  .   + *=|
+|     +  S o + =+O|
+|    . . .. *.o=*B|
+|     . o .o...=B=|
+|    . =...  ..+++|
+|     o oo  ... o.|
++----[SHA256]-----+</code></pre><p>输入3次回车。随后.ssh文件夹中生成两个文件id_rsa id_rsa.pub</p>
+<ol start="3">
+<li><p>拷贝公钥</p>
+<p>cat id_rsa.pub &gt;&gt; authorized_keys   //拷贝文件<br>chmod 600 authorized_keys    —-修改文件权限可读写,必需要设置</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>slave中ssh localhost测试，如果成功会在home下出现.ssh文件夹</p>
+</li>
+<li><p>将master的公钥传输到所有的slave上，实现无密码登录</p>
+</li>
+</ol>
+<pre><code>scp authorized_keys root@slave1:~/.ssh/</code></pre><p>完成后master尝试连接slave，ssh slave直接登录。</p>
+<h2 id="jdk和hadoop环境安装"><a href="#jdk和hadoop环境安装" class="headerlink" title="jdk和hadoop环境安装"></a>jdk和hadoop环境安装</h2><ol>
+<li><p>jdk安装</p>
+<p>tar -zxf jdkxxxxxxxxx.tar.gz    //解压包</p>
+<p>vim etc/profile     /编辑配置环境变量</p>
+<p>export JAVA_HOME=你的jdk路径<br>export PATH=$JAVA_HOME/bin:$PATH</p>
+<p>source /etc/profile     //编辑完成后，执行命令，刷新文件环境变量<br>java -version   //jdk安装测试</p>
+</li>
+</ol>
+<ol start="2">
+<li><p>hadoop安装</p>
+<p>tar -zxf hadoop包        //解压包</p>
+<p>cd hadoop/etc/hadoop        //进入hadoop配置目录</p>
+<p>vi hadoop-env.sh            //编辑文件</p>
+<p>export JAVA_HOME=/root/app/jdk      //设置你的jdk目录</p>
+<p>export HADOOP_CONF_DIR=/root/app/hadoop/etc/hadoop  //设置你的hadoop的配置文件目录，就在hadoop安装目录的etc下的hadoop下</p>
+</li>
+</ol>
+<p>环境变量</p>
+<pre><code>vi /etc/profile
+
+export HADOOP_HOME=/root/app/hadoop
+export PATH=$HADOOP_HOME/bin:$PATH
+
+source /etc/profile</code></pre><h2 id="伪分布式搭建"><a href="#伪分布式搭建" class="headerlink" title="伪分布式搭建"></a>伪分布式搭建</h2><ol>
+<li><p>配置etc/hadoop下的core-site.xml</p>
+<property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://master:9000</value>   //hdfs必须配置的
+</property>
+<property>
+    <name>hadoop.tmp.dir</name>
+    <value>/root/app/hadoop/tmp</value>     //临时文件存储目录，默认在/tmp/hadoop-${user.name}
+</property>
+
+
+</li>
+</ol>
+<p>注意路径不要写错</p>
+<ol start="2">
+<li><p>hdfs-site.xml</p>
+<property>
+    <name>dfs.replication</name>
+    <value>1</value>    //设置副本的个数，该案例为为分布式只有一台机器
+</property>
+
+
+</li>
+</ol>
+<ol start="3">
+<li>启动hdfs</li>
+</ol>
+<p>hdfs命令，前提是你已经在环境变量配置了hadoop/bin，可能你还需要配置一下sbin</p>
+<pre><code>hdfs namenode -format   //首次启动格式化，仅第一次，将会格式化hdfs
+
+sbin/start-dfs.sh       //启动NameNode守护程序和DataNode守护程序
+或
+sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
+sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
+
+
+jsp     //查看守护进程</code></pre><p>hadoop守护程序日志输出将写入$ HADOOP_LOG_DIR目录（默认为$ HADOOP_HOME / logs）。 不报错后，访问http://{hostname|静态ip}:<strong>50070</strong>/ ,此处localhost改成自己的ip或hostname 如果启动后访问不成功，或出现信息，stop什么之类的，则擦好看logs下的日志${hadoop_home}/logs/hadoop-{username}-namenode-master.log</p>
+<ol start="3">
+<li><p>常用的日志查看</p>
+<p>hadoop-{username}-datanode-{hostname}.log<br>hadoop-{username}-datanode-{hostname}.out<br>hadoop-{username}-namenode-{hostname}.log<br>hadoop-{username}-namenode-{hostname}.out</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>hdfs操作</p>
+<p>hdfs dfs -mkdir /input      //创建一个文件夹，在/目录下名称为input,多级目录加-p参数</p>
+<p>hdfs dfs -put ~/testhello.txt /input    //上传一个testhello.txt到input文件夹下,前提是有这个文件,并且此文件有数据，用于计算每个单词的数量</p>
+<p>hdfs dfs -ls /input //查看目录</p>
+<p>hdfs dfs -cat /input/testhello.txt  //查看文件</p>
+</li>
+</ol>
+<ol start="5">
+<li><p>运行mapreduce的wordcount</p>
+<p>hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar wordcount /input /output<br>//  /input为输入的目录，下面有一个testhello.txt,/output为输出目录，为执行结果，此文件不能先创建。随后/output下生成两个文件，一个是_SUCCESS和part-r-00000</p>
+<p>dhfs dfs -cat /output/part-r-00000  //查看结果，可能每个生成的part都不一样</p>
+</li>
+</ol>
+<ol start="6">
+<li><p>常用命令</p>
+<p>-mkdir  hdfs dfs -mkdir /input<br>-put    hdfs dfs -put ~/testhello.txt /input<br>-ls     hdfs dfs -ls /output                    //  -lsr表示递归<br>-cat    hdfs dfs -cat /output/part-r-00000<br>-get    hdfs dfs -get /output/part-r-00000 ./       //将dfs中的文件下载到本地文件夹下<br>-rm     hdfs dfs -rm /input/testhello.txt       //  -rmr表示递归删除</p>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/09/23/Hadoop/yarn%E8%BF%90%E8%A1%8Cmapreduce%20examples%E7%A4%BA%E4%BE%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            yarn运行mapreduce examples示例
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/09/21/Vue/Vue2.0%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A8%A1%E5%9D%97/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Vue2.0项目结构与模块</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

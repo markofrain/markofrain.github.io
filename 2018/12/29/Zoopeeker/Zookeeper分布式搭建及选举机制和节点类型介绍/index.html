@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Zookeeper分布式搭建及选举机制和节点类型介绍 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Zookeeper分布式搭建及选举机制和节点类型介绍
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-date">
+  <time datetime="2018-12-28T16:17:59.000Z" itemprop="datePublished">2018-12-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.4k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="Zookeeper分布式搭建"><a href="#Zookeeper分布式搭建" class="headerlink" title="Zookeeper分布式搭建"></a>Zookeeper分布式搭建</h2><ol>
+<li><p>到<a target="_blank" rel="noopener" href="https://archive.apache.org/dist/zookeeper/">apache zookeeper归档</a>处下载tar包。</p>
+</li>
+<li><p>将包分别拷贝到各自的user下,使用tar -zxf zookeeper-x.x.x.tar.gz解压。注意解压后的目录需要是当前用户组当前用户。传递tar包时使用当前用户登录ftp远程。</p>
+</li>
+<li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
+<pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
+</ol>
+<ol start="4">
+<li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
+<pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
+</ol>
+<ol start="5">
+<li><p>在对应zookeeper目录下创建zkData目录即可</p>
+</li>
+<li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
+<pre><code>bin/zkServer.sh start //启动
+jps //查看jps进程
+bin/zkServer.sh satus //状态
+bin/zkServer.sh stop //停止</code></pre></li>
+</ol>
+<ol start="7">
+<li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
+<pre><code>server.1=192.168.56.11:2888:3888
+server.2=192.168.56.11:2888:3888
+server.3=192.168.56.11:2888:3888</code></pre></li>
+</ol>
+<pre><code>这是三台机子的配置。那么其格式为server.A=B:C:D。
+*   A是一个数字，表示机器的序号，是唯一的，标识着某台机子，这个值要在myid文件中指定，myid文件要放在zkData目录下。
+*   B是服务器地址，可以是IP，也可以是主机名(需要配置host)。
+*   C是这个服务器与集群中的Leader服务器交换数据信息的结构。
+*   D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。
+*   就把这个拷贝到每个机子的zoo.cfg中，把IP地址改一下，机子序号按顺序不重复即可。</code></pre><ol start="8">
+<li><p>在集群模式下的而这个myid文件标识一个机子，Zookeeper启动时读取此文件，拿到里面的数据与zoo.cfg配置信息比较而判断到底是哪个server。那么在zkData下创建myid文件，使用vi或vim命令来编辑</p>
+<pre><code>cd zkData
+touch myid
+vim myid
+对应的机子添加1或2或3就好</code></pre></li>
+</ol>
+<ol start="9">
+<li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
+<pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+ubuntu1@ubuntu1:~/zookeeper$ **jps**
+7522 Jps
+7498 QuorumPeerMain
+ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh status**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Error contacting service. It is probably not running.</code></pre></li>
+</ol>
+<pre><code>可以看到在查看status状态时，说Error contacting service.It is probably not running.此时并不是错误。在单机时可以正常运行。此处因为集群原因，在选举还没选举完成时，就会启动而不运行。当启动第二台机子时
+
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh start**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Starting zookeeper ... STARTED
+    ubuntu2@ubuntu2:~/zookeeper$ **jps**
+    24704 Jps
+    24652 QuorumPeerMain
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh status**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Mode: leader
+
+
+此时，发现Model:leader,这时，选举机制就完毕了，Leader已经选举出来。此时再看机子1的status状态，已经变成Mode:follower。当然这是随机投票的。启动第三台机子时，状态也是mode:follower. OK，这样三台机子都启动起来了。</code></pre><h2 id="Zookeeper选举机制说明"><a href="#Zookeeper选举机制说明" class="headerlink" title="Zookeeper选举机制说明"></a>Zookeeper选举机制说明</h2><p>选举很简单，<strong>每机一票，当某台机子得票数超过总数的一半以上时即可当选leader，必须一半以上</strong>。 机子的id最大则被投票率最高，若1-5台机子都是最新启动的，没有任何历史数据，按顺序进行启动。 服务器1开始启动，只有当前一台机器启动，则处于Looking状态，没有任何选举结果。等待其他机子启动。 服务器2开始启动，互相交换选举结果，由于两者都没有历史数据,所以id大的胜出，但依然不大于总数的一半，所以依然Looking状态 服务器3开始启动，若有三票投给某个机器，则成为Leader，其他机器状态变为follower。 服务器4，5，<strong>虽然id大，但leader已经被选举出来，所以只能作为follower</strong>.</p>
+<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>节点时客户端连接服务器的标识，因为实际集群操作，所以在任意一个机器上操作，其他机器都能看到。 节点有两种类型:</p>
+<ul>
+<li>持久型:客户端和服务器断开连接后，创建的节点不删除</li>
+<li>暂时型:客户端和服务器断开连接后，创建的节点被删除</li>
+</ul>
+<p>节点有四种目录形式的节点:</p>
+<ul>
+<li>持久化目录节点:客户端断开后这个节点依然存在</li>
+<li>持久化顺序编号目录节点:客户端断开后这个节点依然存在，只是<strong>给该节点名称进行顺序编号</strong>。</li>
+<li>临时目录节点:客户端点开后节点被删除</li>
+<li>临时顺序编号目录节点:客户端断开连接后，节点被删除，只是Zookeeper会给该节点进行顺序编号。</li>
+</ul>
+<p>顺序号时单调的递增，由父节点进行维护 在分布式系统中，顺序号可以被用于为所有的事件进行全局排序，这样客户端可以通过顺序号推断事件的顺序。 关于节点的创建在下一节说明，会自然的了解节点的持久和暂时型。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            zookeeper客户端的使用
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/12/27/Java/%E8%AE%B0%E5%BD%95%E5%B7%A5%E4%BD%9C%E4%B8%AD%E6%9F%90%E4%BA%9B%E8%A1%A8%E7%9A%84%E6%9F%90%E4%BA%9B%E5%AD%97%E6%AE%B5%E4%B8%BA%E7%A9%BA%E7%9A%84%E6%95%B0%E9%87%8F%E5%B9%B6%E6%8C%89%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%BD%A2%E6%88%90excel%E8%A1%A8%E6%A0%BC/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">记录工作中某些表的某些字段为空的数量并按行政区形成excel表格</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

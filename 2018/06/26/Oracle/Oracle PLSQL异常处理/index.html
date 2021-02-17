@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Oracle PL/SQL异常处理 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Oracle/Oracle PLSQL异常处理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Oracle PL/SQL异常处理
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="article-date">
+  <time datetime="2018-06-26T13:59:17.000Z" itemprop="datePublished">2018-06-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.4k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="PL-SQL异常"><a href="#PL-SQL异常" class="headerlink" title="PL/SQL异常"></a>PL/SQL异常</h3><p>PL/SQL运行过程中可能出现错误，有程序本身原因或者来自法开发人员自定义的数据，而所有的这些错误我们称为异常。 为了使程序更具有健壮性，需要捕获这些异常并进行处理。当异常发生时，程序会调到异常块处，将控制权限交给异常处理程序。 例如一个数除以0时，会导致异常发生，并提示出错误号。而除以0的异常属于Oracle内部定义异常。 <strong>处理异常的语法:</strong></p>
+<pre><code>EXCEPTION
+    WHEN exception1 [OR exception2...] THEN
+        statement...
+    WHEN exception3 [OR exception4...] THEN
+        statement...
+    [WHEN OTHERS THEN statement..]</code></pre><p><strong>语法解释:</strong></p>
+<ul>
+<li>EXCEPTION表示异常块的关键字</li>
+<li>WHEN exception THEN则是用来匹配异常名称，并执行对应的语句</li>
+<li>WHEN OTHERS THEN则表示当其他异常都不匹配时，执行对应的语句</li>
+</ul>
+<p>这个异常代码放在那，在最开始PL/SQL结构中就写了,加上EXCEPTION,通常就是这样的:</p>
+<pre><code>DECLARE
+BEGIN
+EXECEPTION
+END;</code></pre><p>Oracle中的异常分为三类:</p>
+<ul>
+<li>预定义异常</li>
+<li>非预定义异常(官网的说法是<strong>内部定义异常</strong>)</li>
+<li>自定义异常</li>
+</ul>
+<h4 id="预定义异常"><a href="#预定义异常" class="headerlink" title="预定义异常"></a>预定义异常</h4><p>Oracle中为每个错误提供一个错误号，而捕获异常则需要异常有名称。Oracle提供了一些已经定义好名称的常用异常，就是预定义异常。</p>
+<p>Exception</p>
+<p>ORA Error</p>
+<p>Condition</p>
+<p>CASE_NOT_FOUND</p>
+<p>ORA-06592</p>
+<p>case语句中，when子句没有匹配条件，且没有else语句，则触发该异常</p>
+<p>NO_DATA_FOUND</p>
+<p>ORA-01403</p>
+<p>不存在请求的行时出现，当引用引用已删除的元素时，也会触发</p>
+<p>TOO_MANY_ROWS</p>
+<p>ORA-01422</p>
+<p>执行SELECT INTO语句后返回多行时出现</p>
+<p>DUP_VAL_ON_INDEX</p>
+<p>ORA-00001</p>
+<p>试图将重复值插入在唯一索引的列时触发异常</p>
+<p>VALUE_ERROR</p>
+<p>ORA-06502</p>
+<p>赋值时，产生大小错误限制或变量长度不够时，引发异常</p>
+<p>ZERO_DIVIDE</p>
+<p>ORA-01476</p>
+<p>除数为0的时候引发该异常</p>
+<p>STORAGE_ERROR</p>
+<p>ORA-6500</p>
+<p>内存溢出或破坏时引发</p>
+<p>TIMEOUT_ON_RESOURCE</p>
+<p>ORA-00051</p>
+<p>等待资源超时引发该异常</p>
+<p>CURSOR_ALREADY_OPEN</p>
+<p>ORA-06511</p>
+<p>打开一个已经打开的游标引发该异常</p>
+<p>INVALID_CURSOR</p>
+<p>ORA-1001</p>
+<p>执行一个未打开的游标时出现</p>
+<p>ACCESS_INTO_NULL</p>
+<p>ORA-6530</p>
+<p>未初始化对象时</p>
+<p>当然，预定义异常也不止这些，这些只是在开发中比较常用的异常。到Oracle12c为止，一共提供了25中预定义异常。利用下面的语句可查看Oracle的预定义异常。</p>
+<pre><code>SELECT *  FROM DBA_SOURCE WHERE NAME=&apos;STANDARD&apos; AND TEXT LIKE &apos;%EXCEPTION_INIT%&apos;;</code></pre><p><strong>示例:</strong> 就拿除以0的例子.</p>
+<pre><code>DECLARE
+    v_num number(8);
+BEGIN
+    v_num := 20/0;
+EXCEPTION
+    WHEN ZERO_DIVIDE THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;除数为0&apos;);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;其他异常&apos;);
+END;</code></pre><p>当除数出现0时，程序会马上进入异常捕获部分，当发生的异常和列表中的异常名称匹配成功时，执行对应语句，异常匹配的顺序是从上往下的,所以尽量把合适的异常放在第一位。</p>
+<h4 id="非预定义异常-内部定义异常"><a href="#非预定义异常-内部定义异常" class="headerlink" title="非预定义异常(内部定义异常)"></a>非预定义异常(内部定义异常)</h4><p>Oracle中有很多异常都是非预定义异常。他们只有错误编号和错误描述，而没有名称是不能被异常捕获的。 为了解决该问题，Oralce允许开发人员为这些异常添加一个名称，使它们被异常捕获到。 <strong>注：用户声明名称的内部定义异常仍然是内部定义的异常，而不是用户定义的异常</strong> 为一个非预定义异常定义名称需要如下步骤: 1. 声明一个异常的名称 2. 把名称与异常编号相互关联 <strong>声明部分定义异常名称:</strong></p>
+<pre><code>exception_name EXCEPTION;</code></pre><p>将定义好的异常与错误编号关联起来，需使用如下语句</p>
+<pre><code>PRAGMA EXCEPTION_INIT(exception_name,exception_code)； </code></pre><p><strong>示例:</strong></p>
+<pre><code>DECLARE
+    v_id provider.providerId%TYPE :=456;
+    my_exception EXCEPTION;
+    PRAGMA EXCEPTION_INIT(my_exception, -2291);
+BEGIN
+    UPDATE PRODUCT SET providerId = v_id where productId = 8;
+EXCEPTION
+    WHEN my_exception THEN
+      DBMS_OUTPUT.PUT_LINE(&apos;违反完整约束条件&apos;);
+      DBMS_OUTPUT.PUT_LINE(SQLCODE);
+      DBMS_OUTPUT.PUT_LINE(SQLERRM);
+      ROLLBACK;
+END;</code></pre><p>这样可以捕获异常，可能你会不太清楚SQL CODE是多少，没办法关联。我似乎也没有找到办法。只能在开发时尝试通过SQLCODE函数获得错误号，SQLERRM获得错误信息。</p>
+<h4 id="自定义异常"><a href="#自定义异常" class="headerlink" title="自定义异常"></a>自定义异常</h4><p>通常我们想自己定义异常，来控制自己的业务情况，比如产品数量不为负数，生产日期等，预定义和非预定义都无法捕获。 <strong>语法:</strong></p>
+<pre><code>--声明异常
+exception_name EXCEPTION;
+--抛出异常
+RAISE exception_name;</code></pre><p><strong>自定义异常示例:</strong></p>
+<pre><code>DECLARE
+    v_price product.productPrice%TYPE;      ---产品数量
+    my_price_excep EXCEPTION;
+BEGIN
+    select productPrice INTO v_price FROM product WHERE productId=1;
+    IF v_price&lt;=0 THEN
+        RAISE my_price_excep;
+    END IF;
+EXCEPTION
+    WHEN my_price_excep THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;价格不正确，需大于0&apos;);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;出现其他错误&apos;);
+END;</code></pre><p>该例子看起来似乎没有什么意义，只是介绍如何使用。</p>
+<h4 id="重新定义错误消息"><a href="#重新定义错误消息" class="headerlink" title="重新定义错误消息"></a>重新定义错误消息</h4><p>RAISE_EXCEPTION_ERROR存储过程可以重新定义异常错误信息。用于抛出一个异常并给异常赋予一个错误号以及错误信息。</p>
+<pre><code>RAISE_EXCEPTION_ERROR(error_number,error_message[,&#123; TRUE | FALSE &#125;]);</code></pre><p>错误号的范围是-20,000到-20,999。错误信息是文本字符串，最多为2048字节。 TRUE和FALSE表示是添加(TRUE)进错误堆(ERROR STACK)还是覆盖(overwrite)错误堆(FALSE)。缺省情况下是FALSE。 <strong>示例:</strong></p>
+<pre><code>DECLARE
+    v_num number(8);
+BEGIN
+    v_num := 20;
+  IF v_num&gt;10 THEN
+    raise_application_error(-20000,&apos;错误&apos;);
+  END IF;
+END;</code></pre>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/06/27/Oracle/Oracle%20PLSQL%20%E6%B8%B8%E6%A0%87/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Oracle PL/SQL 游标
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%B8%AD%E6%89%A7%E8%A1%8CDML%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80%E5%92%8CDDL%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Oracle PL/SQL中执行DML数据操作语言和DDL数据定义语言</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

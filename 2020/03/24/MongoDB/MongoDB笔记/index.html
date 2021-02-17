@@ -1,0 +1,838 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    MongoDB笔记 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-MongoDB/MongoDB笔记" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  MongoDB笔记
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/03/24/MongoDB/MongoDB%E7%AC%94%E8%AE%B0/" class="article-date">
+  <time datetime="2020-03-24T00:52:12.000Z" itemprop="datePublished">2020-03-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.5k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>Windows安装mongodb，去官网下载windows最新msi版本，在安装时。取消勾选左下角的Install Mongodb compass选项。改选项是数据库的客户端功能句，在安装时会非常非常慢。<br>安装后服务已经默认安装过了，开发服务即可，cmd输入mongo即可进入mongo命令行</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ol>
+<li>数据库<br>数据仓库，一个mongodb有多个数据库</li>
+<li>文档document<br>K-V键值对，类似关系数据库的行，文档中的键/值对顺序是有序的，区分类型和大小写，文档不能有重复的键。<br>键不能有\0(空字符),这个字符表示键的结尾;“.”和$有特别意义，只有在特定环境下才能使用；以下划线”_”开头的键是保留的(不是严格要求的)</li>
+<li>集合collection<br>类似关系数据库的表。当第一行文档插入后，集合就被创建。</li>
+</ol>
+<ul>
+<li>集合名不能是空字符串””</li>
+<li>集合名不能有\0</li>
+<li>集合名不能以system.开头</li>
+<li>集合名不能有保留字符</li>
+</ul>
+<ol start="3">
+<li>元数据<br>数据库的信息，存储在集合中，通过<code>数据库名.system.*</code>的方式</li>
+</ol>
+<ul>
+<li>dbname.system.namespaces:列出所有命名空间</li>
+<li>dbname.system.indexes:列出所有索引</li>
+<li>dbname.system.profile:包含数据库概要(profile)信息</li>
+<li>dbname.system.users:列出所有可访问数据库的用户</li>
+<li>dbname.local.sources:包含复制对端（slave）的服务器信息和状态</li>
+</ul>
+<ol start="4">
+<li>ObjectId<br>类似为唯一主键，可以很快的生成和排序，包含12bytes<br>存储文档必须要有一个_id键，可以是任何类型，默认是ObjectId，在插入不指定_id时自动生成</li>
+</ol>
+<h2 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h2><ul>
+<li>查看所有数据库(<strong>show dbs</strong>)</li>
+<li>使用数据库,不存在则会创建(<strong>use <DATABASE_NAME></strong>)</li>
+<li>查看当前使用的数据库(<strong>db</strong>)</li>
+<li>查看所有集合(<strong>show collections</strong>)</li>
+<li>删除集合(<strong>db.collection.drop()</strong>)</li>
+<li>删除数据库(<strong>db.dropDatabase()</strong>)</li>
+</ul>
+<p>CURD操作:</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.<collection_name>.insert()</td>
+<td>db.student.insert({“name”:”名称”,”age”:18})</td>
+<td></td>
+</tr>
+<tr>
+<td>db.<collection_name>.insertOne()</td>
+<td>db.student.insertOne({“name”:”名称”,”age”:18})</td>
+<td></td>
+</tr>
+<tr>
+<td>db.<collection_name>.insertMany()</td>
+<td>db.student.insertMany([{“name”:”名称”,”age”:20},{“name”:”名2”,”age”:22}])</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/query-documents.html">查询</a></strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.<collection_name>.find(,)</td>
+<td>db.student.find();<br/>db.student.find({name:”名称”});<br/>db.student.findOne({name:”名称”});<br/>db.student.find({name:”名称”}).count();<br/>db.student.find({name:{ $in: [“名称”,”名2”]}});<br/> db.student.find({name:”名称”,age:{ $gt: 19}});<br/>db.student.find({ $or: [{name:”名称”},{age:{ $gt:19 }}]});</td>
+<td>查询所有<br/>指定属性名精确查询<br/>匹配第一个<br/>查询结果数量<br/>使用in表达式匹配<br/>使用and，逗号就相当于and，age大于($lt小于)19的<br/>or表达式数组，逗号为或，name为名称,age大于19的</td>
+</tr>
+</tbody></table>
+<p><strong>数组上的查询，即字段的值为数组</strong>,<code>name:[&quot;chen&quot;,&quot;xiao chen&quot;]</code></p>
+<ul>
+<li><p>db.users.find( { badges: [ “blue”, “black” ] } ):精确匹配</p>
+</li>
+<li><p>db.users.find( { badges: “black” } ):包含某个元素</p>
+</li>
+<li><p>db.users.find( { “badges.0”: “black” } ):匹配第一元素是black的</p>
+</li>
+<li><p><code>db.users.find( &#123; finished: &#123; $elemMatch: &#123; $gt: 15, $lt: 20 &#125; &#125; &#125; ): $elemMatch</code>为数组提供的，需要至少满足一个条件</p>
+</li>
+<li><p>db.users.find( { finished: { $gt: 15, $lt: 20 } } ):满足多条件</p>
+</li>
+<li><p>db.student.find({name:/^小/}):查询出name以小开头的数据</p>
+</li>
+<li><p>db.student.find({name:/刚$/}):查询name以刚结尾的数据</p>
+</li>
+<li><p>$lt:&lt;</p>
+</li>
+<li><p>$gt:&gt;</p>
+</li>
+<li><p>$lte:&lt;=</p>
+</li>
+<li><p>$gte:&gt;=</p>
+</li>
+<li><p>$net:!=</p>
+</li>
+<li><p>$eq:=</p>
+</li>
+</ul>
+<p>嵌入文档数组查询:</p>
+<ul>
+<li>db.users.find( { ‘points.0.points’: { $lte: 55 } } ):查询points属性的第一个文档的points属性匹配</li>
+</ul>
+<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/update-documents.html">更新</a></strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.collection.updateOne()</td>
+<td>db.student.updateOne({name:”名2”},{$set:{address:”丰台”,name:”小刚”},$currentDate: {lastModifyDate:true}});</td>
+<td>方法第一个参数为查询需要修改的数据，第二个参数为修改，$set表示需要修改的属性或要添加的属性(没有的时候),$currentDate表示为数据添加一个当前日期，lastModifyDate字段为自定义字段，若没有则创建。该方法只修改一条</td>
+</tr>
+<tr>
+<td>db.collection.updateMany()</td>
+<td>同上</td>
+<td>该方法可匹配多个数据进行更改</td>
+</tr>
+<tr>
+<td>db.collection.update()</td>
+<td>db.student.update({name:”名2”},{$set:{address:”丰台”}},{multi:true})</td>
+<td>该方法默认只修改一条数据，若设置multi:true，则修改多条数据</td>
+</tr>
+<tr>
+<td>db.collection.replaceOne()</td>
+<td>db.student.replaceOne({name:”小明”},{name:”小飞”,address:”大马士革”});</td>
+<td>表示替换一条匹配的文档称为新文档</td>
+</tr>
+<tr>
+<td>db.collection.update()</td>
+<td>db.student.update({name:”小刚”},{$unset: {lastModifyDate: “” }});</td>
+<td>删除匹配数据的某个属性</td>
+</tr>
+</tbody></table>
+<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/remove-documents.html">删除</a></strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.collection.deleteOne()</td>
+<td>db.student.deleteOne({name:”小飞”});</td>
+<td>仅删除匹配的第一条数据</td>
+</tr>
+<tr>
+<td>db.collection.deleteMany()</td>
+<td>db.users.deleteMany({name:”小飞”})</td>
+<td>删除所有名称为小飞的数据,若传入参数为空参，则清空所有数据</td>
+</tr>
+<tr>
+<td>db.collection.remove()</td>
+<td>db.users.remove({name:”小飞”})</td>
+<td>删除所有name为小飞的数据</td>
+</tr>
+<tr>
+<td>db.collection.remove()</td>
+<td>db.users.remove({name:”小飞”},1)</td>
+<td>仅删除第一条名称为小飞的数据,第二个参数为justOne,bollean类型</td>
+</tr>
+<tr>
+<td>db.collection.remove()</td>
+<td>db.users.remove({name:”小飞”},{justOne:true})</td>
+<td>remove默认删除所有，使用justOne为true表示仅第一条</td>
+</tr>
+</tbody></table>
+<p><strong>操作符</strong></p>
+<p>$type操作符:检索集合中匹配的数据类型。Mongodb中众多数据类型都有对应的数子，查询是可以通过一下查询</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.student.find(&#123;name:&#123;$type:&quot;string&quot;&#125;&#125;)</span><br><span class="line">或</span><br><span class="line">db.student.find(&#123;name:&#123;$type:2&#125;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>limit()与skip()方法，sort()</strong><br>limit(number)表示从结果集中读取指定数量的数据,默认不填查询全部<br>skip(number)表示从结果集中跳过指定数量,默认为0，即跳过0行<br><strong>但是如果要将limit和skip同时使用，放置顺序不管如何。其mongodb的解析顺序是固定的，先skip()再limit()，如果有sort()，则sort()在最前</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.student.find().skip(1).limit(2)</span><br><span class="line">与下面是相同的</span><br><span class="line">db.student.find().limit(2).skip(1)</span><br></pre></td></tr></table></figure>
+<p>sort方法，-1表示降序，-1表示升序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.student.find().sort(&#123;age:1,address:-1&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><h3 id="单键索引创建"><a href="#单键索引创建" class="headerlink" title="单键索引创建"></a>单键索引创建</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;name:1&#125;)</span><br></pre></td></tr></table></figure>
+<p>以上表示，创建name字段的索引，1表示升序，-1表示降序</p>
+<p>嵌入式文档的属性单键索引创建</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;&quot;class.address&quot;:-1&#125;)</span><br></pre></td></tr></table></figure>
+<p>使用点的方式，表示学生所在班级地址字段的索引。</p>
+<p>在嵌入式文档创建索引，若要使用需要在查询时写全部字段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;class:-1&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="复合索引创建"><a href="#复合索引创建" class="headerlink" title="复合索引创建"></a>复合索引创建</h3><p>db.collection.createIndex({name:1,class:1})<br>复合索引的排序<br><strong>索引以升序（1）或降序（-1）排序顺序存储对字段的引用。对于单字段索引，键的排序无关紧要，对于复合索引，排序顺序决定索引是否支持排序操作</strong></p>
+<p>建立复合索引后的排序，如果要想索引可以使用</p>
+<ul>
+<li>索引字段<strong>前后顺序一致</strong>且<strong>数量一致</strong>，查询顺序与索引匹配或相反</li>
+<li>复合索引定义数量与查询排序数量不一致，则以复合索引字段前置优先规则<br>如上规则创立索引:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">db.student.createIndex(&#123;age:-1,name:1&#125;);</span><br><span class="line">以上索引,以下可用</span><br><span class="line">db.student.find().sort(&#123;age:-1,name:1&#125;);</span><br><span class="line">db.student.find().sort(&#123;age:1,name:-1&#125;);</span><br><span class="line">db.student.find().sort(&#123;age:-1&#125;);</span><br><span class="line">但下面这个不可用</span><br><span class="line">db.student.find().sort(&#123;age:-1,name:-1&#125;);</span><br></pre></td></tr></table></figure>
+对于查询时使用索引，只要数量一致，与顺序无关,或使用复合索引的前置字段。</li>
+</ul>
+<p><strong>多键索引</strong>:为数组键创建的索引是多键索引，它为数组中每个元素添加一个索引项。<br><strong>文本索引</strong>:一个集合只能创建创建一个文本索引。为了索引一个存储字符串或字符串数组的键，可以创建文本索引。也可以为文本索引索引多个字段，即复合文本索引。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db.reviews.createIndex( &#123; comments: &quot;text&quot; &#125; )</span><br><span class="line">db.reviews.createIndex( &#123; subject: &quot;text&quot;, comments: &quot;text&quot; &#125; )</span><br></pre></td></tr></table></figure>
+
+<p><strong>索引的第二个参数为可选参数</strong>:</p>
+<ul>
+<li>background:Boolean:建索引为阻塞其他数据库操作，所以若键索引的键数据过多，可设置为true，后台建立索引。默认为false</li>
+<li>unique:Boolean:建立的索引是否是唯一索引,默认false</li>
+<li>name:string:索引的名称</li>
+<li>sparse:Boolean:对文档中不存在的字段数据不启用索引。如果设置为true的话，在索引字段中不会查询出不包含对应字段的文档。默认false</li>
+<li>expireAfterSeconds:integer:指定一个以秒为单位的数值，设定集合的生存时间。</li>
+</ul>
+<p>获得所有索引:db.student.getIndexes();<br>获得索引总大小:db.student.totalIndexSize()<br>获得表数据总大小:db.student.totalSize()<br>删除所有索引:db.student.dropIndexs()<br>删除指定名称索引:db.student.dropIndex(“索引名”)</p>
+<h2 id="聚合"><a href="#聚合" class="headerlink" title="聚合"></a>聚合</h2><p>即聚合方法，类似count，sum等</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.COLLECTION_NAME.aggregate(AGGREGATE_OPERATION)  </span><br></pre></td></tr></table></figure>
+<p>示例<br>db.mycol.aggregate([{$group : {_id : “$by_user”, num_tutorial : {$sum : 1}}}])<br>以上结果类似于select by_user, count(<em>) from mycol group by by_user;<br>首先<code>_id</code>表示要分组的字段,值需要使用键前面加$符号。后面的num_tutorial表示结果集列名，里面的$sum是重点，1说明是1倍，相当于count(</em>),若为2,则其查询的值为count(*) * 2。这个至应该是要进行计算操作的键名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.mycol.aggregate([&#123;$group : &#123;_id : &quot;$by_user&quot;, likes : &#123;$sum : &quot;$likes&quot;&#125;&#125;&#125;]) </span><br></pre></td></tr></table></figure>
+<p>以上的查询表示，以by_user键进行分组，求likes字段的所有和。注意键前需要$符号<br>类似:select by_user,sum(likes) from mycol group by by_user;</p>
+<p>表达式有:</p>
+<ul>
+<li>$sum:求和或数量</li>
+<li>$avg:求平均数</li>
+<li>$min:求最小值</li>
+<li>$max:求最大值</li>
+<li>$push:将结果文档中插入值到数组中。也就是说不是求数量和求和，而是将分组的结果放到倍分组列里，这个列变成了数组类型</li>
+<li>$addToSet:将结果文档中插入值到数组中，但是set，所以会去重。</li>
+<li>$first:根据资源文档的排序获取第一个文档数据。查询出所有的数据，取第一个值组成分组</li>
+<li>$last:根据资源文档的排序获取第一个文档数据。查询出所有的数据，取最后一个值组成分组</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2020/03/24/MongoDB/MongoDB%E7%AC%94%E8%AE%B0/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb/" rel="tag">mongodb</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2020/03/24/PostgreSQL/Postgresql%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Postgresql常用函数
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/03/24/Java/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8E%9F%E7%90%86/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">JVM虚拟机原理</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

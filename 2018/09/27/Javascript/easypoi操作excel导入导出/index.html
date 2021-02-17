@@ -1,0 +1,714 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    easypoi操作excel导入导出 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Javascript/easypoi操作excel导入导出" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  easypoi操作excel导入导出
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/27/Javascript/easypoi%E6%93%8D%E4%BD%9Cexcel%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/" class="article-date">
+  <time datetime="2018-09-27T09:17:59.000Z" itemprop="datePublished">2018-09-27</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Excel/">Excel</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.8k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="easypoi"><a href="#easypoi" class="headerlink" title="easypoi"></a>easypoi</h1><p>easypoi是简易的excel导入导出等多项操作，MIT开源。封装了POI，使用注解方式更简洁的操作。 <a target="_blank" rel="noopener" href="https://http://www.afterturn.cn/doc/easypoi.html">文档</a> Excel自适应xls和xlsx两种格式,word只支持docx模式。</p>
+<h2 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h2><ol>
+<li>@Excel:简单的注解，用于简单基本属性，其内容设置包括基础，图片处理，事件处理，合并处理。</li>
+<li>@ExcelTarget:限定实体,3.3.0里好像没啥意思，但在集合的导出时需要设置到实体类上并设置name值，与类名相同就好</li>
+<li>@ExcelEntity:该注解标注在属性对象上，如果对象内属性设置了导出，则依次每属性导出。</li>
+<li>@ExcelCollection:该注解标注在属性集合上，常为list集合,设置name值表示对该集合的标题</li>
+</ol>
+<h2 id="导出示例"><a href="#导出示例" class="headerlink" title="导出示例"></a>导出示例</h2><h3 id="简单对象示例"><a href="#简单对象示例" class="headerlink" title="简单对象示例"></a>简单对象示例</h3><pre><code>//这是Student类的属性，这里我不复制getter/setter和构造
+private String id;
+@Excel(name = &quot;学生姓名&quot;,height = 10,width = 20,isImportField = &quot;true&quot;)
+private String name;
+@Excel(name = &quot;性别&quot;,height = 10,width = 20,isImportField = &quot;true&quot;)
+private String sex;
+@Excel(name = &quot;出生日期&quot;,height = 10,width = 20,format = &quot;yyyy-MM-dd&quot;)
+private Date date;
+
+
+Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;学生列表&quot;,&quot;学生&quot;),
+        Teacher.class, list);
+OutputStream outputStream = new FileOutputStream(new File(&quot;D:/a.xls&quot;));
+workbook.write(outputStream);</code></pre><p>只需要在Main测试中，设置list，然后指定一个地址，即可输出 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926181440.png" alt="图示"> 简单的导出，只不过标题和列名没有类似加粗和背景色以及宽高并非自适应，而需要在注解中设置。</p>
+<h3 id="集合定义"><a href="#集合定义" class="headerlink" title="集合定义"></a>集合定义</h3><pre><code>//teacher，我们把teacher的属性设置的和student一样，同样是id，name，sex，date
+//并且为stuent类和teacher类上添加@ExcelTarget(&quot;teacher&quot;)，@ExcelTarget(&quot;student&quot;)注解,并且实现Serializable
+
+//Course中,也要添加@ExcelTarget(&quot;course&quot;)注解
+private String id;
+@Excel(name = &quot;课程名称&quot;,orderNum = &quot;1&quot;,width = 15)
+private String courseName;
+@ExcelEntity private Teacher teacher;
+@ExcelCollection(name=&quot;学生&quot;,orderNum = &quot;4&quot;)
+private List&lt;Student&gt; student;
+
+
+List stuList = new ArrayList();
+stuList.add(new Student(&quot;1&quot;,&quot;学生1&quot;,&quot;男&quot;,new Date()));
+stuList.add(new Student(&quot;2&quot;,&quot;学生2&quot;,&quot;女&quot;,new Date()));
+stuList.add(new Student(&quot;3&quot;,&quot;学生3&quot;,&quot;女&quot;,new Date()));
+stuList.add(new Student(&quot;4&quot;,&quot;学生4&quot;,&quot;男&quot;,new Date()));
+List list = new ArrayList();
+list.add(new Course(&quot;1&quot;,&quot;生物&quot;,new Teacher(&quot;1&quot;,&quot;老师1&quot;,&quot;男&quot;,new Date()),stuList));
+
+Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;课程表&quot;,  &quot;课程表&quot;),
+        Course.class, list);
+OutputStream outputStream = new FileOutputStream(new File(&quot;D:/a.xls&quot;));
+workbook.write(outputStream);</code></pre><p>同样，以同种方式导出，在ExportParams类中设置导出参数，如标题之类的，而个参数的构造表示标题和sheet名称，三个参数表示标题，副标题，sheet名称。 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926181629.png" alt="图示"> 这样看来，对于老师与学生并不能合并对应，可以添加needMessage为ture设置合并单元格,但是他的坏处是，并不能在@ExcelEntity上设置属性，而只能在@Excel上设置。那么我们为教师类的每个属性设置,以及courseName上 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926182009.png" alt="图示"></p>
+<h3 id="图片导出"><a href="#图片导出" class="headerlink" title="图片导出"></a>图片导出</h3><ol>
+<li><p>图片的导出，需要设置@Excel的两个参数,type和imageType。</p>
+</li>
+<li><p>type表示导出类型，设置为2是图片。imageType表示图片类型，是通过1:file还是2:数据库流读取，如果是1则String类型设置地址，2则设置类型为byte数组。</p>
+</li>
+<li><p>要设置width和height，图片会依据设置的宽高来百分之百缩放，并不会理会图片自身的分辨率大小。</p>
+<p>@Excel(name = “照片”,type = 2,width = 40,height = 40,imageType = 1)<br>private String photo;</p>
+<p>list.add(new Teacher(“1”,”你”,”男”,new Date(),”IMG_20171209_091639.jpg”));</p>
+</li>
+</ol>
+<p><strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926183615.png" alt="图示"> 图片较大，可能加载缓慢</p>
+<h2 id="导入示例"><a href="#导入示例" class="headerlink" title="导入示例"></a>导入示例</h2><h3 id="导入excel"><a href="#导入excel" class="headerlink" title="导入excel"></a>导入excel</h3><pre><code>ImportParams importParams = new ImportParams();
+importParams.setTitleRows(1);
+importParams.setHeadRows(1);
+List&lt;Teacher&gt; list = ExcelImportUtil.importExcel(new File(&quot;a.xlsx&quot;),Teacher.class,importParams);
+for (Teacher t:list) &#123;
+    System.out.println(t.toString());
+&#125;</code></pre><p>注意模板中列名一定要和属性值段上设置的name值相同，否则报模板错误</p>
+<ol>
+<li>@Excel的isImportField属性表示检测这个字段在导入时模板中是否有，目前3.3.0版本是false。一些取值具体还是需要看源码的，因为文档可能更新并不及时。那么为false的话就不检测模板中是否有没有，即使没有也不会报错，而有的话会自动导入到对象中。</li>
+<li>ImportParams导入参数对象的设置</li>
+</ol>
+<ul>
+<li>titleRows:表格标题的行数，标题为跨列的，几行就是几行</li>
+<li>headRows：表头行数，就是列名，默认为1</li>
+<li>startRows：字段真正值和列标题之间的距离 默认0</li>
+<li>startSheetIndex：开始sheet索引，默认0</li>
+<li>sheetNum：导入时，默认导入的数量，1，也就是只有第一个</li>
+<li>readRows：手动控制读取行数，默认0,以0开始</li>
+<li>lastOfInvalidRow：最后无效的行数，不读的行数</li>
+<li>importFields:检验合法模板，字符串数组，为每个属性名,至少包含的字段</li>
+<li>needSave：是否需要保存导入的excel，默认false,默认保存的路径为upload/excelUpload/Test/yyyyMMddHHmss_***** 保存名称上传时间_五位随机数。所以你需要设置SaveUrl属性，表示保存的位置。</li>
+</ul>
+<p>其他的看文档或源码。</p>
+<h3 id="图片导入"><a href="#图片导入" class="headerlink" title="图片导入"></a>图片导入</h3><p>图片导入需要在excel中，图片与单元格绑定，否则无法获取到该单元格。 在ImportParam对象设置属性</p>
+<ul>
+<li>saveUrl属性设置上传excel文件保存位置</li>
+<li>needSave表示是否保存</li>
+<li>图片保存，3.3.0默认在/excel/upload/img，可以在@Excel中的savePath中设置保存路径</li>
+</ul>
+<p>其他的就没什么设置，只要图片和单元格绑定，就能成功读取。否则是读不到的。一定要选中单元格，但后再点插入图片，然后设置大小。 如果项目不是web项目的话，/excel/upload/img这种路径无法获取到，如果测试使用junit，则将地址改为某个盘符的固定目录。 如果你的图片属性是字节数组，则读出后直接是字节数组。</p>
+<h2 id="使用ExcelExportEntity自由导出"><a href="#使用ExcelExportEntity自由导出" class="headerlink" title="使用ExcelExportEntity自由导出"></a>使用ExcelExportEntity自由导出</h2><p>该类表示对某Cell的设置，如名称，是否合并，等等,一个对象表示一个列，而一个列对应一个属性。</p>
+<pre><code>List&lt;ExcelExportEntity&gt; list = new ArrayList&lt;ExcelExportEntity&gt;();
+
+list.add(new ExcelExportEntity(&quot;教师姓名&quot;,&quot;name&quot;));//如需设置Cell的其他属性，必须使用该对象.属性 
+list.add(new ExcelExportEntity(&quot;性别&quot;, &quot;sex&quot;));
+list.add(new ExcelExportEntity(&quot;出生日期&quot;, &quot;date&quot;));
+
+List&lt;Teacher&gt; dataList = new ArrayList&lt;Teacher&gt;();
+dataList.add(new Teacher(&quot;1&quot;,&quot;你&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;2&quot;,&quot;我&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;3&quot;,&quot;它&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;4&quot;,&quot;他&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;5&quot;,&quot;她&quot;,&quot;女&quot;,new Date()));
+
+Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;教师列表&quot;, &quot;教师列表&quot;), list,dataList);
+FileOutputStream fos = new FileOutputStream(&quot;D:/a.xls&quot;);
+workbook.write(fos);
+fos.close();</code></pre><p>该案例可能有问题，官方文档中，示例没有数据，是空的，而插入了数据则导致失败,报错具体位置在ExportCommonService类的getCellValue方法中，entity.getMethod()获取为空,导致失败。这个以后再说把，先不使用。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/09/27/Javascript/easypoi%E6%93%8D%E4%BD%9Cexcel%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/poi/" rel="tag">poi</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/09/28/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E4%B8%8E%E6%8A%A5%E8%A1%A8%E8%AE%BE%E8%AE%A1/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            帆软快速入门与报表设计
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/09/26/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E6%8A%A5%E8%A1%A8%E7%AE%80%E5%8D%95%E9%9D%9E%E5%AE%8C%E6%95%B4%E8%AE%B0%E5%BD%95/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">帆软报表简单非完整记录</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

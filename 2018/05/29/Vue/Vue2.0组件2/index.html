@@ -1,0 +1,780 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Vue2.0组件2 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Vue/Vue2.0组件2" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Vue2.0组件2
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B62/" class="article-date">
+  <time datetime="2018-05-29T13:00:24.000Z" itemprop="datePublished">2018-05-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.5k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">10分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="组件组合"><a href="#组件组合" class="headerlink" title="## 组件组合"></a>## 组件组合</h2><h3 id="父子组件的通信"><a href="#父子组件的通信" class="headerlink" title="父子组件的通信"></a>父子组件的通信</h3><p>组件 A 在它的模板中使用了组件 B。它们之间必然需要相互通信：父组件可能要给子组件下发数据，子组件则可能要将它内部发生的事情告知父组件。 <img src="http://i2.51cto.com/images/blog/201804/22/a108f0df519d83ccfd5261fdd349bd01.png?x-oss-process=image/watermark,size_16,text_QDUxQ1RP5Y2a5a6i,color_FFFFFF,t_100,g_se,x_10,y_10,shadow_90,type_ZmFuZ3poZW5naGVpdGk=" alt="父子组件数据传递图"></p>
+<hr>
+<p>首先，需要在Vue实例里定义一个组件，设置data，然后在这个组件里再添加一个conponents选项，注意不要添错位置。 <strong>示例:</strong></p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;my-father&gt;&lt;/my-father&gt;
+&lt;/div&gt;
+//父组件的模板
+&lt;template id=&quot;fatherTl&quot;&gt;
+    &lt;div&gt;
+        &lt;p&gt;这是父组件&lt;/p&gt;
+        &lt;p&gt;访问父组件数据:&#123; &#123;name&#125;&#125;,&#123; &#123;age&#125;&#125;,姓名:&#123; &#123;user.name&#125;&#125;,年龄:&#123; &#123;user.age&#125;&#125;&lt;/p&gt;
+        &lt;my-child&gt;&lt;/my-child&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+//子组件的模板
+&lt;template id=&quot;childTl&quot;&gt;
+    &lt;div&gt;
+        &lt;p&gt;这是子组件&lt;/p&gt;
+        &lt;p&gt;访问子组件数据:性别:&#123; &#123;sex&#125;&#125;,身高:&#123; &#123;height&#125;&#125;&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+
+
+var vm = new Vue(&#123;
+    el:&apos;#app&apos;,
+    components:&#123;
+        &apos;my-father&apos;:&#123;
+            template:&apos;#fatherTl&apos;,
+            data:function()&#123;
+                return &#123;
+                    name:&apos;Xiao&apos;,
+                    age:19,
+                    user:&#123;name:&apos;小幂幂&apos;,age:31&#125;
+                &#125;
+            &#125;,
+            components:&#123;
+                &apos;my-child&apos;:&#123;
+                    template:&apos;#childTl&apos;,
+                    data:function()&#123;
+                        return &#123;
+                            height:166,
+                            sex:&apos;Female&apos;
+                        &#125;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;);</code></pre><p>作为子组件my-child，<my-child></my-child>标签应放在父组件标签<my-father></my-father>标签内，而不能是实例挂载元素下。 如果你尝试直接在父组件模板或子组件模板中通过{ {}}模板语法引用则会出现错误。 运行此案例，完美运行,你可以通过vue-devtool查看组件结构图。 目前还没有通信，只是显示了一下各自的数据，接下来传递数据了。</p>
+<h4 id="父向子传递数据"><a href="#父向子传递数据" class="headerlink" title="父向子传递数据"></a>父向子传递数据</h4><p>父向子传递数据，我们需要做的就是<strong>将要传递的数据绑定到子组件的标签上，并在子组件内通过props选项来接收。</strong></p>
+<pre><code>//father模板中添加
+&lt;my-child :childName=&quot;user.name&quot; :age=&quot;user.age&quot;&gt;&lt;/my-child&gt;
+//接着，在my-child组件中添加选项
+props:[&apos;childName&apos;,&apos;age&apos;]
+//最后，我们引用name和age
+//my-child模板中
+&lt;div&gt;
+    &lt;p&gt;这是子组件&lt;/p&gt;
+    &lt;p&gt;访问子组件数据:性别:&#123; &#123;sex&#125;&#125;,身高:&#123; &#123;height&#125;&#125;&lt;/p&gt;
+    &lt;p&gt;访问父组件数据:&#123; &#123;childName&#125;&#125;,&#123; &#123;age&#125;&#125;&lt;/p&gt;//添加了这一条
+&lt;/div&gt;</code></pre><p>接下来访问，即可看到数据显示了。 分析一下,：name和：age，这个冒号“：”后的name和age，就是，props中接收的属性名，<strong>将作为子组件的属性名</strong>，就是说这两个名可以改，无论改成什么，最后都需要通过这个名字访问。 而属性值就是引号中的user.name,user.age，它直接也是<strong>父组件的属性名</strong>。</p>
+<h4 id="子向父传递数据"><a href="#子向父传递数据" class="headerlink" title="子向父传递数据"></a>子向父传递数据</h4><p>子向父传递书序需要通过事件的方式向上传递数据。要做的就是通过<strong>$emit方法触发事件，并添加附加参数(就是属性)，通过事件传递数据,父组件中的事件方法接收这参数即可</strong>。 <strong>示例:</strong></p>
+<pre><code>//my-child模板中定义一个按钮，作为媒介，用来触发
+&lt;button @click=&quot;send&quot;&gt;向上传递给父组件数据&lt;/button&gt;
+//组组件定义
+methods:&#123;
+    send()&#123;
+        this.$emit(&apos;child-up&apos;,this.sex,this.height);
+    &#125;
+&#125;
+//my-father组件模板中监听这个事件
+&lt;my-child :name=&quot;user.name&quot; :age=&quot;user.age&quot;  @child-up=&quot;getData&quot;&gt;&lt;/my-child&gt;
+//所以你需要在my-father组件中定义这个getData方法来接收
+//但你需注意，你必须提前初始化这些属性
+methods:&#123;
+    getData(sex,height)&#123;
+        this.sex=sex;
+        this.height=height;
+    &#125;
+&#125;
+//myfather模板中
+&lt;h3&gt;访问子组件数据,&#123; &#123;sex&#125;&#125;,&#123; &#123;height&#125;&#125;&lt;/h3&gt;</code></pre><p>这样，通过某个媒介(点击或其他方式)作为触发事件的方式，来传递数据，并在该实例处监听该事件，并接收数据。 此处将监听在my-child标签中，因my-chlid标签作为myfather标签的子组件，所以将getData方法定义在父组件methods中。</p>
+<hr>
+<h2 id="单向数据流"><a href="#单向数据流" class="headerlink" title="单向数据流"></a>单向数据流</h2><p>props 是单向绑定的：当父组件的属性变化时，将传导给子组件，但是反过来不会。这是为了防止子组件无意间修改了父组件的状态，来避免应用的数据流变得难以理解。 另外，每次父组件更新时，子组件的所有 prop 都会更新为最新值。这意味着你不应该在子组件内部改变 prop。如果你这么做了，Vue 会在控制台给出警告。 接下来我们想试着修改父组件内属性的值，看看是不是会跟着修改,且如果修改prop中属性是否会出现错误。 <strong>示例:</strong> 代码较多，我们再新建一个html。我们只注册使用一个组件，因为Vue实例本身也是一个组件，它是根组件，所以在实例中components中注册一个组件作为子组件。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;p&gt;父组件:&#123; &#123;age&#125;&#125;&lt;/p&gt;
+    &lt;p&gt;&lt;input type=&quot;text&quot; v-model=&quot;name&quot;&gt;&lt;/p&gt;
+    &lt;hr/&gt;
+    &lt;my-component :username=&quot;name&quot; :age=&quot;age&quot;&gt;&lt;/my-component&gt;
+&lt;/div&gt;
+
+&lt;template id=&quot;templ&quot;&gt;
+    &lt;p&gt;子组件中父组件的数据,&#123; &#123;username&#125;&#125;&lt;/p&gt;
+&lt;/template&gt;
+
+
+var vm = new Vue(&#123;
+    el:&apos;#app&apos;,
+    data:&#123;
+        name:&apos;XiaoYao&apos;,
+        age:19
+    &#125;,
+    components:&#123;
+        &apos;my-component&apos;:&#123;
+            template:&apos;#templ&apos;,
+            props:[&apos;username&apos;,&apos;age&apos;]
+        &#125;
+    &#125;
+&#125;);</code></pre><p>我们已经通过props属性进行向下传递数据了，父组件中我们把name属性设置为双向绑定的属性，以便于修改。 接下来直接在文本框中修改name的值，子组件模板中，值就跟着变了。 那么，我们开始尝试着修改它。 <strong>示例:</strong></p>
+<pre><code>//在组件模板中添加如下按钮。注意模板中只有一个根元素，需要div包起来
+&lt;button @click=&quot;change&quot;&gt;直接修改父组件传递下来的值&lt;/button&gt;
+
+//在子组件中定义方法，注意不要写错位置，会发生错误的
+methods:&#123;
+    change()&#123;
+        this.username=&apos;I Love You&apos;;//直接修改它的值
+    &#125;
+&#125;</code></pre><p>运行结果，浏览器控制台发生异常了。</p>
+<pre><code>Avoid mutating a prop directly since the value will be overwritten whenever the parent component re-renders. Instead, use a data or computed property based on the prop&apos;s value. Prop being mutated: &quot;username&quot;</code></pre><p>由此可见，它是不可以更改的，因为它是自动更新值的。</p>
+<h3 id="如果你很需要在子组件中修改它的话"><a href="#如果你很需要在子组件中修改它的话" class="headerlink" title="如果你很需要在子组件中修改它的话"></a>如果你很需要在子组件中修改它的话</h3><p>当然如果非要这么做的话，也还是有方法的，因为你很有必要用它。</p>
+<ul>
+<li>你可能希望把它当做局部变量处理</li>
+<li>你可能需要得到它的值显示出来，并修改它</li>
+</ul>
+<p>那么你有两种选择，</p>
+<ul>
+<li>一种是定义局部变量，来操作它。</li>
+<li>另一种就是定义计算属性，依据原值的修改来动态的改变这个计算属性，而你使用的就是这个计算属性</li>
+</ul>
+<p>接下来我们只需要这样：</p>
+<pre><code>//1.添加属性，并将传来的属性复制给新的局部定义属性
+data:function()&#123;
+    return &#123;
+        myName:this.username
+    &#125;
+&#125;
+//2.接下来要改变和使用的值就都是myName了
+methods:&#123;
+    change()&#123;
+        this.myName=&apos;I Love you&apos;
+    &#125;
+&#125;
+//模板中
+&lt;p&gt;子组件中父组件的数据,&#123; &#123;myName&#125;&#125;&lt;/p&gt;</code></pre><p>对于使用计算属性，我们可以做:</p>
+<pre><code>props: [&apos;size&apos;],
+computed: &#123;
+  normalizedSize: function () &#123;
+    return this.size.trim().toLowerCase()
+  &#125;
+&#125;
+//接下来就是使用normalizedSize属性显示了</code></pre><p>以上是单项数据流的问题，如果需要双向呢，看下面。</p>
+<hr>
+<h3 id="双向数据流，父子双向绑定"><a href="#双向数据流，父子双向绑定" class="headerlink" title="双向数据流，父子双向绑定"></a>双向数据流，父子双向绑定</h3><p>我们使用<strong>.sync修饰符</strong>,该修饰符在1.0中使用，在2.0中废除，后又在2.3中重新引用，只是错了稍加修改，具体情况看官网。</p>
+<pre><code>//父组件向下传递时，子组件标签上传递的属性后面添加.sync修饰符
+&lt;my-component :username.sync=&quot;name&quot; :age=&quot;age&quot;&gt;&lt;/my-component&gt;</code></pre><p>然后需要显式的触发一个更新事件。</p>
+<pre><code>methods:&#123;
+    change()&#123;
+        this.$emit(&apos;update:username&apos;, &apos;I Love You&apos;);
+        //this.username=&apos;I Love you&apos;;
+    &#125;
+&#125;</code></pre><p>通过$emit事件方法，然后第一个参数，<strong>update：</strong>是固定写法，后面是新属性值，这样就可以双向绑定了。使用按钮触发不是必需的，只要在某处调用这个触发方法即可。</p>
+<h4 id="假如你向下传递的是对象，那么如果要修改的话会更方便。"><a href="#假如你向下传递的是对象，那么如果要修改的话会更方便。" class="headerlink" title="假如你向下传递的是对象，那么如果要修改的话会更方便。"></a>假如你向下传递的是对象，那么如果要修改的话会更方便。</h4><p>我们可以直接修改对象的属性值而不需要.sync修饰符。</p>
+<pre><code>//为父组件定义一个对象,并且显示他
+emp:&#123;salary:6000,workingAge:2,name:&apos;XiaoChenchen&apos;&#125;
+&lt;p&gt;父组件emp:&#123; &#123;emp&#125;&#125;&lt;/p&gt;
+
+//在单击按钮方法中直接设置对象的属性值
+this.emp.salary=8000;</code></pre><p>单击按钮，发现salarys从6000变成了8000，而且不会不会发生任何错误。 这是因为对象的引用地址没有发生改变，改变的只是里面的属性，属性改变并不会影响对象地址。 所以我们建议封装成对象更方便，但有时也是需要到.sync修饰符的，主要是看情况了。 谢谢观看，下节继续讲组件，非父子间通信，以及slot插槽分发。</p>
+<hr>
+<p>爱自己，更爱需要爱的人。。。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B62/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B63/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Vue2.0组件3
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/05/28/Vue/Vue2.0%E7%BB%84%E4%BB%B61/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Vue2.0组件1</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

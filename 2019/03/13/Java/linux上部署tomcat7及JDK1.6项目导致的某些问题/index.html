@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    linux上部署tomcat7及JDK1.6项目导致的某些问题 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Java/linux上部署tomcat7及JDK1.6项目导致的某些问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  linux上部署tomcat7及JDK1.6项目导致的某些问题
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2019-03-13T07:35:11.000Z" itemprop="datePublished">2019-03-13</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.2k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">12分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="linux上部署tomcat7及JDK1-6项目导致的某些问题"><a href="#linux上部署tomcat7及JDK1-6项目导致的某些问题" class="headerlink" title="linux上部署tomcat7及JDK1.6项目导致的某些问题"></a>linux上部署tomcat7及JDK1.6项目导致的某些问题</h1><p>在linux的tomcat启动项目时，使用wsdl上报的原因，由于客户端出现并发情况，而服务端tomcat，仅有一个，且没有负载均衡。 事故的开始是，每次测试都会成功，正常返回信息，但每次测试只是一条一条的测试，每次测试间隔很大，每次测都能成功，等客户端实际调用请求了，出现并发。第一个好的，后面就客户端超时，超时。 后来看了好几次日志发现，每次的并发请求，都堆到了一个线程里exec-1，好多都等着他一个处理。默认tomcat线程池中是10个线程的，这个在java的bin下有jvisualvm.exe，可以查看jvm，比如tomcat和java进程的资源，CPU，内存，堆栈，等等。 之后发现很奇怪，windows自己电脑上的就好好地，几个请求，几个线程，若同时并发50个，则tomcat会多拿出40个线程到线程池里，这是50的请求处理线程。 <strong>这个是单次循环，非并发的。不报错，ok</strong></p>
+<pre><code>2019-03-06 19:16:58.337  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:192.168.0.98
+2019-03-06 19:16:58.799  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-08 15:52:00.625  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-08 15:52:00.995  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-10 14:45:44.918  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-10 14:45:45.273  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 11:50:27.746  INFO 873 --- [http-bio-8080-exec-2] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null</code></pre><p><strong>然后，一次的连续请求，导致出现问题</strong></p>
+<pre><code>2019-03-11 20:22:27.381  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:22:27.729  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 20:22:28.076  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:22:28.464  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 20:22:28.586  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:22:58.602  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url
+
+org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.executeMethod(HTTPSenderImpl.java:872) ~[axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.sendViaPost(HTTPSenderImpl.java:212) ~[axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.HTTPSender.send(HTTPSender.java:121) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.writeMessageWithCommons(CommonsHTTPTransportSender.java:403) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.invoke(CommonsHTTPTransportSender.java:234) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.engine.AxisEngine.send(AxisEngine.java:431) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.OutInAxisOperationClient.send(OutInAxisOperation.java:399) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.OutInAxisOperationClient.executeImpl(OutInAxisOperation.java:225) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.client.OperationClient.execute(OperationClient.java:150) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:533) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:509) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.rpc.client.RPCServiceClient.invokeBlocking(RPCServiceClient.java:101) [axis2-adb-1.7.9.jar:1.7.9]
+    at com.xxha.logservice.util.ServiceClient.dataExange(ServiceClient.java:36) [classes/:na]
+    at com.xxha.logservice.services.LogWebService.exchangeInfo(LogWebService.java:24) [classes/:na]
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.6.0_45]
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39) ~[na:1.6.0_45]
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25) ~[na:1.6.0_45]
+    at java.lang.reflect.Method.invoke(Method.java:597) ~[na:1.6.0_45]
+    at org.apache.axis2.rpc.receivers.RPCUtil.invokeServiceClass(RPCUtil.java:256) [axis2-adb-1.7.9.jar:1.7.9]
+    at org.apache.axis2.rpc.receivers.RPCMessageReceiver.invokeBusinessLogic(RPCMessageReceiver.java:121) [axis2-adb-1.7.9.jar:1.7.9]
+    at org.apache.axis2.receivers.AbstractInOutMessageReceiver.invokeBusinessLogic(AbstractInOutMessageReceiver.java:40) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.receivers.AbstractMessageReceiver.receive(AbstractMessageReceiver.java:106) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.engine.AxisEngine.receive(AxisEngine.java:169) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.HTTPTransportUtils.processHTTPPostRequest(HTTPTransportUtils.java:178) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.AxisServlet.doPost(AxisServlet.java:164) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:650) [servlet-api.jar:na]
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:731) [servlet-api.jar:na]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:303) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:120) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.springframework.boot.context.web.ErrorPageFilter.access$000(ErrorPageFilter.java:61) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.springframework.boot.context.web.ErrorPageFilter$1.doFilterInternal(ErrorPageFilter.java:95) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:113) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:219) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:110) [catalina.jar:7.0.92]
+    at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:494) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:169) [catalina.jar:7.0.92]
+    at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:104) [catalina.jar:7.0.92]
+    at org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:1025) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:116) [catalina.jar:7.0.92]
+    at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:445) [catalina.jar:7.0.92]
+    at org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1137) [tomcat-coyote.jar:7.0.92]
+    at org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:637) [tomcat-coyote.jar:7.0.92]
+    at org.apache.tomcat.util.net.JIoEndpoint$SocketProcessor.run(JIoEndpoint.java:318) [tomcat-coyote.jar:7.0.92]
+    at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895) [na:1.6.0_45]
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918) [na:1.6.0_45]
+    at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) [tomcat-coyote.jar:7.0.92]
+    at java.lang.Thread.run(Thread.java:662) [na:1.6.0_45]
+
+2019-03-11 20:22:58.605  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 20:22:58.744  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:23:28.747  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url[http://10.255.5.123:8081/uaccess/services/registrationLog.dataExchange?wsdl]
+
+org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]</code></pre><p>最后，找了之后才发现,tomcat有bio，nio，apr的方式，再看看windows上的，都是nio。这才发现问题，根据博客上说的， bio是阻塞式I/O nio是非阻塞式I/O 这也是最后的问题，最后说改个地方就可以了，把tomcat中server.xml的Connector配置8080端口的哪里， 把protocol的值改成org.apache.coyote.http11.Http11NioProtocol</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2019/04/07/SpringBoot/SpringBoot%E5%A4%9A%E6%A8%A1%E5%9D%97%E6%97%A0%E6%B3%95%E6%89%AB%E6%8F%8F%E5%88%B0%E9%97%AE%E9%A2%98%E5%8F%8ASpring%20Data%20JPA%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            SpringBoot多模块无法扫描到问题及Spring Data JPA多数据源配置
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">使用JDK1.6构建SpringBoot发布jar和war</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

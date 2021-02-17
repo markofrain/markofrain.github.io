@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    JAXB——从Java对象到XML的序列化和反序列化 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Java/JAXB——从Java对象到XML的序列化和反序列化" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  JAXB——从Java对象到XML的序列化和反序列化
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/07/Java/JAXB%E2%80%94%E2%80%94%E4%BB%8EJava%E5%AF%B9%E8%B1%A1%E5%88%B0XML%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="article-date">
+  <time datetime="2018-07-07T02:58:31.000Z" itemprop="datePublished">2018-07-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.1k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="JAXB"><a href="#JAXB" class="headerlink" title="JAXB"></a>JAXB</h2><p>JAXB（Java Architecture for XML Binding) 是一个业界的标准，是一项可以根据XML Schema产生Java类的技术。该过程中，JAXB也提供了将XML实例文档反向生成Java对象树的方法，并能将Java对象树的内容重新写到XML实例文档。从另一方面来讲，JAXB提供了快速而简便的方法将XML模式绑定到Java表示，从而使得Java开发者在Java应用程序中能方便地结合XML数据和处理函数。 哔哔说了那么多，简单地说就是，Java对象生成XML文档，XML文档反向生成Java对象。</p>
+<h4 id="在JDK中JAXB重要的类和接口-抽象类"><a href="#在JDK中JAXB重要的类和接口-抽象类" class="headerlink" title="在JDK中JAXB重要的类和接口/抽象类"></a>在JDK中JAXB重要的类和接口/抽象类</h4><ul>
+<li>JAXB类：提供marshaller和unmarshaller方法，用来序列化和反序列化。</li>
+<li>JAXBContext类:应用的入口，创建自身实例，创建Marshaller,Ummarshaller,Binder实例</li>
+<li>Marshaller接口:将Java对象序列化为XML数据</li>
+<li>Unmarshaller接口:将XML数据反序列化为Java对象</li>
+</ul>
+<h4 id="在JDK中JAXB重要的注解"><a href="#在JDK中JAXB重要的注解" class="headerlink" title="在JDK中JAXB重要的注解"></a>在JDK中JAXB重要的注解</h4><ul>
+<li>@XmlRootElement：将Java类或枚举类型映射到XML元素,该元素唯一，并且作为XML根元素</li>
+<li>@XmlElement：将Java类的一个属性映射到与属性同名的一个XML元素</li>
+<li>@XmlAttribute：将Java类的一个属性映射到与属性同名的一个XML属性</li>
+<li>@XmlType：将Java类或枚举类型映射到XML模式类型，propOrder属性定义字段生成的XML节点顺序</li>
+<li>@XmlAccessorType(XmlAccessType.FIELD)：控制字段或属性的序列化,<strong>FIELD</strong>表示自动绑定Java类中的每个非静态的，非瞬态的字段到XML，除非@XmlTransient，<strong>PROPERTY</strong>表示绑定Java中所有getter/setter的属性到XML，除非标识了@XmlTransient,<strong>PUBLIC_MEMBER</strong>表示每个public修饰的成员变量和每个通过公共getter/setter访问的变量自动绑定到XML,除非标识了@XmlTransient，<strong>NONE</strong>表示所有属性都不映射到XML,除非使用专门注解(@XmlElement或@XmlAttribute等专门标注的)。</li>
+<li>@XmlAccessorOrder：控制JAXB绑定类中的属性和字段的排序,XmlAccessOrder枚举的<strong>UNDEFINED</strong>值表示不定义排序,<strong>ALPHABETICAL</strong>表示按字母顺序排序</li>
+<li>@XmlElementWrapper：对于数组或集合，生成一个包装该数组或集合的XML元素(包装器)</li>
+<li>@XmlJavaTypeAdapter:使用定制的适配器（即扩展抽象类XmlAdapter并覆盖marshal()和unmarshal()方法）</li>
+<li>@XmlTransient：对于标注了此注解的java属性，将不被映射。</li>
+</ul>
+<h4 id="简单的类转换"><a href="#简单的类转换" class="headerlink" title="简单的类转换"></a>简单的类转换</h4><pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType
+public class Student implements Serializable&#123;
+
+    private static final long serialVersionUID = -7928946466770112840L;
+
+    public Student() &#123;
+    &#125;
+
+    public Student(Integer id, String name, Integer age, String sex, String address) &#123;
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.sex = sex;
+        this.address = address;
+    &#125;
+
+    private Integer id;
+    private String name;
+
+    private Integer age;
+    private String sex;
+    private String address;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+    @XmlAttribute
+    public Integer getAge() &#123;
+        return age;
+    &#125;
+
+
+    public void setAge(Integer age) &#123;
+        this.age = age;
+    &#125;
+
+    public String getSex() &#123;
+        return sex;
+    &#125;
+
+    public void setSex(String sex) &#123;
+        this.sex = sex;
+    &#125;
+
+    public String getAddress() &#123;
+        return address;
+    &#125;
+
+    public void setAddress(String address) &#123;
+        this.address = address;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Student&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&apos;&quot; + name + &apos;\&apos;&apos; +
+                &quot;, age=&quot; + age +
+                &quot;, sex=&apos;&quot; + sex + &apos;\&apos;&apos; +
+                &quot;, address=&apos;&quot; + address + &apos;\&apos;&apos; +
+                &apos;&#125;&apos;;
+    &#125;</code></pre><p>测试:</p>
+<pre><code>Student student = new Student(1,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+File file = new File(&quot;student.xml&quot;);
+
+JAXBContext jaxbContext = JAXBContext.newInstance(Student.class);
+Marshaller marshaller = jaxbContext.createMarshaller();
+marshaller.setProperty(Marshaller.JAXB_ENCODING, &quot;UTF-8&quot;);
+marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
+marshaller.setProperty(Marshaller.JAXB_FRAGMENT, false);
+marshaller.marshal(student, file);
+System.out.println(&quot;序列化完成&quot;);
+或
+JAXB.marshal(student,file);
+
+//反序列化
+File file = new File(&quot;student.xml&quot;);
+JAXBContext jaxbContext = null;
+
+jaxbContext = JAXBContext.newInstance(Student.class);
+Unmarshaller marshaller = jaxbContext.createUnmarshaller();
+Student student = (Student) marshaller.unmarshal(file);
+System.out.println(student);
+或
+JAXB.unmarshal(file, Student.class);</code></pre><ol>
+<li><p>在为实体类添加注解时，向@XmlElement,@XmlAttrbute,@XmlTransient都放在getter方法上,以避免放在私有属性上导致重复映射报错。</p>
+</li>
+<li><p>@XmlAccessorType注解的四个值用于指定什么情况将什么字段进行映射</p>
+</li>
+<li><p>@XmlType注解的propOrder属性用于列出属性映射的顺序，但如果某个值为空或未映射，将发生错误。如果不指定顺序，将出现未知的顺序。</p>
+</li>
+<li><p>如果想直接系列化或反序列化，可以直接使用JAXB的静态方法。如果需要在转换前设置一些必要的参数，可以通过创建Marshaller实例设置，和Unmarshaller都由JAXBContext对象创建的。JAXB的静态。</p>
+</li>
+<li><p>如果你指定了propOrder属性，那么除了标注了@XmlTransient注解的，其他的都必须写在属性中。</p>
+</li>
+</ol>
+<h4 id="简单对象处理"><a href="#简单对象处理" class="headerlink" title="简单对象处理"></a>简单对象处理</h4><p>将对象类型作为实体类的一个属性，设置与实体类一致。</p>
+<pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType(propOrder = &#123;&quot;school&quot;,&quot;grade&quot;,&quot;classes&quot;&#125;)
+public class Classes &#123;
+
+    public Classes() &#123;
+    &#125;
+
+    public Classes(String school, String grade, String classes) &#123;
+        this.school = school;
+        this.grade = grade;
+        this.classes = classes;
+    &#125;
+    //学校
+    private String school;
+    //年级
+    private String grade;
+    //班级
+    private String classes;
+
+    public String getSchool() &#123;
+        return school;
+    &#125;
+
+    public void setSchool(String school) &#123;
+        this.school = school;
+    &#125;
+
+    public String getGrade() &#123;
+        return grade;
+    &#125;
+
+    public void setGrade(String grade) &#123;
+        this.grade = grade;
+    &#125;
+    @XmlElement(name = &quot;class&quot;)
+    public String getClasses() &#123;
+        return classes;
+    &#125;
+
+    public void setClasses(String classes) &#123;
+        this.classes = classes;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Classes&#123;&quot; +
+                &quot;school=&apos;&quot; + school + &apos;\&apos;&apos; +
+                &quot;, grade=&apos;&quot; + grade + &apos;\&apos;&apos; +
+                &quot;, classes=&apos;&quot; + classes + &apos;\&apos;&apos; +
+                &apos;&#125;&apos;;
+    &#125;
+&#125;</code></pre><p>测试</p>
+<pre><code>Student student = new Student(1,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+student.setClasses(new Classes(&quot;xxx学校&quot;,&quot;三年级&quot;,&quot;十一班&quot;));
+File file = new File(&quot;class-student.xml&quot;);
+JAXB.marshal(student, file);</code></pre><ol>
+<li>如果要指定对象属性的xml元素名称，在@XmlRootElement中指定是不起作用的，必需要在实体类的对象属性getter方法上通过@XmlElement的name属性指定。</li>
+</ol>
+<h4 id="集合对象的操作"><a href="#集合对象的操作" class="headerlink" title="集合对象的操作"></a>集合对象的操作</h4><p>需要在集合对象上添加@XmlElementWrapper注解 注释Student类中的Classes对象以及propOrder属性中的值，然后我们再重新创建一个Classes2类</p>
+<pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType(propOrder = &#123;&quot;grade&quot;,&quot;classs&quot;,&quot;student&quot; &#125;)
+public class Classes2 implements Serializable &#123;
+
+    public Classes2() &#123;
+    &#125;
+
+    public Classes2(String grade, String classs) &#123;
+        this.grade = grade;
+        this.classs = classs;
+    &#125;
+
+    private static final long serialVersionUID = 3265433234257907279L;
+
+    private String grade;
+    //class不可用，直接在后面加个s吧
+    private String classs;
+
+    private List&lt;Student&gt; student;
+
+    @XmlAttribute
+    public String getGrade() &#123;
+        return grade;
+    &#125;
+
+    public void setGrade(String grade) &#123;
+        this.grade = grade;
+    &#125;
+    @XmlAttribute
+    public String getClasss() &#123;
+        return classs;
+    &#125;
+
+    public void setClasss(String classs) &#123;
+        this.classs = classs;
+    &#125;
+    @XmlElementWrapper(name = &quot;students&quot;)
+    public List&lt;Student&gt; getStudent() &#123;
+        return student;
+    &#125;
+
+    public void setStudent(List&lt;Student&gt; student) &#123;
+        this.student = student;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Classes2&#123;&quot; +
+                &quot;grade=&apos;&quot; + grade + &apos;\&apos;&apos; +
+                &quot;, classs=&apos;&quot; + classs + &apos;\&apos;&apos; +
+                &quot;, students=&quot; + student +
+                &apos;&#125;&apos;;
+    &#125;
+&#125;</code></pre><p>测试</p>
+<pre><code>Classes2 classes2 = new Classes2(&quot;三年级&quot;,&quot;十一班&quot;);
+List&lt;Student&gt; students = new ArrayList&lt;Student&gt;();
+
+Student student1 = new Student(123,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+Student student2 = new Student(124,&quot;Li&quot;,19,&quot;女&quot;,&quot;北京丰台&quot;);
+students.add(student1);
+students.add(student2);
+classes2.setStudent(students);
+
+JAXB.marshal(classes2, file);
+
+//反序列化
+File file = new File(&quot;class-student.xml&quot;);
+Classes2 classes2 = JAXB.unmarshal(file, Classes2.class);
+System.out.println(classes2);</code></pre><ol>
+<li><p>在不加上@XmlElementWrapper注解时，是没问题的，只是直接把多个student显示出来了，外层parent没有一个students元素包裹着，如果你指定这个注解，那么外侧就会包裹住了。可根据自己的情况。</p>
+</li>
+<li><p>集合属性的属性名作为每个集合元素的xml名称，而@XmlElementWrapper注解指定的name值将是包裹外侧元素的名称。所以建议集合属性名称不带s，而注解的name值带s。</p>
+</li>
+<li><p>属性的顺序也是可以在propOrder属性中指定的,其中属性作为属性的顺序，元素作为元素的顺序。</p>
+</li>
+<li><p>不管如何操作，都肯定涉及到文件，那就会有FileNotFoundException的异常，所以需要捕获，我这里既没有写了,开发中使用以防万一。</p>
+</li>
+</ol>
+<h4 id="格式化处理"><a href="#格式化处理" class="headerlink" title="格式化处理"></a>格式化处理</h4><p>修改Student类，添加birth属性,（别忘了propOrder添加birth）,并配置日期转换适配器</p>
+<pre><code>public class DateFormtAdapter extends XmlAdapter&lt;String,Date&gt; &#123;
+
+    private static DateFormat format = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+
+    public Date unmarshal(String v) throws Exception &#123;
+        return format.parse(v);
+    &#125;
+
+    public String marshal(Date v) throws Exception &#123;
+        return format.format(v);
+    &#125;
+&#125;
+
+
+@XmlJavaTypeAdapter(DateFormtAdapter.class)
+public Date getBirth() &#123;
+    return birth;
+&#125;</code></pre><p>之后只需要为Student对象setBirth属性就好。 <strong>注:如果你在测试中出现了问题，则注意看测试下面的1,2,3,4标号问题，是否出现了一些失误。</strong></p>
+<h4 id="部分代码"><a href="#部分代码" class="headerlink" title="部分代码"></a>部分代码</h4><p>使用idea开发工具，maven项目，mavenHelper插件更利于maven依赖包管理 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/learnxml.rar">下载地址</a></p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/07/07/Java/JAXB%E2%80%94%E2%80%94%E4%BB%8EJava%E5%AF%B9%E8%B1%A1%E5%88%B0XML%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JAXB/" rel="tag">JAXB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/07/22/Java/Java%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91%E7%9F%AD%E4%BF%A1%E6%9C%8D%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%89%8B%E6%9C%BA%E9%AA%8C%E8%AF%81%E7%A0%81%E6%B3%A8%E5%86%8C%E9%AA%8C%E8%AF%81/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Java使用阿里云短信服务实现手机验证码注册验证
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">XML的使用——DOM4J以及XPath语法</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

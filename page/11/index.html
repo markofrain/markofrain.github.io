@@ -1,0 +1,904 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+     Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      
+<section class="cover">
+    
+  <div class="cover-frame">
+    <div class="bg-box">
+      <img src="/images/cover4.jpg" alt="image frame" />
+    </div>
+    <div class="cover-inner text-center text-white">
+      <h1><a href="/">Notes</a></h1>
+      <div id="subtitle-box">
+        
+        <span id="subtitle"></span>
+        
+      </div>
+      <div>
+        
+      </div>
+    </div>
+  </div>
+  <div class="cover-learn-more">
+    <a href="javascript:void(0)" class="anchor"><i class="ri-arrow-down-line"></i></a>
+  </div>
+</section>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js"></script>
+
+<div id="main">
+  <section class="outer">
+  <article class="articles">
+    
+    
+    
+    
+    <article id="post-PostgreSQL/Postgresql批量执行" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/24/PostgreSQL/Postgresql%E6%89%B9%E9%87%8F%E6%89%A7%E8%A1%8C/"
+    >Postgresql批量执行sql</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/24/PostgreSQL/Postgresql%E6%89%B9%E9%87%8F%E6%89%A7%E8%A1%8C/" class="article-date">
+  <time datetime="2020-05-24T01:01:02.000Z" itemprop="datePublished">2020-05-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>批量执行sql需要使用到pg的psql命令。该命令在安装目录的bin下。可以添加bin到环境变量。</p>
+<p>另外就是连接数据库的情况，有的数据库不设密码，有的设置，而密码有加密类型，在data/pg_hba.conf中，这个表的配置可以到网上搜，最低级别的不需要密码即可登录。然后一般MD5加密的需要密码。</p>
+<p>对于数据库字符编码和客户端字符编码的问题。使用<code>\encoding</code>命令可以查看编码，一般为GBK编码，那么导入的sql必须为ASNI字符编码的sql文本，也就是默认window创建的txt的类型。否则如果是UFT-8的sql文件，在导入时会乱码出错。如果服务器是UTF-8的话就可以使用utf8的文本文件。</p>
+<ol>
+<li><p>首先有一个批量脚本文件，用此文件来执行，其他sql从batch脚本文件中引用。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">\cd C:/Users/cgq_r/Desktop</span><br><span class="line"></span><br><span class="line">\i ./sql/cms_business.sql;</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t(<span class="keyword">id</span>,<span class="keyword">name</span>) <span class="keyword">values</span>(<span class="string">&#x27;1&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line">\i ./sql/cms_face.sql;</span><br></pre></td></tr></table></figure>
+
+<p>此batch.sql脚本文件中,<code>\cd</code>声明了执行该文件时，要进入的目录，而<code>\i</code>表示从文件中执行命令，这个命令在psql登录后，可以使用<code>help \?</code>查看所有命令。</p>
+<p>此时batch.sql文件与cms_business.sql文件的关系是在Desktop下有batch.sql文件，Desktop下的sql目录下有cms_business.sql文件</p>
+</li>
+<li><p>连接psql</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">psql -h ip -d 数据库名 -U 用户名</span><br><span class="line">例:psql -h localhost -d postgres -U postgres</span><br></pre></td></tr></table></figure>
+
+<p>然后输入密码，注意，如果是本机登录，可以不使用-h参数，但如果当前postgresql没有设置密码，就是pg_hba.conf中的加密方式不是md5，可能需要执行-h参数，然后无需密码直接就连接上了。</p>
+</li>
+<li><p>验证客户端编码格式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\encoding</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set schema &#39;public&#39;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行导入命令</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\i C:/Users/cgq_r/Desktop/batch.sql</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/postgresql/" rel="tag">postgresql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/Activiti并行节点跳转回退示例" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/23/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E8%B7%B3%E8%BD%AC%E5%9B%9E%E9%80%80%E7%A4%BA%E4%BE%8B/"
+    >Activiti并行节点跳转回退示例V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/23/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E8%B7%B3%E8%BD%AC%E5%9B%9E%E9%80%80%E7%A4%BA%E4%BE%8B/" class="article-date">
+  <time datetime="2020-05-23T10:26:00.000Z" itemprop="datePublished">2020-05-23</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="节点跳转方法"><a href="#节点跳转方法" class="headerlink" title="节点跳转方法"></a>节点跳转方法</h2><p>可以试用cmd的方式进行操作，毕竟activiti提供的service，很多方法都是执行的command</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDJumpTaskCmd</span> <span class="keyword">implements</span> <span class="title">Command</span>&lt;<span class="title">Void</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> List&lt;TaskEntity&gt; taskEntities;</span><br><span class="line">    <span class="keyword">protected</span> ActivityImpl desActivity;</span><br><span class="line">    <span class="keyword">protected</span> Map&lt;String, Object&gt; paramvar;</span><br><span class="line">    <span class="keyword">protected</span> ActivityImpl currentActivity;</span><br><span class="line">    <span class="keyword">protected</span> String taskId;</span><br><span class="line">    <span class="keyword">protected</span> String procInsId;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Logger logger = LoggerFactory.getLogger(getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskEntities 可能存在并行任务，多个任务节点同时进行，因此需要全部删除</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> desActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> paramvar</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> currentActivity</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JDJumpTaskCmd</span><span class="params">(List&lt;TaskEntity&gt; taskEntities, ActivityImpl desActivity,</span></span></span><br><span class="line"><span class="function"><span class="params">                         Map&lt;String, Object&gt; paramvar, ActivityImpl currentActivity,String procInsId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.taskEntities = taskEntities;</span><br><span class="line">        <span class="keyword">this</span>.desActivity = desActivity;</span><br><span class="line">        <span class="keyword">this</span>.paramvar = paramvar;</span><br><span class="line">        <span class="keyword">this</span>.currentActivity = currentActivity;</span><br><span class="line">        <span class="keyword">this</span>.procInsId = procInsId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskEntities 可能存在并行任务，多个任务节点同时进行，因此需要全部删除</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> desActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> paramvar</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> currentActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> procInsId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskId 当前任务需要手动complete状态</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JDJumpTaskCmd</span><span class="params">(List&lt;TaskEntity&gt; taskEntities, ActivityImpl desActivity,</span></span></span><br><span class="line"><span class="function"><span class="params">                         Map&lt;String, Object&gt; paramvar, ActivityImpl currentActivity,String procInsId,String taskId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.taskEntities = taskEntities;</span><br><span class="line">        <span class="keyword">this</span>.desActivity = desActivity;</span><br><span class="line">        <span class="keyword">this</span>.paramvar = paramvar;</span><br><span class="line">        <span class="keyword">this</span>.currentActivity = currentActivity;</span><br><span class="line">        <span class="keyword">this</span>.procInsId = procInsId;</span><br><span class="line">        <span class="keyword">this</span>.taskId = taskId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Void <span class="title">execute</span><span class="params">(CommandContext commandContext)</span> </span>&#123;</span><br><span class="line">        ExecutionEntityManager executionEntityManager = Context.getCommandContext().getExecutionEntityManager();</span><br><span class="line">        <span class="comment">// 获取当前流程的executionId，因为在并发的情况下executionId是唯一的。</span></span><br><span class="line">        String executionId = taskEntities.size() == <span class="number">0</span> ? procInsId : taskEntities.get(taskEntities.size() - <span class="number">1</span>).getExecutionId();</span><br><span class="line">        ExecutionEntity executionEntity = executionEntityManager.findExecutionById(executionId);</span><br><span class="line">        executionEntity.setVariables(paramvar);</span><br><span class="line">        executionEntity.setEventSource(<span class="keyword">this</span>.currentActivity);</span><br><span class="line">        executionEntity.setActivity(<span class="keyword">this</span>.currentActivity);</span><br><span class="line"></span><br><span class="line">        TaskEntity afterDel = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (taskId==<span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (TaskEntity taskEntity : taskEntities) &#123;</span><br><span class="line">                taskEntity.fireEvent(<span class="string">&quot;complete&quot;</span>);</span><br><span class="line">                logger.warn(<span class="string">&quot;并行取回操作:===删除任务&quot;</span> + taskEntity.getName());</span><br><span class="line">                System.out.println(<span class="string">&quot;=============&quot;</span> + taskEntity.getName());</span><br><span class="line">                Context.getCommandContext().getTaskEntityManager().deleteTask(taskEntity, <span class="string">&quot;jump&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">for</span> (TaskEntity taskEntity : taskEntities) &#123;</span><br><span class="line">                taskEntity.fireEvent(<span class="string">&quot;complete&quot;</span>);</span><br><span class="line">                logger.warn(<span class="string">&quot;并行回退操作:===删除任务&quot;</span> + taskEntity.getName());</span><br><span class="line">                System.out.println(<span class="string">&quot;=============&quot;</span> + taskEntity.getName());</span><br><span class="line">                <span class="keyword">if</span> (!taskEntity.getId().equals(taskId))&#123;</span><br><span class="line">                    Context.getCommandContext().getTaskEntityManager().deleteTask(taskEntity, <span class="string">&quot;jump&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    afterDel = taskEntity;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        executionEntity.executeActivity(<span class="keyword">this</span>.desActivity);</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isNotBlank(taskId) &amp;&amp; afterDel != <span class="keyword">null</span>) &#123;</span><br><span class="line">            Context.getCommandContext().getTaskEntityManager().deleteTask(afterDel, TaskEntity.DELETE_REASON_COMPLETED, <span class="keyword">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上方法可能过于项目化。实际上跳转所表达的是，定义开始节点，执行目标节点，就是从当前要跳转的节点跳转到定义的目标activityId位置。中间的判断和删除，就是删除当前未办完的任务，因为当前节点要跳转了，所以不走taskService.complete了，因此在此处要完成这个任务(设置事件名称)，然后删除这个任务。此时循环删除完执行跳转。</p>
+<p>但是要注意的是taskService.deleteTask和TaskEntityManager.deleteTask这两个删除时有区别的。<strong>taskService是不允许删除正在运行的流程的</strong>，他会判断当前task的executionId是否为空。而TaskEntityManager可以删除当前正在运行的这个主流程。</p>
+<p>EntityTask实现的是Task接口，两者是父子关系。另外还有一个model包的Task，而现在的是与流程引擎相关的engine包里的。</p>
+<blockquote>
+<p>任务监听器中有任务事件，create,assignment,complete,delete。</p>
+</blockquote>
+<h2 id="并行节点的执行情况"><a href="#并行节点的执行情况" class="headerlink" title="并行节点的执行情况"></a>并行节点的执行情况</h2><p>并行节点的执行</p>
+<p>首先，并行开始网关前的一个用户任务完成任务后，在act_ru_execution中便会出现n+1个execution，以简单的并行阶段为例，n表示并行网关内的并行用户任务数量，加入n为3，则在这三条execution中，execution_id与proc_inst_id_值是不一致的，它表示为并行节点下的每个任务一个独立的子流程，而另一个1则为并行网关的主流程，他的execution_id与proc_inst_id_是一致的。而act_ru_task里则依然是n个用户任务。</p>
+<p>并行节点每完成一个任务，对应的execution便少一条。而在act_hi_actinst中，便会多出一个结束网关的act。直到最后一个并行节点任务执行完，execution中便为并行阶段后下一个用户任务。</p>
+<p>以上是用户任务在act_ru_execution中出现的情况。还有必要了解到act_ru_task,act_hi_taskinst,act_hi_actinst表的数据。</p>
+<p>一般对于只存在排他网关和用户任务的简单流程，不含并行的。execution表和task表都只有一条数据，且流程id和执行id是一样的。使用节点跳转的时候可以直接进行跳转。</p>
+<p>而并行使用此方式跳转，而不加改造的话，可能回到导致，跳转之后，完成这个任务，流程就异常结束了。或者跳转后多了一个重复任务(没删任务的情况)。</p>
+<p>对于流程异常结束的情况，认为往往在，主流程execution出现异常。而如果execution中不存在一条主流程，那么流程查询会出现问题，报错说没有这个execution执行。还有就是execution执行后没有下一个execution了。</p>
+<h2 id="并行跳转的补充"><a href="#并行跳转的补充" class="headerlink" title="并行跳转的补充"></a>并行跳转的补充</h2><p>并行方面，在做项目时，可以取回和回退。而且要做这两个功能，在并行操作是，还要顾及到并行前的节点和并行后的节点，对于并行取回和回退所出现的问题。比如回退后，任务没了、任务重复了等等。</p>
+<p>另外，对于并行取回和回退的处理，需要手动对act表做更改,比如删除execution，而非仅使用api调用。</p>
+<p>首先说一下条件，</p>
+<ul>
+<li>并行节点的取回，在并行阶段后的任务没有签收时，可以且仅取回自己的任务</li>
+<li>并行节点回退，所有其他并行节点同时回退，回退到并行阶段的上一个用户任务。</li>
+<li>任意一个并行节点意见为不通过，等并行结束后回到并行阶段前的上一个用户节点</li>
+<li>并行阶段后的用户任务，回退或不通过回到并行阶段</li>
+<li>取回并行阶段前的用户任务。(此处代办已经在并行阶段了)</li>
+</ul>
+<h3 id="并行阶段前的用户任务取回"><a href="#并行阶段前的用户任务取回" class="headerlink" title="并行阶段前的用户任务取回"></a>并行阶段前的用户任务取回</h3><p>取回肯定是当前任务没有被签收。</p>
+<p>此时代办在三个并行任务处了。</p>
+<p><strong>要想取回可以直接使用跳转的方式，并删除三个代办的并行任务，执行跳转</strong>，可以直接将主流程做变更。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ActivityImpl destinationActivity = (ActivityImpl) processDefinitionEntity.findActivity(historicTaskInstance.getTaskDefinitionKey());</span><br><span class="line">ActivityImpl currentActivity = (ActivityImpl) processDefinitionEntity.findActivity(current);</span><br><span class="line">managementService.executeCommand(<span class="keyword">new</span> JDJumpTaskCmd(taskEntitys,destinationActivity, vars, currentActivity,procInsId));</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="并行节点的取回"><a href="#并行节点的取回" class="headerlink" title="并行节点的取回"></a>并行节点的取回</h3><p>第一个并行节点取回，第一个并行节点取回时，其他并行没有办理，仅当前第一个并行在取回后要重新办理。因此可以直接删除所有所有代办的业务，然后自动签收要取回的业务，替换原要取回的关联业务数据变更为跳转后的taskId。而跳转的目标是哪里，已办可以想到的是开始并行网关，因此将其目标设为并行开始网关，也就是要取回的节点的上一个节点。</p>
+<p>第二个节点或第三个节点的取回，此时并行阶段中均有已办的并行节点。此时如果仅仅直接跳到并行开始网关已经不行了。但是依然是主流程要停留在并行阶段的。首先数据要替换，已办的要完成任务。然后由于其他原因必须要跳到并行前的排他网关处。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/Activiti并行节点流程图高亮" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E6%B5%81%E7%A8%8B%E5%9B%BE%E9%AB%98%E4%BA%AE/"
+    >Activiti并行节点流程图高亮V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/22/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E6%B5%81%E7%A8%8B%E5%9B%BE%E9%AB%98%E4%BA%AE/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> InputStream <span class="title">tracecPhotoContainParallelGateway</span><span class="params">(String processDefinitionId, String procInsId)</span></span>&#123;</span><br><span class="line">	BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);</span><br><span class="line">	List&lt;HistoricActivityInstance&gt; historicActivityInstances= Lists.newArrayList();</span><br><span class="line">	List&lt;String&gt; executedActivityIdList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line">	List&lt;HistoricActivityInstance&gt; tempHistoricActivityInstance = historyService</span><br><span class="line">			.createHistoricActivityInstanceQuery().processInstanceId(procInsId).orderByHistoricActivityInstanceStartTime().asc().orderByHistoricActivityInstanceEndTime().asc().list();</span><br><span class="line">	<span class="keyword">for</span>(HistoricActivityInstance historicActivityInstance:tempHistoricActivityInstance)&#123;</span><br><span class="line">		<span class="keyword">if</span>(historicActivityInstance.getEndTime() != <span class="keyword">null</span>)&#123;</span><br><span class="line">			historicActivityInstances.add(historicActivityInstance);</span><br><span class="line">			executedActivityIdList.add(historicActivityInstance.getActivityId());</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 流转线ID集合</span></span><br><span class="line">	List&lt;String&gt; flowIdList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line">	<span class="comment">// 全部活动实例</span></span><br><span class="line">	List&lt;FlowNode&gt; historicFlowNodeList = <span class="keyword">new</span> LinkedList&lt;FlowNode&gt;();</span><br><span class="line">	<span class="comment">// 已完成的历史活动节点</span></span><br><span class="line">	List&lt;HistoricActivityInstance&gt; finishedActivityInstanceList = <span class="keyword">new</span> LinkedList&lt;HistoricActivityInstance&gt;();</span><br><span class="line">	<span class="keyword">for</span> (HistoricActivityInstance historicActivityInstance : historicActivityInstances) &#123;</span><br><span class="line">		historicFlowNodeList.add((FlowNode) bpmnModel.getMainProcess().getFlowElement(historicActivityInstance.getActivityId()));</span><br><span class="line">		<span class="keyword">if</span> (historicActivityInstance.getEndTime() != <span class="keyword">null</span>) &#123;</span><br><span class="line">			finishedActivityInstanceList.add(historicActivityInstance);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 遍历已完成的活动实例，从每个实例的outgoingFlows中找到已执行的</span></span><br><span class="line">	<span class="comment">// 注: 主要操作</span></span><br><span class="line">	FlowNode currentFlowNode = <span class="keyword">null</span>;</span><br><span class="line">	<span class="keyword">for</span> (HistoricActivityInstance currentActivityInstance : finishedActivityInstanceList) &#123;</span><br><span class="line">		<span class="comment">// 获得当前活动对应的节点信息及outgoingFlows信息</span></span><br><span class="line">		currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(currentActivityInstance.getActivityId());</span><br><span class="line">		List&lt;SequenceFlow&gt; sequenceFlowList = currentFlowNode.getOutgoingFlows();</span><br><span class="line"></span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 遍历outgoingFlows并找到已已流转的</span></span><br><span class="line"><span class="comment">		 * 满足如下条件认为已已流转：</span></span><br><span class="line"><span class="comment">		 * 1.当前节点是并行网关或包含网关，则通过outgoingFlows能够在历史活动中找到的全部节点均为已流转</span></span><br><span class="line"><span class="comment">		 * 2.当前节点是以上两种类型之外的，通过outgoingFlows查找到的时间最近的流转节点视为有效流转</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		FlowNode targetFlowNode = <span class="keyword">null</span>;</span><br><span class="line">		<span class="keyword">if</span> (<span class="string">&quot;parallelGateway&quot;</span>.equals(currentActivityInstance.getActivityType())) &#123;</span><br><span class="line">			<span class="comment">// 遍历历史活动节点，找到匹配Flow目标节点的</span></span><br><span class="line">			<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">				targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef());</span><br><span class="line">				<span class="keyword">if</span> (historicFlowNodeList.contains(targetFlowNode)) &#123;</span><br><span class="line">					flowIdList.add(sequenceFlow.getId());</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span>(<span class="string">&quot;exclusiveGateway&quot;</span>.equals(currentActivityInstance.getActivityType()))&#123;</span><br><span class="line">			String nextActivityId = getHistoryActivityIdWithNext(executedActivityIdList, currentActivityInstance.getActivityId());</span><br><span class="line">			<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">				<span class="comment">// targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef());</span></span><br><span class="line">				<span class="keyword">if</span> (nextActivityId.equals(sequenceFlow.getTargetRef()))&#123;</span><br><span class="line">					flowIdList.add(sequenceFlow.getId());</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">			List&lt;Map&lt;String, String&gt;&gt; tempMapList = <span class="keyword">new</span> LinkedList&lt;Map&lt;String,String&gt;&gt;();</span><br><span class="line">			<span class="comment">// 遍历历史活动节点，找到匹配Flow目标节点的</span></span><br><span class="line">			<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">				<span class="keyword">for</span> (HistoricActivityInstance historicActivityInstance : historicActivityInstances) &#123;</span><br><span class="line">					<span class="keyword">if</span> (historicActivityInstance.getActivityId().equals(sequenceFlow.getTargetRef())) &#123;</span><br><span class="line">					<span class="comment">/*Map&lt;String,String&gt; te = new HashMap&lt;&gt;();</span></span><br><span class="line"><span class="comment">						te.put(&quot;flowId&quot;,sequenceFlow.getId());</span></span><br><span class="line"><span class="comment">						te.put(&quot;activityStartTime&quot;,String.valueOf(historicActivityInstance.getStartTime().getTime()));</span></span><br><span class="line"><span class="comment">						tempMapList.add(te);</span></span><br><span class="line"><span class="comment">						*/</span></span><br><span class="line">						<span class="comment">// 不显示jump的线</span></span><br><span class="line">						String taskId = historicActivityInstance.getTaskId();</span><br><span class="line">						<span class="comment">// Object variable = runtimeService.getVariable(procInsId, &quot;jump&quot; + taskId);</span></span><br><span class="line">						HistoricVariableInstanceQuery hisJumpVar = historyService.createHistoricVariableInstanceQuery().processInstanceId(procInsId).variableName(<span class="string">&quot;jump&quot;</span> + taskId);</span><br><span class="line">						<span class="keyword">if</span> (hisJumpVar != <span class="keyword">null</span>) &#123;</span><br><span class="line">							<span class="keyword">break</span>;</span><br><span class="line">						&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">							flowIdList.add(sequenceFlow.getId());</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">/*// 遍历匹配的集合，取得开始时间最早的一个</span></span><br><span class="line"><span class="comment">			long earliestStamp = 0L;</span></span><br><span class="line"><span class="comment">			String flowId = null;</span></span><br><span class="line"><span class="comment">			for (Map&lt;String, String&gt; map : tempMapList) &#123;</span></span><br><span class="line"><span class="comment">				long activityStartTime = Long.valueOf(map.get(&quot;activityStartTime&quot;));</span></span><br><span class="line"><span class="comment">				if (earliestStamp == 0 || earliestStamp &gt;= activityStartTime) &#123;</span></span><br><span class="line"><span class="comment">					earliestStamp = activityStartTime;</span></span><br><span class="line"><span class="comment">					flowId = map.get(&quot;flowId&quot;);</span></span><br><span class="line"><span class="comment">				&#125;</span></span><br><span class="line"><span class="comment">			&#125;</span></span><br><span class="line"><span class="comment">			flowIdList.add(flowId);*/</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	List&lt;String&gt; highLightedActivities = Lists.newArrayList();</span><br><span class="line">	Context.setProcessEngineConfiguration(processEngine.getProcessEngineConfiguration());</span><br><span class="line"></span><br><span class="line">	DefaultProcessDiagramGenerator processDiagramGeneratornew = <span class="keyword">new</span> DefaultProcessDiagramGenerator();</span><br><span class="line">	<span class="keyword">return</span> processDiagramGeneratornew.generateDiagram(bpmnModel, <span class="string">&quot;png&quot;</span>,</span><br><span class="line">			executedActivityIdList, flowIdList,</span><br><span class="line">			processEngine.getProcessEngineConfiguration().getActivityFontName(),</span><br><span class="line">			processEngine.getProcessEngineConfiguration().getLabelFontName(),</span><br><span class="line">			procInsId, processEngine.getProcessEngineConfiguration().getClassLoader(), <span class="number">1.0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="代码解析说明："><a href="#代码解析说明：" class="headerlink" title="代码解析说明："></a>代码解析说明：</h2><h3 id="第一段代码"><a href="#第一段代码" class="headerlink" title="第一段代码"></a>第一段代码</h3><p>读取当前流程的历史活动对象<code>HistoricActivityInstance</code>和<code>FlowNode</code>节点流向，两个集合分别为历史活动实例和actId</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">List&lt;HistoricActivityInstance&gt; historicActivityInstances= Lists.newArrayList();</span><br><span class="line">List&lt;FlowNode&gt; historicFlowNodeList = <span class="keyword">new</span> LinkedList&lt;FlowNode&gt;();</span><br><span class="line">List&lt;String&gt; executedActivityIdList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line">List&lt;HistoricActivityInstance&gt; tempHistoricActivityInstance = historyService</span><br><span class="line">		.createHistoricActivityInstanceQuery().processInstanceId(procInsId).orderByHistoricActivityInstanceStartTime().asc().orderByHistoricActivityInstanceEndTime().asc().list();</span><br><span class="line"><span class="keyword">for</span>(HistoricActivityInstance historicActivityInstance:tempHistoricActivityInstance)&#123;</span><br><span class="line">	<span class="keyword">if</span>(historicActivityInstance.getEndTime() != <span class="keyword">null</span>)&#123;</span><br><span class="line">        historicFlowNodeList.add((FlowNode) bpmnModel.getMainProcess().getFlowElement(historicActivityInstance.getActivityId()));</span><br><span class="line">		historicActivityInstances.add(historicActivityInstance);</span><br><span class="line">		executedActivityIdList.add(historicActivityInstance.getActivityId());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="第二段代码"><a href="#第二段代码" class="headerlink" title="第二段代码"></a>第二段代码</h3><p><strong>主要任务是从历史活动实例中获取流程线id，此线为高亮线。</strong></p>
+<p>通过以下代码可以获取当前Activity的流程流向</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(currentActivityInstance.getActivityId());</span><br><span class="line">List&lt;SequenceFlow&gt; sequenceFlowList = currentFlowNode.getOutgoingFlows();</span><br></pre></td></tr></table></figure>
+
+<p>sequenceFlowList即表示当前activity在流程图上流出的SequenceFlow。</p>
+<p>我们只需要循环所有的历史活动实例即可，从历史活动实例中获取FlowNode,再获取SequenceFlow</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">FlowNode targetFlowNode = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">if</span> (<span class="string">&quot;parallelGateway&quot;</span>.equals(currentActivityInstance.getActivityType())) &#123;</span><br><span class="line">	<span class="comment">// 遍历历史活动节点，找到匹配Flow目标节点的</span></span><br><span class="line">	<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">		targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef());</span><br><span class="line">		<span class="keyword">if</span> (historicFlowNodeList.contains(targetFlowNode)) &#123;</span><br><span class="line">			flowIdList.add(sequenceFlow.getId());</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们只选择并行的，以并行为例。既然要活的高亮线，也就是sequenceFlow的id，那既然高亮必须是已经执行过的历史活动，在act_hi_actinst中，存在所有的历史活动执行，包括用户任务，排他、并行网关等活动信息。</p>
+<p>因此我们循环当前历史activity的流出线,如果当前的流程节点在历史FlowNode<code>historicFlowNodeList</code>中找到(第一段代码)，那么么可以认为当前流出线是高亮的。为何要比较FlowNode，因为首先当前act是并行网关，注意并行开始节点后的一般都为任务，此处获得的targetFlowNode也就是并行阶段的并行节点。因此，如果target节点已经在历史了，那么从开始并行网关到并行节点的线是可以画的。否则并行节点没有执行，线就不会画出来。</p>
+<p>如果是排他网关或用户任务，一般下一个节点就是用户任务节点或排他网关。而排他网关和用户任务在历史执行中，只会出现一次(回退驳回除外)。而并行节点，每执行完成一个并行节点就会多出一个当前并行节点的结束并行网关。对于一般情况，我们直接通过循环getTargetRef所指向的目标actId与当前<code>currentActivityInstance</code>的下一个actId是不是相等的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String nextActivityId = getHistoryActivityIdWithNext(executedActivityIdList, currentActivityInstance.getActivityId());</span><br></pre></td></tr></table></figure>
+
+<p>该代码就是获取下一个actId，如果当前循环的currentActivityInstance的下一个actId在流出线targetRef目标所指向的任意一个actId，那么这个sequenceFlow线即可被高亮。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> String <span class="title">getHistoryActivityIdWithNext</span><span class="params">(List&lt;String&gt; historyActivityIds,String activityId)</span></span>&#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; historyActivityIds.size(); i++) &#123;</span><br><span class="line">			<span class="keyword">if</span> (historyActivityIds.get(i).equals(activityId))&#123;</span><br><span class="line">				<span class="keyword">if</span> (historyActivityIds.size()-<span class="number">1</span>==i)&#123;</span><br><span class="line">					<span class="keyword">return</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> historyActivityIds.get(i+<span class="number">1</span>);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/Activiti获取当前节点的上下并行网关" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/"
+    >Activiti获取当前节点的上下并行网关V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
+<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
+<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
+<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
+<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/Activiti自定义流程设计器简单属性" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7/"
+    >Activiti自定义流程设计器用户简单属性V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/22/Activiti/Activiti%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="编辑stencilset-json文件"><a href="#编辑stencilset-json文件" class="headerlink" title="编辑stencilset.json文件"></a>编辑stencilset.json文件</h2><p>在集成activiti的流程会绘制工具后，在resource下会有stencilset.json文件，该文件为BPMN的流程编辑器配置。用于完善和布局整个流程设计器。</p>
+<p>以增加一个简单的字符串属性和布尔的勾选属性为例。</p>
+<p>已办配置的属性都在用户任务的右侧属性，包括执行人/角色、事件监听器、任务监听器等。我们只需要在文件中所搜索。其格式为一个json字符串</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">,&#123;</span><br><span class="line">    &quot;name&quot; : &quot;tasklistenerspackage&quot;,</span><br><span class="line">    &quot;properties&quot; : [ &#123;</span><br><span class="line">      &quot;id&quot; : &quot;tasklisteners&quot;,</span><br><span class="line">      &quot;type&quot; : &quot;multiplecomplex&quot;,</span><br><span class="line">      &quot;title&quot; : &quot;任务监听器&quot;,</span><br><span class="line">      &quot;value&quot; : &quot;&quot;,</span><br><span class="line">      &quot;description&quot; : &quot;Listeners for a user task&quot;,</span><br><span class="line">      &quot;popular&quot; : true</span><br><span class="line">    &#125; ]</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在后面增加如下配置:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;name&quot;</span>: <span class="string">&quot;nodewarndaypackage&quot;</span>,</span><br><span class="line"><span class="attr">&quot;properties&quot;</span>: [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;nodewarnday&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;String&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;title&quot;</span>: <span class="string">&quot;警告天数&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;value&quot;</span>: <span class="string">&quot;3&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;当前任务节点剩余天数警告阙值&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;popular&quot;</span>: <span class="literal">true</span></span><br><span class="line">  &#125;]</span><br><span class="line">&#125;,</span><br><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;name&quot;</span>: <span class="string">&quot;isreplypackage&quot;</span>,</span><br><span class="line"><span class="attr">&quot;properties&quot;</span>: [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;isreply&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;Boolean&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;title&quot;</span>: <span class="string">&quot;批复文件&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;value&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;是否需要上传批复文件&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;popular&quot;</span>: <span class="literal">true</span></span><br><span class="line">  &#125;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上配置中,name只在stencilset.json文件中使用，</p>
+<ul>
+<li>id属性为表示属性，部署时解析值需要用到 json转BpmnModel</li>
+<li>type为值类型，String或Boolean</li>
+<li>value为默认值</li>
+<li>description为默认描述</li>
+<li>popular是否显示使用</li>
+</ul>
+<p>配置完基础属性后，找到UserTask，在UserTask里加入这两个配置。</p>
+<p>搜索<code>&quot;title&quot; : &quot;用户活动&quot;,</code>找到<code>propertyPackages</code>属性,在数组后面合适的位置，把两个name值放进去。</p>
+<p>重启项目可以看到这两个在用户任务右边显示了。</p>
+<p>自定义属性在部署模型的属性需要自己解析，导出bpmn20.xml、流程定义转模型的时候也需要把自定义属性转json或转BpmnModel。因此需要自定义UserTaskJsonConverter类继承UserTaskJsonConverter类</p>
+<h2 id="解析自定义用户属性"><a href="#解析自定义用户属性" class="headerlink" title="解析自定义用户属性"></a>解析自定义用户属性</h2><p>创建类继承UserTaskJsonConverter并实现StencilConstants接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class CustomUserTaskJsonConverter extends UserTaskJsonConverter implements StencilConstants</span><br></pre></td></tr></table></figure>
+
+<h3 id="重写UserTaskJsonConverter类的实现方法"><a href="#重写UserTaskJsonConverter类的实现方法" class="headerlink" title="重写UserTaskJsonConverter类的实现方法"></a>重写UserTaskJsonConverter类的实现方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillTypes</span><span class="params">(Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToBpmnMap,</span></span></span><br><span class="line"><span class="function"><span class="params">                                 Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToJsonMap)</span> </span>&#123;</span><br><span class="line">    fillJsonTypes(convertersToBpmnMap);</span><br><span class="line">    fillBpmnTypes(convertersToJsonMap);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillJsonTypes</span><span class="params">(Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToBpmnMap)</span> </span>&#123;</span><br><span class="line">    convertersToBpmnMap.put(STENCIL_TASK_USER, CustomUserTaskJsonConverter.class);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillBpmnTypes</span><span class="params">(Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToJsonMap)</span> </span>&#123;</span><br><span class="line">    convertersToJsonMap.put(UserTask.class, CustomUserTaskJsonConverter.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="重写convertJsonToElement方法"><a href="#重写convertJsonToElement方法" class="headerlink" title="重写convertJsonToElement方法"></a>重写convertJsonToElement方法</h3><p>该方法是把流程设计器编辑完成后模型json结果文件转为BpmnModel</p>
+<p>也就是说，把json中自定义的属性转换完成后，就可以通过在部署的时候，获取模型BpmnModel的FlowElements，获取自己的属性，插入到自己定义的表中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//预警天数</span></span><br><span class="line">String nodeWarnDay = <span class="keyword">this</span>.getProperty(<span class="string">&quot;nodewarnday&quot;</span>, elementNode).toString();</span><br><span class="line"><span class="keyword">if</span> (StringUtils.isNotBlank(nodeWarnDay)) &#123;</span><br><span class="line">    CustomProperty nodeWarnProperty = <span class="keyword">new</span> CustomProperty();</span><br><span class="line">    nodeWarnProperty.setName(<span class="string">&quot;nodeWarnDay&quot;</span>);</span><br><span class="line">    nodeWarnProperty.setSimpleValue(nodeWarnDay.replace(<span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    userTask.getCustomProperties().add(nodeWarnProperty);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">boolean</span> isReply = <span class="keyword">this</span>.getProperty(<span class="string">&quot;isreply&quot;</span>, elementNode).asBoolean(<span class="keyword">false</span>);</span><br><span class="line">CustomProperty replyProperty = <span class="keyword">new</span> CustomProperty();</span><br><span class="line">replyProperty.setName(<span class="string">&quot;isReply&quot;</span>);</span><br><span class="line">replyProperty.setSimpleValue(isReply ? <span class="string">&quot;1&quot;</span> : <span class="string">&quot;0&quot;</span>);</span><br><span class="line">userTask.getCustomProperties().add(replyProperty);</span><br></pre></td></tr></table></figure>
+
+<p>此处的获取直接获取的就是id值nodewarnday，而第五行的设置名称就是等到FlowElements循环时获取的属性名。</p>
+<h3 id="重写convertElementToJson方法"><a href="#重写convertElementToJson方法" class="headerlink" title="重写convertElementToJson方法"></a>重写convertElementToJson方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">convertElementToJson</span><span class="params">(ObjectNode propertiesNode, BaseElement baseElement)</span> </span>&#123;</span><br></pre></td></tr></table></figure>
+
+<p>该方法是BpmnModel的FlowElements转为json时的转换方法。其实这两个方法在继承的<code>UserTaskJsonConverter</code>类里就有UserTask自己定义的实现，可以进行参考。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">UserTask userTask = (UserTask) baseElement;</span><br><span class="line">Map&lt;String, List&lt;ExtensionElement&gt;&gt; extensionElements = userTask.getExtensionElements();</span><br><span class="line"></span><br><span class="line">List&lt;ExtensionElement&gt; nodeWarnDay = extensionElements.get(<span class="string">&quot;nodeWarnDay&quot;</span>);</span><br><span class="line">propertiesNode.put(<span class="string">&quot;nodewarnday&quot;</span>, nodeWarnDay.get(<span class="number">0</span>).getElementText());</span><br><span class="line"></span><br><span class="line">List&lt;ExtensionElement&gt; isreply = extensionElements.get(<span class="string">&quot;isReply&quot;</span>);</span><br><span class="line">propertiesNode.put(<span class="string">&quot;isreply&quot;</span>, isreply.get(<span class="number">0</span>).getElementText());</span><br></pre></td></tr></table></figure>
+
+<p>getExtensionElements();就是获取拓展属性。在你导出为bpmn20.xml的时候就会有UserTask的子元素extensionElements，这个元素里面的子元素就是自己定义的属性。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">userTask</span> <span class="attr">id</span>=<span class="string">&quot;sjghk&quot;</span> <span class="attr">name</span>=<span class="string">&quot;初审&quot;</span> <span class="attr">activiti:candidateGroups</span>=<span class="string">&quot;sjghk&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">documentation</span>&gt;</span>初审<span class="tag">&lt;/<span class="name">documentation</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">extensionElements</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodetask</span>&gt;</span>&lt;![CDATA[&#123;&quot;node&quot;:&#123;&quot;tasks&quot;:[&#123;&quot;value&quot;:&quot;收件表&quot;,&quot;readOnly&quot;:&quot;2&quot;,&quot;id&quot;:&quot;3d0a167ae1534fb387425a35611ca284&quot;,&quot;$$hashKey&quot;:&quot;0NH&quot;,&quot;mode&quot;:&quot;read&quot;&#125;,&#123;&quot;value&quot;:&quot;审核表&quot;,&quot;readOnly&quot;:&quot;1&quot;,&quot;id&quot;:&quot;913ba193d6dc4d08be168c2c2c22ae9f&quot;,&quot;$$hashKey&quot;:&quot;0NK&quot;,&quot;mode&quot;:&quot;read&quot;&#125;]&#125;&#125;]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodetask</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodeDay</span>&gt;</span>&lt;![CDATA[2]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodeDay</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodeWarnDay</span>&gt;</span>&lt;![CDATA[1]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodeWarnDay</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:isReply</span>&gt;</span>&lt;![CDATA[0]]&gt;<span class="tag">&lt;/<span class="name">activiti:isReply</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">extensionElements</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">userTask</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>从xml里可以看到，一般定义的简单属性只有通过CDATA括起来的数组，因此简单的属性,String类型直接就get(0)即可获得到文本<code>nodeWarnDay.get(0).getElementText()</code>，对于nodetask的复杂对象，在jackson2.8.6版本里，可以直接通过<code>objectMapper.readTree(elementText);</code>来读取成JsonNode的,然后把jsonNode放入propertiesNode中,但是在2.8里就已经被标注未来弃用了。这个方法可以再后来的版本找可以替换的方法。</p>
+<h2 id="读取保存的属性"><a href="#读取保存的属性" class="headerlink" title="读取保存的属性"></a>读取保存的属性</h2><h3 id="引入转换器"><a href="#引入转换器" class="headerlink" title="引入转换器"></a>引入转换器</h3><p>在使用BpmnJsonConverter对象，转换成BpmnModel前添加引入转换器map的代码，也就是咱们自定义的用户任务转换器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CustomBpmnJsonConverter.getConvertersToBpmnMap().put(<span class="string">&quot;UserTask&quot;</span>, CustomUserTaskJsonConverter.class);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomBpmnJsonConverter</span> <span class="keyword">extends</span> <span class="title">BpmnJsonConverter</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//通过继承开放convertersToJsonMap的访问</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; getConvertersToJsonMap()&#123;</span><br><span class="line">        <span class="keyword">return</span> convertersToJsonMap;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//通过继承开放convertersToJsonMap的访问</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; getConvertersToBpmnMap()&#123;</span><br><span class="line">        <span class="keyword">return</span> convertersToBpmnMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该类有两个方法，获取bpmn转json的转换器map，和json转bpmn的转换器map。在这里只需要获取转bpmn的map，并将定义的自定义转换器put进去。如果要是用转josn的就使用此方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CustomBpmnJsonConverter.getConvertersToJsonMap().put(UserTask.class, CustomUserTaskJsonConverter.class);</span><br></pre></td></tr></table></figure>
+
+<p>如果不清楚该方法需要那种转换器，可以将两行代码都放过去。</p>
+<h3 id="获取属性"><a href="#获取属性" class="headerlink" title="获取属性"></a>获取属性</h3><p>在部署完流程之后，process类的getFlowElements方法可以获取所有元素</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">BpmnModel model = repositoryService.getBpmnModel(processDefinition.getId());</span><br><span class="line">Collection&lt;FlowElement&gt; flowElements = model.getMainProcess().getFlowElements();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(FlowElement e : flowElements) &#123;</span><br><span class="line">	<span class="keyword">if</span>(e <span class="keyword">instanceof</span> UserTask) &#123;</span><br><span class="line">		UserTask userTask = (UserTask)e;</span><br><span class="line">		Map&lt;String, List&lt;ExtensionElement&gt;&gt; extensionElements = userTask.getExtensionElements();</span><br><span class="line">		<span class="keyword">for</span>(String key : extensionElements.keySet()) &#123;</span><br><span class="line">			List&lt;ExtensionElement&gt; list2 = extensionElements.get(key);</span><br><span class="line">			<span class="keyword">for</span> (ExtensionElement et : list2) &#123;</span><br><span class="line">				String node = et.getElementText();</span><br><span class="line">				<span class="keyword">if</span> (<span class="string">&quot;nodeWarnDay&quot;</span>.equals(key))&#123;</span><br><span class="line">					<span class="keyword">if</span> (StringUtils.isBlank(node))&#123;</span><br><span class="line">						node = taskProperty.getNodeTime();</span><br><span class="line">					&#125;</span><br><span class="line">					taskProperty.setWarnTime(node);</span><br><span class="line">					<span class="keyword">if</span> (Long.parseLong(taskProperty.getWarnTime())&gt;Long.parseLong(taskProperty.getNodeTime()))&#123;</span><br><span class="line">						<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;预警天数不能大于节点天数&quot;</span>);</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在如上代码中，首先判断flowElements是否是UserTask，如果看bpmn20.xml可以完全的看出来</p>
+<img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200523170140.png" style="zoom:70%;" />
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+  </article>
+  
+
+  
+  <nav class="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/10/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/12/">下一页</a>
+  </nav>
+  
+</section>
+</div>
+
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

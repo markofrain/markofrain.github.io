@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    zookeeper客户端的使用 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Zoopeeker/zookeeper客户端的使用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  zookeeper客户端的使用
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2018-12-29T13:58:49.000Z" itemprop="datePublished">2018-12-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.2k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
+<pre><code>bin/zkCli.sh</code></pre><ol>
+<li><p>查看帮助命令</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 2] help</code></pre></li>
+</ol>
+<ol start="2">
+<li><p>查看znode节点,ls命令</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 3] ls /
+[chen, zookeeper]
+[zk: localhost:2181(CONNECTED) 4] ls /chen
+[]</code></pre></li>
+</ol>
+<ol start="3">
+<li><p>查看节点详细信息ls2</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 6] ls2 /chen
+[]
+cZxid = 0x100000002
+ctime = Thu Dec 27 00:58:04 CST 2018
+mZxid = 0x100000002
+mtime = Thu Dec 27 00:58:04 CST 2018
+pZxid = 0x100000002
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 7
+numChildren = 0</code></pre></li>
+</ol>
+<pre><code>**后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。**</code></pre><ol start="4">
+<li><p>创建普通节点create</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 7] create /name &quot;this is name&quot;
+Created /name
+[zk: localhost:2181(CONNECTED) 8] ls /
+[chen, name, zookeeper]</code></pre></li>
+</ol>
+<ol start="5">
+<li><p>获得节点值get</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 9] get /name
+this is name
+xxxxxx</code></pre></li>
+</ol>
+<ol start="6">
+<li><p>创建暂时节点,然后推出客户端重新登陆查看</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 0] create -e /temp &quot;temp&quot;
+Created /temp
+[zk: localhost:2181(CONNECTED) 1] ls /
+[chen, name, temp, zookeeper]</code></pre></li>
+</ol>
+<pre><code>[zk: localhost:2181(CONNECTED) 2] quit
+Quitting...
+2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002
+2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed
+ubuntu1@ubuntu1:~/zookeeper/bin$ ./zkCli.sh
+Connecting to localhost:2181
+
+[zk: localhost:2181(CONNECTED) 1] ls /
+[chen, name, zookeeper]</code></pre><ol start="7">
+<li><p>创建带序号节点</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 9] create /app &quot;app&quot;
+Created /app
+[zk: localhost:2181(CONNECTED) 10] create -s /app/sun &quot;sun&quot;
+Created /app/sun0000000000
+[zk: localhost:2181(CONNECTED) 11] ls /app
+[sun0000000000]
+
+[zk: localhost:2181(CONNECTED) 12] create -s /app/sun &quot;sun2&quot;
+Created /app/sun0000000001
+[zk: localhost:2181(CONNECTED) 13] ls /app
+[sun0000000000, sun0000000001]</code></pre></li>
+</ol>
+<pre><code>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.
+
+    [zk: localhost:2181(CONNECTED) 14] ls /
+    [chen, name, app, zookeeper]
+    [zk: localhost:2181(CONNECTED) 15] create /sum &quot;sum&quot;
+    Created /sum
+    [zk: localhost:2181(CONNECTED) 16] create /sum/test &quot;sumtest1&quot;
+    Created /sum/test
+    [zk: localhost:2181(CONNECTED) 17] create -s /sum/test &quot;sumtest1&quot;
+    Created /sum/test0000000001
+    [zk: localhost:2181(CONNECTED) 18] ls /sum
+    [test0000000001, test]
+
+
+尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</code></pre><ol start="8">
+<li><p>修改节点数据值set</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 19] ls /
+[chen, name, app, sum, zookeeper]
+[zk: localhost:2181(CONNECTED) 20] get /chen
+guangqi
+xxxxxx
+[zk: localhost:2181(CONNECTED) 21] set /chen &quot;chenguangqi&quot;
+xxxxxx
+[zk: localhost:2181(CONNECTED) 22] get /chen
+chenguangqi
+xxxxx</code></pre></li>
+</ol>
+<ol start="9">
+<li><p>节点值的变化监听get path watch</p>
+<pre><code>--1号机器
+[zk: localhost:2181(CONNECTED) 24] get /chen watch
+chenguangqi
+xxxx
+
+-- 2号机器
+[zk: localhost:2181(CONNECTED) 0] set /chen &quot;chen&quot;
+xxxx
+
+[zk: localhost:2181(CONNECTED) 25]
+WATCHER::
+--1号机器
+WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></li>
+</ol>
+<pre><code>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</code></pre><ol start="10">
+<li><p>节点的子节点监听(路径变化)ls path watch</p>
+<p>   [zk: localhost:2181(CONNECTED) 25] ls / watch<br>   [chen, name, app, sum, zookeeper]</p>
+<p>   [zk: localhost:2181(CONNECTED) 1] create /test “testwatch”<br>   Created /test</p>
+<p>   [zk: localhost:2181(CONNECTED) 26]<br>   WATCHER::<br>   WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/</p>
+</li>
+</ol>
+<pre><code>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</code></pre><ol start="11">
+<li><p>删除节点与递归删除节点delete/rmr</p>
+<p>   [zk: localhost:2181(CONNECTED) 26] ls /<br>   [chen, name, app, sum, zookeeper, test]<br>   [zk: localhost:2181(CONNECTED) 27] delete /test<br>   [zk: localhost:2181(CONNECTED) 29] ls /<br>   [chen, name, app, sum, zookeeper]<br>   [zk: localhost:2181(CONNECTED) 34] delete /sum<br>   Node not empty: /sum<br>   [zk: localhost:2181(CONNECTED) 35] rmr /sum<br>   [zk: localhost:2181(CONNECTED) 36] ls /<br>   [chen, name, app, zookeeper]</p>
+</li>
+</ol>
+<ol start="12">
+<li><p>查看节点状态信息stat</p>
+<p>   [zk: localhost:2181(CONNECTED) 39] stat /chen<br>   cZxid = 0x200000021<br>   ctime = Sat Dec 29 21:53:30 CST 2018<br>   mZxid = 0x200000021<br>   mtime = Sat Dec 29 21:53:30 CST 2018<br>   pZxid = 0x200000021<br>   cversion = 0<br>   dataVersion = 0<br>   aclVersion = 0<br>   ephemeralOwner = 0x0<br>   dataLength = 4<br>   numChildren = 0</p>
+</li>
+</ol>
+<pre><code>对于stat的信息分别如下:
+*   cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。
+*   ctime:节点被创建的时间
+*   mZxid:节点最后更新zxid
+*   mtime:节点最后更新的时间
+*   pZxid:最后更新的子节点zxid
+*   cversion:子节点变化号，子节点修改次数
+*   dataVersion:节点数据变化号
+*   aclVersion:节点访问控制列表的变化号
+*   ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
+*   dataLength:节点值的长度。(重要)
+*   numChildren:子节点数目。(重要)</code></pre><ol start="13">
+<li><p>历史命令history,查看之前使用过的命令</p>
+<p>   [zk: localhost:2181(CONNECTED) 42] history<br>   32 - rmr /chen<br>   33 - ls /<br>   34 - delete /sum<br>   35 - rmr /sum<br>   36 - ls /<br>   37 - ls /<br>   38 - create /chen “chen”<br>   39 - stat /chen<br>   40 - help<br>   41 - histor<br>   42 - history</p>
+</li>
+</ol>
+<p>还有其他的命令请查看Zookeeper文档。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            zookeeper的监听器原理和客户端写数据流程
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Zookeeper分布式搭建及选举机制和节点类型介绍</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

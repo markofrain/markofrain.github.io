@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+     Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      
+<section class="cover">
+    
+  <div class="cover-frame">
+    <div class="bg-box">
+      <img src="/images/cover4.jpg" alt="image frame" />
+    </div>
+    <div class="cover-inner text-center text-white">
+      <h1><a href="/">Notes</a></h1>
+      <div id="subtitle-box">
+        
+        <span id="subtitle"></span>
+        
+      </div>
+      <div>
+        
+      </div>
+    </div>
+  </div>
+  <div class="cover-learn-more">
+    <a href="javascript:void(0)" class="anchor"><i class="ri-arrow-down-line"></i></a>
+  </div>
+</section>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js"></script>
+
+<div id="main">
+  <section class="outer">
+  <article class="articles">
+    
+    
+    
+    
+    <article id="post-Spring/Spring批量文件下载，ZIP包" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/"
+    >Spring批量文件下载，ZIP包</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/" class="article-date">
+  <time datetime="2019-09-18T01:33:36.000Z" itemprop="datePublished">2019-09-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>核心方法，递归写文件到Zip流中</p>
+<pre><code>private static void compress(File sourceFile, ZipOutputStream zos, String name,
+                                 boolean KeepDirStructure) throws Exception &#123;
+        byte[] buf = new byte[1024];
+        if (sourceFile.isFile()) &#123;
+            if (!sourceFile.getName().contains(&quot;.zip&quot;)) &#123;
+                // 向zip输出流中添加一个zip实体，构造器中name为zip实体的文件的名字
+                zos.putNextEntry(new ZipEntry(name));
+                // copy文件到zip输出流中
+                int len;
+                FileInputStream in = new FileInputStream(sourceFile);
+                while ((len = in.read(buf)) != -1) &#123;
+                    zos.write(buf, 0, len);
+                &#125;
+                // Complete the entry
+                zos.closeEntry();
+                in.close();
+            &#125;
+        &#125; else &#123;
+            File[] listFiles = sourceFile.listFiles();
+            if (listFiles == null || listFiles.length == 0) &#123;
+
+                // 需要保留原来的文件结构时,需要对空文件夹进行处理
+                if (KeepDirStructure) &#123;
+                    // 空文件夹的处理
+                    zos.putNextEntry(new ZipEntry(name + &quot;/&quot;));
+                    // 没有文件，不需要文件的copy
+                    zos.closeEntry();
+                &#125;
+            &#125; else &#123;
+                for (File file : listFiles) &#123;
+                    // 判断是否需要保留原来的文件结构
+                    if (KeepDirStructure) &#123;
+                        // 注意：file.getName()前面需要带上父文件夹的名字加一斜杠,
+                        // 不然最后压缩包中就不能保留原来的文件结构,即：所有文件都跑到压缩包根目录下了
+                        compress(file, zos, name + &quot;/&quot; + file.getName(), KeepDirStructure);
+                    &#125; else &#123;
+                        compress(file, zos, file.getName(), KeepDirStructure);
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;</code></pre><p>文件下载</p>
+<pre><code>//压缩文件zip到服务器
+ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipPath));
+compress(ywhFiles,out, ywhFiles.getName(),true);
+
+out.close();
+//下载文件
+try &#123;
+    // 以流的形式下载文件。
+    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(zipFile.getPath()));
+    byte[] buffer = new byte[fis.available()];
+    fis.read(buffer);
+    fis.close();
+    // 清空response
+    response.reset();
+    OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
+    response.setContentType(&quot;application/octet-stream&quot;);
+    response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment;filename=&quot; + new String(zipFile.getName().getBytes(&quot;UTF-8&quot;),&quot;ISO-8859-1&quot;));
+    toClient.write(buffer);
+    toClient.flush();
+    toClient.close();
+    zipFile.delete();        //是否将生成的服务器端文件删除
+&#125;
+catch (IOException ex) &#123;
+    ex.printStackTrace();
+&#125;</code></pre><p>此处使用response将流写出。如果使用springmvc的ResponseEntity返回，可能出现下载后zip包打不开的情况。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/Springboot2.x打jar包本地部署https访问" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/"
+    >Springboot2.x打jar包本地部署https访问</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2019-09-15T08:03:27.000Z" itemprop="datePublished">2019-09-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>首先我的环境是springboot2.x的，可能配置不一样，这个可以去网上找一下。这个是我真实搭建使用的。</p>
+<p>首先具备条件：有一个域名是必须的。</p>
+<p>去域名的注册商，比如阿里或腾讯，去控制台找SSL证书配置，此处以阿里云为例，注册SSL</p>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/09/image.png?x-oss-process=image/resize,m_fill,h_392,w_1024" alt=""></p>
+<p>点击购买证书，选择最后一项，选择DV免费证书，提交订单。订单完成后，操作刚才的证书，填写绑定域名，免费证书只能绑定一个域名，所以填写你需要访问的一级或二级域名。填写信息等。然后会让你将txt记录解析到域名，点击验证按钮自动配置域名解析。然后等待审核给你发送邮箱消息。</p>
+<p>审核完成后，SSL已经成功了。点击下载，下载tomcat版本的就可以。解压会有一个pfx文件，和txt密码文件。将pfx拷贝到项目resources下。</p>
+<p>配置application.yml</p>
+<pre><code>server:
+  port: 443
+  ssl:
+    key-store: classpath:2812584_xxx.xxx.cn.pfx
+    key-store-password: 
+    key-store-type: PKCS12
+    enabled: true</code></pre><p>填写你的pfx路径，填写密码，密码就是txt文件里面的。</p>
+<p>然后创建配置类:</p>
+<pre><code>@Configuration
+public class HttpsConfig &#123;
+
+    @Bean
+    public TomcatServletWebServerFactory servletContainer() &#123;
+        TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() &#123;
+            @Override
+            protected void postProcessContext(Context context) &#123;
+                SecurityConstraint securityConstraint = new SecurityConstraint();
+                securityConstraint.setUserConstraint(&quot;CONFIDENTIAL&quot;);
+                SecurityCollection collection = new SecurityCollection();
+                collection.addPattern(&quot;/*&quot;);
+                securityConstraint.addCollection(collection);
+                context.addConstraint(securityConstraint);
+            &#125;
+        &#125;;
+        tomcat.addAdditionalTomcatConnectors(getHttpConnector());
+        return tomcat;
+    &#125;
+
+    private Connector getHttpConnector() &#123;
+        Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
+        connector.setScheme(&quot;http&quot;);
+        connector.setPort(8080);
+        connector.setSecure(false);
+        connector.setRedirectPort(443);
+        return connector;
+    &#125;
+
+&#125;</code></pre><p>以上就完成了。如果你在本地，直接使用localhost访问，不加http前缀的话是直接https访问8080不管用，默认https访问80端口然后转发到443端口中。</p>
+<p>首先我说一下上面的问题：首先我是内网映射，映射本地8080，所以如果本地localhost访问8080的话是有问题的，必须是80，因为你输入地址后直接是以https形式访问了。那么使用域名的话，内网穿透8080，访问443使用https。</p>
+<p>但是如果使用的直接是云产品，将服务部署在云服务器上，则域名绑定服务器后，域名可直接使用服务的端口访问，然后转发到443端口上,如果服务端口是80，那么么直接可访问。</p>
+<p>我的系统使用了内网映射natapp。只要在配置中开启https即可。花生壳等也是如此。云服务器使用的话，在阿里云文档有说明，也可以使用这种方式直接配置。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-开源/JFinal搭建后jar的部署" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/"
+    >JFinal搭建后jar的部署</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/" class="article-date">
+  <time datetime="2019-09-04T06:32:44.000Z" itemprop="datePublished">2019-09-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>使用jfinal开发确实是非常非常的便利，虽然我才接触了两天，看点文档和社区才把一些资源常用操作等给弄完。唯一一个不怎么舒服的就是打包了。</p>
+<p>正常springmvc或springboot打包，要么是war，要么是jar，不用做什么操作，只有有默认创建maven项目的插件，就能正常的打好包。</p>
+<p>打包里，我遇到算是最困难的就是该博客里提到的，springboot+jdk6,打的war包，要是再有个axis2的使用。就会更麻烦。</p>
+<p>虽然jfinal官方提供的打包方式很好，可以使zip，tar.gz等打包。但是关于package.xml文件配置和插件的配置始终没搞懂怎么运行。最后才在社区里找到打jar包的方法。这里我先打一个地址，行不行还得根据项目来定</p>
+<p><a target="_blank" rel="noopener" href="http://www.jfinal.com/share/422">http://www.jfinal.com/share/422</a></p>
+<p>首先按照社区的说法是要把webapp的东西放到resource中再打包。这里呢，根据上一篇的环境搭建，已经把所有的东西都放到resources了，不必大费周折。</p>
+<p>依据上一篇搭建的之后，还需要做的如下。</p>
+<ul>
+<li><p>添加jfinal的jetty依赖</p>
+<dependency>
+    <groupId>com.jfinal</groupId>
+    <artifactId>jetty-server</artifactId>
+    <version>2019.3</version>
+</dependency>
+</li>
+<li><p>配置社区里截图得maven插件</p>
+<plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <encoding>UTF-8</encoding>
+        </configuration>
+    </plugin>
+
+<pre><code>&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;configuration&gt;
+        &lt;skip&gt;true&lt;/skip&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+&lt;plugin&gt;&lt;!--核心打成jar包插件--&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.6&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;archive&gt;
+            &lt;manifest&gt;
+                &lt;addClasspath&gt;true&lt;/addClasspath&gt;
+                &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;
+                &lt;mainClass&gt;com.fsats.demo.DemoConfig&lt;/mainClass&gt;
+            &lt;/manifest&gt;
+        &lt;/archive&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.10&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;copy-dependencies&lt;/id&gt;
+            &lt;phase&gt;package&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;copy-dependencies&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;configuration&gt;
+                &lt;outputDirectory&gt;$&#123;project.build.directory&#125;/lib&lt;/outputDirectory&gt;
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre></plugins>
+</li>
+<li><p>配置主启动类，就是manifest的设置。</p>
+<p>public class DemoConfig{</p>
+<pre><code>public static void main(String[] args) &#123;
+    //打包时使用
+    String baseBath = String.valueOf(DemoConfig.class.getProtectionDomain().getCodeSource().getLocation());
+    String classPath, webRootPath, jarPath;
+    if (StrKit.notBlank(baseBath) &amp;&amp; baseBath.contains(&quot;file:/&quot;)) &#123;
+        // 获取运行操作系统的运行方式  window和linux的细微区别
+        boolean windows = System.getProperties().getProperty(&quot;os.name&quot;).contains(&quot;Windows&quot;);
+        System.out.println(System.getProperties().getProperty(&quot;os.name&quot;));
+        jarPath = (windows ? &quot;&quot; : &quot;/&quot;) + baseBath.substring(&quot;file:/&quot;.length());
+        classPath = (windows ? &quot;&quot; : &quot;/&quot;) + jarPath.substring(0, jarPath.lastIndexOf(&quot;/&quot;)) + &quot;/classes&quot;;
+        System.out.println(&quot;jarPath:&quot; + jarPath);
+        System.out.println(&quot;classPath:&quot; + classPath);
+        webRootPath = classPath;
+        ZipUtil.unzip(jarPath, classPath);
+    &#125;
+    UndertowServer.start(DemoConfig.class, 80, true);
+&#125;</code></pre><p>}</p>
+</li>
+</ul>
+<p>上面的代码和社区给的有些不同</p>
+<p>PathKit似乎并没有什么用，而且社区中解压目录为class-path，这个可以再上面改，这里我改成了classes。</p>
+<p>社区里值提供了maven和启动类main方法的代码。没有继承JFinalConfig类中配置的方法出来。以目前的项目若是访问页面，可能不可行，访问的路径就有问题，访问模板路径访问不到classes，查看报错，这里被webapp替换。这是他默认的模板存放位置，就像undertow.txt中配置的resource的src/main/resources一样。但是好像读不到，所以只能修改configEngine方法，添加基础模板路径，值就是设置的最后一级目录名称。</p>
+<pre><code>public void configEngine(Engine engine) &#123;
+    engine.setBaseTemplatePath(&quot;classes&quot;);
+&#125;</code></pre><p>根据社区打包完成后，会生成一个jar包和一个lib文件夹到taraget下。你可以直接运行java -jar jar包，此时jar包里的东西就会被解压到classes目录下。</p>
+<p>其实依据之前的springboot的问题，好像可以不必要解压，而且直接将lib放在jar里，运行jar</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-开源/JFinal基础搭建" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/"
+    >JFinal基础搭建</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/" class="article-date">
+  <time datetime="2019-09-04T02:40:26.000Z" itemprop="datePublished">2019-09-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>创建Maven普通项目，添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
+    &lt;artifactId&gt;jfinal&lt;/artifactId&gt;
+    &lt;version&gt;4.5&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
+    &lt;artifactId&gt;jfinal-undertow&lt;/artifactId&gt;
+    &lt;version&gt;1.9&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>创建DemoConfig集成JFinalConfig类，实现所有方法</p>
+<p>创建main方法启动</p>
+<pre><code>public static void main(String[] args) &#123;
+    UndertowServer.start(DemoConfig.class, 80, true);
+&#125;</code></pre><p>在resources下创建undertow.txt文件，文件名可通过程序修改。</p>
+<pre><code># 配置 undertow
+
+undertow.devMode=true
+undertow.host=localhost
+undertow.port=80
+
+# 打成 fatjar 部署的项目开启下面的配置。。。。。第一个是模板资源存放位置，第二个是静态文件存放位置(暂时可以这么认为)
+undertow.resourcePath=src/main/resources, classpath:static</code></pre><p>这个文件会被自动加载装配，以上分别表示热部署，主机地址，端口号。</p>
+<p>undertow.resourcePath表示资源文件存放位置，目前也不具体清楚，只是测试了一下项目跑起来。src/amin/resources表示模板资源存放的位置，后面的是静态资源存放的位置。</p>
+<p>在DemoConfig里实现的方法configConstant</p>
+<pre><code>private static Prop prop;
+public void configConstant(Constants constants) &#123;
+    if (prop==null)&#123;
+        prop = PropKit.use(&quot;undertow.txt&quot;);
+    &#125;
+    constants.setDevMode(prop.getBoolean(&quot;undertow.devMode&quot;));
+    constants.setViewType(ViewType.JFINAL_TEMPLATE);
+&#125;</code></pre><p>上面的代码表示，获取文件并设置属性</p>
+<p>配置configRoute方法</p>
+<pre><code>public void configRoute(Routes routes) &#123;
+    routes.setBaseViewPath(&quot;/template&quot;);//设置视图基础路径
+    routes.add(&quot;/&quot;,DemoController.class);
+&#125;</code></pre><p>需要创建DemoController类</p>
+<pre><code>@Log4j
+public class DemoController extends Controller &#123;
+
+    public void index()&#123;
+        set(&quot;name&quot;,&quot;chen&quot;);
+        log.info(&quot;inf&quot;);
+        log.error(&quot;error&quot;);
+        render(&quot;index.html&quot;);
+    &#125;
+&#125;</code></pre><p>render方法可传入视图名称，可直接返回到视图中。</p>
+<p>那么模板和静态文件的存储位置为</p>
+<ul>
+<li>模板位置:resources/template/index.html(因为上面设置了BaseViewPath所以有template目录，然后因为路由直接设置的是/所以没有目录，直接index.html)</li>
+<li>静态资源位置:resources/static/index.js</li>
+</ul>
+<p>如何在页面中访问静态资源。通过以上的配置之后，在index.html可直接通过/static/index.js获取script文件</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-other/IDEA打断点也无法debug问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/"
+    >IDEA打断点也无法debug问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2019-08-07T02:26:40.000Z" itemprop="datePublished">2019-08-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>首先，出现这个问题肯定是莫名其妙的。其他项目就可以，刚导入这个项目就不可以。</p>
+<p>去google搜索，搜索到低级问题，是点击了左边的禁用断点。</p>
+<p>然后还有的就是springboot-devtool的问题</p>
+<p>我的问题是catalina.bat设置的java_opts问题,因为设置了这个，导致的无法启动断点。但是之前的项目也是使用的这个设置就没问题。莫名其妙了。</p>
+<p>检查一下catalina.bat里的SET JAVA_OPTS配置吧。</p>
+<p>原因是idea里的环境变量java_opts也有配置，导致catalina.bat里的覆盖了debug的这个配置，导致无法debug。因此在IDEA的start/connection里的配置不用改。只需要将cataina.bat的SET JAVA_OPTS = xxxxxx修改为</p>
+<p>SET JAVA_OPTS = %JAVA_OPTS% -xxxxxxx即可，这样就可以继承环境变量。</p>
+<p>但是，这个问题也会导致，你的项目启动会多启动一两次，也就是说你点了一下启动，然后控制台上走了两遍三遍项目启动。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+  </article>
+  
+
+  
+  <nav class="page-nav">
+    
+    <a class="extend prev" rel="prev" href="/page/16/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/15/">15</a><a class="page-number" href="/page/16/">16</a><span class="page-number current">17</span><a class="page-number" href="/page/18/">18</a><a class="page-number" href="/page/19/">19</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/18/">下一页</a>
+  </nav>
+  
+</section>
+</div>
+
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

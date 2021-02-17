@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Vue2.0Ajax，JSONP跨域 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Vue/Vue2.0Ajax，JSONP跨域" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Vue2.0Ajax，JSONP跨域
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/" class="article-date">
+  <time datetime="2018-05-28T14:02:16.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.2k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="Ajax实现"><a href="#Ajax实现" class="headerlink" title="Ajax实现"></a>Ajax实现</h3><p>vue本身不支持发送AJAX请求，需要使用vue-resource、axios等插件实现。 axios是一个基于Promise的HTTP请求客户端，用来发送请求，也是vue2.0官方推荐的，同时不再对vue-resource进行更新和维护。 参考GitHub上的<a target="_blank" rel="noopener" href="https://github.com/axios/axios">axios</a>,dist目录下的文件就是axios.min.js。 语法:</p>
+<pre><code>axios([options])
+axios.get(url[,options])
+    传参方式:
+        1.通过url传参
+        2.通过params选项传参</code></pre><h4 id="案例-axios-options"><a href="#案例-axios-options" class="headerlink" title="案例:axios([options])"></a>案例:axios([options])</h4><pre><code>data:&#123;
+            id:1001
+        &#125;,
+    methods:&#123;
+            sendAjax()&#123;
+                axios(&#123;
+                    method:&apos;get&apos;,
+                    url:&apos;https://api.github.com/users/&apos; + vm.id
+                &#125;).then(function(resp)&#123; //表示请求成功，将执行的回调函数
+                    console.log(resp.data);
+                    vm.user=resp.data;
+                &#125;).catch(function()&#123;  //请求失败，将执行的回调函数
+                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+                &#125;);
+            &#125;
+        &#125;</code></pre><p>在这个代码中，github是一个开源网站，所以可以访问到用户的信息。 1.vm.id表示vm引用当前Vue实例的属性，在后面Vue实例中说明。 2.axios表示执行ajax请求，method选项表示请求方式，url表示请求路径。 3..then回调函数，表示请求成功将被执行,resp为请求成功返回的数据。 4.catch表示请求失败将被执行的回调函数。。</p>
+<h4 id="axiso-get-url-options"><a href="#axiso-get-url-options" class="headerlink" title="axiso.get(url[,options])"></a>axiso.get(url[,options])</h4><p>与其类似，但需要注意，第一个参数为url，后面才是选项。</p>
+<pre><code>sendAjaxGet()&#123;
+                axios.get(&apos;/user&apos;,&#123;
+                    params:&#123;
+                        id:1001
+                    &#125;
+                &#125;).then(function(resp)&#123;
+                    console.log(resp.data);
+                    vm.user=resp.data;
+                &#125;).catch(function()&#123;
+                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+                &#125;);
+            &#125;</code></pre><h4 id="axios-post-url-data-options"><a href="#axios-post-url-data-options" class="headerlink" title="axios.post(url,data,[options])"></a>axios.post(url,data,[options])</h4><p>post方式请求，第一个参数为请求路径，第二个参数直接就是需要传递的数据，格式为json格式，后面的为选项。</p>
+<pre><code>sendAjaxPost()&#123;
+    axios.post(&apos;server.php&apos;,&#123;
+        name:&apos;KaiEr&apos;,
+        age:19
+    &#125;).then(function(resp)&#123;
+        console.log(resp.data);
+    &#125;).catch(function()&#123;
+        console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+    &#125;);
+&#125;</code></pre><p>还有其他的Request Config请求配置 如:<strong>transformRequest</strong></p>
+<pre><code>transformRequest: [function (data, headers) &#123;
+    // Do whatever you want to transform the data
+    return data;
+  &#125;],</code></pre><p>按照文档的意思是说，在请求数据发到服务器之前对其进行更改，仅适用于’PUT’,’POST’和’PATCH’。 该值为数组， 数组中最后一个函数应返回一个字符串或Buffer，ArrayBuffer实例。其实返回字符串就可以。 该函数接收的data参数表示传递的数据，即post方式请求的第二个参数。<br>还有如 + timeout：表示请求超时的毫秒数 + heads：自定义头部文件 + responseType：响应类型 + responseEncoding：响应编码格式 等等，都可以在Github的axios项目的README.md文件中查看文档。 <a target="_blank" rel="noopener" href="https://github.com/axios/axios">GitHub的axios开源项目</a></p>
+<h3 id="JSONP跨域请求"><a href="#JSONP跨域请求" class="headerlink" title="JSONP跨域请求"></a>JSONP跨域请求</h3><p>axios本身并不支持发送跨域的请求，没有提供相应的API。 尽管vue-resource不再维护，但是还可以使用它来进行跨域请求。 您可以考虑使用Jquery.js来进行跨域请求和Ajax请求。然而还有其他使用ajax跨域的更好方法。我们只是说明Vue也可以支持此功能，但如果需要，你任然可以选择。 引入vue-resource.js文件,可以访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> <strong>文档语法</strong>:</p>
+<pre><code>this.$http.jsonp(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);
+this.$http.get(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);</code></pre><ul>
+<li>get(url, [config])</li>
+<li>head(url, [config])</li>
+<li>delete(url, [config])</li>
+<li>jsonp(url, [config])</li>
+<li>post(url, [body], [config])</li>
+<li>put(url, [body], [config])</li>
+<li>patch(url, [body], [config])</li>
+</ul>
+<p><strong>Example</strong>:</p>
+<pre><code>&#123;
+  // GET /someUrl
+  this.$http.get(&apos;/someUrl&apos;).then(response =&gt; &#123;
+    // get body data
+    this.someData = response.body;
+  &#125;, response =&gt; &#123;
+    // error callback
+  &#125;);
+&#125;</code></pre><p>案例: 通过跨域请求Baidu的搜索,打开百度，F12，输入a字符，搜索，Ajax请求，network中找到这样一条请求。 <a href="#">https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=a&amp;json=1&amp;p=3&amp;sid=1444_12897_21084_26182_22158&amp;req=2&amp;csor=1&amp;cb=jQuery110209410333632536945_1523889174484&amp;_=1523889174489</a> wd代表搜索的单词a,我们只需要前边的。 另外我们可以在heads中看到百度使用的jsonp参数名为cb，所以需要修改。</p>
+<pre><code>sendJsonp()&#123;
+    this.$http.jsonp(&apos;https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su&apos;,&#123;
+        params:&#123;
+            wd:&apos;a&apos;
+        &#125;,
+        jsonp:&apos;cb&apos; //百度使用的jsonp参数名为cb，所以需要修改
+        &#125;).then(resp =&gt; &#123;
+            console.log(resp.data.s);
+        &#125;);
+&#125;</code></pre><p>通过测试，发现可以得到结果</p>
+<pre><code>(10) [&quot;爱奇艺&quot;, &quot;阿里云&quot;, &quot;安居客&quot;, &quot;阿里巴巴&quot;, &quot;阿里巴巴批发网&quot;, &quot;爱奇艺网&quot;, &quot;阿里云邮箱&quot;, &quot;安卓模拟器&quot;, &quot;爱思助手&quot;, &quot;acfun&quot;]</code></pre><p>文档访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> 另外，我也不怎么建议使用这个跨域，况且也不是经常用到。 可以使用<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000011145364">Jquery，document.domain + iframe跨域以及nodejs中间件代理跨域</a></p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/05/28/Vue/Vue2.0%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7%E5%92%8C%E4%BE%A6%E5%90%AC%E5%99%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Vue2.0计算属性和侦听器
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Vue2.0{{}}模板与自定义过滤器</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

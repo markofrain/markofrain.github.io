@@ -1,0 +1,698 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    闪回技术:闪回表,闪回删表,闪回查询 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Oracle/闪回技术-闪回表,闪回删表,闪回查询" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  闪回技术:闪回表,闪回删表,闪回查询
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/20/Oracle/%E9%97%AA%E5%9B%9E%E6%8A%80%E6%9C%AF-%E9%97%AA%E5%9B%9E%E8%A1%A8,%E9%97%AA%E5%9B%9E%E5%88%A0%E8%A1%A8,%E9%97%AA%E5%9B%9E%E6%9F%A5%E8%AF%A2/" class="article-date">
+  <time datetime="2018-09-20T08:43:42.000Z" itemprop="datePublished">2018-09-20</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.3k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">5分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="闪回技术"><a href="#闪回技术" class="headerlink" title="闪回技术"></a>闪回技术</h1><h2 id="闪回表-Flashback-Table"><a href="#闪回表-Flashback-Table" class="headerlink" title="闪回表(Flashback Table)"></a>闪回表(Flashback Table)</h2><p>闪回表是利用UNDO表空间的撤销数据，所以能把表闪回到多久之前 受到<strong>undo_retention</strong>，<strong>UNDO表空间的数据文件是否启动自动增长功能</strong>，<strong>是否设置guarantee</strong>等三种因素的影响。 被闪回的表必须启动行移动功能，且该表必须存在</p>
+<pre><code>alter table dept enable row movement;</code></pre><p><strong>1. 闪回到具体时间</strong></p>
+<pre><code>flashback table scott.emp to timestamp to_timestamp(&apos;2018-09-10 09:00:00&apos;,&apos;yyyy-mm-dd hh24:mi:ss&apos;)</code></pre><ol start="2">
+<li><p>闪回到10分钟之前</p>
+<p>flashback table scott.emp to timestamp(systimestamp-interval ‘10’ minute)</p>
+</li>
+</ol>
+<ol start="3">
+<li><p>将scott.emp闪回到SCN为10086000的时候</p>
+<p>flashback table scott.emp to scn 1086000;</p>
+<p>select dbms_flashback.get_system_change_number scn from dual;—查看当前SCN值</p>
+</li>
+</ol>
+<p><strong>使用闪回表注意事项:</strong></p>
+<ul>
+<li>被闪回的表必须启动行移动功能,alter table dept enable row movement;</li>
+<li>“FLASHBACK TABLE”命令的执行者必须有“FLASHBACK ANY TABLE”系统权限或者在被闪回的表上具有“FLASHBACK”对象权限。</li>
+<li>“FLASHBACK TABLE”属于DDL命令，隐式提交。</li>
+<li>SYS用户的任何表无法使用此功能。</li>
+</ul>
+<h2 id="闪回删表-Flashback-Drop"><a href="#闪回删表-Flashback-Drop" class="headerlink" title="闪回删表(Flashback Drop)"></a>闪回删表(Flashback Drop)</h2><p>闪回删表指的是撤销“DROP TABLE”的效果。 <strong>1. 闪回被删掉的表scott.emp</strong></p>
+<pre><code>flashback table scott.emp to before drop;</code></pre><p>当表被删掉后，由新建了一个同名表，如果视图使用上面的闪回原表，则会报ORA-38312: original name is used by an existing object错误，可重新命名。 <strong>2. 闪回是可指被恢复的回收站对象</strong></p>
+<pre><code>flashback table &quot;BIN$AyId7ZbBjWngUKjADQIIuA==$0&quot; to before drop;</code></pre><p><strong>闪回删表的工作原理</strong>是:当“DROP TABLE”命令执行时，表和索引并没有真正意义的删除，其所占空间只是分配给了<strong>回收站对象</strong> 注意：表空间在自动增长的压力下会按照先入先出的规则将回收站对象的空间分配给需要空间的段，在将回收站对象耗尽之前数据文件是不会自动增长的。 <strong>3. 禁用回收站功能</strong></p>
+<pre><code>alter system set recyclebin=&apos;OFF&apos; scope=spfile;</code></pre><p><strong>4. 删除当前用户回收站的所有对象</strong></p>
+<pre><code>pruge recyclebin;</code></pre><h2 id="闪回查询"><a href="#闪回查询" class="headerlink" title="闪回查询"></a>闪回查询</h2><p>以表为单位查询过去的数据称为闪回查询，主要有两种方式：</p>
+<ul>
+<li>闪回时间点查询:利用select 命令的“as of”子句PL/SQL包dbms_flashback在过去的时间点上的查询。</li>
+<li>闪回版本查询:利用select命令的“version between”子句在过去的一段时间范围内的查询。</li>
+</ul>
+<h3 id="闪回时间点查询"><a href="#闪回时间点查询" class="headerlink" title="闪回时间点查询"></a>闪回时间点查询</h3><p><strong>利用as of语句</strong></p>
+<ol>
+<li><p>查询7900号员工在具体时间的工资</p>
+<p>select sal from emp as of timestamp to_timestamp(‘2018-09-13 10:02:30’,’yyyy-mm-dd,hh24:mi:ss’) where empno=7900;</p>
+</li>
+</ol>
+<ol start="2">
+<li><p>查询7900号员工在5分钟之前的工资</p>
+<p>select sal from emp as  of timestamp(systimestamp-interval ‘5’ minute) where empno=7900;</p>
+</li>
+</ol>
+<p><strong>利用dbms_flashback包</strong> 利用dbms_flashback包的<strong>enable_at_time或enable_at_scn</strong>存储过程锁定一个会话级别的闪回时间目标，即进入闪回模式，随后的查询命令可以省略“as of”，直到调用dbms_flashback_disable存储过程将其关闭为止。 比如：将闪回模式回话定格在15分钟之前:</p>
+<pre><code>exec dbms_flashback.enable_at_time(systimestamp - interval &apos;15&apos; minute);</code></pre><p>现在进行查询，注意，此时查询的是15分钟之前的表。</p>
+<pre><code>select sal from emp where empno=7900;   --忽略了“as of”子句</code></pre><p>此时若访问SYSDATE、SYSTIMESTAMP等日期函数，它们的返回值仍是当前值，而不是15分钟之前的值。 处于闪回会话模式时，执行dml和ddl将报错</p>
+<pre><code>SQL&gt; update emp set sal=2000 where empno=7900;
+update emp set sal=2000 where empno=7900
+       *
+第 1 行出现错误:
+ORA-08182: 在闪回模式下操作不受支持</code></pre><p>如果查询完毕，可调用disable存储过程关闭闪回会话模式。</p>
+<pre><code>exec dbms_flashback.disable;</code></pre><p><strong>闪回版本查询</strong> 闪回版本查询可以贯穿一定长度的时间窗口，通过只使用一条查询命令就能<strong>返回该时间窗口内不同时间点上的数据。</strong> 比如，首先通过3个事务将7900号员工的工资进行修改。</p>
+<pre><code>SQL&gt; update emp set sal=3000 where empno=7900;
+已更新 1 行。
+SQL&gt; commit;
+提交完成。
+SQL&gt; update emp set sal=4000 where empno=7900;
+已更新 1 行。
+SQL&gt; commit;
+提交完成。
+SQL&gt; update emp set sal=5000 where empno=7900;
+已更新 1 行。
+SQL&gt; commit;
+提交完成。
+SQL&gt; update emp set sal=6000 where empno=7900;
+已更新 1 行。
+SQL&gt; commit;
+提交完成。</code></pre><p><strong>执行闪回版本查询</strong></p>
+<pre><code>SQL&gt; select empno,sal from emp versions between timestamp(systimestamp -interval &apos;15&apos; minute) and maxvalue where empno=7900;
+
+     EMPNO        SAL
+---------- ----------
+      7900       6000
+      7900       5000
+      7900       4000
+      7900       3000
+      7900        950</code></pre><p>通过“versions between”，我们可以看到在15分钟之内，7900号员工的工资用5个值，说明共有4个事务对其进行过修改。 为了能看清这些事务的先后顺序，可以在查询列表中使用伪字段。</p>
+<pre><code>SQL&gt; select versions_xid,versions_startscn,versions_endscn,empno,sal from emp versions between timestamp(systimestamp - interval &apos;15&apos; minute) and maxvalue where empno=7900 order by 2 nulls first;
+
+VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
+---------------- ----------------- --------------- ---------- ----------
+                                           5482877       7900        950
+0E00180005020000           5482877         5482880       7900       3000
+17000D00E7010000           5482880         5482882       7900       4000
+0F00140002020000           5482882         5482885       7900       5000
+16000700C2020000           5482885                       7900       6000</code></pre><ul>
+<li>versions_xid为事物号</li>
+<li>versions_startscn是事物开始时的SCN</li>
+<li>version_endscn时修改该行的下一个事物开始时的SCN</li>
+</ul>
+<p>首尾衔接这两个字段的SCN号很容易得出真实的修改顺序。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/09/20/Oracle/%E9%97%AA%E5%9B%9E%E6%8A%80%E6%9C%AF-%E9%97%AA%E5%9B%9E%E8%A1%A8,%E9%97%AA%E5%9B%9E%E5%88%A0%E8%A1%A8,%E9%97%AA%E5%9B%9E%E6%9F%A5%E8%AF%A2/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%97%AA%E5%9B%9E/" rel="tag">闪回</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/09/21/Vue/Vue2.0%E2%80%94%E2%80%94vue-cli%E8%84%9A%E6%89%8B%E6%9E%B6%E5%8F%8A%E6%A8%A1%E5%9D%97%E5%8C%96%E5%BC%80%E5%8F%91/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Vue2.0——vue-cli脚手架及模块化开发
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/09/18/Linux/%E4%BD%BF%E7%94%A8Ubuntu18.04%E5%92%8CVirtualBox%E8%99%9A%E6%8B%9F%E8%BD%AF%E4%BB%B6%E4%BD%BF%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B9%8B%E9%97%B4%E4%BA%92%E9%80%9A%E5%92%8C%E4%B8%8E%E5%AE%BF%E4%B8%BB%E4%BA%92%E9%80%9A/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">使用Ubuntu18.04和VirtualBox虚拟软件使虚拟机之间互通和与宿主互通</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

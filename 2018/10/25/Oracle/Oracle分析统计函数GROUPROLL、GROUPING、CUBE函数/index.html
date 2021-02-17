@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    Oracle分析统计函数GROUPROLL、GROUPING、CUBE函数 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Oracle/Oracle分析统计函数GROUPROLL、GROUPING、CUBE函数" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  Oracle分析统计函数GROUPROLL、GROUPING、CUBE函数
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/25/Oracle/Oracle%E5%88%86%E6%9E%90%E7%BB%9F%E8%AE%A1%E5%87%BD%E6%95%B0GROUPROLL%E3%80%81GROUPING%E3%80%81CUBE%E5%87%BD%E6%95%B0/" class="article-date">
+  <time datetime="2018-10-25T08:49:32.000Z" itemprop="datePublished">2018-10-25</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.9k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="分析统计函数和其他函数"><a href="#分析统计函数和其他函数" class="headerlink" title="分析统计函数和其他函数"></a>分析统计函数和其他函数</h1><h2 id="一、-substr截取函数"><a href="#一、-substr截取函数" class="headerlink" title="一、 substr截取函数"></a>一、 substr截取函数</h2><p>substr(string,a[,b])</p>
+<ul>
+<li>string表示被截取的字符串</li>
+<li>a表示开始截取的位置，默认截取到末尾，返回被截取的字符串，当值为0/1都是第一位</li>
+<li>b表示结束截取的位置，返回被截取的字符串</li>
+</ul>
+<h2 id="二、-DECODE"><a href="#二、-DECODE" class="headerlink" title="二、 DECODE"></a>二、 DECODE</h2><p>DECODE(条件，值1，返回值1，值2，返回值2，值3，返回值3,…..) 当条件值等于值1时返回返回值1，为值2时，返回返回值2。类似于if..else语句</p>
+<h2 id="三、-NVL函数、NVL2函数、NULLIF函数、COALESCE函数"><a href="#三、-NVL函数、NVL2函数、NULLIF函数、COALESCE函数" class="headerlink" title="三、 NVL函数、NVL2函数、NULLIF函数、COALESCE函数"></a>三、 NVL函数、NVL2函数、NULLIF函数、COALESCE函数</h2><ol>
+<li>NVL(exp1,exp2)</li>
+</ol>
+<p>如果exp1为空则返回exp2的值，否则返回exp1的值，如果两者都为空则返回空。</p>
+<ol start="2">
+<li>NVL2(exp1,exp2,ep3)</li>
+</ol>
+<p>如果exp1为空则返回exp2，否则返回exp3</p>
+<ol start="3">
+<li>NULLIF(exp1,exp2)</li>
+</ol>
+<p>如果exp1等于exp2，则返回空，否则返回exp1</p>
+<ol start="4">
+<li>COALESCE(exp1,exp2,exp3,…)</li>
+</ol>
+<p>返回表达式中第一个非空的表达式。所有exp都必须是同一种类型或可以隐式转换为同一种类型。</p>
+<h2 id="四、-ROLLUP、GROUPBY、GROUPING、GROUPING-SET"><a href="#四、-ROLLUP、GROUPBY、GROUPING、GROUPING-SET" class="headerlink" title="四、 ROLLUP、GROUPBY、GROUPING、GROUPING SET"></a>四、 ROLLUP、GROUPBY、GROUPING、GROUPING SET</h2><pre><code>create table group_test (group_id int, job varchar2(10), name varchar2(10), salary int);
+
+insert into group_test values (10,&apos;Coding&apos;,    &apos;Bruce&apos;,1000);
+insert into group_test values (10,&apos;Programmer&apos;,&apos;Clair&apos;,1000);
+insert into group_test values (10,&apos;Architect&apos;, &apos;Gideon&apos;,1000);
+insert into group_test values (10,&apos;Director&apos;,  &apos;Hill&apos;,1000);
+
+insert into group_test values (20,&apos;Coding&apos;,    &apos;Jason&apos;,2000);
+insert into group_test values (20,&apos;Programmer&apos;,&apos;Joey&apos;,2000);
+insert into group_test values (20,&apos;Architect&apos;, &apos;Martin&apos;,2000);
+insert into group_test values (20,&apos;Director&apos;,  &apos;Michael&apos;,2000);
+
+insert into group_test values (30,&apos;Coding&apos;,    &apos;Rebecca&apos;,3000);
+insert into group_test values (30,&apos;Programmer&apos;,&apos;Rex&apos;,3000);
+insert into group_test values (30,&apos;Architect&apos;, &apos;Richard&apos;,3000);
+insert into group_test values (30,&apos;Director&apos;,  &apos;Sabrina&apos;,3000);
+
+insert into group_test values (40,&apos;Coding&apos;,    &apos;Samuel&apos;,4000);
+insert into group_test values (40,&apos;Programmer&apos;,&apos;Susy&apos;,4000);
+insert into group_test values (40,&apos;Architect&apos;, &apos;Tina&apos;,4000);
+insert into group_test values (40,&apos;Director&apos;,  &apos;Wendy&apos;,4000);
+
+commit;</code></pre><ol>
+<li><p>GROUP BY 分组，查询列除了聚合函数之外，都要在GROUP BY子句中出现，除了grouping函数</p>
+<p>select group_id,sum(salary) from group_test group by group_id;</p>
+<p>  GROUP_ID SUM(SALARY)</p>
+<hr>
+<pre><code>30       12000
+20        8000
+40       16000
+10        4000</code></pre></li>
+</ol>
+<p>以group_by，分组，查询每组的总薪资。</p>
+<ol start="2">
+<li>ROLLUP 分组，不仅进行分组，还对每组进行聚合统计，所有组进行聚合统计</li>
+</ol>
+<p><strong>ROLLUP统计一列的</strong></p>
+<pre><code>select group_id,sum(salary) from group_test group by  rollup(group_id);
+
+  GROUP_ID SUM(SALARY)
+---------- -----------
+        10        4000
+        20        8000
+        30       12000
+        40       16000
+                 40000</code></pre><p><strong>ROLLUP统计两列的</strong></p>
+<pre><code>select group_id,job,sum(salary) from group_test group by rollup(group_id,job);
+
+  GROUP_ID JOB                  SUM(SALARY)
+---------- -------------------- -----------
+        10 Coding                      1000
+        10 Director                    1000
+        10 Architect                   1000
+        10 Programmer                  1000
+        10                             4000
+        20 Coding                      2000
+        20 Director                    2000
+        20 Architect                   2000
+        20 Programmer                  2000
+        20                             8000
+        30 Coding                      3000
+        30 Director                    3000
+        30 Architect                   3000
+        30 Programmer                  3000
+        30                            12000
+        40 Coding                      4000
+        40 Director                    4000
+        40 Architect                   4000
+        40 Programmer                  4000
+        40                            16000
+                                      40000</code></pre><ol>
+<li><p>GROUPING函数</p>
+<p>select group_id,grouping(GROUP_ID),grouping(JOB),sum(salary) from group_test group by rollup(group_id, job);</p>
+<p>  GROUP_ID GROUPING(GROUP_ID) GROUPING(JOB) SUM(SALARY)</p>
+<hr>
+<pre><code>10                  0             0        1000
+10                  0             0        1000
+10                  0             0        1000
+10                  0             0        1000
+10                  0             1        4000
+20                  0             0        2000
+20                  0             0        2000
+20                  0             0        2000
+20                  0             0        2000
+20                  0             1        8000
+30                  0             0        3000
+30                  0             0        3000
+30                  0             0        3000
+30                  0             0        3000
+30                  0             1       12000
+40                  0             0        4000
+40                  0             0        4000
+40                  0             0        4000
+40                  0             0        4000
+40                  0             1       16000
+                    1             1       40000</code></pre></li>
+</ol>
+<h2 id="五、-GROUP-BY、ROLLUP、CUBE、GROUPING的规则"><a href="#五、-GROUP-BY、ROLLUP、CUBE、GROUPING的规则" class="headerlink" title="五、 GROUP BY、ROLLUP、CUBE、GROUPING的规则"></a>五、 GROUP BY、ROLLUP、CUBE、GROUPING的规则</h2><h3 id="GROUP-by"><a href="#GROUP-by" class="headerlink" title="GROUP by"></a>GROUP by</h3><p>对于GROUP BY 排序，group by a或group by a,b 依据a分组，或依据a和b分组。这个是ROLLUP、CUBE的基础 按例子来说就是，按某个字段进行分组的到每组的数量，或者按某个字段分组，再按某个字段分组的数量，也就是某列中某列的数量。</p>
+<h3 id="GROUP-BY-后的ROLLUP-group-by-与rollup之间没有任何内容"><a href="#GROUP-BY-后的ROLLUP-group-by-与rollup之间没有任何内容" class="headerlink" title="GROUP BY 后的ROLLUP,group by 与rollup之间没有任何内容"></a>GROUP BY 后的ROLLUP,group by 与rollup之间没有任何内容</h3><p><strong>如:GROUP BY ROLLUP(A)，其规则可分为GROUP BY 分组，包含</strong></p>
+<pre><code>select group_id,sum(salary) from group_test group by rollup(group_id);</code></pre><ul>
+<li>GROUP BY A:select group_id,sum(salary) from group_test group by(group_id);</li>
+<li>GROUP BY NULL:select NULL,sum(salary) from group_test group by(NULL);</li>
+</ul>
+<p>其中的GRUOP BY NULL,是指，所有符合条件的进行sum，也就是全部，那么null列就是NULL，按NULL分组就是按全部分一组。 那么也就是GROUP BY ROLLUP(A)等于这个两个GROUP BY的UNION ALL。 <strong>如果有两个列分组GROUP BY ROLLUP(A,B)则包含:</strong></p>
+<pre><code>select group_id,job,sum(salary) from group_test group by rollup(group_id,job);</code></pre><ul>
+<li>GROUP BY A,B</li>
+<li>GROUP BY A,NULL</li>
+<li>GROUP BY NULL,NULL</li>
+</ul>
+<p>三个则是</p>
+<pre><code>select group_id,job,name,sum(salary) from group_test group by rollup(group_id,job,name);</code></pre><ul>
+<li>A,B,C</li>
+<li>A,B,NULL</li>
+<li>A,NULL,NULL</li>
+<li>NULL,NULL,NULL</li>
+</ul>
+<blockquote>
+<p><strong>也就是说分组列由多向少，由前向后递减的。也就是说组合的总数始终是列数N(列数量)+1(NULL)</strong><br><strong>有一点需要注意，对于分组的列而言，与顺序无关，也就是说A在前或者B在前都是一样的结果。</strong></p>
+</blockquote>
+<h3 id="GROUP-BY-后的ROLLUP，group-by-与ROLLUP之间有列的关系"><a href="#GROUP-BY-后的ROLLUP，group-by-与ROLLUP之间有列的关系" class="headerlink" title="GROUP BY 后的ROLLUP，group by 与ROLLUP之间有列的关系"></a>GROUP BY 后的ROLLUP，group by 与ROLLUP之间有列的关系</h3><ol>
+<li><p>GROUP BY 后的列与ROLLUP中的列有相同的</p>
+<p>select group_id,job,sum(salary) from group_test group by group_id rollup(group_id,job);</p>
+</li>
+</ol>
+<p>则产生的分组有以下三种</p>
+<ul>
+<li>GROUP BY A,A,B——等价于GROUP BY A,B——对应GROUP BY为select group_id,job,sum(salary) from group_test group by group_id,job</li>
+<li>GROUP BY A,A,NULL——等价于GROUP BY A</li>
+<li>GROUP BY A,NULL,NULL——等价于GROUP BY A</li>
+</ul>
+<ol start="2">
+<li><p>GROUP BY 后的列与ROLLUP中的列不同</p>
+<p>select A, B, C,sum(salary) from group_test group by C rollup(A,B);</p>
+</li>
+</ol>
+<p>则分为以下三种:</p>
+<ul>
+<li>GROUP BY C,A,B</li>
+<li>GROUP BY C,A</li>
+<li>GROUP BY C</li>
+</ul>
+<blockquote>
+<p>那么由此而知，如果GROUP BY 后有列，并且还进行ROLLUP则其组合是M(GROUP BY 列数)+N(ROLLUP列数)</p>
+</blockquote>
+<h3 id="group-by-后跟CUBE"><a href="#group-by-后跟CUBE" class="headerlink" title="group by 后跟CUBE**"></a>group by 后跟CUBE**</h3><p>ROLLUP与CUBE有些区别。查询数据排序相反 当分组列为一个时，查询的数据一样，当多一个job后，不仅有ROLLUP的这21列数据，还多出了每个工作的总薪资,多了4行数据。 带CUBE的子句会产生更多的数据,cube后面的列有多少种组合就有多少种分组，例如两列，则有A、B、A,B、NULL四种，分别对应了数据中的</p>
+<ul>
+<li>A,NULL—— 30 _ 12000:每组的总薪资:select group_id,null,sum(salary) from group_test group by(group_id,null);</li>
+<li>B,NULL—— _ coding 10000:每种工作的总薪资:select null,job,sum(salary) from group_test group by(null,job);</li>
+<li>A,B,NULL—— 40 coding 4000:每组种每种工作的总薪资:select group_id,job,sum(salary) from group_test group by(group_id,job);</li>
+<li>NULL,NULL—— _ _ 40000:所有总薪资:select null,null,sum(salary) from group_test group by(null,null);</li>
+</ul>
+<p>这四种group by组成了cube，而rollup少了第二种(B,NULL)，每种工作的总薪资，因为ROLLUP是从左往右依次减少的嘛。而如若cube有3列，可组成8种,那么就组成了</p>
+<ul>
+<li>a对应为a,null,null</li>
+<li>b对应为b,null,null</li>
+<li>c对应为c,null,null</li>
+<li>ab对应为a,b,null</li>
+<li>ac对应为a,c,null</li>
+<li>bc对应为b,c,null</li>
+<li>abc对应为a,b,c</li>
+<li>null对应为null,null,null</li>
+</ul>
+<h3 id="与ROLLUP组合的几个函数"><a href="#与ROLLUP组合的几个函数" class="headerlink" title="与ROLLUP组合的几个函数"></a>与ROLLUP组合的几个函数</h3><ol>
+<li>GTOUPING函数</li>
+</ol>
+<p>必须且只能接受一列作为参数。参数列值为NULL则返回1，参数列值非空则返回0。这个在上面的示例中已经证明了。</p>
+<ol start="2">
+<li>GROUP_ID函数</li>
+</ol>
+<p>不接受任何参数，返回值为某个特定的分组出现的重复次数(GROUP BY后和ROLLUP后都有分组列时),重复次数重0开始，第一次出现为0，第二次为1，第n次为N-1。以下三段代码很好的说明了这个函数的作用</p>
+<pre><code>--按group_id分组，不存在重复
+select group_id,sum(salary),group_id() from group_test group by group_id;
+--按group_id分组，且rollup分组，会重复出现上个语句查出的数据
+select group_id,sum(salary),group_id() from group_test group by group_id,rollup(group_id);
+--与前一情况类似
+select group_id,job,sum(salary),group_id() from group_test group by group_id,rollup(group_id,job);</code></pre><ol start="3">
+<li>GROUPING_ID函数</li>
+</ol>
+<p>必须传入一列或多列作为其参数。返回值为按参数排列顺序，依次对各个参数使用grouping()函数，并将结果值依次串成一串二进制数然后再转化为十进制所得到的值。 例如：</p>
+<pre><code>grouping(A) = 0 ; grouping(B) = 1;
+则：grouping_id(A,B)  =  (01)2  = 1;
+grouping_id(B,A)  =  (10)2  =2;</code></pre>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2018/10/25/Oracle/Oracle%E5%88%86%E6%9E%90%E7%BB%9F%E8%AE%A1%E5%87%BD%E6%95%B0GROUPROLL%E3%80%81GROUPING%E3%80%81CUBE%E5%87%BD%E6%95%B0/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2018/11/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93DM%E5%AF%BC%E5%85%A5%E6%8A%A5%E9%94%99ORA-14460-%20%E5%8F%AA%E8%83%BD%E6%8C%87%E5%AE%9A%E4%B8%80%E4%B8%AA%20COMPRESS%20%E6%88%96%20NOCOMPRESS%20%E5%AD%90%E5%8F%A5/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            数据库DM导入报错ORA-14460: 只能指定一个 COMPRESS 或 NOCOMPRESS 子句
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2018/10/24/Oracle/Oracle%E5%BD%92%E6%A1%A3%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86%E6%93%8D%E4%BD%9C/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Oracle归档日志管理操作</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

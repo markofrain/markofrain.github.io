@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    依据word模板使用freemarker生成docx文件 |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-Java/依据word模板使用freemarker生成docx文件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  依据word模板使用freemarker生成docx文件
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:37:28.000Z" itemprop="datePublished">2020-01-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.7k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">7分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>使用freemarker方式生成docx，有两种方法，一种是转成word xml方式，但是这种文件在程序中使用流预览文件是有问题的，它是xml字符串，这种方式杜宇docx和doc都可以。原理就是将模板docx和doc另存为word xml文件，使用文本工具打开，就是一个xml，你只需要把要替换的地方使用${}方式改了就可以了，然后使用freemarker程序替换即可。</p>
+<p>虽然转换成功后可以再桌面上正常打开，但是输出流就是xml格式，你要想可以有流就必须手动进行另存为word格式。</p>
+<p>因此我们只能使用docx文件来操作，docx文件是有多个文件夹和文件组成，它可以通过winrar打开。只需要将后缀改为zip，但是，这个文件必须编辑过，就是打开并输入任意字符，得有东西。这样docx才能通过压缩包打开。</p>
+<p>里面的word/document.xml就是文档内容。此处我们只使用模板生成简单的文字模板即可。</p>
+<h3 id="已经完成的模板文件"><a href="#已经完成的模板文件" class="headerlink" title="已经完成的模板文件"></a>已经完成的模板文件</h3><p>将模板文件打开，修改需要更改的地方为 { 变量 },然后更改后缀为zip并通过压缩工具打开。然后把word/document.xml文件从压缩包里解压出来。这个文件存储的就是所有的文字。打开后需要查看变量，因为在文档中每个字符都有渲染标签包含着，可能 $ 与{之间就被某个渲染标签给分隔了，所以需要把中间的标签删掉，让变量连成一块。</p>
+<p>此时已经有两个文件，一个zip，一个document.xml模板文件。然后freemarker的任务就是将document.xml模板替换变量为真正的值，然后把docuemnt.xml替换到zip中并输出成docx文件即可。</p>
+<h3 id="freemarker操作"><a href="#freemarker操作" class="headerlink" title="freemarker操作"></a>freemarker操作</h3><p>首先需要将xml和zip放到resource中，此处获取文件我们通过class类路径的方式获取模板。方法共分两个，一个是替换模板文件，一个是转换zip。</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.freemarker&lt;/groupId&gt;
+    &lt;artifactId&gt;freemarker&lt;/artifactId&gt;
+    &lt;version&gt;2.3.28&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h3 id="替换模板文件"><a href="#替换模板文件" class="headerlink" title="替换模板文件"></a>替换模板文件</h3><ol>
+<li><p>配置map替换变量</p>
+<p>   Map&lt;String, String&gt; paramMap = assemblyQualityResultParam(planResult);</p>
+</li>
+<li><p>传递原文件名和模板文件名</p>
+<p>   String filePath = fileDir + Constant.SEPARATOR + qualityName.replace(“.docx”,””) + “.xml”;//拼接为质检报告XML文件路径<br>   XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml<br>   //调用<br>   freemarkerWithSimple(paramMap, filePath, “XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml”);</p>
+</li>
+<li><p>configuration设置编码格式和模板类路径</p>
+<p>public void freemarkerWithSimple(Map&lt;String, String&gt; paramMap, String saveFilePath, String templeteName) {</p>
+<pre><code>    try &#123;
+        String basePath = Constant.USER_FILE_BASE_DIR;//Global.getConfig(&quot;userfiles.basedir&quot;).replace(&quot;\\&quot;,&quot;/&quot;).replace(&quot;//&quot;,&quot;/&quot;);
+        Configuration configuration = new Configuration(new Version(&quot;2.3.28&quot;));
+        configuration.setDefaultEncoding(&quot;utf-8&quot;);
+        configuration.setClassForTemplateLoading(this.getClass(), &quot;/freemarker&quot;);
+        //指定模板路径的第二种方式,我的路径是D:/      还有其他方式
+        //configuration.setDirectoryForTemplateLoading(new File(&quot;C:/Users/cgq_r/Desktop&quot;));
+        String filePath = basePath + saveFilePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;);//fileDir + File.separator + name;
+        FileUtils.createDirectory(filePath.substring(0, filePath.lastIndexOf(&quot;/&quot;)));
+        // 输出文档路径及名称
+        File outFile = new File(filePath);
+        //以utf-8的编码读取ftl文件
+        Template t = configuration.getTemplate(templeteName, &quot;utf-8&quot;);
+        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), &quot;utf-8&quot;), 10240);
+        t.process(paramMap, out);
+        out.close();
+        logger.info(&quot;生成质检报告XML文件完成-&gt;&quot; + filePath);
+    &#125; catch (IOException e) &#123;
+        logger.error(e.getMessage());
+        e.printStackTrace();
+    &#125; catch (Exception e) &#123;
+        e.printStackTrace();
+    &#125;
+&#125;</code></pre></li>
+</ol>
+<p>以上代码，首先设置编码格式和模板加载类路径，此模板我放在resource下的freemarker文件夹下，因此编译后就在项目根/freemarker下。</p>
+<p>设置模板输出和写文件。因为已经配置模板加载路径，所以tepleteName直接就是模板文件名不需要绝对相对路径。</p>
+<p>outputFile就是文件输出的位置，此处便只是创建了一下目录。虽然生成到了指定位置，但是整个过程都转换完了会后要删除这个document.xml的。</p>
+<h3 id="转换zip为docx"><a href="#转换zip为docx" class="headerlink" title="转换zip为docx"></a>转换zip为docx</h3><pre><code>filePath = generateDocxByZipAndXml(
+                        filePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;),
+                        &quot;XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）.zip&quot;,
+                        qualityName);</code></pre><p>此时，第一个参数为已经转换的xml路径,第二个是模板zip，第三个要生成的docx的文件名称。</p>
+<pre><code>private String generateDocxByZipAndXml(String filePath, String templeteZip, String qualityFileName) &#123;
+        String pathDir = Utils.getFileDir(filePath);
+        String qualityResultAllPath = Constant.USER_FILE_BASE_DIR + pathDir + Constant.SEPARATOR + qualityFileName; //质检报告docx全路径
+        try &#123;
+            //获取模板目录
+            String freemarkerDir = Servlets.getRequest().getServletContext().getRealPath(&quot;/WEB-INF/classes/freemarker&quot;);
+            String freemarkerZip = freemarkerDir + Constant.SEPARATOR + templeteZip;//模板zip路径
+            System.out.println(&quot;模板zip文件路径--&gt;&quot; + freemarkerZip);
+
+            //zip模板替换xml并输出docx文档
+            ZipInputStream zipInputStream = ZipUtils.wrapZipInputStream(new FileInputStream(new File(freemarkerZip)));
+            ZipOutputStream zipOutputStream = ZipUtils.wrapZipOutputStream(new FileOutputStream(new File(qualityResultAllPath)));
+            String itemname = &quot;word/document.xml&quot;;
+            ZipUtils.replaceItem(zipInputStream, zipOutputStream, itemname, new FileInputStream(new File(Constant.USER_FILE_BASE_DIR+filePath)));
+            logger.info(&quot;生成质检报告--&gt;&quot; + qualityResultAllPath);
+
+            //word生成-&gt;pdf
+            converterUtils.WordToPDF(qualityResultAllPath,qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
+            logger.info(&quot;生成质检报告PDF版--&gt;&quot; + qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
+
+            //删除生成的data数据
+            File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+            if (tempData.exists()) &#123;
+                tempData.delete();
+            &#125;
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
+        &#125;
+        return qualityResultAllPath.replace(Constant.USER_FILE_BASE_DIR,&quot;&quot;);
+    &#125;</code></pre><p>以上代码首先获取zip的路径，只有获取绝对路径才能进行文件操作，</p>
+<p>定义了两个ZipInputStream，其调用的方法仅仅只是inputStream和outputSteam包装一下zip输入输出流而已。</p>
+<p>ZipUtils.replaceItem是重点，就是替换文件到压缩包中。</p>
+<pre><code>/**
+     * 替换某个 item,
+     *
+     * @param zipInputStream  zip文件的zip输入流
+     * @param zipOutputStream 输出的zip输出流
+     * @param itemName        要替换的 item 名称
+     * @param itemInputStream 要替换的 item 的内容输入流
+     */
+    public static void replaceItem(ZipInputStream zipInputStream,
+                                   ZipOutputStream zipOutputStream,
+                                   String itemName,
+                                   InputStream itemInputStream
+    ) &#123;
+        //
+        if (null == zipInputStream) &#123;
+            return;
+        &#125;
+        if (null == zipOutputStream) &#123;
+            return;
+        &#125;
+        if (null == itemName) &#123;
+            return;
+        &#125;
+        if (null == itemInputStream) &#123;
+            return;
+        &#125;
+        //
+        ZipEntry entryIn;
+        try &#123;
+            while ((entryIn = zipInputStream.getNextEntry()) != null) &#123;
+                String entryName = entryIn.getName();
+                ZipEntry entryOut = new ZipEntry(entryName);
+                // 只使用 name
+                zipOutputStream.putNextEntry(entryOut);
+                // 缓冲区
+                byte[] buf = new byte[8 * 1024];
+                int len;
+
+                if (entryName.equals(itemName)) &#123;
+                    // 使用替换流
+                    while ((len = (itemInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
+                    &#125;
+                &#125; else &#123;
+                    // 输出普通Zip流
+                    while ((len = (zipInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
+                    &#125;
+                &#125;
+                // 关闭此 entry
+                zipOutputStream.closeEntry();
+
+            &#125;
+        &#125; catch (IOException e) &#123;
+            e.printStackTrace();
+        &#125; finally &#123;
+            //e.printStackTrace();
+            close(itemInputStream);
+            close(zipInputStream);
+            close(zipOutputStream);
+        &#125;
+    &#125;</code></pre><ul>
+<li>第一个参数是zip文件输入流</li>
+<li>第二个参数是最后docx文件输出流</li>
+<li>第三个参数是要替换的位置</li>
+<li>第四个是已经转换模板完成的docuemnt.xml文件</li>
+</ul>
+<p>此方法就是重新循环一下zip，并把流输出到另一个文件中，找到匹配的就使用docuemnt.xml流写进去。</p>
+<h3 id="多余docuemnt-xml删除"><a href="#多余docuemnt-xml删除" class="headerlink" title="多余docuemnt.xml删除"></a>多余docuemnt.xml删除</h3><pre><code>File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+if (tempData.exists()) &#123;
+    tempData.delete();
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/freemarker/" rel="tag">freemarker</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2020/01/11/k8s/k8s-ingress%E6%9A%B4%E9%9C%B2%E5%BA%94%E7%94%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            k8s ingress暴露应用
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">openOffce和jacob方式转换office为pdf文件</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+        
+        <span>
+  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
+  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
+</span>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script src="/js/busuanzi-2.3.pure.min.js"></script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>
