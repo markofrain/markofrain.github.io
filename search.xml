@@ -1,6 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>RocketMQ相关问题</title>
+    <url>/2021/02/24/MQ/RocketMQ%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<h3 id="默认虚拟机内存占用较大导致无法启动"><a href="#默认虚拟机内存占用较大导致无法启动" class="headerlink" title="默认虚拟机内存占用较大导致无法启动"></a>默认虚拟机内存占用较大导致无法启动</h3><p>修改JVM内存</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">vi runbroker.sh</span><br><span class="line">vi runserver.sh</span><br></pre></td></tr></table></figure>
+
+<p>修改两个文件的此处<code>JAVA_OPT=&quot;$&#123;JAVA_OPT&#125; -server -Xms256m -Xmx256m -Xmn128m -XX:MetaspaceSize=128m  -XX:MaxMetaspaceSize=320m&quot;</code></p>
+<h3 id="集群分号问题"><a href="#集群分号问题" class="headerlink" title="集群分号问题"></a>集群分号问题</h3><p>集群配置，在properties配置文件还是在设置namesrvAddr都是分号分隔不同地址。</p>
+<h3 id="Exception-in-thread-“main”-org-apache-rocketmq-remoting-exception-RemotingTooMuchRequestException-sendDefaultImpl-call-timeout"><a href="#Exception-in-thread-“main”-org-apache-rocketmq-remoting-exception-RemotingTooMuchRequestException-sendDefaultImpl-call-timeout" class="headerlink" title="Exception in thread “main” org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException: sendDefaultImpl call timeout"></a>Exception in thread “main” org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException: sendDefaultImpl call timeout</h3><p>集群启动完成并且console上可以看到集群，但是生产者无法连接到broker发送消息。</p>
+<p>IP问题，如果服务器有多个ip，需要在properties或conf中设置brokerIP1=192.168.38.130指定ip即可,并且namesrvAddr也尽量设置准确地址。 </p>
+<p><strong>brokerIP1</strong> 当前broker监听的IP<br><strong>brokerIP2</strong> 存在broker主从时，在broker主节点上配置了brokerIP2的话,broker从节点会连接主节点配置的brokerIP2来同步。</p>
+<p>默认不配置brokerIP1和brokerIP2时，都会根据当前网卡选择一个IP使用，当你的机器有多块网卡时，很有可能会有问题s</p>
+<h3 id="org-apache-rocketmq-client-exception-MQClientException-Not-found-the-producer-group-connection-For-more-information-please-visit-the-url-http-rocketmq-apache-org-docs-faq"><a href="#org-apache-rocketmq-client-exception-MQClientException-Not-found-the-producer-group-connection-For-more-information-please-visit-the-url-http-rocketmq-apache-org-docs-faq" class="headerlink" title="org.apache.rocketmq.client.exception.MQClientException: Not found the producer group connection For more information, please visit the url, http://rocketmq.apache.org/docs/faq/"></a>org.apache.rocketmq.client.exception.MQClientException: Not found the producer group connection For more information, please visit the url, <a href="http://rocketmq.apache.org/docs/faq/">http://rocketmq.apache.org/docs/faq/</a></h3><p>在console上查询生产者页面信息时报错。原因为生产者生产完消息后不执行<code>producer.shutdown();</code>才行，否则无法查询到。</p>
+]]></content>
+      <categories>
+        <category>RocketMQ</category>
+      </categories>
+      <tags>
+        <tag>Java</tag>
+        <tag>MQ</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Maven中repository和mirror的使用</title>
+    <url>/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/</url>
+    <content><![CDATA[<p>原文参考自: <a href="https://blog.csdn.net/sky_tree_delivery/article/details/105415048">https://blog.csdn.net/sky_tree_delivery/article/details/105415048</a></p>
+<p>本文也是在使用到geotool工具时找到原文博客描述。在此记录一下非中央仓库引入jar包的问题。</p>
+<p>repository称为仓库，是maven中储存jar包的站点，会提供pom文件、jar包等。为了使用户不配置任何仓库也可以加载资源，maven隐含地配置了maven的中央仓库（<code>name</code>属性为<code>central</code>），不论用户是否配置了自己的仓库。</p>
+<p>repository仓库在项目pom中引入后可直接进行使用仓库下的jar依赖</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>osgeo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>OSGeo Release Repository<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://repo.osgeo.org/repository/release/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">releases</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.geotools<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>gt-referencing<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>24.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>但如果settings.xml文件中配置了,mirror标签，则mirror会对仓库进行拦截并代理下载。</p>
+<p>mirror称为镜像，起拦截器的作用，本身不存储资源，而是指向一个资源地址（url）。镜像对项目中配置的仓库进行拦截，当一个镜像的<code>mirrodOf</code>参数匹配上了仓库的<code>name</code>参数，则进行资源映射，否则使用仓库中指定的url地址请求资源。</p>
+<figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>nexus-aliyun<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>Nexus aliyun<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果mirrorOf设置了*，则所有的jar依赖 都匹配到从此url中获取jar依赖，但aliyun中只提供中央仓库central的jar，因此部分通过其他仓库引入的jar就回获取失败。</p>
+<p>所以可以认定为mirror的优先级别大于repository，不在mirrorOf中使用*匹配。</p>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>arcgis</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Echarts相关属性设置</title>
+    <url>/2021/02/22/Javascript/Echarts%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/</url>
+    <content><![CDATA[<h3 id="通用设置"><a href="#通用设置" class="headerlink" title="通用设置"></a>通用设置</h3><h4 id="图表整体上下左右位置设置"><a href="#图表整体上下左右位置设置" class="headerlink" title="图表整体上下左右位置设置"></a>图表整体上下左右位置设置</h4><figure class="highlight"><table><tr><td class="code"><pre><span class="line">grid: &#123;</span><br><span class="line">    top:20,</span><br><span class="line">    bottom: 20,</span><br><span class="line">    right:&#x27;15%&#x27;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+
+<p>图表整体居上空白20，居下空白20，右侧空白百分之15%</p>
+<h4 id="xy轴单位设置"><a href="#xy轴单位设置" class="headerlink" title="xy轴单位设置"></a>xy轴单位设置</h4><p>name属性则为单位</p>
+<h4 id="tooltip悬浮信息自定义"><a href="#tooltip悬浮信息自定义" class="headerlink" title="tooltip悬浮信息自定义"></a>tooltip悬浮信息自定义</h4><figure class="highlight"><table><tr><td class="code"><pre><span class="line">formatter: function (params) &#123;</span><br><span class="line">    return params.data.name + &quot;: &quot; + params.data.value + &quot; &quot; + res.data.body.unit</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>params具有一些属性和值。</p>
+<h3 id="坐标系图表"><a href="#坐标系图表" class="headerlink" title="坐标系图表"></a>坐标系图表</h3><h4 id="折线图x轴上的值没有与刻度线对齐"><a href="#折线图x轴上的值没有与刻度线对齐" class="headerlink" title="折线图x轴上的值没有与刻度线对齐"></a>折线图x轴上的值没有与刻度线对齐</h4><figure class="highlight"><table><tr><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    boundaryGap: false, //值是否在刻度中间</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="折线图x轴的值没有显示全"><a href="#折线图x轴的值没有显示全" class="headerlink" title="折线图x轴的值没有显示全"></a>折线图x轴的值没有显示全</h4><figure class="highlight"><table><tr><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    axisLabel: &#123;</span><br><span class="line">        interval: 0,</span><br><span class="line">        rotate: 30</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>interval表示间隔多少个值才显示一个值，设为0则全部显示。</p>
+<p>此时x轴密密麻麻，rotate属性设置值的倾斜角度，值越大倾斜越大</p>
+]]></content>
+      <categories>
+        <category>echarts</category>
+      </categories>
+      <tags>
+        <tag>echarts</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>Vue相关操作</title>
     <url>/2021/02/17/Vue/Vue%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/</url>
     <content><![CDATA[<h3 id="for循环为指定元素设置事件"><a href="#for循环为指定元素设置事件" class="headerlink" title="for循环为指定元素设置事件"></a>for循环为指定元素设置事件</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&lt;i :class&#x3D;&quot;item.name&quot; class&#x3D;&quot;icon&quot; @dblclick&#x3D;&quot;chooseMethod(item.num)&quot; :style&#x3D;&quot;&#123;zIndex:item.zIndex&#125;&quot; v-for&#x3D;&quot;(item,i) in names&quot; :key&#x3D;&quot;i&quot;&gt;&lt;&#x2F;i&gt;</span><br></pre></td></tr></table></figure>
@@ -1665,7 +1734,7 @@
   </entry>
   <entry>
     <title>Arthas操作指南</title>
-    <url>/2020/06/12/Java/2020-06-12-Arthas%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/</url>
+    <url>/2020/06/12/Java/Arthas%E6%93%8D%E4%BD%9C%E6%8C%87%E5%8D%97/</url>
     <content><![CDATA[<h2 id="基础命令"><a href="#基础命令" class="headerlink" title="基础命令"></a>基础命令</h2><h3 id="dashboard"><a href="#dashboard" class="headerlink" title="dashboard"></a>dashboard</h3><p>显示当前进程信息</p>
 <h3 id="thread"><a href="#thread" class="headerlink" title="thread"></a>thread</h3><p>打印线程栈。<code>thread 1 | grep &#39;main(&#39;</code></p>
 <h3 id="jad"><a href="#jad" class="headerlink" title="jad"></a>jad</h3><p>反编译class。<code>jad demo.MathGame</code></p>
@@ -3482,6 +3551,324 @@
       <tags>
         <tag>建站相关</tag>
         <tag>博客</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>PostGIS相关操作</title>
+    <url>/2020/02/24/PostGIS/PostGIS%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[<h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><p>为数据库加载空间数据拓展</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> EXTENSION postgis;</span><br></pre></td></tr></table></figure>
+
+<p>查看postgis版本</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> postgis_full_version();</span><br></pre></td></tr></table></figure>
+
+
+
+<p>元数据表:空间参照标准</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> spatial_ref_sys;</span><br></pre></td></tr></table></figure>
+
+<p>元数据表:空间数据表信息描述(视图)</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> geometry_columns;</span><br></pre></td></tr></table></figure>
+
+<p>更新数据表的SRID(空间参考标识符)</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> UpdateGeometrySRID(‘nyc_neighborhoods’,’geom’,<span class="number">26918</span>);</span><br></pre></td></tr></table></figure>
+
+<h2 id="点线面对象"><a href="#点线面对象" class="headerlink" title="点线面对象"></a>点线面对象</h2><p>示例数据</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> geometries (<span class="keyword">name</span> <span class="built_in">varchar</span>, geom geometry);</span><br><span class="line"> </span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> geometries <span class="keyword">VALUES</span></span><br><span class="line">  (<span class="string">&#x27;Point&#x27;</span>, <span class="string">&#x27;POINT(0 0)&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;Linestring&#x27;</span>, <span class="string">&#x27;LINESTRING(0 0, 1 1, 2 1, 2 2)&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;Polygon&#x27;</span>, <span class="string">&#x27;POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;PolygonWithHole&#x27;</span>, <span class="string">&#x27;POLYGON((0 0, 10 0, 10 10, 0 10, 0 0),(1 1, 1 2, 2 2, 2 1, 1 1))&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;Collection&#x27;</span>, <span class="string">&#x27;GEOMETRYCOLLECTION(POINT(2 0),POLYGON((0 0, 1 0, 1 1, 0 1, 0 0)))&#x27;</span>);</span><br><span class="line"> </span><br><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_AsText(geom) <span class="keyword">FROM</span> geometries;</span><br></pre></td></tr></table></figure>
+
+<p>几何图形类型</p>
+<ul>
+<li><strong>ST_GeometryType(geometry)</strong>  ——  返回几何图形的类型</li>
+<li><strong>ST_NDims(geometry)</strong>  ——  返回几何图形的维数</li>
+<li><strong>ST_SRID(geometry)</strong>  ——  返回几何图形的空间参考标识码</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_GeometryType(geom), ST_NDims(geom), ST_SRID(geom) <span class="keyword">FROM</span> geometries;</span><br></pre></td></tr></table></figure>
+
+<h3 id="点-Point"><a href="#点-Point" class="headerlink" title="点(Point)"></a>点(Point)</h3><p>空间<strong>点</strong>（Point）表示地球上的单个位置。<strong>点</strong>由单个坐标表示（包括2维、3维或4维）。  当详细的细节（例如形状和大小）在目标空间尺度上不重要时，真实世界中的对象可以直接用<strong>点</strong>表示。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Point&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>空间函数:</p>
+<ul>
+<li><strong>ST_X(geometry)</strong>  ——  返回X坐标</li>
+<li><strong>ST_Y(geometry)</strong>  ——  返回Y坐标</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_X(geom), ST_Y(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Point&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="线串-Linestring"><a href="#线串-Linestring" class="headerlink" title="线串(Linestring)"></a>线串(Linestring)</h3><p><strong>线串</strong>（Linestring）是表示两个或多个位置之间的路径，它的形式是由两个或多个<strong>点</strong>组成的有序序列。道路和河流通常表示为<strong>线串</strong>。</p>
+<p>如果<strong>线串</strong>的起始点和结束点是同一个<strong>点</strong>，则称其是<strong>闭合的</strong>（closed）。</p>
+<p>如果<strong>线串</strong>不与自身交叉或接触（如果<strong>线串</strong>是闭合的，则排除结束点），则称其是<strong>简单的</strong>（simple）。</p>
+<p><strong>线串</strong>既可以是<strong>闭合的</strong>，也可以是<strong>简单的</strong>。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Linestring&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>空间函数:</p>
+<ul>
+<li><strong>ST_Length(geometry)</strong>  ——  返回线串的长度</li>
+<li><strong>ST_StartPoint(geometry)</strong>  ——  将线串的第一个坐标作为点返回</li>
+<li><strong>ST_EndPoint(geometry）</strong>  ——  将线串的最后一个坐标作为点返回</li>
+<li><strong>ST_NPoints(geometry)</strong>  ——  返回线串的坐标数量</li>
+</ul>
+<h3 id="多边形-Poltgon"><a href="#多边形-Poltgon" class="headerlink" title="多边形(Poltgon)"></a>多边形(Poltgon)</h3><p><strong>多边形</strong>（Polygon）是区域的表示形式。<strong>多边形</strong>的外部边界由一个<strong>环</strong>（Ring）表示，这个<strong>环</strong>是一个<strong>线串</strong>，如上面定义的，它既是闭合的，又是简单的。<strong>多边形</strong>中的<strong>孔</strong>（hole）也由<strong>环</strong>表示。</p>
+<p><strong>多边形</strong>用于表示重视<strong>大小</strong>和<strong>形状</strong>这两个特征的地理对象。城市边界、公园、建筑或水体都通常需要表示为<strong>多边形</strong>，当比例尺足够大时，可以观测它们的面积。道路和河流有时也可以表示为<strong>多边形</strong>。</p>
+<p>第一个<strong>多边形</strong>只有一个<strong>环</strong>，第二个<strong>多边形</strong>有一个内部的”<strong>孔洞</strong>（hole）”，大多数图形系统都包含<strong>多边形</strong>的概念，但GIS系统在允许<strong>多边形</strong>有<strong>孔</strong>方面是比较独特的</p>
+<p>空间函数:</p>
+<ul>
+<li><strong>ST_Area(geometry)</strong>  ——   返回多边形的面积</li>
+<li><strong>ST_NRings(geometry)</strong>  ——  返回多边形中环的数量（通常为1个，其他是孔）</li>
+<li><strong>ST_ExteriorRing(geometry)</strong>  ——  以线串的形式返回多边形最外面的环</li>
+<li><strong>ST_InteriorRingN(geometry, n)</strong>  ——  以线串形式返回指定的内部环</li>
+<li><strong>ST_Perimeter(geometry)</strong>  ——  返回所有环的长度</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_Area(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> <span class="keyword">LIKE</span> <span class="string">&#x27;Polygon%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<h3 id="集合-Collection"><a href="#集合-Collection" class="headerlink" title="集合(Collection)"></a>集合(Collection)</h3><p>有四种<strong>集合</strong>（Collection）类型，它们将多个简单几何图形组合为<strong>图形集合</strong>：</p>
+<ul>
+<li><strong>MultiPoint</strong>   ——  点集合</li>
+<li><strong>MultiLineString</strong>  ——  线串集合</li>
+<li><strong>MultiPolygon</strong>  ——  多边形集合</li>
+<li><strong>GeometryCollection</strong>  ——  由任意几何图形（包括其他GeometryCollection）组成的异构集合</li>
+</ul>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_AsText(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Collection&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>空间函数:</p>
+<ul>
+<li><strong>ST_NumGeometries(geometry)</strong>  ——  返回集合中的组成部分的数量</li>
+<li><strong>ST_GeometryN(geometry, n)</strong>  ——  返回集合中指定的组成部分</li>
+<li><strong>ST_Area(geometry)</strong>  ——  返回集合中所有多边形组成部分的总面积</li>
+<li><strong>ST_Length(geometry)</strong>  ——  返回所有线段组成部分的总长度</li>
+</ul>
+<h3 id="几何图形输入输出函数"><a href="#几何图形输入输出函数" class="headerlink" title="几何图形输入输出函数"></a>几何图形输入输出函数</h3><p>WKT：Well Known Text 已知文本</p>
+<p>EWKT：Extended Well Known Text PostGIS拓展用于处理3维和4维的几何图形</p>
+<p>WKB：Well Known Binary 已知二进制</p>
+<p>EWKB：Extended Well Known Binary PostGIS拓展用于处理3维和4维的几何图形</p>
+<p>①Well-known text（<a href="https://postgis.net/workshops/postgis-intro/glossary.html#term-wkt">WKT</a>）</p>
+<ul>
+<li><p><strong>ST_GeomFromText(text, srid)</strong>  ——  返回geometry</p>
+</li>
+<li><p><strong>ST_AsText(geometry)</strong>  ——  返回text</p>
+</li>
+<li><p><strong>ST_AsEWKT(geometry)</strong>  ——  返回text</p>
+<p>②Well-known binary（<a href="https://postgis.net/workshops/postgis-intro/glossary.html#term-wkb">WKB</a>）</p>
+</li>
+<li><p><strong>ST_GeomFromWKB(bytea)</strong>  ——  返回geometry</p>
+</li>
+<li><p><strong>ST_AsBinary(geometry)</strong>  ——  返回bytea</p>
+</li>
+<li><p><strong>ST_AsEWKB(geometry)</strong>  ——  返回bytea</p>
+<p>③Geographic Mark-up Language（<a href="https://postgis.net/workshops/postgis-intro/glossary.html#term-gml">GML</a>）</p>
+</li>
+<li><p><strong>ST_GeomFromGML(text)</strong>  ——  返回geometry</p>
+</li>
+<li><p><strong>ST_ASGML(geometry)</strong>  ——  返回text</p>
+<p>④Keyhole Mark-up Language（<a href="https://postgis.net/workshops/postgis-intro/glossary.html#term-kml">KML</a>）</p>
+</li>
+<li><p><strong>ST_GeomFromKML(text)</strong>  ——  返回geometry</p>
+</li>
+<li><p><strong>ST_ASKML(geometry)</strong>  ——   返回text</p>
+<p>⑤<a href="https://postgis.net/workshops/postgis-intro/glossary.html#term-geojson">GeoJson</a></p>
+</li>
+<li><p><strong>ST_AsGeoJSON(geometry)</strong>  ——  返回text</p>
+<p>⑥Scalable Vector Graphics(<a href="https://postgis.net/workshops/postgis-intro/glossary.html#term-svg">SVG</a>）</p>
+</li>
+<li><p><strong>ST_AsSVG(geometry)</strong>  ——  返回text</p>
+</li>
+</ul>
+<p>EWKT和EWKB提供了与WKT和WKB相同的格式化功能，并且是在增加了<strong>维度</strong>的情况下。</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(ST_GeometryFromText(<span class="string">&#x27;LINESTRING(0 0 0,1 0 0,1 1 2)&#x27;</span>));</span><br><span class="line">LINESTRING Z (0 0 0,1 0 0,1 1 2)</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsGeoJSON(ST_GeometryFromText(<span class="string">&#x27;LINESTRING(0 0 0,1 0 0,1 1 2)&#x27;</span>));</span><br><span class="line">&#123;&quot;type&quot;:&quot;LineString&quot;,&quot;coordinates&quot;:[[0,0,0],[1,0,0],[1,1,2]]&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>注意：文本表示形式发生了变化！这是因为PostGIS的文本输入程序在使用方面是自由的。它可以使用：</p>
+<ul>
+<li><p>十六进制编码的EWKB</p>
+</li>
+<li><p>扩展的WKT</p>
+</li>
+<li><p>ISO标准的WKT</p>
+<p>在输出端，ST_AsText()只返回<strong>ISO标准</strong>的WKT。</p>
+<p>除了用于各种形式（WKT、WKB、GML、KML、JSON、SVG）的输出函数外，PostGIS还有基于四种形式（WKT、WKB、GML、KML）的输入函数。</p>
+<p>大多数应用程序使用WKT或WKB几何图形创建函数，但是也可以使用其他形式的几何图形创建函数。</p>
+</li>
+</ul>
+<p>WKT三维(3D)线串示例</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(ST_GeometryFromText(<span class="string">&#x27;LINESTRING(0 0 0,1 0 0,1 1 2)&#x27;</span>));</span><br></pre></td></tr></table></figure>
+
+<p>GML输入输出</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SELECT ST_AsGeoJSON(ST_GeomFromGML(&#39;&lt;gml:Point&gt;&lt;gml:coordinates&gt;1,1&lt;&#x2F;gml:coordinates&gt;&lt;&#x2F;gml:Point&gt;&#39;));</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="文本类型转换"><a href="#文本类型转换" class="headerlink" title="文本类型转换"></a>文本类型转换</h3><p>将KWT字符串转换为几何图形geometry</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;POINT(0 0)&#x27;</span>::geometry;</span><br></pre></td></tr></table></figure>
+
+<p>关于使用类型转换语法创建<strong>几何图形</strong>，需要注意一点：除非指定SRID，否则将得到一个包含未知SRID的<strong>几何图形</strong> </p>
+<p>可以使用EWKT形式指定SRID，该形式在前面包含一个SRID：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">SELECT &#39;SRID&#x3D;4326;POINT(0 0)&#39;::geometry;</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="函数集合"><a href="#函数集合" class="headerlink" title="函数集合"></a>函数集合</h2><table>
+<thead>
+<tr>
+<th>函数名</th>
+<th>描述</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>ST_GeometryType(geometry)</td>
+<td>返回集合图形的类型</td>
+<td>select ST_GeometryType(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_NDims(geometry)</td>
+<td>返回几何图形的维数</td>
+<td>select ST_NDims(geom) from geometries;<br />select ST_NDims(ST_GeometryFromText(‘LINESTRING(0 0 0,1 0 0,1 1 2)’));</td>
+</tr>
+<tr>
+<td>ST_SRID(geometry)</td>
+<td>返回几何图形的空间参考标识号</td>
+<td>select ST_SRID(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_X(point)</td>
+<td>返回X坐标，只适用于点</td>
+<td>select ST_X(geom) from geometries where name=’Point’;</td>
+</tr>
+<tr>
+<td>ST_Y(point)</td>
+<td>返回Y坐标，只适用于点</td>
+<td>select ST_Y(geom) from geometries where name=’Point’;</td>
+</tr>
+<tr>
+<td>ST_Length(linestring)</td>
+<td>返回线串长度，其他类型为0</td>
+<td>select ST_Length(geom) from geometries where name=’Linestring’;</td>
+</tr>
+<tr>
+<td>ST_StartPoint(geometry)</td>
+<td>返回第一个坐标作为点</td>
+<td>select ST_StartPoint(geom) from geometries where name=’Linestring’;</td>
+</tr>
+<tr>
+<td>ST_EndPoint(geometry)</td>
+<td>返回最后一个坐标作为点</td>
+<td>select ST_EndPoint(geom) from geometries where name=’Linestring’;</td>
+</tr>
+<tr>
+<td>ST_NPoints(geometry)</td>
+<td>返回坐标点数量</td>
+<td>select ST_NPoints(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_Area(geometry)</td>
+<td>返回区域面积，适用与多边形或集合</td>
+<td>select ST_Area(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_NRings(geometry)</td>
+<td>返回环的数量，适用于多边形或集合</td>
+<td>select ST_NRings(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_ExteriorRing(geom)</td>
+<td>以字符串的形式返回外环</td>
+<td>select ST_ExteriorRing(geom) from geometries where name=’PolygonWithHole’;</td>
+</tr>
+<tr>
+<td>ST_InteriorRingN(polygon, integer)</td>
+<td>将指定的内环作为线字符串返回</td>
+<td>select st_astext(ST_InteriorRingN(geom,1)) from geometries where name=’PolygonWithHole’;</td>
+</tr>
+<tr>
+<td>ST_Perimeter(geometry)</td>
+<td>返回所有环的长度,包括多边形的内环与外环,集合</td>
+<td>select ST_Perimeter(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_NumGeometries(multi/geomcollection)</td>
+<td>返回集合中的分片数</td>
+<td>select ST_NumGeometries(geom) from geometries where name=’Collection’;</td>
+</tr>
+<tr>
+<td>ST_GeometryN(geometry, integer)</td>
+<td>返回集合的指定部分</td>
+<td>select ST_AsText(ST_GeometryN(geom,2)) from geometries where name=’Collection’;</td>
+</tr>
+<tr>
+<td><strong>以下为转换函数</strong></td>
+<td></td>
+<td><strong>以下为转换函数</strong></td>
+</tr>
+<tr>
+<td>ST_GeomFromText(text)</td>
+<td>通过WKT字符串返回geometry</td>
+<td>select ST_AsText(ST_GeomFromText(‘Point(1 2)’));</td>
+</tr>
+<tr>
+<td>ST_AsText(geometry)</td>
+<td>返回WKT字符串</td>
+<td>select ST_AsText(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_AsEWKT(geometry)</td>
+<td>返回EWKT字符串</td>
+<td>select ST_AsEWKT(geom) from geometries where name=’Collection’;</td>
+</tr>
+<tr>
+<td>ST_GeomFromWKB(bytea)</td>
+<td>通过WKB返回geometry</td>
+<td>select ST_AsEWKB(geom) from geometries where name=’Point’;<br /> select st_astext(st_geomfromewkb(E’\x010100000000000000000000000000000000000000’));</td>
+</tr>
+<tr>
+<td>ST_AsBinary(geometry)</td>
+<td>返回WKB</td>
+<td>select st_asbinary(geom) from geometries where name=’Point’;</td>
+</tr>
+<tr>
+<td>ST_AsEWKB(geometry)</td>
+<td>返回EWKB</td>
+<td>select ST_AsEWKB(geom) from geometries where name=’Point’;</td>
+</tr>
+<tr>
+<td>ST_GeomFromGML(text)</td>
+<td>通过GML字符串返回geometry</td>
+<td>SELECT ST_AsText(ST_GeomFromGML(‘&lt;gml:Point&gt;&lt;gml:coordinates&gt;1,1&lt;/gml:coordinates&gt;&lt;/gml:Point&gt;’));</td>
+</tr>
+<tr>
+<td>ST_AsGML(geometry)</td>
+<td>返回GML字符串</td>
+<td>select st_asgml(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_AsKML(geometry)</td>
+<td>返回KML</td>
+<td>select ST_AsKML(‘SRID=4326;POINT(0 0)’::geometry);</td>
+</tr>
+<tr>
+<td>ST_GeomFromKML(text)</td>
+<td>通过KML返回geometry</td>
+<td>select ST_GeomFromKML(‘&lt;Point&gt;&lt;coordinates&gt;0,0&lt;/coordinates&gt;&lt;/Point&gt;’);</td>
+</tr>
+<tr>
+<td>ST_AsGeoJSON(geometry)</td>
+<td>返回geojson字符串</td>
+<td>select ST_AsGeoJSON(geom) from geometries;</td>
+</tr>
+<tr>
+<td>ST_AsSVG(geometry)</td>
+<td>返回svg字符串</td>
+<td>select ST_AsSVG(geom) from geometries;</td>
+</tr>
+</tbody></table>
+]]></content>
+      <categories>
+        <category>PostGIS</category>
+      </categories>
+      <tags>
+        <tag>PostgreSQL</tag>
+        <tag>GIS</tag>
       </tags>
   </entry>
   <entry>

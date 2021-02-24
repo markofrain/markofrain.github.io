@@ -78,6 +78,375 @@
     
     
     
+    <article id="post-SpringBoot/SpringBoot统一异常处理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/11/25/SpringBoot/SpringBoot%E7%BB%9F%E4%B8%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"
+    >SpringBoot统一异常处理</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/11/25/SpringBoot/SpringBoot%E7%BB%9F%E4%B8%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="article-date">
+  <time datetime="2018-11-25T09:42:38.000Z" itemprop="datePublished">2018-11-25</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="SpringBoot统一异常处理"><a href="#SpringBoot统一异常处理" class="headerlink" title="SpringBoot统一异常处理"></a>SpringBoot统一异常处理</h1><p>在SpringBoot中默认提供了一个异常的映射/error,当处理中抛出异常之后，会转到该请求中处理，并且该请求有一个全局的错误页面用来展示异常内容。</p>
+<pre><code>server:
+  error:
+    path: /error</code></pre><h4 id="1-我们配置一个全局的异常类，处理异常-定义GlobalExceptionHandler类并添加注解-ControllerAdvice。"><a href="#1-我们配置一个全局的异常类，处理异常-定义GlobalExceptionHandler类并添加注解-ControllerAdvice。" class="headerlink" title="1. 我们配置一个全局的异常类，处理异常,定义GlobalExceptionHandler类并添加注解@ControllerAdvice。"></a>1. 我们配置一个全局的异常类，处理异常,定义GlobalExceptionHandler类并添加注解@ControllerAdvice。</h4><p>该注解是一个@Compoment,用于定义@ExceptionHandler,@InitBinder,@ModelAttribute方法，适用于所有使用@RequestMapping的方法。 如果我们仅使用ExceptionHandler，则只能在当前Controller中定义错误异常，若使用@ControllerAdvice则不受这个限制。</p>
+<pre><code>@ControllerAdvice
+public class GlobalExceptionHandler &#123;
+&#125;</code></pre><h4 id="2-配置一个方法，添加-ExceptionHandler注解，value值为需要捕获的异常类的class-并在参数中添加对应要捕获的异常类-然后返回到映射页面。"><a href="#2-配置一个方法，添加-ExceptionHandler注解，value值为需要捕获的异常类的class-并在参数中添加对应要捕获的异常类-然后返回到映射页面。" class="headerlink" title="2. 配置一个方法，添加@ExceptionHandler注解，value值为需要捕获的异常类的class,并在参数中添加对应要捕获的异常类,然后返回到映射页面。"></a>2. 配置一个方法，添加@ExceptionHandler注解，value值为需要捕获的异常类的class,并在参数中添加对应要捕获的异常类,然后返回到映射页面。</h4><p>因为默认给异常类的映射路径是/error，则我们在templates下创建error文件夹，添加一个html文件，我们使用thymeleaf来渲染页面。</p>
+<pre><code>@ExceptionHandler(value = Exception.class)
+public String defaultException(Exception e, Model model,HttpServletRequest request)&#123;
+    model.addAttribute(&quot;exception&quot;,e);
+    model.addAttribute(&quot;url&quot;,request.getRequestURL());
+    return &quot;/error/default&quot;;
+&#125;</code></pre><h4 id="3-在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它"><a href="#3-在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它" class="headerlink" title="3. 在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它"></a>3. 在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它</h4><pre><code>@RequestMapping(&quot;/&quot;)
+public String index(Model model)&#123;
+    //model.addAttribute(&quot;host&quot;,&quot;http://www.fsats.com&quot;);
+    throw new RuntimeException(&quot;执行/错误&quot;);
+&#125;</code></pre><h4 id="4-启动项目，访问页面完毕，出现定义的错误页面"><a href="#4-启动项目，访问页面完毕，出现定义的错误页面" class="headerlink" title="4. 启动项目，访问页面完毕，出现定义的错误页面"></a>4. 启动项目，访问页面完毕，出现定义的错误页面</h4><h4 id="5-若我们再为-ExceptionHandler注解的方法添加-ResponseBody注解-则我们返回的就是不是页面了，而是返回的数据。"><a href="#5-若我们再为-ExceptionHandler注解的方法添加-ResponseBody注解-则我们返回的就是不是页面了，而是返回的数据。" class="headerlink" title="5. 若我们再为@ExceptionHandler注解的方法添加@ResponseBody注解,则我们返回的就是不是页面了，而是返回的数据。"></a>5. 若我们再为@ExceptionHandler注解的方法添加@ResponseBody注解,则我们返回的就是不是页面了，而是返回的数据。</h4><h4 id="6-接下里测试一下Exception子类的配置-定义一个算术异常"><a href="#6-接下里测试一下Exception子类的配置-定义一个算术异常" class="headerlink" title="6. 接下里测试一下Exception子类的配置,定义一个算术异常"></a>6. 接下里测试一下Exception子类的配置,定义一个算术异常</h4><pre><code>@ExceptionHandler(value = ArithmeticException.class)
+public String ArithmeticExecption(ArithmeticException arich, Model model,HttpServletRequest request)&#123;
+    model.addAttribute(&quot;exception&quot;,arich);
+    model.addAttribute(&quot;url&quot;,request.getRequestURL());
+    return &quot;/error/default&quot;;
+&#125;
+
+@RequestMapping(&quot;/&quot;)
+public String index(Model model)&#123;
+    //model.addAttribute(&quot;host&quot;,&quot;http://www.fsats.com&quot;);
+    int a = 54/0;
+    return &quot;index&quot;;
+&#125;</code></pre><p>则，默认会先匹配子类，返回zero异常。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/SpringBoot属性配置文件Application.yml" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/11/25/SpringBoot/SpringBoot%E5%B1%9E%E6%80%A7%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6Application.yml/"
+    >SpringBoot属性配置文件Application.yml</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/11/25/SpringBoot/SpringBoot%E5%B1%9E%E6%80%A7%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6Application.yml/" class="article-date">
+  <time datetime="2018-11-25T09:10:36.000Z" itemprop="datePublished">2018-11-25</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="SpringBoot属性配置文件Application-yml"><a href="#SpringBoot属性配置文件Application-yml" class="headerlink" title="SpringBoot属性配置文件Application.yml"></a>SpringBoot属性配置文件Application.yml</h1><p>默认情况下，当创建完SpringBoot项目后，resources下有两个文件夹和一个文件，一个时static，一个是templates，另一个是application.properties文件。这个文件是项目属性配置文件，在Spring中是XML，SpringBoot中被简化为properties,而properties文件或许还是比较麻烦的，所以SpringBoot允许修改后缀为.YML，以此方式设置更加简便。 只需修改后缀为.yml。以yml结尾的文件，属性配置类似树结构，每个节点，如果有值，则冒号后面需要有一个空格再添加值。每个父节点和子节点缩进两个空格 让我们看一下属性配置的常规设置: 每个选项再写的时候，都会有自动提示，一部分属性都有默认值</p>
+<h3 id="1-配置项目的端口和上下文路径"><a href="#1-配置项目的端口和上下文路径" class="headerlink" title="1. 配置项目的端口和上下文路径"></a>1. 配置项目的端口和上下文路径</h3><pre><code>server:
+  port: 8081
+  servlet:
+    context-path: /springboot</code></pre><p>还有server下的其他许多配置</p>
+<h3 id="2-不同环境的属性文件配置"><a href="#2-不同环境的属性文件配置" class="headerlink" title="2. 不同环境的属性文件配置"></a>2. 不同环境的属性文件配置</h3><p>项目都是分为开发环境和生产环境的，那么为了方便两者切换，可以配置另外两个文件，分别为:</p>
+<ul>
+<li><p>application-pord.yml</p>
+</li>
+<li><p>application-dev.yml</p>
+<p>spring:<br>  profiles:</p>
+<pre><code>active: pord</code></pre></li>
+</ul>
+<p>active的属性值为那个值，就使用那个配置文件。另外在编译后，若要执行项目，则需要再jar命令后添加参数，如下:</p>
+<pre><code>java -jar xxx项目名-0.0.1-SNAPSHOT.jar --spring.profiles.active=dev</code></pre><h3 id="3-自定义配置"><a href="#3-自定义配置" class="headerlink" title="3. 自定义配置"></a>3. 自定义配置</h3><p>尽管可以在yml配置项目属性，也可以自己定义属性，yml遵循yml的格式，properties使用properties的格式，不要混了，yml中不能出现xx.xxx。 再yml中可以尽管使用树级结构值，或单个一级结构值,另外可以<strong>通过${属性名}的方式</strong>来引用某个属性，如下</p>
+<pre><code>name: chen
+sex: 男
+context: 我的名字是$&#123;name&#125;,性别是$&#123;sex&#125;</code></pre><p>如果要使用这些值，可以直接使用@Value(“${属性名}”)即可标注在属性上,并不需要想spring中麻烦的配置。 在yml中还有些默认的引用值，可以直接通过${属性名}来引用其内部自定义的值。如random对象，可以返回多各类型的随机数</p>
+<pre><code>random:
+  randomInt: $&#123;random.int&#125;
+  randomIntMax: $&#123;random.int(10,8)&#125;
+  randomUUID: $&#123;random.uuid&#125;</code></pre><p>不仅这些随机数，只要输入了${符号，就出现很多可以引用的，比如已经定义的配置，引用他就可以获得值，笔记jvm的属性，jdk的属性，ide的属性，等等。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/yml/" rel="tag">yml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/Gradle构建Spring Boot" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/11/25/SpringBoot/Gradle%E6%9E%84%E5%BB%BASpring%20Boot/"
+    >Gradle构建Spring Boot</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/11/25/SpringBoot/Gradle%E6%9E%84%E5%BB%BASpring%20Boot/" class="article-date">
+  <time datetime="2018-11-25T07:57:13.000Z" itemprop="datePublished">2018-11-25</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Gradle构建Spring-Boot项目"><a href="#Gradle构建Spring-Boot项目" class="headerlink" title="Gradle构建Spring Boot项目"></a>Gradle构建Spring Boot项目</h1><h4 id="1-https-start-spring-io-创建Spring-Boot项目"><a href="#1-https-start-spring-io-创建Spring-Boot项目" class="headerlink" title="1. https://start.spring.io/创建Spring Boot项目"></a>1. <a target="_blank" rel="noopener" href="https://start.spring.io/创建Spring">https://start.spring.io/创建Spring</a> Boot项目</h4><ul>
+<li>选择创建一个Gradle Project with Java</li>
+<li>点击下方的Switch to the full version，选择更多的Spring Boot依赖</li>
+</ul>
+<h4 id="2-若电脑没有gradle，则下载gradle"><a href="#2-若电脑没有gradle，则下载gradle" class="headerlink" title="2. 若电脑没有gradle，则下载gradle"></a>2. 若电脑没有gradle，则下载gradle</h4><p>去<a target="_blank" rel="noopener" href="http://services.gradle.org/distributions/中下载稳定版的bin版本包，解压到本地,在Windows系统变量中配置PAHT变量，添加Gradle的bin目录">http://services.gradle.org/distributions/中下载稳定版的bin版本包，解压到本地,在Windows系统变量中配置PAHT变量，添加Gradle的bin目录</a></p>
+<h4 id="3-IDEA导入Gradle项目"><a href="#3-IDEA导入Gradle项目" class="headerlink" title="3. IDEA导入Gradle项目"></a>3. IDEA导入Gradle项目</h4><p>将下载下来的Spring Boot包解压到相应位置,IDEA 打开，Open当前项目，设置Gradle为本地的Gradle，设置Auto Import为自动勾选。 完毕后OK，系统自动下载依赖。</p>
+<h4 id="4-运行项目"><a href="#4-运行项目" class="headerlink" title="4. 运行项目"></a>4. 运行项目</h4><p>运行SpringbootApplication类 若运行失败，显示Failed to configure a DataSource: ‘url’ attribute is not specified and no embedded datasource could be configured.等信息，表示您可能添加了类似Mybatis或JPA等启动SpringBoot需要DataSource，而当前却没有配置。需要添加如下配置</p>
+<pre><code>spring:
+  jpa:
+    database: oracle
+  datasource:
+    driver-class-name: oracle.jdbc.driver.OracleDriver
+    url: jdbc:oracle:thin:@localhost:1521:orcl
+    username: spring
+    password: spring</code></pre><p>若spring.jpa.database显示不出来，则需添加jpa的依赖,因在创建Spring Boot时没有Oracle的依赖包，则你可以拿到本地ojdbc6.jar的jar包，进行设置。 【File】- 【Project Structure】 - 【Module】 - 【选择项目_main_】- 【Dependencies选项卡】 - 【右侧加号】 - 【Library】 - 【New Library】-【选择jar】- 【Add Selected】</p>
+<h4 id="5-构建项目"><a href="#5-构建项目" class="headerlink" title="5. 构建项目"></a>5. 构建项目</h4><p>IDEA 打开项目后，并勾选Auto Import后会自动构建项目。 若直接解压后，通过命令构建，可能会出现Task:test失败的情况，则去除test的任务，使用如下命令</p>
+<pre><code>gradle build -x test</code></pre><p>构建后项目结构如下: <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/11/20181125002444.png?x-oss-process=style/400" alt="目录结构"></p>
+<ul>
+<li>build.gradle: 构建命令的脚本<ul>
+<li>ext : 定义动态属性，可以在后面被引用</li>
+<li>repositories: 仓库，默认中央仓库</li>
+<li>dependences: 依赖,如Springboot插件</li>
+<li>apply plugin:应用插件</li>
+<li>group:项目组</li>
+<li>version: 版本</li>
+<li>sourceCompatibity: 源码编译的jdk版本</li>
+<li>dependencies: 具体的依赖对象，多个生命周期，包括implementation,compileOnly,providedRuntime,testImplementation等</li>
+<li>gradle.bat: Windows下的gradle脚本，可执行gradle命令</li>
+<li>build目录: 运行gradle命令构建项目后生成的</li>
+<li>gradle: wrapper指定了gradle task是基于那种版本的gradle进行编译的。将gradle配置为使用本地的环境，同时会下载一个gradle环境。引入这个本地的即可。便于在团队开发过程中统一Gradle构建的版本号</li>
+<li>setting.gradle: 用于初始化以及工程树的配置的，放在根工程目录下</li>
+</ul>
+</li>
+</ul>
+<h4 id="6-配置中央仓库"><a href="#6-配置中央仓库" class="headerlink" title="6. 配置中央仓库"></a>6. 配置中央仓库</h4><p>在build.gradle中进行如下配置</p>
+<pre><code>buildscript &#123;
+    repositories &#123;
+        maven&#123; url &apos;http://maven.aliyun.com/nexus/content/groups/public/&apos;&#125;
+    &#125;
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Gradle/" rel="tag">Gradle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-中间件/tomcat启动项目，不能及时相应页面，必须按enter" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/11/20/%E4%B8%AD%E9%97%B4%E4%BB%B6/tomcat%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%EF%BC%8C%E4%B8%8D%E8%83%BD%E5%8F%8A%E6%97%B6%E7%9B%B8%E5%BA%94%E9%A1%B5%E9%9D%A2%EF%BC%8C%E5%BF%85%E9%A1%BB%E6%8C%89enter/"
+    >tomcat启动项目，不能及时相应页面，必须按enter</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/11/20/%E4%B8%AD%E9%97%B4%E4%BB%B6/tomcat%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%EF%BC%8C%E4%B8%8D%E8%83%BD%E5%8F%8A%E6%97%B6%E7%9B%B8%E5%BA%94%E9%A1%B5%E9%9D%A2%EF%BC%8C%E5%BF%85%E9%A1%BB%E6%8C%89enter/" class="article-date">
+  <time datetime="2018-11-20T02:29:49.000Z" itemprop="datePublished">2018-11-20</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>此问题是因为tomcat窗口的【快速编辑模式】，为解决此问题需要 窗口右击-》【属性】-》取消勾选【快速编辑模式】，此为当前窗口，若所有窗口通用，则右击点默认值，取消勾选快速编辑模式</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Spring/Spring MVC中可能需要用到的" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -138,575 +507,6 @@ commonUtils = (CommonUtils) context.getBean(&quot;commonUtils&quot;);//获得Bea
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle数据库操作问题总结" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E6%93%8D%E4%BD%9C%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/"
-    >Oracle数据库操作问题总结</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E6%93%8D%E4%BD%9C%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/" class="article-date">
-  <time datetime="2018-11-15T14:46:05.000Z" itemprop="datePublished">2018-11-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p><a href="#1">1. 归档日志满出现的问题</a></p>
-<h1 id="1-归档日志满出现的问题"><a href="#1-归档日志满出现的问题" class="headerlink" title="1. 归档日志满出现的问题"></a>1. 归档日志满出现的问题</h1><pre><code>ERROR:
-ORA-01034: ORACLE not available
-ORA-27101: shared memory realm does not exist
-进程 ID: 0
-会话 ID: 0 序列号: 0</code></pre><p>该代码可能是pl/sql登录时爆出的问题，重点在ORACLE not available，你需要进入sqlplus尝试sys as sysdba登录,并alter database open打开数据库。可能出现的依然是上面的错误，但会有一个进程ID，，只要报出<strong>ORA-01034: ORACLE not available</strong>此错，设法找到进程ID，找到类似下面的这个目录</p>
-<pre><code>F:\app\XXHA\diag\rdbms\racdb\racdb\trace</code></pre><p>racdb是实例名，找到trace中文件名包含进程ID的文件trc文件，使用编辑器打开</p>
-<pre><code>*** 2018-11-15 20:34:42.764
-*** SESSION ID:(5.3) 2018-11-15 20:34:42.764
-*** CLIENT ID:() 2018-11-15 20:34:42.764
-*** SERVICE NAME:() 2018-11-15 20:34:42.764
-*** MODULE NAME:(sqlplus.exe) 2018-11-15 20:34:42.764
-*** ACTION NAME:() 2018-11-15 20:34:42.764
-
-ORA-19815: 警告: db_recovery_file_dest_size 字节 (共 10737418240 字节) 已使用 100.00%, 尚有 0 字节可用。
-************************************************************************
-You have following choices to free up space from recovery area:
-1. Consider changing RMAN RETENTION POLICY. If you are using Data Guard,
-   then consider changing RMAN ARCHIVELOG DELETION POLICY.
-2. Back up files to tertiary device such as tape using RMAN
-   BACKUP RECOVERY AREA command.
-3. Add disk space and increase db_recovery_file_dest_size parameter to
-   reflect the new space.
-4. Delete unnecessary files using RMAN DELETE command. If an operating
-   system command was used to delete files, then use RMAN CROSSCHECK and
-   DELETE EXPIRED commands.
-************************************************************************
-ORA-19809: 超出了恢复文件数的限制
-ORA-19804: 无法回收 30321664 字节磁盘空间 (从 10737418240 限制中)
-*** 2018-11-15 20:34:42.780 4132 krsh.c
-ARCH: Error 19809 Creating archive log file to &apos;F:\APP\XXHA\FLASH_RECOVERY_AREA\RACDB\ARCHIVELOG\2018_11_15\O1_MF_1_1136_%U_.ARC&apos;</code></pre><p>可以确定是归档日志满 最快解决的方法是删除归档日志，如果你愿意的话,使用rman target sys/密码 进入rman管理工具,执行删除归档日志命令</p>
-<pre><code>delete archivelog until time &apos;sysdate&apos;; --删除所有日志</code></pre><p>重启数据库。 更改归档日志大小</p>
-<pre><code>alter system set db_recovery_file_dest_size=35G;</code></pre><p>将归档日志改为非归档</p>
-<pre><code>shutdown immediate;-- 关闭数据库
-startup mount;-- 启动数据库到mount状态
-alter database noarchivelog;-- 修改数据库为非归档模式，再改为归档就是取消单词前面的no
-alter database open;-- 打开数据库</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/在使用Spring整合Mybatis出现的问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/01/Spring/%E5%9C%A8%E4%BD%BF%E7%94%A8Spring%E6%95%B4%E5%90%88Mybatis%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/"
-    >在使用Spring整合Mybatis出现的问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/01/Spring/%E5%9C%A8%E4%BD%BF%E7%94%A8Spring%E6%95%B4%E5%90%88Mybatis%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2018-11-01T07:13:00.000Z" itemprop="datePublished">2018-11-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <ol>
-<li>没有扫描到xml</li>
-</ol>
-<p>所某个接口的方法not found，则说明没有找到xml或出现后面的情况 如果是当前错误，没有扫描到xml</p>
-<pre><code>在pom.xml中build标签中添加
-&lt;resources&gt;
-    &lt;resource&gt;
-        &lt;directory&gt;src/main/java&lt;/directory&gt;
-        &lt;includes&gt;
-            &lt;include&gt;**/*.xml&lt;/include&gt;
-        &lt;/includes&gt;
-    &lt;/resource&gt;
-&lt;/resources&gt;</code></pre><ol start="2">
-<li>配置@Mapper注解</li>
-</ol>
-<p>不要忘了在Mapper接口上配置，这与spring MVC上是不一致的，一个是mybatis的注解，一个是spring的注解</p>
-<ol start="3">
-<li><p>SqlSessionFactoryBean 和MapperScannerConfigurer配置是否完整</p>
-</li>
-<li><p>无Spring MVC核心控制器的，只使用Spring框架的情况下获取bean实例，需要先获得ApplicationContext,然后getBean</p>
-</li>
-</ol>
-<p>applicationContext=new ClassPathXmlApplicationContext(“classpath:applicationContext.xml”);</p>
-<ol start="5">
-<li>执行myabtis插入语句时ORA-00933: SQL 命令未正确结束</li>
-</ol>
-<p>可能出现的问题是，你插入的不带主键</p>
-<pre><code>&lt;insert id=&quot;insert_&quot; useGeneratedKeys=&quot;false&quot;&gt;
-&lt;/insert&gt;</code></pre><p>所以要显示设置useGeneratedKeys=false才可以正常插入</p>
-<ol start="6">
-<li>执行mybatis插入语句时，出现; uncategorized SQLException; SQL state [99999]; error code [17090]; 不允许的操作; nested exception is jav 类似</li>
-</ol>
-<p>可能出现的原因是，频繁批量插入，没有主键，跟上面的一样的意思，</p>
-<pre><code>&lt;insert id=&quot;insert_&quot; useGeneratedKeys=&quot;false&quot;&gt;
-&lt;/insert&gt;</code></pre><ol start="7">
-<li>spring jdbc访问数据库问题java.lang.NoSuchMethodError: org.apache.commons.pool2.impl.GenericObjectPool</li>
-</ol>
-<p>你使用的是dbcp2的数据源，使用pool2，这个以前用的时候就没发现问题，现在突然有了，网上说是版本问题，就算是最高版本也不行，所以如果可以的话改用c3p0也行</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;com.mchange&lt;/groupId&gt;
-    &lt;artifactId&gt;c3p0&lt;/artifactId&gt;
-    &lt;version&gt;0.9.5.2&lt;/version&gt;
-&lt;/dependency&gt;
-
-
-&lt;bean id=&quot;dataSource&quot; class=&quot;com.mchange.v2.c3p0.ComboPooledDataSource&quot;&gt;
-        &lt;property name=&quot;driverClass&quot; value=&quot;$&#123;user.driver&#125;&quot;/&gt;
-        &lt;property name=&quot;jdbcUrl&quot; value=&quot;$&#123;user.url&#125;&quot;/&gt;
-        &lt;property name=&quot;user&quot; value=&quot;$&#123;user.username&#125;&quot;/&gt;
-        &lt;property name=&quot;password&quot; value=&quot;$&#123;user.password&#125;&quot;/&gt;
-    &lt;/bean&gt;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mybatis/" rel="tag">Mybatis</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/数据库DM导入报错ORA-14460- 只能指定一个 COMPRESS 或 NOCOMPRESS 子句" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93DM%E5%AF%BC%E5%85%A5%E6%8A%A5%E9%94%99ORA-14460-%20%E5%8F%AA%E8%83%BD%E6%8C%87%E5%AE%9A%E4%B8%80%E4%B8%AA%20COMPRESS%20%E6%88%96%20NOCOMPRESS%20%E5%AD%90%E5%8F%A5/"
-    >数据库DM导入报错ORA-14460: 只能指定一个 COMPRESS 或 NOCOMPRESS 子句</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93DM%E5%AF%BC%E5%85%A5%E6%8A%A5%E9%94%99ORA-14460-%20%E5%8F%AA%E8%83%BD%E6%8C%87%E5%AE%9A%E4%B8%80%E4%B8%AA%20COMPRESS%20%E6%88%96%20NOCOMPRESS%20%E5%AD%90%E5%8F%A5/" class="article-date">
-  <time datetime="2018-11-01T07:06:59.000Z" itemprop="datePublished">2018-11-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>解决办法: 需要在这个导入语句中加入transform=segment_attributes:n参数。该参数可与忽略expdp导出时附带的相关表空间和存储子句约束</p>
-<pre><code>impdp xxx/xxx dumpfile=xxx.dmp transform=segment_attributes:n directory=xxx</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle分析统计函数GROUPROLL、GROUPING、CUBE函数" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/10/25/Oracle/Oracle%E5%88%86%E6%9E%90%E7%BB%9F%E8%AE%A1%E5%87%BD%E6%95%B0GROUPROLL%E3%80%81GROUPING%E3%80%81CUBE%E5%87%BD%E6%95%B0/"
-    >Oracle分析统计函数GROUPROLL、GROUPING、CUBE函数</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/10/25/Oracle/Oracle%E5%88%86%E6%9E%90%E7%BB%9F%E8%AE%A1%E5%87%BD%E6%95%B0GROUPROLL%E3%80%81GROUPING%E3%80%81CUBE%E5%87%BD%E6%95%B0/" class="article-date">
-  <time datetime="2018-10-25T08:49:32.000Z" itemprop="datePublished">2018-10-25</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="分析统计函数和其他函数"><a href="#分析统计函数和其他函数" class="headerlink" title="分析统计函数和其他函数"></a>分析统计函数和其他函数</h1><h2 id="一、-substr截取函数"><a href="#一、-substr截取函数" class="headerlink" title="一、 substr截取函数"></a>一、 substr截取函数</h2><p>substr(string,a[,b])</p>
-<ul>
-<li>string表示被截取的字符串</li>
-<li>a表示开始截取的位置，默认截取到末尾，返回被截取的字符串，当值为0/1都是第一位</li>
-<li>b表示结束截取的位置，返回被截取的字符串</li>
-</ul>
-<h2 id="二、-DECODE"><a href="#二、-DECODE" class="headerlink" title="二、 DECODE"></a>二、 DECODE</h2><p>DECODE(条件，值1，返回值1，值2，返回值2，值3，返回值3,…..) 当条件值等于值1时返回返回值1，为值2时，返回返回值2。类似于if..else语句</p>
-<h2 id="三、-NVL函数、NVL2函数、NULLIF函数、COALESCE函数"><a href="#三、-NVL函数、NVL2函数、NULLIF函数、COALESCE函数" class="headerlink" title="三、 NVL函数、NVL2函数、NULLIF函数、COALESCE函数"></a>三、 NVL函数、NVL2函数、NULLIF函数、COALESCE函数</h2><ol>
-<li>NVL(exp1,exp2)</li>
-</ol>
-<p>如果exp1为空则返回exp2的值，否则返回exp1的值，如果两者都为空则返回空。</p>
-<ol start="2">
-<li>NVL2(exp1,exp2,ep3)</li>
-</ol>
-<p>如果exp1为空则返回exp2，否则返回exp3</p>
-<ol start="3">
-<li>NULLIF(exp1,exp2)</li>
-</ol>
-<p>如果exp1等于exp2，则返回空，否则返回exp1</p>
-<ol start="4">
-<li>COALESCE(exp1,exp2,exp3,…)</li>
-</ol>
-<p>返回表达式中第一个非空的表达式。所有exp都必须是同一种类型或可以隐式转换为同一种类型。</p>
-<h2 id="四、-ROLLUP、GROUPBY、GROUPING、GROUPING-SET"><a href="#四、-ROLLUP、GROUPBY、GROUPING、GROUPING-SET" class="headerlink" title="四、 ROLLUP、GROUPBY、GROUPING、GROUPING SET"></a>四、 ROLLUP、GROUPBY、GROUPING、GROUPING SET</h2><pre><code>create table group_test (group_id int, job varchar2(10), name varchar2(10), salary int);
-
-insert into group_test values (10,&apos;Coding&apos;,    &apos;Bruce&apos;,1000);
-insert into group_test values (10,&apos;Programmer&apos;,&apos;Clair&apos;,1000);
-insert into group_test values (10,&apos;Architect&apos;, &apos;Gideon&apos;,1000);
-insert into group_test values (10,&apos;Director&apos;,  &apos;Hill&apos;,1000);
-
-insert into group_test values (20,&apos;Coding&apos;,    &apos;Jason&apos;,2000);
-insert into group_test values (20,&apos;Programmer&apos;,&apos;Joey&apos;,2000);
-insert into group_test values (20,&apos;Architect&apos;, &apos;Martin&apos;,2000);
-insert into group_test values (20,&apos;Director&apos;,  &apos;Michael&apos;,2000);
-
-insert into group_test values (30,&apos;Coding&apos;,    &apos;Rebecca&apos;,3000);
-insert into group_test values (30,&apos;Programmer&apos;,&apos;Rex&apos;,3000);
-insert into group_test values (30,&apos;Architect&apos;, &apos;Richard&apos;,3000);
-insert into group_test values (30,&apos;Director&apos;,  &apos;Sabrina&apos;,3000);
-
-insert into group_test values (40,&apos;Coding&apos;,    &apos;Samuel&apos;,4000);
-insert into group_test values (40,&apos;Programmer&apos;,&apos;Susy&apos;,4000);
-insert into group_test values (40,&apos;Architect&apos;, &apos;Tina&apos;,4000);
-insert into group_test values (40,&apos;Director&apos;,  &apos;Wendy&apos;,4000);
-
-commit;</code></pre><ol>
-<li><p>GROUP BY 分组，查询列除了聚合函数之外，都要在GROUP BY子句中出现，除了grouping函数</p>
-<p>select group_id,sum(salary) from group_test group by group_id;</p>
-<p>  GROUP_ID SUM(SALARY)</p>
-<hr>
-<pre><code>30       12000
-20        8000
-40       16000
-10        4000</code></pre></li>
-</ol>
-<p>以group_by，分组，查询每组的总薪资。</p>
-<ol start="2">
-<li>ROLLUP 分组，不仅进行分组，还对每组进行聚合统计，所有组进行聚合统计</li>
-</ol>
-<p><strong>ROLLUP统计一列的</strong></p>
-<pre><code>select group_id,sum(salary) from group_test group by  rollup(group_id);
-
-  GROUP_ID SUM(SALARY)
----------- -----------
-        10        4000
-        20        8000
-        30       12000
-        40       16000
-                 40000</code></pre><p><strong>ROLLUP统计两列的</strong></p>
-<pre><code>select group_id,job,sum(salary) from group_test group by rollup(group_id,job);
-
-  GROUP_ID JOB                  SUM(SALARY)
----------- -------------------- -----------
-        10 Coding                      1000
-        10 Director                    1000
-        10 Architect                   1000
-        10 Programmer                  1000
-        10                             4000
-        20 Coding                      2000
-        20 Director                    2000
-        20 Architect                   2000
-        20 Programmer                  2000
-        20                             8000
-        30 Coding                      3000
-        30 Director                    3000
-        30 Architect                   3000
-        30 Programmer                  3000
-        30                            12000
-        40 Coding                      4000
-        40 Director                    4000
-        40 Architect                   4000
-        40 Programmer                  4000
-        40                            16000
-                                      40000</code></pre><ol>
-<li><p>GROUPING函数</p>
-<p>select group_id,grouping(GROUP_ID),grouping(JOB),sum(salary) from group_test group by rollup(group_id, job);</p>
-<p>  GROUP_ID GROUPING(GROUP_ID) GROUPING(JOB) SUM(SALARY)</p>
-<hr>
-<pre><code>10                  0             0        1000
-10                  0             0        1000
-10                  0             0        1000
-10                  0             0        1000
-10                  0             1        4000
-20                  0             0        2000
-20                  0             0        2000
-20                  0             0        2000
-20                  0             0        2000
-20                  0             1        8000
-30                  0             0        3000
-30                  0             0        3000
-30                  0             0        3000
-30                  0             0        3000
-30                  0             1       12000
-40                  0             0        4000
-40                  0             0        4000
-40                  0             0        4000
-40                  0             0        4000
-40                  0             1       16000
-                    1             1       40000</code></pre></li>
-</ol>
-<h2 id="五、-GROUP-BY、ROLLUP、CUBE、GROUPING的规则"><a href="#五、-GROUP-BY、ROLLUP、CUBE、GROUPING的规则" class="headerlink" title="五、 GROUP BY、ROLLUP、CUBE、GROUPING的规则"></a>五、 GROUP BY、ROLLUP、CUBE、GROUPING的规则</h2><h3 id="GROUP-by"><a href="#GROUP-by" class="headerlink" title="GROUP by"></a>GROUP by</h3><p>对于GROUP BY 排序，group by a或group by a,b 依据a分组，或依据a和b分组。这个是ROLLUP、CUBE的基础 按例子来说就是，按某个字段进行分组的到每组的数量，或者按某个字段分组，再按某个字段分组的数量，也就是某列中某列的数量。</p>
-<h3 id="GROUP-BY-后的ROLLUP-group-by-与rollup之间没有任何内容"><a href="#GROUP-BY-后的ROLLUP-group-by-与rollup之间没有任何内容" class="headerlink" title="GROUP BY 后的ROLLUP,group by 与rollup之间没有任何内容"></a>GROUP BY 后的ROLLUP,group by 与rollup之间没有任何内容</h3><p><strong>如:GROUP BY ROLLUP(A)，其规则可分为GROUP BY 分组，包含</strong></p>
-<pre><code>select group_id,sum(salary) from group_test group by rollup(group_id);</code></pre><ul>
-<li>GROUP BY A:select group_id,sum(salary) from group_test group by(group_id);</li>
-<li>GROUP BY NULL:select NULL,sum(salary) from group_test group by(NULL);</li>
-</ul>
-<p>其中的GRUOP BY NULL,是指，所有符合条件的进行sum，也就是全部，那么null列就是NULL，按NULL分组就是按全部分一组。 那么也就是GROUP BY ROLLUP(A)等于这个两个GROUP BY的UNION ALL。 <strong>如果有两个列分组GROUP BY ROLLUP(A,B)则包含:</strong></p>
-<pre><code>select group_id,job,sum(salary) from group_test group by rollup(group_id,job);</code></pre><ul>
-<li>GROUP BY A,B</li>
-<li>GROUP BY A,NULL</li>
-<li>GROUP BY NULL,NULL</li>
-</ul>
-<p>三个则是</p>
-<pre><code>select group_id,job,name,sum(salary) from group_test group by rollup(group_id,job,name);</code></pre><ul>
-<li>A,B,C</li>
-<li>A,B,NULL</li>
-<li>A,NULL,NULL</li>
-<li>NULL,NULL,NULL</li>
-</ul>
-<blockquote>
-<p><strong>也就是说分组列由多向少，由前向后递减的。也就是说组合的总数始终是列数N(列数量)+1(NULL)</strong><br><strong>有一点需要注意，对于分组的列而言，与顺序无关，也就是说A在前或者B在前都是一样的结果。</strong></p>
-</blockquote>
-<h3 id="GROUP-BY-后的ROLLUP，group-by-与ROLLUP之间有列的关系"><a href="#GROUP-BY-后的ROLLUP，group-by-与ROLLUP之间有列的关系" class="headerlink" title="GROUP BY 后的ROLLUP，group by 与ROLLUP之间有列的关系"></a>GROUP BY 后的ROLLUP，group by 与ROLLUP之间有列的关系</h3><ol>
-<li><p>GROUP BY 后的列与ROLLUP中的列有相同的</p>
-<p>select group_id,job,sum(salary) from group_test group by group_id rollup(group_id,job);</p>
-</li>
-</ol>
-<p>则产生的分组有以下三种</p>
-<ul>
-<li>GROUP BY A,A,B——等价于GROUP BY A,B——对应GROUP BY为select group_id,job,sum(salary) from group_test group by group_id,job</li>
-<li>GROUP BY A,A,NULL——等价于GROUP BY A</li>
-<li>GROUP BY A,NULL,NULL——等价于GROUP BY A</li>
-</ul>
-<ol start="2">
-<li><p>GROUP BY 后的列与ROLLUP中的列不同</p>
-<p>select A, B, C,sum(salary) from group_test group by C rollup(A,B);</p>
-</li>
-</ol>
-<p>则分为以下三种:</p>
-<ul>
-<li>GROUP BY C,A,B</li>
-<li>GROUP BY C,A</li>
-<li>GROUP BY C</li>
-</ul>
-<blockquote>
-<p>那么由此而知，如果GROUP BY 后有列，并且还进行ROLLUP则其组合是M(GROUP BY 列数)+N(ROLLUP列数)</p>
-</blockquote>
-<h3 id="group-by-后跟CUBE"><a href="#group-by-后跟CUBE" class="headerlink" title="group by 后跟CUBE**"></a>group by 后跟CUBE**</h3><p>ROLLUP与CUBE有些区别。查询数据排序相反 当分组列为一个时，查询的数据一样，当多一个job后，不仅有ROLLUP的这21列数据，还多出了每个工作的总薪资,多了4行数据。 带CUBE的子句会产生更多的数据,cube后面的列有多少种组合就有多少种分组，例如两列，则有A、B、A,B、NULL四种，分别对应了数据中的</p>
-<ul>
-<li>A,NULL—— 30 _ 12000:每组的总薪资:select group_id,null,sum(salary) from group_test group by(group_id,null);</li>
-<li>B,NULL—— _ coding 10000:每种工作的总薪资:select null,job,sum(salary) from group_test group by(null,job);</li>
-<li>A,B,NULL—— 40 coding 4000:每组种每种工作的总薪资:select group_id,job,sum(salary) from group_test group by(group_id,job);</li>
-<li>NULL,NULL—— _ _ 40000:所有总薪资:select null,null,sum(salary) from group_test group by(null,null);</li>
-</ul>
-<p>这四种group by组成了cube，而rollup少了第二种(B,NULL)，每种工作的总薪资，因为ROLLUP是从左往右依次减少的嘛。而如若cube有3列，可组成8种,那么就组成了</p>
-<ul>
-<li>a对应为a,null,null</li>
-<li>b对应为b,null,null</li>
-<li>c对应为c,null,null</li>
-<li>ab对应为a,b,null</li>
-<li>ac对应为a,c,null</li>
-<li>bc对应为b,c,null</li>
-<li>abc对应为a,b,c</li>
-<li>null对应为null,null,null</li>
-</ul>
-<h3 id="与ROLLUP组合的几个函数"><a href="#与ROLLUP组合的几个函数" class="headerlink" title="与ROLLUP组合的几个函数"></a>与ROLLUP组合的几个函数</h3><ol>
-<li>GTOUPING函数</li>
-</ol>
-<p>必须且只能接受一列作为参数。参数列值为NULL则返回1，参数列值非空则返回0。这个在上面的示例中已经证明了。</p>
-<ol start="2">
-<li>GROUP_ID函数</li>
-</ol>
-<p>不接受任何参数，返回值为某个特定的分组出现的重复次数(GROUP BY后和ROLLUP后都有分组列时),重复次数重0开始，第一次出现为0，第二次为1，第n次为N-1。以下三段代码很好的说明了这个函数的作用</p>
-<pre><code>--按group_id分组，不存在重复
-select group_id,sum(salary),group_id() from group_test group by group_id;
---按group_id分组，且rollup分组，会重复出现上个语句查出的数据
-select group_id,sum(salary),group_id() from group_test group by group_id,rollup(group_id);
---与前一情况类似
-select group_id,job,sum(salary),group_id() from group_test group by group_id,rollup(group_id,job);</code></pre><ol start="3">
-<li>GROUPING_ID函数</li>
-</ol>
-<p>必须传入一列或多列作为其参数。返回值为按参数排列顺序，依次对各个参数使用grouping()函数，并将结果值依次串成一串二进制数然后再转化为十进制所得到的值。 例如：</p>
-<pre><code>grouping(A) = 0 ; grouping(B) = 1;
-则：grouping_id(A,B)  =  (01)2  = 1;
-grouping_id(B,A)  =  (10)2  =2;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
 
 
     </footer>
