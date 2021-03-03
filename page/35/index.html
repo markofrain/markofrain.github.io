@@ -78,6 +78,354 @@
     
     
     
+    <article id="post-Oracle/关于Oracle的监听程序配置问题与excel文件导入数据库" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/28/Oracle/%E5%85%B3%E4%BA%8EOracle%E7%9A%84%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98%E4%B8%8Eexcel%E6%96%87%E4%BB%B6%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93/"
+    >关于Oracle的监听程序配置问题与excel文件导入数据库</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/28/Oracle/%E5%85%B3%E4%BA%8EOracle%E7%9A%84%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98%E4%B8%8Eexcel%E6%96%87%E4%BB%B6%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93/" class="article-date">
+  <time datetime="2018-07-28T03:11:04.000Z" itemprop="datePublished">2018-07-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="Oracle监听程序的错误问题"><a href="#Oracle监听程序的错误问题" class="headerlink" title="Oracle监听程序的错误问题"></a>Oracle监听程序的错误问题</h3><p>对于Oracle的监听程序，是客户端连接Oracle数据库额必经之路，当然sqlplus除外。 对于没有监听服务的情况，就是你注册表被删了，你可以网上搜索解决办法。<strong>此问题时对应于监听正常启动而客户端始终无法连接的问题。</strong> <strong>如果你监听无法正常启动那么请重新配置监听，没必要修改任何监听文件,开始菜单下，oracle目录下的Net configuration Assistant配置可以重新配置监听程序。</strong> 在启动监听时，经常有如下几种情况:</p>
+<ol>
+<li>监听启动不起来，一开启服务，下一秒就不带提示的自动关闭服务。</li>
+<li>监听刚已启动，就弹框说因为某某原因自动关闭监听服务。</li>
+<li>监听正常启动，可是客户端就是连接不起来。并伴随着客户端报错<strong>无监听程序</strong>或<strong>适配器错误</strong>。</li>
+</ol>
+<p>关于以上情况，网上有很多博客及论坛的描述，大多都是大庭相近的，说是要配置listener.ora和tnsnames.ora文件的host的值。并且有很多人改了，然而并没有发生正确结果。 对于客户端连接错误情况，无非是监听导致的，通常导致不可用的原因在网上归结于:</p>
+<ol>
+<li>防火墙</li>
+<li>监听文件出错,listener.ora文件</li>
+<li>以及说注册表的某个表少了imagePath关键值</li>
+</ol>
+<p>然而，关于这些解决办法对一些人有用，对一些人没用。关于防火墙，这点在windows时没用的，监听文件无非就是host值错了，对于注册表，只要不是使用什么清理工具，误把注册表删了，一般情况就没问题。 而对于我的情况，安装了卸载了数据库两次，最后通过其他人oracle配置才发现与之不一样的地方。 <strong>问题解决:</strong> 首先你不必管你的监听文件。打开开始菜单，oracle目录下的Net configuration Assistant配置,删除监听，并从新配置一个监听。 然后打开Net Manager配置，把配置的监听程序删掉。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728102647.png" alt="Net Manager配置"> 最后需重启Oracle服务和监听服务。 随后你尝试重新客户端登陆，应该可以登陆上。 如果仍然不可用，请重新配置监听，不再Net Manager删除监听，再次重新重启服务。 另外，实在不行,修改监听文件也是一种办法。 保证listener.ora和tnsnames.ora文件的host相同，可以都设置为机器名.lan,就是电脑右击–&gt;系统–&gt;计算机名</p>
+<h3 id="通过Excel文件导入Oracle数据库，如xlsx等"><a href="#通过Excel文件导入Oracle数据库，如xlsx等" class="headerlink" title="通过Excel文件导入Oracle数据库，如xlsx等"></a>通过Excel文件导入Oracle数据库，如xlsx等</h3><ol>
+<li><p>先把表格文件打开，另存为txt(制表符分隔)文件,注意你的列不能有任何空列(通常第一行是表名，之后是数据。不能整列都是空的，否则你需要把此列删除再另存txt)</p>
+</li>
+<li><p>你需要有pl/sql Developer软件,打开tool菜单下的Text Importer选项，如果你没有登录的话，是不能选中的。</p>
+</li>
+<li><p>打开后选择txt文件 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728105257.png" alt=""></p>
+</li>
+<li><p>导入后出现如下界面，Result Preview中，第一行是表名，如果不是，则请注意你的excel文件，如果某列都是空的，请注意你的Excel文件 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728105615.png" alt=""></p>
+</li>
+<li><p>然后打开Data to Oracle框,设置Owner，Table，为每个列填写field表名与下面的类型。前提是你得表应该是之前就被创建的，如果不是，请先看6 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110155.png" alt=""></p>
+</li>
+<li><p>先创建表 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110357.png" alt=""></p>
+</li>
+</ol>
+<p>填写owner为那个用户的，Name为表名 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110443.png" alt=""> 点击column，设置owner和name，分别为用户和表名。设置列名，类型，非空，与注释(可以不写)。完毕后点击左下的apply，如果报错则重新修改。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110649.png" alt=""> 如果点击apply后无提示，那么创建完毕，close。如果你的field都设置了，那么么import按钮才会可用。就点击import就好了。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-开源/Jeesite开源项目SSM基础搭建——前端js插件技术" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E5%89%8D%E7%AB%AFjs%E6%8F%92%E4%BB%B6%E6%8A%80%E6%9C%AF/"
+    >Jeesite开源项目SSM基础搭建——前端js插件技术</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E5%89%8D%E7%AB%AFjs%E6%8F%92%E4%BB%B6%E6%8A%80%E6%9C%AF/" class="article-date">
+  <time datetime="2018-07-26T14:42:16.000Z" itemprop="datePublished">2018-07-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="项目技术综合学习文档"><a href="#项目技术综合学习文档" class="headerlink" title="项目技术综合学习文档"></a>项目技术综合学习文档</h1><p>包含前端技术: jsp自定义标签 Mustache模板库 treeTable树形表 jquery validate校验 pagination 分页 WdatePicker日期插件 jquery jbox通知插件 <strong>目录</strong> <a href="#a1">JS自定义标签</a><br>    <a href="#a2">自定义tld文件</a><br>    <a href="#a3">自定义tag文件</a><br><a href="#b1">Js Mustache模板引擎</a><br><a href="#c1">jQuery treeTable js</a><br><a href="#d1">jquery DateTimer jeDate时间控件</a><br><a href="#e1">jQuery validate校验框架</a><br>    <a href="#e2">默认标签校验规则</a><br>    <a href="#e3">js设置校验规则</a><br>    <a href="#e4">其他方法级问题</a>  </p>
+<h2 id="JSP自定义标签"><a href="#JSP自定义标签" class="headerlink" title="JSP自定义标签"></a>JSP自定义标签</h2><p>jsp自定义标签可以通过定义tld文件和tag文件来完成 tld是自定义方法标签，可以调用类的静态方法 tag是自定义控件标签，可自定义标签，定义标签属性添加</p>
+<h3 id="自定义tld文件"><a href="#自定义tld文件" class="headerlink" title="自定义tld文件"></a>自定义tld文件</h3><p>主要用于对java方法的静态都调用 引用示例: 对于自定义tld标签需要使用的依赖</p>
+<pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+  &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+  &lt;version&gt;4.0.1&lt;/version&gt;
+  &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+  &lt;artifactId&gt;jstl&lt;/artifactId&gt;
+  &lt;version&gt;1.2&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>tld文件内，主要是方法function，通过java类静态方法的定义和引用，在jsp中通过${}方式输出 例如: 则可以${stu:method(params)}的方式输出 tld文件的定义</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+
+&lt;taglib xmlns=&quot;http://java.sun.com/xml/ns/j2ee&quot;
+        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+        xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd&quot;
+        version=&quot;2.0&quot;&gt;
+
+    &lt;description&gt;JSTL 1.1 Global library&lt;/description&gt;
+    &lt;display-name&gt;JSTL Global&lt;/display-name&gt;
+    &lt;tlib-version&gt;1.1&lt;/tlib-version&gt;
+    &lt;short-name&gt;gbl&lt;/short-name&gt;
+    &lt;uri&gt;http://java.sun.com/jsp/jstl/stu&lt;/uri&gt;
+
+    &lt;function&gt;
+        &lt;description&gt;获得学生名称&lt;/description&gt;
+        &lt;name&gt;getStudentName&lt;/name&gt;
+        &lt;function-class&gt;com.fsats.synthesis.customizetag.util.GlobalUtil&lt;/function-class&gt;
+        &lt;function-signature&gt;java.lang.String getStudentName(int)&lt;/function-signature&gt;
+        &lt;example&gt;$&#123;stu:getStudentName(index)&#125;&lt;/example&gt;
+    &lt;/function&gt;
+&lt;/taglib&gt;</code></pre><p>文件根标签头部是必须的，其次定义描述，显示名称，标签版本，短名称，uri。对于uri可以按示例格式定义，修改后面一个路径就好 然后是function标签，定义方法，依次是描述，名称，方法全类名，方法签名，示例。对于name就是${stu:name},需要正确定义，参数除基本数据类型外，均写完全限定名。可多参数传递。 可以为参数设置为对象类型，对象值可以通过model携带属性传递到jsp的，例如，项目中传递的student属性就是一个student对象，并直接作为参数，不必要再写${}了。 当然参数还可以是自定义的function，例如:${stu:getStudent(stu:getXxx(param))}。</p>
+<h3 id="自定义tag文件"><a href="#自定义tag文件" class="headerlink" title="自定义tag文件"></a>自定义tag文件</h3><p>tag自定义文件主要用于对重复jsp代码的自定义，也可以进行其他操作 引用示例: 自定义标签需要使用tagdir属性，路径到tag文件的目录，通过 <strong>前缀:文件名</strong>的方式使用自定义标签 示例是通过id获得对应的Student对象,通过ajax请求返回数据并设置到页面，返回的json数据可进行处理，只是转json的时候中文出现乱码问题没有解决。 在tag文件中，可使用jsp指令，tag，attribute，taglib，include等，不可使用page。也可以添加标签元素和js代码，完全可以当作jsp页面。 另外，只要引用了tld文件，依然是可以用静态方法调用的。</p>
+<blockquote>
+<p>实例在customizetag包</p>
+</blockquote>
+<h2 id="Js-Mustache模板引擎"><a href="#Js-Mustache模板引擎" class="headerlink" title="Js Mustache模板引擎"></a>Js Mustache模板引擎</h2><p>Mustache模板引擎需要引入mustache.min.js的js文件，它的官网在<a target="_blank" rel="noopener" href="https://github.com/janl/mustache.js">Mustache</a> 官网简单示例:</p>
+<pre><code>&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+&lt;body onload=&quot;loadUser()&quot;&gt;
+&lt;div id=&quot;target&quot;&gt;Loading...&lt;/div&gt;
+&lt;script id=&quot;template&quot; type=&quot;x-tmpl-mustache&quot;&gt;
+Hello &#123; &#123; name &#125;&#125;!
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+function loadUser() &#123;
+  var template = $(&apos;#template&apos;).html();
+  var rendered = Mustache.render(template, &#123;name: &quot;Luke&quot;&#125;);
+  $(&apos;#target&apos;).html(rendered);
+&#125;</code></pre><p>定义script标签，为模板类型，通过{ {}}设置属性,如{ {name}},{ {emp.name}},与${}一个道理。 js代码，先获取模板html，然后如果想要显示列表，那么可以拼接字符串，通过json循环，追加html模板字符串。</p>
+<pre><code>Mustache.render(template, &#123;name: &quot;Luke&quot;&#125;);</code></pre><p>该方法可以将模板转换，属性设置，在第二个参数，json格式，key为模板属性名称，值为模板属性值。第一个参数为模板转换的字符串。 翻看view下的mustache文件下的jsp文件以及mustache包下的controller。</p>
+<h2 id="jQuery-TreeTable-js"><a href="#jQuery-TreeTable-js" class="headerlink" title="jQuery TreeTable js"></a>jQuery TreeTable js</h2><p>js文件包,statics文件夹下的treeTable文件夹，整个文件夹都是，少了文件可能就导致小三角显示不出来，不能打开关闭树。 默认表格样式不好看，所以添加了bootstrap的表格样式。 先得到list的json字符串，随后通过模板进行append，但要注意的是，模板的tr标签一定要有id和pid属性，一个是该实例id，一个是该实例的父级id。 另外需要通过addRow迭代方法按照顺序append显示，否则它不会自动排序</p>
+<pre><code>function addRow(list,tpl,data,pid) &#123;
+    for (var i=0;i&lt;data.length;i++)&#123;
+        var row = data[i];//获得某一个实例
+        //判断该实例的父级id是否是传递来的pid，是则是其子级元素，将追加到后面
+        if(row.parentId==pid)&#123;
+            $(list).append(Mustache.render(tpl,&#123;area:row,areatype:row.type,pid:pid&#125;));
+            addRow(list,tpl,data,row.id);
+        &#125;
+
+    &#125;
+&#125;</code></pre><p>该排序，简而言之就是，首先循环，判断该父级id是否是传递的父级id，是则是父子级关系，会追加到其父的后面，然后再循环。 按着这个格式写就好。所有完毕后，通过$(“#treeTable”).treeTable({ expandable: true ,expandLevel : 5});显示，expandLevel表示拓展几级。 后台手动创建area list，用gson转为json字符串传递到后台可直接循环。 java类在jquerytreetable包中，jsp在bst/bstable.jsp，最重要的就是statics中包文件的的齐全。</p>
+<blockquote>
+<p>如果console出现$(‘’).treetabl不是一个函数的话，注意js引入是否正确，以及statics包是否完全导入项目。<br>另外row.type为数值，使用tld静态类时，无法使用，完全被转化为空。</p>
+</blockquote>
+<h2 id="jquery-DateTimer-jeDate时间控件"><a href="#jquery-DateTimer-jeDate时间控件" class="headerlink" title="jquery DateTimer jeDate时间控件"></a>jquery DateTimer jeDate时间控件</h2><p>添加jeDate插件,添加包到静态文件夹，jsp引入js和css，以及一个test.js文件。test.js文件主要就是定义文本框中日期字符串格式的。自己定义，如果不定义则js中会弹框。并且test.js必须放在body中的随后位置，以保证得到日期文本框的id</p>
+<pre><code>&lt;form:form id=&quot;deptForm&quot; action=&quot;$&#123;pageContext.request.contextPath&#125;/dept/save&quot; method=&quot;post&quot; modelAttribute=&quot;dept&quot;&gt;
+    &lt;form:label path=&quot;name&quot;&gt;部门名称&lt;/form:label&gt;&lt;form:input path=&quot;name&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;area&quot;&gt;部门面积&lt;/form:label&gt;&lt;form:input path=&quot;area&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;address&quot;&gt;部门地址&lt;/form:label&gt;&lt;form:input path=&quot;address&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;phone&quot;&gt;部门电话&lt;/form:label&gt;&lt;form:input path=&quot;phone&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;establishDate&quot;&gt;成立日期&lt;/form:label&gt;
+    &lt;input type=&quot;text&quot; name=&quot;establishDate&quot; value=&quot;&lt;fmt:formatDate value=&quot;$&#123;dept.establishDate&#125;&quot;/&gt;&quot; class=&quot;jeinput&quot; id=&quot;enYMD&quot; placeholder=&quot;YYYY-MM-DD&quot;/&gt;&lt;br/&gt;
+
+    &lt;input type=&quot;submit&quot; value=&quot;提交&quot;&gt;
+&lt;/form:form&gt;</code></pre><p>对于日期控件，简单的日期，添加倒数第三行那一行就好，但是不能使用form:input控件当作日期文本框，因为这样会导致标签变成字符串。 此日期插件有更多的显示方式，如：面板主题颜色，区域范围，自定义格式，双击弹出，有效无效日期限制，直接显示日历等。 具体可查看jeDate包，也可以看官网<a target="_blank" rel="noopener" href="http://www.jemui.com/index.html">JEUI</a>里的jeDate控件。 另外如果你发现引入后导致400 bad request，那么可以详细看看form及其属性标签定义的对不对，如果没问题，<strong>就看你是否有Date，String转换器，这是导致错误的最大可能。</strong>如果是其他报错则查看jsp也main与controller是否编写错误。 StringToDate转换器配置如下:</p>
+<pre><code>&lt;mvc:annotation-driven conversion-service=&quot;myConversionService&quot;/&gt;
+
+&lt;bean id=&quot;myConversionService&quot; class=&quot;org.springframework.context.support.ConversionServiceFactoryBean&quot;&gt;
+    &lt;property name=&quot;converters&quot;&gt;
+        &lt;set&gt;
+            &lt;!-- 引入自己配置的自定义转换器，将String类型转换为Date日期 --&gt;
+            &lt;bean class=&quot;com.fsats.synthesis.jqueryvalidate.converter.MyConversionDateToString&quot;&gt;
+                &lt;constructor-arg name=&quot;patten&quot; value=&quot;yyyy-MM-dd&quot;/&gt;
+            &lt;/bean&gt;
+        &lt;/set&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</code></pre><blockquote>
+<p>java文件在jqueryvalidate包，jsp在jvalidate文件夹下</p>
+</blockquote>
+<h2 id="jQuery-validate校验框架"><a href="#jQuery-validate校验框架" class="headerlink" title="jQuery validate校验框架"></a>jQuery validate校验框架</h2><p>引入js文件jquery.validate.min.js和messages_zh.js用于中文输出信息,还有必要的jquery.js文件 <a target="_blank" rel="noopener" href="http://www.runoob.com/jquery/jquery-plugin-validate.html">jquery validate菜鸟教程</a> <a target="_blank" rel="noopener" href="https://jqueryvalidation.org/">jquery validate官网</a>及<a target="_blank" rel="noopener" href="https://jqueryvalidation.org/files/demo/">官网演示案例</a></p>
+<h3 id="默认标签校验规则"><a href="#默认标签校验规则" class="headerlink" title="默认标签校验规则"></a>默认标签校验规则</h3><p>校验规则众多，许多规则名称，HTML5 Input标签都有。 像是取值为true的，如required、email、url、digits等，都可以直接写在class属性中，也可以单独写成一个属性。maxlength，range带值的这种，如果标签本来就有的就写上去，没有的也可以作为属性并赋值。 完成后，就可以进行校验,如:</p>
+<pre><code>$.validator.setDefaults(&#123;
+    //使用其他方式代替默认的submit
+    submitHandler: function(form) &#123;
+        alert(&quot;提交事件!&quot;);
+        form.submit();
+    &#125;
+&#125;);
+$(function()&#123;
+    $(&quot;#deptForm&quot;).validate();
+&#125;)</code></pre><p>测试后，如果不符合条件就会出现默认错误信息。</p>
+<h3 id="js设置校验规则"><a href="#js设置校验规则" class="headerlink" title="js设置校验规则"></a>js设置校验规则</h3><p>刚才校验规则都是写在标签里的，可以使用js代码写 rules属性可以设置规则</p>
+<pre><code>$(function()&#123;
+    $(&quot;#deptForm&quot;).validate(&#123;
+        submitHandler: function(form) &#123;
+            alert(&quot;提交事件!&quot;);
+        &#125;,
+        rules:&#123;
+            name:&quot;required&quot;,
+            address:&quot;required&quot;,
+            phone:&#123;
+                required:true,
+                maxlength:11
+            &#125;,
+            area:&#123;
+                required:true,
+                digits:true
+            &#125;,
+            establishDate:&quot;required&quot;
+        &#125;
+    &#125;);
+&#125;)</code></pre><h3 id="其他方法级问题"><a href="#其他方法级问题" class="headerlink" title="其他方法级问题"></a>其他方法级问题</h3><ol>
+<li>使用其他方式代替type=submit提交</li>
+</ol>
+<p>上面的示例代码是一种，注意:对于$.validator.setDefaults方法，只是设置默认和其他js校验代码，必须设置$(“#deptForm”).validate();才能校验，否则直接提交。 或者:</p>
+<pre><code>$().ready(function() &#123;
+ $(&quot;#signupForm&quot;).validate(&#123;
+        submitHandler:function(form)&#123;
+            alert(&quot;提交事件!&quot;);   
+            form.submit();
+        &#125;    
+    &#125;);
+&#125;);</code></pre><ol start="2">
+<li><p>debug，只验证不提交表单</p>
+<p>$(“#signupForm”).validate({</p>
+<pre><code>debug:true</code></pre><p>});</p>
+</li>
+</ol>
+<ol start="3">
+<li>errorContainer，错误容器</li>
+</ol>
+<p>显示或者隐藏验证信息，可以自动实现有错误信息出现时把容器属性变为显示，无错误时隐藏，用处不大。 errorContainer: “#messageBox1, #messageBox2” 没有太大用处</p>
+<ol start="4">
+<li>errorPlacement,更改错误信息显示的位置</li>
+</ol>
+<p>默认放在元素后面</p>
+<pre><code>errorPlacement: function(error, element) &#123;  
+    error.appendTo(element.parent());  
+&#125;</code></pre><p>你可以修改，函数内的代码段</p>
+<ol start="5">
+<li><p>定义错误样式,定义类名为error的css即可</p>
+</li>
+<li><p>异步验证</p>
+</li>
+</ol>
+<p>remote属性 示例:</p>
+<pre><code>remote: &#123;
+    url: &quot;dept/remote&quot;,     //后台处理程序
+    type: &quot;post&quot;,               //数据发送方式
+    dataType: &quot;json&quot;,           //接受数据格式   
+    data: &#123;                     //要传递的数据
+        name: function() &#123;
+            return $(&quot;input[name=name]&quot;).val();
+        &#125;
+    &#125;
+&#125;</code></pre><ol start="7">
+<li>自定义验证 addMethod(name, method, message);</li>
+</ol>
+<p>示例:</p>
+<pre><code>jQuery.validator.addMethod(&quot;checkPhone&quot;, function(value, element) &#123;
+    var tel = /^((13[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0,5-9]))\d&#123;8&#125;$/;
+    return this.optional(element) || (tel.test(value));
+&#125;, &quot;请正确填写您的手机号&quot;);</code></pre><p>校验的话，只需要在rules对应属性中设置，checkPhone:true。或者标签中class=”checkPhone”,或标签属性,checkPhone=”true”。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-开源/Jeesite开源项目SSM基础搭建——系统管理释义" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -703,289 +1051,13 @@ public Date getBirth() &#123;
 
 </article>
     
-    <article id="post-XML/XML的使用——DOM4J以及XPath语法" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/"
-    >XML的使用——DOM4J以及XPath语法</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/" class="article-date">
-  <time datetime="2018-07-06T07:50:18.000Z" itemprop="datePublished">2018-07-06</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/XML/">XML</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="dom4J"><a href="#dom4J" class="headerlink" title="dom4J"></a>dom4J</h2><p>基于Java Collections Framework的XML文档对象模型 <a target="_blank" rel="noopener" href="https://dom4j.github.io">官网地址及文档</a> maven pom添加依赖</p>
-<pre><code> &lt;dependency&gt;
-    &lt;groupId&gt;org.dom4j&lt;/groupId&gt;
-    &lt;artifactId&gt;dom4j&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><h4 id="创建XML"><a href="#创建XML" class="headerlink" title="创建XML"></a>创建XML</h4><p>首先通过DocumentHelper对象创建一个Document实例。 然后通过Element设置元素节点 最后可通过document.write写到文件中，或者通过OutputFormat对象和XMLWriter对象打印出特定格式和特定设置的文件</p>
-<pre><code>//获得Document对象
-Document document = DocumentHelper.createDocument();
-
-//开始建立dom树根元素
-Element bookstoreEle = document.addElement(&quot;bookstore&quot;);
-
-//创建子元素
-Element bookEle = bookstore.addElement(&quot;book&quot;);
-
-Element bookNameEle = bookEle.addElement(&quot;bookName&quot;).addText(&quot;巴黎圣母院&quot;);
-Element priceEle = bookEle.addElement(&quot;price&quot;).addText(&quot;20&quot;);
-Element authorEle = bookEle.addElement(&quot;author&quot;).addText(&quot;雨果&quot;);
-
-//直接写入到文件
-//document.write(new FileWriter(&quot;bookstore.xml&quot;));
-或
-
-//设置xml格式和参数
-OutputFormat format = OutputFormat.createPrettyPrint();
-FileOutputStream outputStream = new FileOutputStream(new File(&quot;bookstore.xml&quot;));
-XMLWriter writer = new XMLWriter(outputStream,format);
-//是否转义
-writer.setEscapeText(false);
-writer.write(document);</code></pre><p>Element对象还有很多方法，根据方法名能判断该方法是干什么的。 在创建之前，不仅可以设置xml的输出格式,还可以自己通过OutputFormat对象设置一些属性。 以及设置DocumentType,XMLEncoding,以及EntityResolver解析器(XML解析器，默认是SAXEntityResolver),都可以在Document中设置，然后在解析时再获得。</p>
-<h4 id="解析xml"><a href="#解析xml" class="headerlink" title="解析xml"></a>解析xml</h4><p>首先需要通过File文件获得Document对象，再通过iterator迭代器循环得到元素。</p>
-<pre><code>//实例化SAXReader对象,并获得Document
-SAXReader reader = new SAXReader();
-Document document = reader.read(file);
-//获得xml的根节点
-Element rootEle = document.getRootElement();
-
-//1.通过迭代器的方式获得该元素的子节点
-Iterator iterator = rootEle.element(&quot;book&quot;).elementIterator();
-while(iterator.hasNext())&#123;
-    Element element = (Element) iterator.next();
-    System.out.println(element.getName() +&quot;---&quot; + element.getText());
-&#125;
-
-//2.通过elements的方式遍历子节点
-List&lt;Element&gt; elements = rootEle.element(&quot;chanel&quot;).elements();
-for (Element element:elements)&#123;
-    System.out.println(element.getName()+ &quot;----&quot; + element.getText());
-&#125;
-
-//3.通过xpath的方式遍历子节点
-List&lt;Node&gt; nodes = rootEle.selectNodes(&quot;//chanel&quot;);
-if (nodes.get(0) instanceof Element)&#123;
-    Element element = (Element) nodes.get(0);
-    System.out.println(element.elements().size());
-&#125;</code></pre><p>除了遍历元素Element之外，还可以遍历该元素的所有属性。 通过attributeIterator()方法,attributes()等，以及通过索引获得。 Element对象的部分方法 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144222.png" alt="Element的部分Element开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144254.png" alt="Element的部分attribute开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706145854.png" alt="Element的部分attribute开头方法"> Element.element(String s)表示获得某个子节点的Element对象 Element.elements()表示获得该节点元素的所有子节点集合 Element.selectNodes(String s)方法通过xpath语法获得一个节点集合 如果想跟方便的看文档获得方法说明，建议使用idea+maven+mavenHelper插件，通过mavenHelper插件下载包的source和documention</p>
-<h4 id="Document对象的其他操作"><a href="#Document对象的其他操作" class="headerlink" title="Document对象的其他操作"></a>Document对象的其他操作</h4><ol>
-<li><p>将document对象或Node，Element，Attribute，通过asXML()方法转换成字符串</p>
-<p>Document document = …;<br>String text = document.asXML();</p>
-</li>
-</ol>
-<p>或者通过DocumentHelper对象的parseText()方法将字符串转换为Document对象</p>
-<pre><code>String text = &quot;&lt;person&gt; &lt;name&gt;James&lt;/name&gt; &lt;/person&gt;&quot;;
-Document document = DocumentHelper.parseText(text);</code></pre><ol start="2">
-<li><p>获得文档的类型，字符编码</p>
-<p>System.out.println(document.getDocType());<br>System.out.println(document.getXMLEncoding());</p>
-</li>
-</ol>
-<p>需判断DocType是否为空，它将获得DocumentType对象，在生成XML时，通过Document对象设置documentType属性。</p>
-<ol start="3">
-<li><p>通过Element实例获得path路径</p>
-<p>document.getPath(Element e);</p>
-</li>
-</ol>
-<p>以及各节点对象的节点类型，getNodeType()可获得节点类型的short值，getNodeTypeName()获得节点类型的名称。 getPath()获得节点对象的所在路径</p>
-<h4 id="XPath语法"><a href="#XPath语法" class="headerlink" title="XPath语法"></a>XPath语法</h4><p>XPath 使用路径表达式来选取 XML 文档中的节点或者节点集。这些路径表达式和我们在常规的电脑文件系统中看到的表达式非常相似。 需添加依赖包</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;jaxen&lt;/groupId&gt;
-    &lt;artifactId&gt;jaxen&lt;/artifactId&gt;
-    &lt;version&gt;1.1.6&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>然后通过任意节点类型的selectNodes方法和selectSingleNode方法，并设置xpath值，返回List<Node>或Node对象 <strong>选取节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150204.png" alt="选取节点"> <strong>查找特定节点或某个指定值的节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150225.png" alt="获得特定或指定值或范围的节点"> <strong>选取未知节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150237.png" alt="选取未知节点"> <strong>通过|符号选取若干路径</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150246.png" alt="通过|符号选取若干路径"></p>
-<h4 id="部分代码"><a href="#部分代码" class="headerlink" title="部分代码"></a>部分代码</h4><p>使用idea开发工具，maven项目，mavenHelper插件更利于maven依赖包管理 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/learnxml.rar">下载地址</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle序列Sequence" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/"
-    >Oracle序列Sequence</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/" class="article-date">
-  <time datetime="2018-06-27T10:18:05.000Z" itemprop="datePublished">2018-06-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="序列"><a href="#序列" class="headerlink" title="序列"></a>序列</h3><p>序列是一个数据库对象，对个用户可以从种生成唯一整数。我们可以使用序列自动生成主键值。 生成序列时，顺序会递增，而与事务提交或回滚无关。</p>
-<h4 id="创建序列"><a href="#创建序列" class="headerlink" title="创建序列"></a>创建序列</h4><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/create_sequence.gif" alt=""> <strong>语法:</strong></p>
-<pre><code>CREATE SEQUENCE [schema.]sequence_name
-    [START WITH integer]     
-    [INCREMENT BY integer]     
-    [MAXVALUE integer | [NOMAXVALUE]]
-    [MINVALUE integer | [NOMINVALUE]]
-    [CYCLE | NOCYCLE]   
-    [CACHE integer | NOCACHE]
-    [ORDER | NOORDER]
-    [KEEP | NO KEEP]
-    [SESSION | GLOBAL]</code></pre><p><strong>语法说明:</strong></p>
-<ul>
-<li><p>START WITH integer：生成的第一个列序号，对于升序默认为序列最小值，降序默认为序列最大值</p>
-</li>
-<li><p>INCREMENT BY integer：增量，默认１，为正则升序，为负为降序</p>
-</li>
-<li><p>MAXVALUE integer | [NOMAXVALUE]：生成最大值 ,NOMAXVALUE指默认升序最大10的27次方,降序最大-1</p>
-</li>
-<li><p>MINVALUE integer | [NOMINVALUE]：生成最小值,NOMINVALUE默认升序最小1,降序最小负10的26次方</p>
-</li>
-<li><p>CYCLE | NOCYCLE：那个序列达到最小或最大后，是否继续从头开始生成，默认CYCLE</p>
-</li>
-<li><p>CACHE integer | NOCACHE：加快速度，预先分配列序号，默认缓存20个</p>
-</li>
-<li><p>ORDER | NOORDER：是否按请求顺序生成序列号，默认NOORDER</p>
-<p>CREATE SEQUENCE seq_pri</p>
-<pre><code>START WITH 10
-INCREMENT BY 1
-MAXVALUE 2000
-NOCYCLE
-CACHE 30;</code></pre></li>
-</ul>
-<h4 id="使用序列"><a href="#使用序列" class="headerlink" title="使用序列"></a>使用序列</h4><p>使用NEXTVAL和CURRVAL伪列来访问该序列的值，可以从伪列中选择值，但不能操作它们的值。</p>
-<ul>
-<li><p>NEXTVAL：创建序列后第一次使用返回初始值，再引用时通过INCREMENT BY增加序列值。</p>
-</li>
-<li><p>CURRVAL：返回序列的当前值</p>
-<p>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易小风扇’,59.00,255,NULL);<br>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易黑凤梨女生版’,129.00,1200,NULL);<br>COMMIT;</p>
-</li>
-</ul>
-<h4 id="修改序列"><a href="#修改序列" class="headerlink" title="修改序列"></a>修改序列</h4><p><strong>语法:</strong></p>
-<pre><code>ALTER SEQUENCE [schema.]sequence_name
-    [INCREMENT BY integer]
-    [MAXVALUE integer | NOMAXVALUE]
-    [MINVALUE integer |  NOMINVALUE]
-    [CYCLE | NOCYCLE]
-    [CACHE integer | NOCACHE]
-    ...;</code></pre><p>对于已经创建的序列，无法修改初始值。</p>
-<h4 id="删除序列"><a href="#删除序列" class="headerlink" title="删除序列"></a>删除序列</h4><pre><code>DROP SEQUENCE [schema.]sequence_name;</code></pre><p>可以为一个或多个表使用相同的序列。 单个序列号可能会跳过，导致不连续情况，一般情况有:</p>
-<ul>
-<li>如果事务回滚，且依然连续使用NEXTVAL会导致序列不连续，导致除 回滚前最后一条NEXTVAL语句 之前的序列号断掉。你只能获得最后一条的值，通过CURRVAL得到。</li>
-<li>大量请求是，为了申请序列更快，允许通过CACHE提前将n个序列存到内存中，而如果数据库服务器重启，断点等情况也会导致内存序列丢失。</li>
-</ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/34/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="page-number current">35</span><a class="page-number" href="/page/36/">36</a><a class="page-number" href="/page/37/">37</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/36/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/34/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="page-number current">35</span><a class="page-number" href="/page/36/">36</a><a class="page-number" href="/page/37/">37</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/36/">下一页</a>
   </nav>
   
 </section>
@@ -1010,12 +1082,6 @@ CACHE 30;</code></pre></li>
     </ul>
     <ul class="list-inline">
       <li>
-        
-        
-        <span>
-  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
-  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
-</span>
         
       </li>
       
@@ -1284,10 +1350,6 @@ CACHE 30;</code></pre></li>
     mathjax: true
   }
 </script>
-
-
-
-<script src="/js/busuanzi-2.3.pure.min.js"></script>
 
 
 

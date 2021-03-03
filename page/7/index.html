@@ -78,6 +78,190 @@
     
     
     
+    <article id="post-Spring/Spring WebFlux" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/11/04/Spring/Spring%20WebFlux/"
+    >Spring WebFlux</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/11/04/Spring/Spring%20WebFlux/" class="article-date">
+  <time datetime="2020-11-04T01:58:03.728Z" itemprop="datePublished">2020-11-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="什么是WebFlux"><a href="#什么是WebFlux" class="headerlink" title="什么是WebFlux"></a>什么是WebFlux</h2><p>Spring WebFlux是一个响应式异步非阻塞的Web框架，并可以在Netty、Undertow和Servlet 3.1+容器上运行，核心是Reactive Streams的相关API实现。</p>
+<p>而异步非阻塞是再Servlet3.1才有。</p>
+<p>Spring Mvc和SpringWebFlux可以共存。</p>
+<h3 id="如何选择"><a href="#如何选择" class="headerlink" title="如何选择"></a>如何选择</h3><ul>
+<li>选择使用JDK8 lambdas或Kotlin的轻量级的web框架，或者需求不是很复杂的小型应用程序或微服务</li>
+</ul>
+<p><strong>Servers</strong></p>
+<ul>
+<li><p>Spring WebFlux没有内置的启动或停止服务器的支持。但是，从Spring配置或WebFlux配置中可以进行操作。</p>
+</li>
+<li><p>Tomcat和Jetty可以与Spring MVC和WebFlux一起使用。但是请记住，它们的使用方式是非常不同的。Spring MVC依赖于Servlet阻塞I/O，并允许应用程序在需要时直接使用Servlet API。Spring WebFlux依赖于Servlet 3.1非阻塞I/O，并使用底层适配器背后的Servlet API。它不能暴露在外面直接使用</p>
+</li>
+<li><p>Spring WebFlux直接使用Undertow API而不使用Servlet API</p>
+</li>
+<li><p>能够以较小的、固定数量的线程和更少的内存进行扩展</p>
+</li>
+</ul>
+<h3 id="响应式编程由来"><a href="#响应式编程由来" class="headerlink" title="响应式编程由来"></a>响应式编程由来</h3><p>响应式编程是一种面向数据流和<strong>变化传播</strong>的编程范式。这意味着可以在编程语言中很方便地<strong>表达静态或动态的数据</strong>流，而相关的计算模型会<strong>自动将变化的值通过数据流进行传播</strong></p>
+<p>普通的代码编写，b的值不会随着a的值的改变而改变，那么就需要花额外的精力去构建和维护a和b之间的关系</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> a=<span class="number">1</span>;</span><br><span class="line"><span class="keyword">int</span> b=a+<span class="number">1</span>;</span><br><span class="line">System.out.print(“b=”+b)    <span class="comment">//  b=2</span></span><br><span class="line">a=<span class="number">10</span>;</span><br><span class="line">System.out.print(“b=”+b)    <span class="comment">//  b=2</span></span><br></pre></td></tr></table></figure>
+
+<p>而电子表格中A1=B1+C1的计算公式。A1的单元格值会随着B1和C1的值而进行变动。这也就说明了变化传播和动态数据传播。因此为了满足这种模式或构建关系出现了响应式思想。</p>
+<p>响应式编程在Java8及以前提供观察者模式的ObServer和ObServable类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> java.util.Observable;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebFluxDemo</span> <span class="keyword">extends</span> <span class="title">Observable</span></span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">        WebFluxDemo obServer = <span class="keyword">new</span> WebFluxDemo();</span><br><span class="line">        obServer.addObserver((o,arg)-&gt;&#123;</span><br><span class="line">            System.out.println(o);</span><br><span class="line">            System.out.println(arg);</span><br><span class="line">        &#125;);</span><br><span class="line">        obServer.setChanged();</span><br><span class="line">        obServer.notifyObservers();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-WbFlux/" rel="tag">Spring WbFlux</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Linux/Centos7相关操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/11/04/Linux/Centos7%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
+    >Centos7相关操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/11/04/Linux/Centos7%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2020-11-04T01:58:03.709Z" itemprop="datePublished">2020-11-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="防火墙操作"><a href="#防火墙操作" class="headerlink" title="防火墙操作"></a>防火墙操作</h2><h3 id="开放端口"><a href="#开放端口" class="headerlink" title="开放端口"></a>开放端口</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 开启端口</span></span><br><span class="line">firewall-cmd --zone=public --add-port=8080/tcp --permanent</span><br><span class="line"><span class="meta">#</span><span class="bash"> 关闭端口</span></span><br><span class="line">firewall-cmd --zone=public --remove-port=8080/tcp --permanent</span><br><span class="line"><span class="meta">#</span><span class="bash"> 重新加载立即生效</span></span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看防火墙所有开放端口"><a href="#查看防火墙所有开放端口" class="headerlink" title="查看防火墙所有开放端口"></a>查看防火墙所有开放端口</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">firewall-cmd --zone=public --list-ports</span><br></pre></td></tr></table></figure>
+
+<h3 id="防火墙开启关闭状态"><a href="#防火墙开启关闭状态" class="headerlink" title="防火墙开启关闭状态"></a>防火墙开启关闭状态</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">firewall-cmd --state</span><br><span class="line">systemctl status firewalld</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="端口进程"><a href="#端口进程" class="headerlink" title="端口进程"></a>端口进程</h2><h3 id="查看监听的端口"><a href="#查看监听的端口" class="headerlink" title="查看监听的端口"></a>查看监听的端口</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -lnpt</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看端口是否监听"><a href="#查看端口是否监听" class="headerlink" title="查看端口是否监听"></a>查看端口是否监听</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">netstat -ano|grep 8080</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="替换yum源为aliyun-yum源"><a href="#替换yum源为aliyun-yum源" class="headerlink" title="替换yum源为aliyun yum源"></a>替换yum源为aliyun yum源</h3><p>如果yum install xx报错<code>Cannot find a valid baseurl for repo: base/7/x86_6</code>也可以用以下方式解决</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">mv &#x2F;etc&#x2F;yum.repos.d&#x2F;CentOS-Base.repo &#x2F;etc&#x2F;yum.repos.d&#x2F;CentOS-Base.repo.backup</span><br><span class="line">wget -O &#x2F;etc&#x2F;yum.repos.d&#x2F;CentOS-Base.repo http:&#x2F;&#x2F;mirrors.aliyun.com&#x2F;repo&#x2F;Centos-7.repo</span><br><span class="line">yum clean all</span><br><span class="line">yum makecache</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Centos7/" rel="tag">Centos7</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Docker/相关问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -311,187 +495,13 @@
 
 </article>
     
-    <article id="post-SpringBoot/SpringBoot子线程共享主线程HttpServletRequest对象" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/10/13/SpringBoot/SpringBoot%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%85%B1%E4%BA%AB%E4%B8%BB%E7%BA%BF%E7%A8%8BHttpServletRequest%E5%AF%B9%E8%B1%A1/"
-    >SpringBoot子线程共享主线程HttpServletRequest问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/10/13/SpringBoot/SpringBoot%E5%AD%90%E7%BA%BF%E7%A8%8B%E5%85%B1%E4%BA%AB%E4%B8%BB%E7%BA%BF%E7%A8%8BHttpServletRequest%E5%AF%B9%E8%B1%A1/" class="article-date">
-  <time datetime="2020-10-13T04:00:00.000Z" itemprop="datePublished">2020-10-13</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>文章参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/CNAHYZ/article/details/103322444">https://blog.csdn.net/CNAHYZ/article/details/103322444</a></p>
-<p>而且博文<a target="_blank" rel="noopener" href="https://www.cnblogs.com/liuqingsha3/p/9144122.html中提到的确实很有道理的样子">https://www.cnblogs.com/liuqingsha3/p/9144122.html中提到的确实很有道理的样子</a></p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">ServletRequestAttributes attributes = (ServletRequestAttributes)RequestContextHolder.getRequestAttributes();</span><br><span class="line">RequestContextHolder.setRequestAttributes(attributes,<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
-
-<p>其实这样确实可以满足子线程获取用户线程的request，但是就如上面所说当用户线程返回时，会把request里的信息clear掉，但并不会使request置空。因此我这里也会出现偶尔子线程里有request的属性，有时候请求没有。</p>
-<p>而博客中引用的<a target="_blank" rel="noopener" href="https://www.jb51.net/article/158192.htm详细说明了示例的问题。">https://www.jb51.net/article/158192.htm详细说明了示例的问题。</a></p>
-<p>因此还是最好把request里的东西取出来或者博客里说的定义一个线程安全的公共对象进行传输request。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/JDK8-函数式接口说明解析" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/09/17/Java/JDK8-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E%E8%A7%A3%E6%9E%90/"
-    >JDK8 函数式接口说明解析</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/09/17/Java/JDK8-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E%E8%A7%A3%E6%9E%90/" class="article-date">
-  <time datetime="2020-09-17T04:00:00.000Z" itemprop="datePublished">2020-09-17</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>函数式接口都存在java.util.function包下。</p>
-<p>函数时接口的声明：</p>
-<p>标注@FunctionInterface注解的接口，且该接口只有一个抽象方法，默认方法和已实现的静态方法不算。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Function</span>&lt;<span class="title">T</span>, <span class="title">R</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Applies this function to the given argument.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> t the function argument</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the function result</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">R <span class="title">apply</span><span class="params">(T t)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns a composed function that first applies the &#123;<span class="doctag">@code</span> before&#125;</span></span><br><span class="line"><span class="comment">     * function to its input, and then applies this function to the result.</span></span><br><span class="line"><span class="comment">     * If evaluation of either function throws an exception, it is relayed to</span></span><br><span class="line"><span class="comment">     * the caller of the composed function.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &lt;V&gt; the type of input to the &#123;<span class="doctag">@code</span> before&#125; function, and to the</span></span><br><span class="line"><span class="comment">     *           composed function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> before the function to apply before this function is applied</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> a composed function that first applies the &#123;<span class="doctag">@code</span> before&#125;</span></span><br><span class="line"><span class="comment">     * function and then applies this function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> NullPointerException if before is null</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@see</span> #andThen(Function)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">default</span> &lt;V&gt; <span class="function">Function&lt;V, R&gt; <span class="title">compose</span><span class="params">(Function&lt;? <span class="keyword">super</span> V, ? extends T&gt; before)</span> </span>&#123;</span><br><span class="line">        Objects.requireNonNull(before);</span><br><span class="line">        <span class="keyword">return</span> (V v) -&gt; apply(before.apply(v));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns a composed function that first applies this function to</span></span><br><span class="line"><span class="comment">     * its input, and then applies the &#123;<span class="doctag">@code</span> after&#125; function to the result.</span></span><br><span class="line"><span class="comment">     * If evaluation of either function throws an exception, it is relayed to</span></span><br><span class="line"><span class="comment">     * the caller of the composed function.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &lt;V&gt; the type of output of the &#123;<span class="doctag">@code</span> after&#125; function, and of the</span></span><br><span class="line"><span class="comment">     *           composed function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> after the function to apply after this function is applied</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> a composed function that first applies this function and then</span></span><br><span class="line"><span class="comment">     * applies the &#123;<span class="doctag">@code</span> after&#125; function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> NullPointerException if after is null</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@see</span> #compose(Function)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">default</span> &lt;V&gt; <span class="function">Function&lt;T, V&gt; <span class="title">andThen</span><span class="params">(Function&lt;? <span class="keyword">super</span> R, ? extends V&gt; after)</span> </span>&#123;</span><br><span class="line">        Objects.requireNonNull(after);</span><br><span class="line">        <span class="keyword">return</span> (T t) -&gt; after.apply(apply(t));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns a function that always returns its input argument.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &lt;T&gt; the type of the input and output objects to the function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> a function that always returns its input argument</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">static</span> &lt;T&gt; <span class="function">Function&lt;T, T&gt; <span class="title">identity</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> t -&gt; t;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们看到Function&lt;T, R&gt;接口的<code>R apply(T t);</code>抽象方法，可以知道，该类定义的是传入一个T参数并返回一个R类型，一个传入一个传出的接口方法。</p>
-<p>在学习函数时编程的写法时，类似<code>s-&gt;&#123;&#125;,(a,b)-&gt;&#123;&#125;</code>的方式。</p>
-<p>一般某些方法的参数需要是一个函数式接口类型，如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> &lt;R&gt; <span class="function">Mono&lt;R&gt; <span class="title">flatMap</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends Mono&lt;? extends R&gt;&gt;</span></span></span><br><span class="line"><span class="function"><span class="params">                                 transformer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> onAssembly(<span class="keyword">new</span> MonoFlatMap&lt;&gt;(<span class="keyword">this</span>, transformer));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>而我们调用时是这样</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">studentMono.flatMap((person)-&gt;ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fromValue(person)))</span><br></pre></td></tr></table></figure>
-
-<p>才学没多久的肯定会忘记是为什么这么写。</p>
-<p>首先书写方式就是上面的尖括号大括号的方式。然后看一下简单的实例化这个Function接口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Function&lt;String , Integer&gt; getLength = s -&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> s.length();</span><br><span class="line">&#125;;</span><br><span class="line">Function&lt;String , Integer&gt; getLength = (s) -&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> s.length();</span><br><span class="line">&#125;;</span><br><span class="line">Integer apply = getLength.apply(<span class="string">&quot;123&quot;</span>);</span><br><span class="line">System.out.println(apply);</span><br></pre></td></tr></table></figure>
-
-<p>上面的一个是加括号，一个不加。</p>
-<p>首先要知道s在这个方括号里的参数，这个参数变量叫s,a,b,c都无所谓，但是顺序是一定有的。可以认为它是一个实参。</p>
-<p>而括号里的是具体实现，会返回一个数值，这也是Function接口特定要求的，而且已经声明了Integer所以要返回一个Integer类型。</p>
-<p>然后再调用Function的方法apply，可见传递个参数123相当于s这个变量参数，然后返回值就是return的返回值。</p>
-<p>而箭头函数最终其实就是一个匿名类</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Function&lt;String , Integer&gt; getLength2 = <span class="keyword">new</span> Function&lt;String, Integer&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">apply</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> s.length();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>再看上面的flatMap方法需要一个Function接口，那么其<code>(person)-&gt;ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fromValue(person))</code>就相当于<code>(s) -&gt;&#123;    return s.length();&#125;;</code>。<strong>因此flatMap方法的Function接口的T入参是什么类型person就是什么类型，R返回值是什么类型，则大括号里点到最后的body方法的返回值就一定是R类型或R类型的子类。</strong></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/6/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/8/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/6/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/8/">下一页</a>
   </nav>
   
 </section>
@@ -516,12 +526,6 @@
     </ul>
     <ul class="list-inline">
       <li>
-        
-        
-        <span>
-  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
-  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
-</span>
         
       </li>
       
@@ -790,10 +794,6 @@
     mathjax: true
   }
 </script>
-
-
-
-<script src="/js/busuanzi-2.3.pure.min.js"></script>
 
 
 

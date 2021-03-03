@@ -78,6 +78,308 @@
     
     
     
+    <article id="post-Zoopeeker/zookeeper的监听器原理和客户端写数据流程" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/"
+    >zookeeper的监听器原理和客户端写数据流程</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/" class="article-date">
+  <time datetime="2018-12-29T15:35:39.000Z" itemprop="datePublished">2018-12-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="监听器原理"><a href="#监听器原理" class="headerlink" title="监听器原理"></a>监听器原理</h2><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229231357.png" alt="监听器原理"> 如图所示: 首先要有一个main线程，这个main线程创建zookeeper客户端，zkClient会分发两个子线程，一个用来监听，一个用来连接服务器。 通过connect线程将注册的监听事件发送给Zookeeper，Zookeeper的注册监听器列表将注册的监听事件添加到列表中。 Zookeeper监听到有数据变化或路径变化，就会将消息发送到listener线程。 而listener线程内部则调用process()方法。 通常有这两种监听，分别是监听节点值和子节点</p>
+<ul>
+<li>get path [watch]:监听节点数据变化</li>
+<li>ls path [watch]:监听子节点增减的变化</li>
+</ul>
+<h2 id="客户端写数据到服务器流程"><a href="#客户端写数据到服务器流程" class="headerlink" title="客户端写数据到服务器流程"></a>客户端写数据到服务器流程</h2><p>下图为客户端请求写数据到服务器流程 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229232711.png" alt=""></p>
+<ol>
+<li>首先Client会请求到某台服务器</li>
+<li>如果请求的服务器不是Leader，则刚服务器将吧请求转发给Leader服务器</li>
+<li>Leader会发通知各个服务器进行数据写入操作。</li>
+<li>各个服务器写入完成后会再通知给Leader。</li>
+<li>当Leader收到大多数服务器写成功后，就认为写成功了</li>
+<li>Leader会将写入成功的通知发给请求的服务器</li>
+<li>由服务器再把结果返回给客户端</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Zoopeeker/zookeeper客户端的使用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/"
+    >zookeeper客户端的使用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2018-12-29T13:58:49.000Z" itemprop="datePublished">2018-12-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
+<pre><code>bin/zkCli.sh</code></pre><ol>
+<li><p>查看帮助命令</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 2] help</code></pre></li>
+</ol>
+<ol start="2">
+<li><p>查看znode节点,ls命令</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 3] ls /
+[chen, zookeeper]
+[zk: localhost:2181(CONNECTED) 4] ls /chen
+[]</code></pre></li>
+</ol>
+<ol start="3">
+<li><p>查看节点详细信息ls2</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 6] ls2 /chen
+[]
+cZxid = 0x100000002
+ctime = Thu Dec 27 00:58:04 CST 2018
+mZxid = 0x100000002
+mtime = Thu Dec 27 00:58:04 CST 2018
+pZxid = 0x100000002
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 7
+numChildren = 0</code></pre></li>
+</ol>
+<pre><code>**后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。**</code></pre><ol start="4">
+<li><p>创建普通节点create</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 7] create /name &quot;this is name&quot;
+Created /name
+[zk: localhost:2181(CONNECTED) 8] ls /
+[chen, name, zookeeper]</code></pre></li>
+</ol>
+<ol start="5">
+<li><p>获得节点值get</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 9] get /name
+this is name
+xxxxxx</code></pre></li>
+</ol>
+<ol start="6">
+<li><p>创建暂时节点,然后推出客户端重新登陆查看</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 0] create -e /temp &quot;temp&quot;
+Created /temp
+[zk: localhost:2181(CONNECTED) 1] ls /
+[chen, name, temp, zookeeper]</code></pre></li>
+</ol>
+<pre><code>[zk: localhost:2181(CONNECTED) 2] quit
+Quitting...
+2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002
+2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed
+ubuntu1@ubuntu1:~/zookeeper/bin$ ./zkCli.sh
+Connecting to localhost:2181
+
+[zk: localhost:2181(CONNECTED) 1] ls /
+[chen, name, zookeeper]</code></pre><ol start="7">
+<li><p>创建带序号节点</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 9] create /app &quot;app&quot;
+Created /app
+[zk: localhost:2181(CONNECTED) 10] create -s /app/sun &quot;sun&quot;
+Created /app/sun0000000000
+[zk: localhost:2181(CONNECTED) 11] ls /app
+[sun0000000000]
+
+[zk: localhost:2181(CONNECTED) 12] create -s /app/sun &quot;sun2&quot;
+Created /app/sun0000000001
+[zk: localhost:2181(CONNECTED) 13] ls /app
+[sun0000000000, sun0000000001]</code></pre></li>
+</ol>
+<pre><code>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.
+
+    [zk: localhost:2181(CONNECTED) 14] ls /
+    [chen, name, app, zookeeper]
+    [zk: localhost:2181(CONNECTED) 15] create /sum &quot;sum&quot;
+    Created /sum
+    [zk: localhost:2181(CONNECTED) 16] create /sum/test &quot;sumtest1&quot;
+    Created /sum/test
+    [zk: localhost:2181(CONNECTED) 17] create -s /sum/test &quot;sumtest1&quot;
+    Created /sum/test0000000001
+    [zk: localhost:2181(CONNECTED) 18] ls /sum
+    [test0000000001, test]
+
+
+尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</code></pre><ol start="8">
+<li><p>修改节点数据值set</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 19] ls /
+[chen, name, app, sum, zookeeper]
+[zk: localhost:2181(CONNECTED) 20] get /chen
+guangqi
+xxxxxx
+[zk: localhost:2181(CONNECTED) 21] set /chen &quot;chenguangqi&quot;
+xxxxxx
+[zk: localhost:2181(CONNECTED) 22] get /chen
+chenguangqi
+xxxxx</code></pre></li>
+</ol>
+<ol start="9">
+<li><p>节点值的变化监听get path watch</p>
+<pre><code>--1号机器
+[zk: localhost:2181(CONNECTED) 24] get /chen watch
+chenguangqi
+xxxx
+
+-- 2号机器
+[zk: localhost:2181(CONNECTED) 0] set /chen &quot;chen&quot;
+xxxx
+
+[zk: localhost:2181(CONNECTED) 25]
+WATCHER::
+--1号机器
+WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></li>
+</ol>
+<pre><code>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</code></pre><ol start="10">
+<li><p>节点的子节点监听(路径变化)ls path watch</p>
+<p>   [zk: localhost:2181(CONNECTED) 25] ls / watch<br>   [chen, name, app, sum, zookeeper]</p>
+<p>   [zk: localhost:2181(CONNECTED) 1] create /test “testwatch”<br>   Created /test</p>
+<p>   [zk: localhost:2181(CONNECTED) 26]<br>   WATCHER::<br>   WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/</p>
+</li>
+</ol>
+<pre><code>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</code></pre><ol start="11">
+<li><p>删除节点与递归删除节点delete/rmr</p>
+<p>   [zk: localhost:2181(CONNECTED) 26] ls /<br>   [chen, name, app, sum, zookeeper, test]<br>   [zk: localhost:2181(CONNECTED) 27] delete /test<br>   [zk: localhost:2181(CONNECTED) 29] ls /<br>   [chen, name, app, sum, zookeeper]<br>   [zk: localhost:2181(CONNECTED) 34] delete /sum<br>   Node not empty: /sum<br>   [zk: localhost:2181(CONNECTED) 35] rmr /sum<br>   [zk: localhost:2181(CONNECTED) 36] ls /<br>   [chen, name, app, zookeeper]</p>
+</li>
+</ol>
+<ol start="12">
+<li><p>查看节点状态信息stat</p>
+<p>   [zk: localhost:2181(CONNECTED) 39] stat /chen<br>   cZxid = 0x200000021<br>   ctime = Sat Dec 29 21:53:30 CST 2018<br>   mZxid = 0x200000021<br>   mtime = Sat Dec 29 21:53:30 CST 2018<br>   pZxid = 0x200000021<br>   cversion = 0<br>   dataVersion = 0<br>   aclVersion = 0<br>   ephemeralOwner = 0x0<br>   dataLength = 4<br>   numChildren = 0</p>
+</li>
+</ol>
+<pre><code>对于stat的信息分别如下:
+*   cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。
+*   ctime:节点被创建的时间
+*   mZxid:节点最后更新zxid
+*   mtime:节点最后更新的时间
+*   pZxid:最后更新的子节点zxid
+*   cversion:子节点变化号，子节点修改次数
+*   dataVersion:节点数据变化号
+*   aclVersion:节点访问控制列表的变化号
+*   ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
+*   dataLength:节点值的长度。(重要)
+*   numChildren:子节点数目。(重要)</code></pre><ol start="13">
+<li><p>历史命令history,查看之前使用过的命令</p>
+<p>   [zk: localhost:2181(CONNECTED) 42] history<br>   32 - rmr /chen<br>   33 - ls /<br>   34 - delete /sum<br>   35 - rmr /sum<br>   36 - ls /<br>   37 - ls /<br>   38 - create /chen “chen”<br>   39 - stat /chen<br>   40 - help<br>   41 - histor<br>   42 - history</p>
+</li>
+</ol>
+<p>还有其他的命令请查看Zookeeper文档。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -579,226 +881,13 @@ Error contacting service. It is probably not running.</code></pre></li>
 
 </article>
     
-    <article id="post-Oracle/Oracle物化视图使用相关查询" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/"
-    >Oracle物化视图使用相关查询</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-12-13T08:27:55.000Z" itemprop="datePublished">2018-12-13</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Oracle物化视图使用相关查询"><a href="#Oracle物化视图使用相关查询" class="headerlink" title="Oracle物化视图使用相关查询"></a>Oracle物化视图使用相关查询</h2><h3 id="查询当前用户所有物化视图"><a href="#查询当前用户所有物化视图" class="headerlink" title="查询当前用户所有物化视图"></a>查询当前用户所有物化视图</h3><pre><code>select * from user_mviews;</code></pre><h3 id="查询物化视图创建语句及更新时间、更新方式、是否失效"><a href="#查询物化视图创建语句及更新时间、更新方式、是否失效" class="headerlink" title="查询物化视图创建语句及更新时间、更新方式、是否失效"></a>查询物化视图创建语句及更新时间、更新方式、是否失效</h3><pre><code>SELECT OWNER            , --所有者账户
-           MVIEW_NAME       , --名称
-           LAST_REFRESH_DATE, --上次更新时间
-           REFRESH_METHOD   , --更新方式
-           INVALID          , --是否失效
-           QUERY              --查询语句
-      FROM USER_MVIEW_ANALYSIS 
-  ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="3-查询物化视图所有列名及列注释"><a href="#3-查询物化视图所有列名及列注释" class="headerlink" title="3. 查询物化视图所有列名及列注释"></a>3. 查询物化视图所有列名及列注释</h3><pre><code>SELECT a.OWNER        , --所有者账户
-            a.MVIEW_NAME   , --名称
-            b.COLUMN_NAME  , --列名称
-            b.COMMENTS       --列注释
-       FROM USER_MVIEW_ANALYSIS a
- INNER JOIN USER_COL_COMMENTS b
-ON a.MVIEW_NAME = b.TABLE_NAME;</code></pre><h3 id="查询所有物化视图使用的基表"><a href="#查询所有物化视图使用的基表" class="headerlink" title="查询所有物化视图使用的基表"></a>查询所有物化视图使用的基表</h3><pre><code>SELECT DISTINCT 
-               A.OWNER,          --所有者账户
-               A.MVIEW_NAME     ,--物化视图名称
-               B.COMMENTS       ,--视图注释
-               A.DETAILOBJ_OWNER,--基表所有者账号
-               A.DETAILOBJ_NAME  --基表名称
-          FROM USER_MVIEW_DETAIL_RELATIONS A
-    INNER JOIN USER_MVIEW_COMMENTS B ON A.MVIEW_NAME = B.MVIEW_NAME
-         WHERE DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;;</code></pre><h3 id="物化视图或普通视图使用哪些基表，被那个存储过程引用"><a href="#物化视图或普通视图使用哪些基表，被那个存储过程引用" class="headerlink" title="物化视图或普通视图使用哪些基表，被那个存储过程引用"></a>物化视图或普通视图使用哪些基表，被那个存储过程引用</h3><pre><code>WITH CTE AS (
-    SELECT DISTINCT 
-           A.OWNER,               -- 所有者账户
-           A.MVIEW_NAME         , -- 物化视图名称
-           A.DETAILOBJ_OWNER    , -- 被引用表账号
-           A.DETAILOBJ_NAME       -- 被引用表名称
-      FROM USER_MVIEW_DETAIL_RELATIONS A
-     WHERE A.DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;
- UNION ALL
-    SELECT &apos;&apos; AS OWNER,
-           NAME AS MVIEW_NAME,
-           REFERENCED_OWNER AS DETAILOBJ_OWNER,
-           REFERENCED_NAME AS DETAILOBJ_NAME
-      FROM USER_DEPENDENCIES 
-     WHERE TYPE =&apos;VIEW&apos;
-)
-    SELECT A.OWNER            ,-- 视图所有者账户
-           A.MVIEW_NAME AS MV ,-- 视图名称
-           A.DETAILOBJ_OWNER  ,-- 基表所有者账户
-           A.DETAILOBJ_NAME   ,-- 基表/视图
-           NVL(B.NAME,&apos;-&apos;) AS PROC_NAME -- 存储过程名称
-      FROM CTE A
- LEFT JOIN (SELECT DISTINCT NAME,REFERENCED_NAME 
-              FROM USER_DEPENDENCIES B 
-             WHERE B.TYPE = &apos;PROCEDURE&apos; 
-            ) B ON A.MVIEW_NAME = B.REFERENCED_NAME
-  ORDER BY A.MVIEW_NAME,A.DETAILOBJ_NAME,B.NAME;</code></pre><h3 id="查询物化视图刷新信息"><a href="#查询物化视图刷新信息" class="headerlink" title="查询物化视图刷新信息"></a>查询物化视图刷新信息</h3><pre><code>SELECT MVIEW_NAME,--物化视图名称
-       REFRESH_MODE,--刷新方式
-       REFRESH_METHOD,--刷新类型
-       FAST_REFRESHABLE,--是否可刷新
-       LAST_REFRESH_TYPE,--最近一次刷新类型
-       LAST_REFRESH_DATE,--最近一次刷新时间
-       STALENESS --数据是否过时
-  FROM USER_MVIEWS 
- ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="物化视图最后一次刷新信息"><a href="#物化视图最后一次刷新信息" class="headerlink" title="物化视图最后一次刷新信息"></a>物化视图最后一次刷新信息</h3><pre><code>SELECT MVIEW_NAME,  --物化视图名称
-        LAST_REFRESH_DATE &quot;START_TIME&quot;, --刷新开始时间
-        CASE WHEN FULLREFRESHTIM &lt;&gt; 0 
-             THEN LAST_REFRESH_DATE + FULLREFRESHTIM/60/60/24
-             WHEN INCREFRESHTIM &lt;&gt; 0 
-             THEN LAST_REFRESH_DATE + INCREFRESHTIM/60/60/24
-             ELSE LAST_REFRESH_DATE
-        END &quot;END_TIME&quot;, --刷新结束时间
-        FULLREFRESHTIM, --全量刷新耗时
-        INCREFRESHTIM , --增量刷新耗时
-        REFRESH_METHOD, --最近一次刷新方式
-        SUMMARY       , --是否含有聚合查询
-        INC_REFRESHABLE,--是否支持增量刷新
-        INVALID       , --是否失效
-        REWRITE_ENABLED --是否支持查询重写
-   FROM ALL_MVIEW_ANALYSIS
-   WHERE OWNER=&apos;BDCCXTJ&apos;
-ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/关于使用Editor.md的一些问题，尤其是方法的调用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/"
-    >关于使用Editor.md的一些问题，尤其是方法的调用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
-  <time datetime="2018-12-02T12:00:12.000Z" itemprop="datePublished">2018-12-02</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="关于使用Editor-md的一些问题"><a href="#关于使用Editor-md的一些问题" class="headerlink" title="关于使用Editor.md的一些问题"></a>关于使用Editor.md的一些问题</h2><h3 id="testEditor无法调用该编译器的previewing-方法"><a href="#testEditor无法调用该编译器的previewing-方法" class="headerlink" title="testEditor无法调用该编译器的previewing()方法"></a>testEditor无法调用该编译器的previewing()方法</h3><p>我想用以下方法来预览全部和取消预览全部，所以需要watch属性和previewing方法，试了好多次，都说没有toggle方法或什么的，然后我就取editormd.js去看，发现调用这个方法需要好多对象支持，尤其是codeMirror,但是我看页面，这写js都已经在lib包里导入了。而且使用testEditor打印为undefined。只有在onload里使用this才能调用所有方法。 然后下载源码看，拷贝了老半天，才发现，需要使用方法调用才能使用testEditor执行方法，于是试了试，发现可以，然后就把没用的删了，把height改为autoHeight，因为这样更美观。之后再试，不行。 弄着弄着发现黑主题能显示出来，default主题出不来，于是又试，发现能出来，最后又改了改，又不行了。 最后后，一一的排查，发现是autoHeight搞得，一使用这个属性，就不能preview预览。于是只能改为height才行。 最终的问题，一个是需要使用function方法或事件来调用方法，另一个是autoHeight的坑爹之处。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/22/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="page-number" href="/page/22/">22</a><span class="page-number current">23</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/24/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/22/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/21/">21</a><a class="page-number" href="/page/22/">22</a><span class="page-number current">23</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/24/">下一页</a>
   </nav>
   
 </section>
@@ -823,12 +912,6 @@ ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
     </ul>
     <ul class="list-inline">
       <li>
-        
-        
-        <span>
-  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
-  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
-</span>
         
       </li>
       
@@ -1097,10 +1180,6 @@ ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
     mathjax: true
   }
 </script>
-
-
-
-<script src="/js/busuanzi-2.3.pure.min.js"></script>
 
 
 

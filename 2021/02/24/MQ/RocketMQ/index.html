@@ -1,0 +1,706 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    RocketMQ |  Notes
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-MQ/RocketMQ" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  RocketMQ
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/02/24/MQ/RocketMQ/" class="article-date">
+  <time datetime="2021-02-24T12:00:00.000Z" itemprop="datePublished">2021-02-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/RocketMQ/">RocketMQ</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.9k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">12分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="安装部署"><a href="#安装部署" class="headerlink" title="安装部署"></a>安装部署</h2><p>下载发行版本并解压即可。</p>
+<h3 id="单机启动"><a href="#单机启动" class="headerlink" title="单机启动"></a>单机启动</h3><ol>
+<li>启动nameserver</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 1.启动NameServer</span></span><br><span class="line">nohup sh bin/mqnamesrv &amp;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 2.查看启动日志</span></span><br><span class="line">tail -f ~/logs/rocketmqlogs/namesrv.log</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>启动broker</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 1.启动Broker</span><br><span class="line">nohup sh bin&#x2F;mqbroker -n localhost:9876 &amp;</span><br><span class="line"># 2.查看启动日志</span><br><span class="line">tail -f ~&#x2F;logs&#x2F;rocketmqlogs&#x2F;broker.log </span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><p><a href="#jvmmem">修改默认jvm内存大小</a></p>
+</li>
+<li><p>可在conf/broker.conf下配置属性</p>
+<p>配置brokerIP1设置访问ip</p>
+</li>
+</ol>
+<h3 id="关闭nameserver和broker"><a href="#关闭nameserver和broker" class="headerlink" title="关闭nameserver和broker"></a>关闭nameserver和broker</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sh mqshutdown namesrv</span><br><span class="line">sh mqshutdown broker</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="多master多slave同步集群"><a href="#多master多slave同步集群" class="headerlink" title="多master多slave同步集群"></a>多master多slave同步集群</h3><p>首先将rocketmq的bin配置到环境变量中，方便使用命令。</p>
+<h4 id="集群规划"><a href="#集群规划" class="headerlink" title="集群规划"></a>集群规划</h4><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>IP</th>
+<th>角色</th>
+<th>架构模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>192.168.38.130</td>
+<td>nameserver,broker</td>
+<td>master1,slave2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>192.168.38.131</td>
+<td>nameserver,broker</td>
+<td>master2,slave1</td>
+</tr>
+</tbody></table>
+<p>在进行nameserver集群是无需配置文件，一般一台机器一个nameserver，直接启动即可。</p>
+<p>配置多主多从相关文件。在conf下有2m-2s-sync、2m-2s-async、2m-noslave目录，分别对应多种多从同步模式，多主多从异步模式，多主无从模式</p>
+<p>多主多从同步与异步配置基本一致，本配置以同步为例。</p>
+<p>在2m-2s-sync目录下包含broker-a.properties  broker-a-s.properties  broker-b.properties  broker-b-s.properties这些文件。不含-s的文件为master，否则为slave，但这只是一个名字的易于区分，具体角色在配置中的<code>brokerRole</code>属性进行区分。</p>
+<p>在130机器中编辑broker-a.properties配置，和broker-b-s.properties</p>
+<h4 id="broker-a-properties"><a href="#broker-a-properties" class="headerlink" title="broker-a.properties"></a>broker-a.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-a</span><br><span class="line">brokerIP1=192.168.38.131</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=0</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;193.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=10911</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SYNC_MASTER</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=SYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="broker-b-s-properties"><a href="#broker-b-s-properties" class="headerlink" title="broker-b-s.properties"></a>broker-b-s.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-b</span><br><span class="line">brokerIP1=192.168.38.131</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=1</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;192.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=11011</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store2</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store2/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store2/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store2/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store2/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store2/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SLAVE</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>以130的这两个配置为例，131的配置属性相同，需要在部署时需要注意的属性如下:</p>
+<ul>
+<li>brokerClusterName：集群名字，多个broker配置相同的brokerClusterName组成一个broker集群</li>
+<li>brokerName：broker名字可用来指定主从关系，如果同属于一个broker则brokerName应该相同，如何区分master和slave使用brokerId属性。</li>
+<li>brokerId：同brokerName下的brokerId标识，如果为0则在当前brokerName中，该broker为master，大于0则为slave</li>
+<li>brokerIP1：broker监听的IP，在多网卡ip的情况下需要显示设定ip，否则可能出现客户端连接失败的情况。</li>
+<li>brokerIP2：主从关系存在时，slave会根据master的brokerIP2进行同步数据。</li>
+<li>namesrvAddr：连接的nameserver地址，集群nameserver使用分号分开。</li>
+<li>listenPort：broker监听端口，每个broker的端口在同一台机器上不能相同。</li>
+<li>store*：数据存储目录，同一台机器上的broker的路径均不能重复。</li>
+<li>brokerRole：当前broker配置文件定义了自身的角色。</li>
+</ul>
+<p>brokerName相同可以认为是一组broker，但仍然是由master和slave组成的多个broker，仅仅是确定了主从关系。</p>
+<p>在131机器中编辑broker-b.properties配置，和broker-a-s.properties</p>
+<h4 id="broker-b-properties"><a href="#broker-b-properties" class="headerlink" title="broker-b.properties"></a>broker-b.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-b</span><br><span class="line">brokerIP1=192.168.38.130</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=0</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;192.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=10911</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SYNC_MASTER</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=SYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="broker-a-s-properties"><a href="#broker-a-s-properties" class="headerlink" title="broker-a-s.properties"></a>broker-a-s.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-a</span><br><span class="line">brokerIP1=192.168.38.130</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=1</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;192.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=11011</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store2</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store2/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store2/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store2/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store2/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store2/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SLAVE</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h4><p>启动nameserver</p>
+<p>分别在130和131机器上启动nameserver</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup sh mqnamesrv &amp;</span><br></pre></td></tr></table></figure>
+
+<p>启动broker</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 130启动broker</span></span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-a.properties &amp;</span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-b-s.properties &amp;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 131启动broker</span></span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-b.properties &amp;</span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-a-s.properties &amp;</span><br></pre></td></tr></table></figure>
+
+<h4 id="关闭集群"><a href="#关闭集群" class="headerlink" title="关闭集群"></a>关闭集群</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sh mqshutdown namesrv</span><br><span class="line">sh mqshutdown broker</span><br></pre></td></tr></table></figure>
+
+<h3 id="rocketmq-console控制台使用"><a href="#rocketmq-console控制台使用" class="headerlink" title="rocketmq-console控制台使用"></a>rocketmq-console控制台使用</h3><p>在<a target="_blank" rel="noopener" href="https://github.com/apache/rocketmq-externals项目中下载或https://gitee.com/mirrors/RocketMQ-Externals上下载。进入rokcetmq-console中">https://github.com/apache/rocketmq-externals项目中下载或https://gitee.com/mirrors/RocketMQ-Externals上下载。进入rokcetmq-console中</a></p>
+<p>进入resource，修改application.properties的<code>rocketmq.config.namesrvAddr</code>属性，配置rocketmq的nameserver，多个使用分号分隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rocketmq.config.namesrvAddr&#x3D;192.168.38.131:9876;192.168.38.130:9876</span><br></pre></td></tr></table></figure>
+
+<p>更改后进入含pom的rockemq-console根目录下，执行<code>mvn clean package</code>即可。</p>
+<h2 id="相关问题"><a href="#相关问题" class="headerlink" title="相关问题"></a>相关问题</h2><h3 id="默认虚拟机内存占用较大导致无法启动"><a href="#默认虚拟机内存占用较大导致无法启动" class="headerlink" title="默认虚拟机内存占用较大导致无法启动"></a>默认虚拟机内存占用较大导致无法启动</h3><p><span id="jvmmem">修改JVM内存</span></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vi runbroker.sh</span><br><span class="line">vi runserver.sh</span><br></pre></td></tr></table></figure>
+
+<p>修改两个文件的此处<code>JAVA_OPT=&quot;$&#123;JAVA_OPT&#125; -server -Xms256m -Xmx256m -Xmn128m -XX:MetaspaceSize=128m  -XX:MaxMetaspaceSize=320m&quot;</code></p>
+<h3 id="集群分号问题"><a href="#集群分号问题" class="headerlink" title="集群分号问题"></a>集群分号问题</h3><p>集群配置，在properties配置文件还是在设置namesrvAddr都是分号分隔不同地址。</p>
+<h3 id="存储消息路径问题"><a href="#存储消息路径问题" class="headerlink" title="存储消息路径问题"></a>存储消息路径问题</h3><p>同一台机器下，如果有多个broker，则不同broker的存储路径不能一致，如某机器下有1个master和1个slave，则在配置broker-a.properties文件和broker-b-s.properties中的一下路径是不能冲突的。否则可能造成broker无法启动成功。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#存储路径</span><br><span class="line">storePathRootDir&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store</span><br><span class="line">#commitLog 存储路径</span><br><span class="line">storePathCommitLog&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;commitlog</span><br><span class="line">#消费队列存储路径存储路径</span><br><span class="line">storePathConsumeQueue&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;consumequeue</span><br><span class="line">#消息索引存储路径</span><br><span class="line">storePathIndex&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;index</span><br><span class="line">#checkpoint 文件存储路径</span><br><span class="line">storeCheckpoint&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;checkpoint</span><br><span class="line">#abort 文件存储路径</span><br><span class="line">abortFile&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;abort</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="Exception-in-thread-“main”-org-apache-rocketmq-remoting-exception-RemotingTooMuchRequestException-sendDefaultImpl-call-timeout"><a href="#Exception-in-thread-“main”-org-apache-rocketmq-remoting-exception-RemotingTooMuchRequestException-sendDefaultImpl-call-timeout" class="headerlink" title="Exception in thread “main” org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException: sendDefaultImpl call timeout"></a>Exception in thread “main” org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException: sendDefaultImpl call timeout</h3><p>集群启动完成并且console上可以看到集群，但是生产者无法连接到broker发送消息。</p>
+<p>IP问题，如果服务器有多个ip，需要在properties或conf中设置brokerIP1=192.168.38.130指定ip即可,并且namesrvAddr也尽量设置准确地址。 </p>
+<p><strong>brokerIP1</strong> 当前broker监听的IP<br><strong>brokerIP2</strong> 存在broker主从时，在broker主节点上配置了brokerIP2的话,broker从节点会连接主节点配置的brokerIP2来同步。</p>
+<p>默认不配置brokerIP1和brokerIP2时，都会根据当前网卡选择一个IP使用，当你的机器有多块网卡时，很有可能会有问题s</p>
+<h3 id="org-apache-rocketmq-client-exception-MQClientException-Not-found-the-producer-group-connection-For-more-information-please-visit-the-url-http-rocketmq-apache-org-docs-faq"><a href="#org-apache-rocketmq-client-exception-MQClientException-Not-found-the-producer-group-connection-For-more-information-please-visit-the-url-http-rocketmq-apache-org-docs-faq" class="headerlink" title="org.apache.rocketmq.client.exception.MQClientException: Not found the producer group connection For more information, please visit the url, http://rocketmq.apache.org/docs/faq/"></a>org.apache.rocketmq.client.exception.MQClientException: Not found the producer group connection For more information, please visit the url, <a target="_blank" rel="noopener" href="http://rocketmq.apache.org/docs/faq/">http://rocketmq.apache.org/docs/faq/</a></h3><p>在console上查询生产者页面信息时报错。原因为生产者生产完消息后不执行<code>producer.shutdown();</code>才行，否则无法查询到。</p>
+<p>统称为主题。对于activemq的队列和消息区分有别。</p>
+<p>activemq在最开始就定义当前消息组是队列还是主题。</p>
+<p>rocketmq只向类型为top主题类型中发送消息，是队列还是主题由消费者来确定，负载均衡CLUSTERING则为队列模式，广播BROADCASTING则为主题模式。</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2021/02/24/MQ/RocketMQ/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MQ/" rel="tag">MQ</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/03/01/other/%E5%A4%A7%E5%9D%91%E6%83%85%E5%86%B5/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            大坑情况
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Maven中repository和mirror的使用</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

@@ -78,6 +78,209 @@
     
     
     
+    <article id="post-PostgreSQL/Postgresql批量执行" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/24/PostgreSQL/Postgresql%E6%89%B9%E9%87%8F%E6%89%A7%E8%A1%8C/"
+    >Postgresql批量执行sql</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/24/PostgreSQL/Postgresql%E6%89%B9%E9%87%8F%E6%89%A7%E8%A1%8C/" class="article-date">
+  <time datetime="2020-05-24T01:01:02.000Z" itemprop="datePublished">2020-05-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>批量执行sql需要使用到pg的psql命令。该命令在安装目录的bin下。可以添加bin到环境变量。</p>
+<p>另外就是连接数据库的情况，有的数据库不设密码，有的设置，而密码有加密类型，在data/pg_hba.conf中，这个表的配置可以到网上搜，最低级别的不需要密码即可登录。然后一般MD5加密的需要密码。</p>
+<p>对于数据库字符编码和客户端字符编码的问题。使用<code>\encoding</code>命令可以查看编码，一般为GBK编码，那么导入的sql必须为ASNI字符编码的sql文本，也就是默认window创建的txt的类型。否则如果是UFT-8的sql文件，在导入时会乱码出错。如果服务器是UTF-8的话就可以使用utf8的文本文件。</p>
+<ol>
+<li><p>首先有一个批量脚本文件，用此文件来执行，其他sql从batch脚本文件中引用。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">\cd C:/Users/cgq_r/Desktop</span><br><span class="line"></span><br><span class="line">\i ./sql/cms_business.sql;</span><br><span class="line"><span class="keyword">insert</span> <span class="keyword">into</span> t(<span class="keyword">id</span>,<span class="keyword">name</span>) <span class="keyword">values</span>(<span class="string">&#x27;1&#x27;</span>,<span class="string">&#x27;1&#x27;</span>);</span><br><span class="line">\i ./sql/cms_face.sql;</span><br></pre></td></tr></table></figure>
+
+<p>此batch.sql脚本文件中,<code>\cd</code>声明了执行该文件时，要进入的目录，而<code>\i</code>表示从文件中执行命令，这个命令在psql登录后，可以使用<code>help \?</code>查看所有命令。</p>
+<p>此时batch.sql文件与cms_business.sql文件的关系是在Desktop下有batch.sql文件，Desktop下的sql目录下有cms_business.sql文件</p>
+</li>
+<li><p>连接psql</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">psql -h ip -d 数据库名 -U 用户名</span><br><span class="line">例:psql -h localhost -d postgres -U postgres</span><br></pre></td></tr></table></figure>
+
+<p>然后输入密码，注意，如果是本机登录，可以不使用-h参数，但如果当前postgresql没有设置密码，就是pg_hba.conf中的加密方式不是md5，可能需要执行-h参数，然后无需密码直接就连接上了。</p>
+</li>
+<li><p>验证客户端编码格式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\encoding</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置模式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">set schema &#39;public&#39;;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>执行导入命令</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">\i C:/Users/cgq_r/Desktop/batch.sql</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/postgresql/" rel="tag">postgresql</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/Activiti并行节点跳转回退示例" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/23/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E8%B7%B3%E8%BD%AC%E5%9B%9E%E9%80%80%E7%A4%BA%E4%BE%8B/"
+    >Activiti并行节点跳转回退示例V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/23/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E8%B7%B3%E8%BD%AC%E5%9B%9E%E9%80%80%E7%A4%BA%E4%BE%8B/" class="article-date">
+  <time datetime="2020-05-23T10:26:00.000Z" itemprop="datePublished">2020-05-23</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="节点跳转方法"><a href="#节点跳转方法" class="headerlink" title="节点跳转方法"></a>节点跳转方法</h2><p>可以试用cmd的方式进行操作，毕竟activiti提供的service，很多方法都是执行的command</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDJumpTaskCmd</span> <span class="keyword">implements</span> <span class="title">Command</span>&lt;<span class="title">Void</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> List&lt;TaskEntity&gt; taskEntities;</span><br><span class="line">    <span class="keyword">protected</span> ActivityImpl desActivity;</span><br><span class="line">    <span class="keyword">protected</span> Map&lt;String, Object&gt; paramvar;</span><br><span class="line">    <span class="keyword">protected</span> ActivityImpl currentActivity;</span><br><span class="line">    <span class="keyword">protected</span> String taskId;</span><br><span class="line">    <span class="keyword">protected</span> String procInsId;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Logger logger = LoggerFactory.getLogger(getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskEntities 可能存在并行任务，多个任务节点同时进行，因此需要全部删除</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> desActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> paramvar</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> currentActivity</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JDJumpTaskCmd</span><span class="params">(List&lt;TaskEntity&gt; taskEntities, ActivityImpl desActivity,</span></span></span><br><span class="line"><span class="function"><span class="params">                         Map&lt;String, Object&gt; paramvar, ActivityImpl currentActivity,String procInsId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.taskEntities = taskEntities;</span><br><span class="line">        <span class="keyword">this</span>.desActivity = desActivity;</span><br><span class="line">        <span class="keyword">this</span>.paramvar = paramvar;</span><br><span class="line">        <span class="keyword">this</span>.currentActivity = currentActivity;</span><br><span class="line">        <span class="keyword">this</span>.procInsId = procInsId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskEntities 可能存在并行任务，多个任务节点同时进行，因此需要全部删除</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> desActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> paramvar</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> currentActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> procInsId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskId 当前任务需要手动complete状态</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JDJumpTaskCmd</span><span class="params">(List&lt;TaskEntity&gt; taskEntities, ActivityImpl desActivity,</span></span></span><br><span class="line"><span class="function"><span class="params">                         Map&lt;String, Object&gt; paramvar, ActivityImpl currentActivity,String procInsId,String taskId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.taskEntities = taskEntities;</span><br><span class="line">        <span class="keyword">this</span>.desActivity = desActivity;</span><br><span class="line">        <span class="keyword">this</span>.paramvar = paramvar;</span><br><span class="line">        <span class="keyword">this</span>.currentActivity = currentActivity;</span><br><span class="line">        <span class="keyword">this</span>.procInsId = procInsId;</span><br><span class="line">        <span class="keyword">this</span>.taskId = taskId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Void <span class="title">execute</span><span class="params">(CommandContext commandContext)</span> </span>&#123;</span><br><span class="line">        ExecutionEntityManager executionEntityManager = Context.getCommandContext().getExecutionEntityManager();</span><br><span class="line">        <span class="comment">// 获取当前流程的executionId，因为在并发的情况下executionId是唯一的。</span></span><br><span class="line">        String executionId = taskEntities.size() == <span class="number">0</span> ? procInsId : taskEntities.get(taskEntities.size() - <span class="number">1</span>).getExecutionId();</span><br><span class="line">        ExecutionEntity executionEntity = executionEntityManager.findExecutionById(executionId);</span><br><span class="line">        executionEntity.setVariables(paramvar);</span><br><span class="line">        executionEntity.setEventSource(<span class="keyword">this</span>.currentActivity);</span><br><span class="line">        executionEntity.setActivity(<span class="keyword">this</span>.currentActivity);</span><br><span class="line"></span><br><span class="line">        TaskEntity afterDel = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (taskId==<span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (TaskEntity taskEntity : taskEntities) &#123;</span><br><span class="line">                taskEntity.fireEvent(<span class="string">&quot;complete&quot;</span>);</span><br><span class="line">                logger.warn(<span class="string">&quot;并行取回操作:===删除任务&quot;</span> + taskEntity.getName());</span><br><span class="line">                System.out.println(<span class="string">&quot;=============&quot;</span> + taskEntity.getName());</span><br><span class="line">                Context.getCommandContext().getTaskEntityManager().deleteTask(taskEntity, <span class="string">&quot;jump&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">for</span> (TaskEntity taskEntity : taskEntities) &#123;</span><br><span class="line">                taskEntity.fireEvent(<span class="string">&quot;complete&quot;</span>);</span><br><span class="line">                logger.warn(<span class="string">&quot;并行回退操作:===删除任务&quot;</span> + taskEntity.getName());</span><br><span class="line">                System.out.println(<span class="string">&quot;=============&quot;</span> + taskEntity.getName());</span><br><span class="line">                <span class="keyword">if</span> (!taskEntity.getId().equals(taskId))&#123;</span><br><span class="line">                    Context.getCommandContext().getTaskEntityManager().deleteTask(taskEntity, <span class="string">&quot;jump&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    afterDel = taskEntity;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        executionEntity.executeActivity(<span class="keyword">this</span>.desActivity);</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isNotBlank(taskId) &amp;&amp; afterDel != <span class="keyword">null</span>) &#123;</span><br><span class="line">            Context.getCommandContext().getTaskEntityManager().deleteTask(afterDel, TaskEntity.DELETE_REASON_COMPLETED, <span class="keyword">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上方法可能过于项目化。实际上跳转所表达的是，定义开始节点，执行目标节点，就是从当前要跳转的节点跳转到定义的目标activityId位置。中间的判断和删除，就是删除当前未办完的任务，因为当前节点要跳转了，所以不走taskService.complete了，因此在此处要完成这个任务(设置事件名称)，然后删除这个任务。此时循环删除完执行跳转。</p>
+<p>但是要注意的是taskService.deleteTask和TaskEntityManager.deleteTask这两个删除时有区别的。<strong>taskService是不允许删除正在运行的流程的</strong>，他会判断当前task的executionId是否为空。而TaskEntityManager可以删除当前正在运行的这个主流程。</p>
+<p>EntityTask实现的是Task接口，两者是父子关系。另外还有一个model包的Task，而现在的是与流程引擎相关的engine包里的。</p>
+<blockquote>
+<p>任务监听器中有任务事件，create,assignment,complete,delete。</p>
+</blockquote>
+<h2 id="并行节点的执行情况"><a href="#并行节点的执行情况" class="headerlink" title="并行节点的执行情况"></a>并行节点的执行情况</h2><p>并行节点的执行</p>
+<p>首先，并行开始网关前的一个用户任务完成任务后，在act_ru_execution中便会出现n+1个execution，以简单的并行阶段为例，n表示并行网关内的并行用户任务数量，加入n为3，则在这三条execution中，execution_id与proc_inst_id_值是不一致的，它表示为并行节点下的每个任务一个独立的子流程，而另一个1则为并行网关的主流程，他的execution_id与proc_inst_id_是一致的。而act_ru_task里则依然是n个用户任务。</p>
+<p>并行节点每完成一个任务，对应的execution便少一条。而在act_hi_actinst中，便会多出一个结束网关的act。直到最后一个并行节点任务执行完，execution中便为并行阶段后下一个用户任务。</p>
+<p>以上是用户任务在act_ru_execution中出现的情况。还有必要了解到act_ru_task,act_hi_taskinst,act_hi_actinst表的数据。</p>
+<p>一般对于只存在排他网关和用户任务的简单流程，不含并行的。execution表和task表都只有一条数据，且流程id和执行id是一样的。使用节点跳转的时候可以直接进行跳转。</p>
+<p>而并行使用此方式跳转，而不加改造的话，可能回到导致，跳转之后，完成这个任务，流程就异常结束了。或者跳转后多了一个重复任务(没删任务的情况)。</p>
+<p>对于流程异常结束的情况，认为往往在，主流程execution出现异常。而如果execution中不存在一条主流程，那么流程查询会出现问题，报错说没有这个execution执行。还有就是execution执行后没有下一个execution了。</p>
+<h2 id="并行跳转的补充"><a href="#并行跳转的补充" class="headerlink" title="并行跳转的补充"></a>并行跳转的补充</h2><p>并行方面，在做项目时，可以取回和回退。而且要做这两个功能，在并行操作是，还要顾及到并行前的节点和并行后的节点，对于并行取回和回退所出现的问题。比如回退后，任务没了、任务重复了等等。</p>
+<p>另外，对于并行取回和回退的处理，需要手动对act表做更改,比如删除execution，而非仅使用api调用。</p>
+<p>首先说一下条件，</p>
+<ul>
+<li>并行节点的取回，在并行阶段后的任务没有签收时，可以且仅取回自己的任务</li>
+<li>并行节点回退，所有其他并行节点同时回退，回退到并行阶段的上一个用户任务。</li>
+<li>任意一个并行节点意见为不通过，等并行结束后回到并行阶段前的上一个用户节点</li>
+<li>并行阶段后的用户任务，回退或不通过回到并行阶段</li>
+<li>取回并行阶段前的用户任务。(此处代办已经在并行阶段了)</li>
+</ul>
+<h3 id="并行阶段前的用户任务取回"><a href="#并行阶段前的用户任务取回" class="headerlink" title="并行阶段前的用户任务取回"></a>并行阶段前的用户任务取回</h3><p>取回肯定是当前任务没有被签收。</p>
+<p>此时代办在三个并行任务处了。</p>
+<p><strong>要想取回可以直接使用跳转的方式，并删除三个代办的并行任务，执行跳转</strong>，可以直接将主流程做变更。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ActivityImpl destinationActivity = (ActivityImpl) processDefinitionEntity.findActivity(historicTaskInstance.getTaskDefinitionKey());</span><br><span class="line">ActivityImpl currentActivity = (ActivityImpl) processDefinitionEntity.findActivity(current);</span><br><span class="line">managementService.executeCommand(<span class="keyword">new</span> JDJumpTaskCmd(taskEntitys,destinationActivity, vars, currentActivity,procInsId));</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="并行节点的取回"><a href="#并行节点的取回" class="headerlink" title="并行节点的取回"></a>并行节点的取回</h3><p>第一个并行节点取回，第一个并行节点取回时，其他并行没有办理，仅当前第一个并行在取回后要重新办理。因此可以直接删除所有所有代办的业务，然后自动签收要取回的业务，替换原要取回的关联业务数据变更为跳转后的taskId。而跳转的目标是哪里，已办可以想到的是开始并行网关，因此将其目标设为并行开始网关，也就是要取回的节点的上一个节点。</p>
+<p>第二个节点或第三个节点的取回，此时并行阶段中均有已办的并行节点。此时如果仅仅直接跳到并行开始网关已经不行了。但是依然是主流程要停留在并行阶段的。首先数据要替换，已办的要完成任务。然后由于其他原因必须要跳到并行前的排他网关处。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Activiti/Activiti并行节点流程图高亮" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -144,87 +347,6 @@
 
 
 
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Activiti/Activiti获取当前节点的上下并行网关" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/"
-    >Activiti获取当前节点的上下并行网关V5.21</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/" class="article-date">
-  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
-<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
-<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
-<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
-<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
 
       
       <!-- reward -->
@@ -380,7 +502,7 @@
 
 </article>
     
-    <article id="post-Go/Go基础" class="article article-type-post" itemscope
+    <article id="post-Activiti/Activiti获取当前节点的上下并行网关" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -388,8 +510,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2020/04/19/Go/Go%E5%9F%BA%E7%A1%80/"
-    >Go基础</a
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/"
+    >Activiti获取当前节点的上下并行网关V5.21</a
   >
 </h2>
   
@@ -399,12 +521,12 @@
 
     
     <div class="article-meta">
-      <a href="/2020/04/19/Go/Go%E5%9F%BA%E7%A1%80/" class="article-date">
-  <time datetime="2020-04-19T14:28:00.000Z" itemprop="datePublished">2020-04-19</time>
+      <a href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Go/">Go</a>
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
   </div>
 
       
@@ -421,66 +543,17 @@
       
 
       
-      <h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a <span class="keyword">int</span> <span class="comment">//声明变量a</span></span><br><span class="line">a = <span class="number">10</span><span class="comment">//变量a赋值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> a <span class="keyword">int</span> = <span class="number">10</span><span class="comment">//定义并初始化赋值</span></span><br><span class="line"></span><br><span class="line">a := <span class="number">10</span>	<span class="comment">//无var声明直接赋值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> n1, n2, n3 <span class="keyword">int</span> <span class="comment">//声明多个变量int类型</span></span><br><span class="line"><span class="keyword">var</span> n1, name, n2 = <span class="number">100</span>, <span class="string">&quot;tom&quot;</span>, <span class="number">888</span> <span class="comment">//多个初始化并按顺序赋值</span></span><br><span class="line">n1, name, n2 := <span class="number">100</span>, <span class="string">&quot;tom&quot;</span>, <span class="number">888</span> <span class="comment">//无声明初始化</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//全局变量声明</span></span><br><span class="line"><span class="keyword">var</span>(</span><br><span class="line">    n1 = <span class="number">100</span></span><br><span class="line">    n2 = <span class="string">&quot;name&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+      <p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
+<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
+<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p><strong>基本数据类型</strong></p>
-<ul>
-<li>数值型<ul>
-<li>(有符号)int、int8、int16、int32、int64、(无符号,范围大)uint、uint8、uint16、uint32、uint64、byte</li>
-<li>float32、float64</li>
-</ul>
-</li>
-<li>字符型: byte保存单个字母字符。没有明确的类型</li>
-<li>布尔类型: bool</li>
-<li>字符串类型: string, (基本数据类型)</li>
-</ul>
-<h3 id="有符号int-类型"><a href="#有符号int-类型" class="headerlink" title="有符号int 类型"></a>有符号int 类型</h3><table>
-<thead>
-<tr>
-<th>int8</th>
-<th>$- 2^7$ ~ $2^7-1$</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>int16</td>
-<td>$-2^{15}$ ~ $2^{15}-1$</td>
-</tr>
-<tr>
-<td>int32</td>
-<td>$-2^{31}$~ $2^{31}-1$</td>
-</tr>
-<tr>
-<td>int64</td>
-<td>$-2^{63}$~ $2^{63}-1$</td>
-</tr>
-</tbody></table>
-<h3 id="无符号unit类型"><a href="#无符号unit类型" class="headerlink" title="无符号unit类型"></a>无符号unit类型</h3><table>
-<thead>
-<tr>
-<th>uint8</th>
-<th>0 ~ $2^8$</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>uint16</td>
-<td>0 ~ $2^{16}$</td>
-</tr>
-<tr>
-<td>…</td>
-<td>…</td>
-</tr>
-</tbody></table>
-<p><strong>派生类型/复杂类型</strong></p>
-<ul>
-<li>指针 pointer</li>
-<li>数组</li>
-<li>结构体 struct</li>
-<li>管道 Channel</li>
-<li>函数</li>
-<li>切片 slice</li>
-<li>接口 interface</li>
-<li>map</li>
-</ul>
+<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
+<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
+<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
 
       
       <!-- reward -->
@@ -493,139 +566,7 @@
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Go/" rel="tag">Go</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Docker/Docker安装常用镜像操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/04/12/Docker/Docker%E5%AE%89%E8%A3%85%E5%B8%B8%E7%94%A8%E9%95%9C%E5%83%8F%E6%93%8D%E4%BD%9C/"
-    >Docker安装常用镜像操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/04/12/Docker/Docker%E5%AE%89%E8%A3%85%E5%B8%B8%E7%94%A8%E9%95%9C%E5%83%8F%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2020-04-12T04:30:17.000Z" itemprop="datePublished">2020-04-12</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Docker/">Docker</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="创建虚拟网卡"><a href="#创建虚拟网卡" class="headerlink" title="创建虚拟网卡"></a>创建虚拟网卡</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create 网卡别名 --subnet 192.168.137.0&#x2F;24</span><br></pre></td></tr></table></figure>
-
-<p>设置网卡别名，<code>--subnet</code>后为网段，例如192.168.0.0/24</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
-
-<h2 id="安装redis"><a href="#安装redis" class="headerlink" title="安装redis"></a>安装redis</h2><ol>
-<li><p>pull最新镜像</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull redis</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>启动容器</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name redis --restart always -p 6379:6379 -v /home/centos/spring/redis/config:/etc/redis -v /home/centos/spring/redis/data:/data --net docker-nat --ip 192.168.0.63 redis redis-server /etc/redis/redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>–restart always 表示启动失败，总是重新尝试</li>
-<li>-p 表示映射端口</li>
-<li>-v 表示将/etc/redis映射到本机的/home/centos/spring/redis/config,以及数据data映射到本地</li>
-<li>–net docker-nat –ip 192.168.0.63 表示为容器指定网卡并赋予ip，此处可以不需要</li>
-<li>redis 表示是当前镜像名称，没有版本号</li>
-<li>redis-server /etc/redis/redis.conf 表示以指定配置文件方式启动redis-server</li>
-<li>–appendonly yes 表示开启持久化</li>
-</ul>
-</li>
-<li><p>查看日志，可能会出现没有找到redis.conf的问题</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker logs contains_id</span><br></pre></td></tr></table></figure>
-
-<p>从官网下载一个<a target="_blank" rel="noopener" href="http://download.redis.io/redis-stable/redis.conf">标准配置文件</a>,将配置文件放到指定的/home/centos/spring/redis/config下。并修改配置文件:</p>
-<ul>
-<li>修改bind为0.0.0.0</li>
-<li>修改protected-mode 为 no</li>
-<li>修改 daemonize 为 no 关闭守护进程方式启动,改为yes时以外部文件启动方式会失效</li>
-</ul>
-</li>
-<li><p>因为配置过restart always,所以配置正确好，自动重启就启动成功了。通过<code>docker inspect container_id</code>查看容器信息。</p>
-</li>
-</ol>
-<h2 id="安装mysql"><a href="#安装mysql" class="headerlink" title="安装mysql"></a>安装mysql</h2><ol>
-<li><p>拉取镜像</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull mysql:5.7</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>启动容器</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -p 3306:3306 --name mysql \</span><br><span class="line">--net docker-nat --ip 192.168.0.33 \</span><br><span class="line">--restart always \</span><br><span class="line">-v &#x2F;home&#x2F;centos&#x2F;spring&#x2F;mysql&#x2F;conf:&#x2F;etc&#x2F;mysql \</span><br><span class="line">-v &#x2F;home&#x2F;centos&#x2F;spring&#x2F;mysql&#x2F;logs:&#x2F;var&#x2F;log&#x2F;mysql \</span><br><span class="line">-v &#x2F;home&#x2F;centos&#x2F;spring&#x2F;mysql&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql \</span><br><span class="line">-e MYSQL_ROOT_PASSWORD&#x3D;root \</span><br><span class="line">-d mysql:5.7</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>无法访问mysql的问题，可访问此站点<a target="_blank" rel="noopener" href="https://www.cnblogs.com/sablier/p/11605606.html">查看</a></p>
-</li>
-</ol>
-<h2 id="安装postgres"><a href="#安装postgres" class="headerlink" title="安装postgres"></a>安装postgres</h2><ol>
-<li><p>拉取镜像</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull postgres:11</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>启动容器</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker run --name some-postgres \</span><br><span class="line">-v /usr/local/kjgh/postgres/data:/var/lib/postgresql/data \</span><br><span class="line">-p 5432:5432 \</span><br><span class="line">--shm-size=256MB \</span><br><span class="line">-e POSTGRES_PASSWORD=postgres -d postgres:11.8 \</span><br><span class="line">-c &#x27;max_connections=10000&#x27;</span><br></pre></td></tr></table></figure>
-
-
-
-
-
-</li>
-</ol>
-<h2 id="防火墙开放端口"><a href="#防火墙开放端口" class="headerlink" title="防火墙开放端口"></a>防火墙开放端口</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">centos7</span></span><br><span class="line">firewall-cmd --zone=public --add-port=5432/tcp --permanent</span><br></pre></td></tr></table></figure>
-
-
-
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
 
 
     </footer>
@@ -648,7 +589,7 @@
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/11/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/13/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/11/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="page-number current">12</span><a class="page-number" href="/page/13/">13</a><a class="page-number" href="/page/14/">14</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/13/">下一页</a>
   </nav>
   
 </section>
@@ -673,12 +614,6 @@
     </ul>
     <ul class="list-inline">
       <li>
-        
-        
-        <span>
-  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
-  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
-</span>
         
       </li>
       
@@ -947,10 +882,6 @@
     mathjax: true
   }
 </script>
-
-
-
-<script src="/js/busuanzi-2.3.pure.min.js"></script>
 
 
 

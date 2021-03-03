@@ -78,6 +78,282 @@
     
     
     
+    <article id="post-XML/XML的使用——DOM4J以及XPath语法" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/"
+    >XML的使用——DOM4J以及XPath语法</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/" class="article-date">
+  <time datetime="2018-07-06T07:50:18.000Z" itemprop="datePublished">2018-07-06</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="dom4J"><a href="#dom4J" class="headerlink" title="dom4J"></a>dom4J</h2><p>基于Java Collections Framework的XML文档对象模型 <a target="_blank" rel="noopener" href="https://dom4j.github.io">官网地址及文档</a> maven pom添加依赖</p>
+<pre><code> &lt;dependency&gt;
+    &lt;groupId&gt;org.dom4j&lt;/groupId&gt;
+    &lt;artifactId&gt;dom4j&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h4 id="创建XML"><a href="#创建XML" class="headerlink" title="创建XML"></a>创建XML</h4><p>首先通过DocumentHelper对象创建一个Document实例。 然后通过Element设置元素节点 最后可通过document.write写到文件中，或者通过OutputFormat对象和XMLWriter对象打印出特定格式和特定设置的文件</p>
+<pre><code>//获得Document对象
+Document document = DocumentHelper.createDocument();
+
+//开始建立dom树根元素
+Element bookstoreEle = document.addElement(&quot;bookstore&quot;);
+
+//创建子元素
+Element bookEle = bookstore.addElement(&quot;book&quot;);
+
+Element bookNameEle = bookEle.addElement(&quot;bookName&quot;).addText(&quot;巴黎圣母院&quot;);
+Element priceEle = bookEle.addElement(&quot;price&quot;).addText(&quot;20&quot;);
+Element authorEle = bookEle.addElement(&quot;author&quot;).addText(&quot;雨果&quot;);
+
+//直接写入到文件
+//document.write(new FileWriter(&quot;bookstore.xml&quot;));
+或
+
+//设置xml格式和参数
+OutputFormat format = OutputFormat.createPrettyPrint();
+FileOutputStream outputStream = new FileOutputStream(new File(&quot;bookstore.xml&quot;));
+XMLWriter writer = new XMLWriter(outputStream,format);
+//是否转义
+writer.setEscapeText(false);
+writer.write(document);</code></pre><p>Element对象还有很多方法，根据方法名能判断该方法是干什么的。 在创建之前，不仅可以设置xml的输出格式,还可以自己通过OutputFormat对象设置一些属性。 以及设置DocumentType,XMLEncoding,以及EntityResolver解析器(XML解析器，默认是SAXEntityResolver),都可以在Document中设置，然后在解析时再获得。</p>
+<h4 id="解析xml"><a href="#解析xml" class="headerlink" title="解析xml"></a>解析xml</h4><p>首先需要通过File文件获得Document对象，再通过iterator迭代器循环得到元素。</p>
+<pre><code>//实例化SAXReader对象,并获得Document
+SAXReader reader = new SAXReader();
+Document document = reader.read(file);
+//获得xml的根节点
+Element rootEle = document.getRootElement();
+
+//1.通过迭代器的方式获得该元素的子节点
+Iterator iterator = rootEle.element(&quot;book&quot;).elementIterator();
+while(iterator.hasNext())&#123;
+    Element element = (Element) iterator.next();
+    System.out.println(element.getName() +&quot;---&quot; + element.getText());
+&#125;
+
+//2.通过elements的方式遍历子节点
+List&lt;Element&gt; elements = rootEle.element(&quot;chanel&quot;).elements();
+for (Element element:elements)&#123;
+    System.out.println(element.getName()+ &quot;----&quot; + element.getText());
+&#125;
+
+//3.通过xpath的方式遍历子节点
+List&lt;Node&gt; nodes = rootEle.selectNodes(&quot;//chanel&quot;);
+if (nodes.get(0) instanceof Element)&#123;
+    Element element = (Element) nodes.get(0);
+    System.out.println(element.elements().size());
+&#125;</code></pre><p>除了遍历元素Element之外，还可以遍历该元素的所有属性。 通过attributeIterator()方法,attributes()等，以及通过索引获得。 Element对象的部分方法 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144222.png" alt="Element的部分Element开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144254.png" alt="Element的部分attribute开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706145854.png" alt="Element的部分attribute开头方法"> Element.element(String s)表示获得某个子节点的Element对象 Element.elements()表示获得该节点元素的所有子节点集合 Element.selectNodes(String s)方法通过xpath语法获得一个节点集合 如果想跟方便的看文档获得方法说明，建议使用idea+maven+mavenHelper插件，通过mavenHelper插件下载包的source和documention</p>
+<h4 id="Document对象的其他操作"><a href="#Document对象的其他操作" class="headerlink" title="Document对象的其他操作"></a>Document对象的其他操作</h4><ol>
+<li><p>将document对象或Node，Element，Attribute，通过asXML()方法转换成字符串</p>
+<p>Document document = …;<br>String text = document.asXML();</p>
+</li>
+</ol>
+<p>或者通过DocumentHelper对象的parseText()方法将字符串转换为Document对象</p>
+<pre><code>String text = &quot;&lt;person&gt; &lt;name&gt;James&lt;/name&gt; &lt;/person&gt;&quot;;
+Document document = DocumentHelper.parseText(text);</code></pre><ol start="2">
+<li><p>获得文档的类型，字符编码</p>
+<p>System.out.println(document.getDocType());<br>System.out.println(document.getXMLEncoding());</p>
+</li>
+</ol>
+<p>需判断DocType是否为空，它将获得DocumentType对象，在生成XML时，通过Document对象设置documentType属性。</p>
+<ol start="3">
+<li><p>通过Element实例获得path路径</p>
+<p>document.getPath(Element e);</p>
+</li>
+</ol>
+<p>以及各节点对象的节点类型，getNodeType()可获得节点类型的short值，getNodeTypeName()获得节点类型的名称。 getPath()获得节点对象的所在路径</p>
+<h4 id="XPath语法"><a href="#XPath语法" class="headerlink" title="XPath语法"></a>XPath语法</h4><p>XPath 使用路径表达式来选取 XML 文档中的节点或者节点集。这些路径表达式和我们在常规的电脑文件系统中看到的表达式非常相似。 需添加依赖包</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;jaxen&lt;/groupId&gt;
+    &lt;artifactId&gt;jaxen&lt;/artifactId&gt;
+    &lt;version&gt;1.1.6&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>然后通过任意节点类型的selectNodes方法和selectSingleNode方法，并设置xpath值，返回List<Node>或Node对象 <strong>选取节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150204.png" alt="选取节点"> <strong>查找特定节点或某个指定值的节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150225.png" alt="获得特定或指定值或范围的节点"> <strong>选取未知节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150237.png" alt="选取未知节点"> <strong>通过|符号选取若干路径</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150246.png" alt="通过|符号选取若干路径"></p>
+<h4 id="部分代码"><a href="#部分代码" class="headerlink" title="部分代码"></a>部分代码</h4><p>使用idea开发工具，maven项目，mavenHelper插件更利于maven依赖包管理 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/learnxml.rar">下载地址</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle序列Sequence" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/"
+    >Oracle序列Sequence</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/" class="article-date">
+  <time datetime="2018-06-27T10:18:05.000Z" itemprop="datePublished">2018-06-27</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="序列"><a href="#序列" class="headerlink" title="序列"></a>序列</h3><p>序列是一个数据库对象，对个用户可以从种生成唯一整数。我们可以使用序列自动生成主键值。 生成序列时，顺序会递增，而与事务提交或回滚无关。</p>
+<h4 id="创建序列"><a href="#创建序列" class="headerlink" title="创建序列"></a>创建序列</h4><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/create_sequence.gif" alt=""> <strong>语法:</strong></p>
+<pre><code>CREATE SEQUENCE [schema.]sequence_name
+    [START WITH integer]     
+    [INCREMENT BY integer]     
+    [MAXVALUE integer | [NOMAXVALUE]]
+    [MINVALUE integer | [NOMINVALUE]]
+    [CYCLE | NOCYCLE]   
+    [CACHE integer | NOCACHE]
+    [ORDER | NOORDER]
+    [KEEP | NO KEEP]
+    [SESSION | GLOBAL]</code></pre><p><strong>语法说明:</strong></p>
+<ul>
+<li><p>START WITH integer：生成的第一个列序号，对于升序默认为序列最小值，降序默认为序列最大值</p>
+</li>
+<li><p>INCREMENT BY integer：增量，默认１，为正则升序，为负为降序</p>
+</li>
+<li><p>MAXVALUE integer | [NOMAXVALUE]：生成最大值 ,NOMAXVALUE指默认升序最大10的27次方,降序最大-1</p>
+</li>
+<li><p>MINVALUE integer | [NOMINVALUE]：生成最小值,NOMINVALUE默认升序最小1,降序最小负10的26次方</p>
+</li>
+<li><p>CYCLE | NOCYCLE：那个序列达到最小或最大后，是否继续从头开始生成，默认CYCLE</p>
+</li>
+<li><p>CACHE integer | NOCACHE：加快速度，预先分配列序号，默认缓存20个</p>
+</li>
+<li><p>ORDER | NOORDER：是否按请求顺序生成序列号，默认NOORDER</p>
+<p>CREATE SEQUENCE seq_pri</p>
+<pre><code>START WITH 10
+INCREMENT BY 1
+MAXVALUE 2000
+NOCYCLE
+CACHE 30;</code></pre></li>
+</ul>
+<h4 id="使用序列"><a href="#使用序列" class="headerlink" title="使用序列"></a>使用序列</h4><p>使用NEXTVAL和CURRVAL伪列来访问该序列的值，可以从伪列中选择值，但不能操作它们的值。</p>
+<ul>
+<li><p>NEXTVAL：创建序列后第一次使用返回初始值，再引用时通过INCREMENT BY增加序列值。</p>
+</li>
+<li><p>CURRVAL：返回序列的当前值</p>
+<p>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易小风扇’,59.00,255,NULL);<br>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易黑凤梨女生版’,129.00,1200,NULL);<br>COMMIT;</p>
+</li>
+</ul>
+<h4 id="修改序列"><a href="#修改序列" class="headerlink" title="修改序列"></a>修改序列</h4><p><strong>语法:</strong></p>
+<pre><code>ALTER SEQUENCE [schema.]sequence_name
+    [INCREMENT BY integer]
+    [MAXVALUE integer | NOMAXVALUE]
+    [MINVALUE integer |  NOMINVALUE]
+    [CYCLE | NOCYCLE]
+    [CACHE integer | NOCACHE]
+    ...;</code></pre><p>对于已经创建的序列，无法修改初始值。</p>
+<h4 id="删除序列"><a href="#删除序列" class="headerlink" title="删除序列"></a>删除序列</h4><pre><code>DROP SEQUENCE [schema.]sequence_name;</code></pre><p>可以为一个或多个表使用相同的序列。 单个序列号可能会跳过，导致不连续情况，一般情况有:</p>
+<ul>
+<li>如果事务回滚，且依然连续使用NEXTVAL会导致序列不连续，导致除 回滚前最后一条NEXTVAL语句 之前的序列号断掉。你只能获得最后一条的值，通过CURRVAL得到。</li>
+<li>大量请求是，为了申请序列更快，允许通过CACHE提前将n个序列存到内存中，而如果数据库服务器重启，断点等情况也会导致内存序列丢失。</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle事务和锁" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -627,330 +903,13 @@ END;</code></pre>
 
 </article>
     
-    <article id="post-Oracle/Oracle PLSQL中执行DML数据操作语言和DDL数据定义语言" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%B8%AD%E6%89%A7%E8%A1%8CDML%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80%E5%92%8CDDL%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80/"
-    >Oracle PL/SQL中执行DML数据操作语言和DDL数据定义语言</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%B8%AD%E6%89%A7%E8%A1%8CDML%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80%E5%92%8CDDL%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80/" class="article-date">
-  <time datetime="2018-06-26T08:21:08.000Z" itemprop="datePublished">2018-06-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="PL-SQL中使用DML和DDL语言"><a href="#PL-SQL中使用DML和DDL语言" class="headerlink" title="PL/SQL中使用DML和DDL语言"></a>PL/SQL中使用DML和DDL语言</h3><p>PL/SQL中除了可以执行查询语句外，还可以执行DML数据操纵语言和DDL数据定义语言。</p>
-<h4 id="DML数据操作语言语句的使用"><a href="#DML数据操作语言语句的使用" class="headerlink" title="DML数据操作语言语句的使用"></a>DML数据操作语言语句的使用</h4><p><strong>示例:</strong> 添加一条新纪录，编号为表中最大编号+1</p>
-<pre><code>DECLARE
-    v_new_id product.productId%TYPE;
-BEGIN
-    SELECT MAX(productId) INTO v_new_id FROM product;
-    v_new_id := v_new_id+1;
-    INSERT INTO product VALUES(v_new_id,&apos;MacBook Pro 13.3&apos;,12000,1500,NULL);
-    COMMIT;
-END;</code></pre><h4 id="DDL数据定义语言的使用"><a href="#DDL数据定义语言的使用" class="headerlink" title="DDL数据定义语言的使用"></a>DDL数据定义语言的使用</h4><p>要想在PL/SQL中使用，需要一条命令来执行，该命令是<strong>EXECUTE IMMEDIATE</strong>,利用它可以执行动态的SQL语句，也就是不仅可以执行DDL语句，也可以执行DML语句。 <strong>示例</strong></p>
-<pre><code>DECLARE
-    prod_createStr varchar2(200);
-BEGIN
-    prod_createStr := &apos;CREATE TABLE TAB_STUDENT
-                                (
-                                    STUDENTID number(8) primary key,
-                                    STUDENTNAME varchar2(20),
-                                    AGE nchar(2)
-                                )&apos;;
-
-    EXECUTE IMMEDIATE prod_createStr;
-END;
-
-
-DECLARE
-  v_alter_address varchar2(200);
-BEGIN
-  v_alter_address := &apos;ALTER TABLE TAB_STUDENT ADD ADDRESS VARCHAR2(50)&apos;;
-
-  EXECUTE IMMEDIATE v_alter_address;
-END;</code></pre><p>需要注意，将数据定义语言作为字符串，通过EXECUTE IMMEDATE动态执行的时候，最后的分号要去掉，否则错误，这是与一般执行DDL的不同之处。 通常情况下，利用EXECUTE IMMEDATE命令执行DDL语句用在存储过程当中。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle PLSQL结构控制" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E7%BB%93%E6%9E%84%E6%8E%A7%E5%88%B6/"
-    >Oracle PL/SQL结构控制</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E7%BB%93%E6%9E%84%E6%8E%A7%E5%88%B6/" class="article-date">
-  <time datetime="2018-06-26T06:47:35.000Z" itemprop="datePublished">2018-06-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="PL-SQL结构控制"><a href="#PL-SQL结构控制" class="headerlink" title="PL/SQL结构控制"></a>PL/SQL结构控制</h3><h4 id="IF条件控制"><a href="#IF条件控制" class="headerlink" title="IF条件控制"></a>IF条件控制</h4><p><strong>条件语句，控制流程</strong> IF语句的三种方式:IF…、IF…ELSE…、IF…ELSIF…。根据实际业务灵活选择。 <strong>语法:</strong></p>
-<pre><code>IF condition THEN
-    statements;
-END IF;
-
-
-IF condition THEN
-    statements;
- ELSE
-    statements;
- END IF;
-
-
-IF condition THEN
-    statements;
-ELSIF condition THEN
-    statements;
-...
-[ELSE statements;]
-END IF;</code></pre><ol>
-<li><p>对于这三种IF的使用不需要多说，不管什么面向对象的解释语言，基础都有控制结构的。</p>
-</li>
-<li><p>而你只需要记住语法结构，最后会有END IF。而ELSIF一定不要写错。</p>
-</li>
-<li><p>关于数值表达式+、-、<em>、/、*</em>都可以用。以及关系表达式和逻辑表达式NOT、OR、AND。</p>
-</li>
-<li><p>condition可以使用任何表达式和变量，常量等。</p>
-</li>
-</ol>
-<h4 id="CASE条件控制"><a href="#CASE条件控制" class="headerlink" title="CASE条件控制"></a>CASE条件控制</h4><p>与IF语句有同样的效果。</p>
-<h5 id="简单CASE控制"><a href="#简单CASE控制" class="headerlink" title="简单CASE控制"></a>简单CASE控制</h5><p>只有当CASE子句中表达式的值等于某个WHEN的表达式的值时，才执行响应的THEN子句。 <strong>语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-CASE case_operand
-WHEN when_operand THEN
-    statements;
-[
-    WHEN when_operand THEN
-        statements;
-] ...
-[ELSE statements]
-END CASE [label_name];</code></pre><p><strong>语法说明:</strong></p>
-<ul>
-<li>&lt;<label_name>&gt;：一个CASE标签，可用于结束当前这个CASE语句。</li>
-<li>case_operand：表达式，通常是一个变量。除了BLOB、BFILE、对象类型、记录类型、索引表、变长数组或嵌套表，其他类型都允许。</li>
-<li>when_operand ：case_operand对应结果，如果两者值相同，则执行statement语句。可以有多个WHEN..THEN</li>
-<li>ELSE statement：当所有值都不能对应上时，执行此处的语句。</li>
-</ul>
-<p><strong>CASE示例</strong> 模拟获得当前日期得到月份</p>
-<pre><code>DECLARE
-  v_month nvarchar2(3);
-BEGIN
-  SELECT trim(to_char(sysdate,&apos;MONTH&apos;)) INTO v_month FROM product WHERE productId=1;
-
-  CASE v_month
-  WHEN &apos;1月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;一月&apos;);
-  WHEN &apos;2月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;二月&apos;);
-  WHEN &apos;3月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;三月&apos;);
-  WHEN &apos;4月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;四月&apos;);
-  WHEN &apos;5月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;五月&apos;);
-  WHEN &apos;6月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;六月&apos;);
-  ELSE
-    DBMS_OUTPUT.PUT_LINE(&apos;不在一到六月&apos;);
-END CASE;
-
-END;</code></pre><p>CASE语句执行的顺序是从上往下的顺序，当WHEN子句的语句被执行后，CASE结构就执行完毕。</p>
-<h5 id="搜索式的CASE语句"><a href="#搜索式的CASE语句" class="headerlink" title="搜索式的CASE语句"></a>搜索式的CASE语句</h5><p>这种与IF非常非常类似,将<strong>WHEN子句的表达式只能是布尔值，布尔表达式</strong>。这与IF相同 <strong>语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-CASE
-WHEN boolean_expression THEN statement;
-[WHEN boolean_expression THEN statement;]...
-[ELSE statement];
-END CASE [label_name];</code></pre><h4 id="LOOP循环控制"><a href="#LOOP循环控制" class="headerlink" title="LOOP循环控制"></a>LOOP循环控制</h4><p>LOOP语句也就是循环语句，能重复的执行指定的语句。有四种形式的LOOP。</p>
-<ul>
-<li>LOOP;</li>
-<li>WHILE…LOOP;</li>
-<li>FOR…LOOP;</li>
-<li>CURSOR FOR LOOP;</li>
-</ul>
-<h5 id="基本LOOP循环"><a href="#基本LOOP循环" class="headerlink" title="基本LOOP循环"></a>基本LOOP循环</h5><p>基本的LOOP语句本身没有包含中断循环的条件，通常情况下利用EXIT、GOTO等可以中断LOOP循环使用。异常也使LOOP语句中断。 <strong>基本LOOP循环语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-LOOP
-    statement...
-END LOOP;</code></pre><h6 id="1-通过IF语句和EXIT的组合结束循环"><a href="#1-通过IF语句和EXIT的组合结束循环" class="headerlink" title="1. 通过IF语句和EXIT的组合结束循环"></a>1. 通过IF语句和EXIT的组合结束循环</h6><p>EXIT必须在循环体内部，它可以是循环正常无条件终止循环，而终止循环后会正常执行循环外的语句 <strong>操作示例:</strong> 循环变量，当变量值大于某值时退出循环。</p>
-<pre><code>DECLARE
-    v_num NUMBER(8) := 1;       --声明并初始化变量
-BEGIN
-    &lt;&lt;basic_loop&gt;&gt;
-    LOOP
-        v_num := v_num+1;   --循环中，自增1
-        IF v_num&gt;5 THEN         --判断条件，是否需要退出
-            EXIT basic_loop;
-        END IF;
-    END LOOP;
-    DBMS_OUTPUT.PUT_LINE(&apos;LOOP循环已经结束,v_num的值为&apos; || v_num);
-END;</code></pre><p>一般像有多个嵌套的循环的话，建议还是加上LOOP标签的，这样能更直观的看出退出的是哪个循环</p>
-<h6 id="2-通过EXIT…WHEN语句退出循环"><a href="#2-通过EXIT…WHEN语句退出循环" class="headerlink" title="2. 通过EXIT…WHEN语句退出循环"></a>2. 通过EXIT…WHEN语句退出循环</h6><p>就是和IF EXIT差不多意思的退出，当什么条件的时候退出。没有loop标签也是可以的。</p>
-<pre><code>DECLARE
-    v_num NUMBER(8) := 1;       --声明并初始化变量
-BEGIN
-    &lt;&lt;basic_loop&gt;&gt;
-    LOOP
-        v_num := v_num+1;   --循环中，自增1
-        EXIT basic_loop WHEN v_num&gt;5;       
-    END LOOP;
-    DBMS_OUTPUT.PUT_LINE(&apos;LOOP循环已经结束,v_num的值为&apos; || v_num);
-END;</code></pre><h5 id="WHILE…LOOP循环语句"><a href="#WHILE…LOOP循环语句" class="headerlink" title="WHILE…LOOP循环语句"></a>WHILE…LOOP循环语句</h5><p>该语句本身可以终止LOOP循环，当WHILE后的布尔值为TRUE时，将执行一次，然后重新判断是否为TRUE，否则直接退出循环。 <strong>语法结构:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-WHILE boolean_expression
-LOOP
-    statement...
-END LOOP [label_name];</code></pre><p><strong>WHILE…LOOP示例</strong> 输出20以内被3整除的数</p>
-<pre><code>DECLARE
-    v_num NUMBER(8) := 1;
-BEGIN
-    WHILE v_num&lt;=20
-    LOOP
-        IF MOD(v_num,3) = 0 THEN
-            DBMS_OUTPUT.PUT_LINE(v_num);
-        END IF;
-        v_num := v_num+1;
-    END LOOP;
-END;</code></pre><h5 id="FOR…LOOP循环语句"><a href="#FOR…LOOP循环语句" class="headerlink" title="FOR…LOOP循环语句"></a>FOR…LOOP循环语句</h5><p>语句循环遍历指定范围内的整数，主要用于固定次数的循环。 <strong>语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-FOR index_name IN [REVERSE] lower .. upper LOOP
-    statement..
-END LOOP [label_name];</code></pre><p><strong>语法说明</strong></p>
-<ul>
-<li>index_name：循环计数器，通过该值得到当前的循环次数。</li>
-<li>REVERSE：指定循环方式，从lower到upper，还是相反。使用REVERSE关键字，循环方式正好相反</li>
-<li>lower..upper：循环范围的下标界到上标界，中间的两个点是必须的，不能省略。</li>
-</ul>
-<p><strong>FOR…LOOP示例:</strong> 1-20的整数的和</p>
-<pre><code>DECLARE
-    v_num number(8) := 0;
-BEGIN
-    FOR idx IN 1..20 LOOP
-        v_num := v_num + idx;
-    END LOOP;
-    DBMS_OUTPUT.PUT_LINE(&apos;LOOP循环结束，值为&apos; || v_num);
-END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变量代替，而当两者相等时，只循环一次。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/35/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/34/">34</a><a class="page-number" href="/page/35/">35</a><span class="page-number current">36</span><a class="page-number" href="/page/37/">37</a><a class="page-number" href="/page/38/">38</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/37/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/35/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/34/">34</a><a class="page-number" href="/page/35/">35</a><span class="page-number current">36</span><a class="page-number" href="/page/37/">37</a><a class="page-number" href="/page/38/">38</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/37/">下一页</a>
   </nav>
   
 </section>
@@ -975,12 +934,6 @@ END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变�
     </ul>
     <ul class="list-inline">
       <li>
-        
-        
-        <span>
-  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
-  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
-</span>
         
       </li>
       
@@ -1249,10 +1202,6 @@ END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变�
     mathjax: true
   }
 </script>
-
-
-
-<script src="/js/busuanzi-2.3.pure.min.js"></script>
 
 
 

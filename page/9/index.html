@@ -78,6 +78,177 @@
     
     
     
+    <article id="post-SpringCloud/前后端分离后台Gateway使用https" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/08/17/SpringCloud/%E5%89%8D%E5%90%8E%E7%AB%AF%E5%88%86%E7%A6%BB%E5%90%8E%E5%8F%B0Gateway%E4%BD%BF%E7%94%A8https/"
+    >前后端分离后台Gateway使用https</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/08/17/SpringCloud/%E5%89%8D%E5%90%8E%E7%AB%AF%E5%88%86%E7%A6%BB%E5%90%8E%E5%8F%B0Gateway%E4%BD%BF%E7%94%A8https/" class="article-date">
+  <time datetime="2020-08-17T01:47:00.000Z" itemprop="datePublished">2020-08-17</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="SpringCloud-GateWay实现Https协议访问"><a href="#SpringCloud-GateWay实现Https协议访问" class="headerlink" title="SpringCloud GateWay实现Https协议访问"></a>SpringCloud GateWay实现Https协议访问</h2><p>与SpringBoot的tomcat所依赖的web项目配置一样。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">    <span class="attr">ssl:</span></span><br><span class="line">        <span class="attr">enabled:</span> <span class="literal">true</span></span><br><span class="line">        <span class="attr">key-store:</span> <span class="string">classpath:3636833_www.chenguangqi.com.pfx</span></span><br><span class="line">        <span class="attr">key-store-password:</span> <span class="string">7FOwAhG2</span></span><br><span class="line">        <span class="attr">key-store-type:</span> <span class="string">PKCS12</span></span><br></pre></td></tr></table></figure>
+
+<p>一般情况下这一样就好了。否则你就要检查一下配置的域名是否指定到你的项目了。另外端口也必须是443。默认情况下路由转发是会将https转发的各服务的，所以不需要其他配置。如果不行的话可以参考<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-cloud-gateway/docs/2.2.4.RELEASE/reference/html/#tls-and-ssl">SpringCloud官网</a>的配置。</p>
+<p>一开始测试也是不行，后来第二个星期又重新测了一下。发现可以了。如果没有使用443端口，使用https访问的话，会报错io.netty的问题not SSL xxxx。</p>
+<p><strong>测试环境:</strong></p>
+<p>可以使用natapp内网映射，但是需要花10块一个月。前提是你有一个已经备案过的域名。如果选阿里主机的购买配置则需要在阿里备过案，买香港的配置的话，随便一个申请ssl证书的就可以了。</p>
+<p>买nataap的时候要看是否支持https再买。配置的时候勾选https，会自动转发到本地的443端口，配置的web端口是http的端口。</p>
+<p><strong>前后端分离后台是否需要https访问问题</strong></p>
+<p>按思否上某文章的评论说从nginx的前端代理服务器到后端服务器不需要https，担心安全的话可以使用全段到后端走内网的方式，或者只对个别ip开启部分端口访问。</p>
+<h2 id="Nginx配置https"><a href="#Nginx配置https" class="headerlink" title="Nginx配置https"></a>Nginx配置https</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"># HTTPS server</span><br><span class="line">#</span><br><span class="line"># 以下属性中以ssl开头的属性代表与证书配置有关，其他属性请根据自己的需要进行配置。</span><br><span class="line">server &#123;</span><br><span class="line">    listen 443 ssl;   #SSL协议访问端口号为443。此处如未添加ssl，可能会造成Nginx无法启动。</span><br><span class="line">    server_name chenguangqi.com;  #将localhost修改为您证书绑定的域名，例如：www.example.com。</span><br><span class="line">    root D:&#x2F;softwase&#x2F;vue-check;</span><br><span class="line">    index index.html index.htm;</span><br><span class="line">    ssl_certificate cert&#x2F;3636833_www.chenguangqi.com.pem;   #将domain name.pem替换成您证书的文件名。</span><br><span class="line">    ssl_certificate_key cert&#x2F;3636833_www.chenguangqi.com.key;   #将domain name.key替换成您证书的密钥文件名。</span><br><span class="line">    ssl_session_timeout 5m;</span><br><span class="line">    ssl_ciphers ECDHE-RSA-AES128-GCM-SHA256:ECDHE:ECDH:AES:HIGH:!NULL:!aNULL:!MD5:!ADH:!RC4;  #使用此加密套件。</span><br><span class="line">    ssl_protocols TLSv1 TLSv1.1 TLSv1.2;   #使用该协议进行配置。</span><br><span class="line">    ssl_prefer_server_ciphers on;   </span><br><span class="line"></span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">        try_files $uri $uri&#x2F; &#x2F;index.html;</span><br><span class="line">        root D:&#x2F;softwase&#x2F;vue-check;   #站点目录。</span><br><span class="line">        index index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">server &#123;</span><br><span class="line">    listen 80;</span><br><span class="line">    server_name chenguangqi.com;   #将localhost修改为您证书绑定的域名，例如：www.example.com。</span><br><span class="line">    rewrite ^(.*)$ https:&#x2F;&#x2F;$host$1 permanent;   #将所有http请求通过rewrite重定向到https。</span><br><span class="line">    location &#x2F; &#123;</span><br><span class="line">    	index index.html index.htm;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上参考阿里SSL证书配置。</p>
+<p>ssl_certificate和ssl_certificate_key直接将证书放在指定位置即可</p>
+<p><code>location / &#123;&#125;</code>中添加try_files，使用vue history的方式</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HTTPS/" rel="tag">HTTPS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SSL/" rel="tag">SSL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Javascript/window下apache的安装配置操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/08/14/Javascript/window%E4%B8%8Bapache%E7%9A%84%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE%E6%93%8D%E4%BD%9C/"
+    >window下apache的安装配置操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/08/14/Javascript/window%E4%B8%8Bapache%E7%9A%84%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2020-08-14T08:46:00.000Z" itemprop="datePublished">2020-08-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>去提供window支持的官网下载apache包<a target="_blank" rel="noopener" href="https://www.apachehaus.com/cgi-bin/download.plx">Apache Haus网站</a>     <a target="_blank" rel="noopener" href="https://www.apachehaus.com/cgi-bin/download.plx?dli=XRlWWd1UNVjT6p0KWNjTwBlVOpkVFVFdOhkWDJVQ">64位下载地址</a></p>
+<p>解压后，进入conf修改httpd.conf，修改这几处</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Listen 80 &#x2F;&#x2F;端口修改</span><br><span class="line">ServerName localhost:8080 &#x2F;&#x2F;ip:端口修改</span><br><span class="line">Define SRVROOT &quot;window apache安装目录&quot; &#x2F;&#x2F;到Apache24即可</span><br><span class="line">LoadModule ssl_module modules&#x2F;mod_ssl.so &#x2F;&#x2F;搜索ssl，将此模块注释，如果不使用https的话</span><br><span class="line">LoadModule rewrite_module modules&#x2F;mod_rewrite.so &#x2F;&#x2F;vue hisotry路径重写需要打开</span><br></pre></td></tr></table></figure>
+
+<p>安装Apache24到window services中</p>
+<p>cmd管理员，到bin目录下执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">httpd.exe -k install -n &quot;Apache24&quot;</span><br></pre></td></tr></table></figure>
+
+<p>如果提示 <strong>无法启动此程序因为计算机中丢失vcruntime140</strong>。则需要下载安装<a target="_blank" rel="noopener" href="https://www.microsoft.com/zh-cn/download/details.aspx?id=48145">VC2015</a></p>
+<p>如果提示什么套接字，可能不是安装失败问题。可以先看一下services安装上没，如果有了那就是安装上了，因为端口占用的原因出的这个错。如果没安装上，根据报错信息找一下httpd.conf是不是有属性配置错了。</p>
+<h2 id="Vue部署时history模式部署-单页面路径404"><a href="#Vue部署时history模式部署-单页面路径404" class="headerlink" title="Vue部署时history模式部署,单页面路径404"></a>Vue部署时history模式部署,单页面路径404</h2><p>单页面，只有一个根路径，任何路径都会跳到/，这个许多history问题的博客都有解释。</p>
+<p>解决问题:</p>
+<p>添加<code>.htaccess</code>文件,</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">RewriteEngine On</span><br><span class="line">RewriteCond %&#123;REQUEST_FILENAME&#125; !-f</span><br><span class="line">RewriteCond %&#123;REQUEST_FILENAME&#125; !-d</span><br><span class="line">RewriteRule ^(.*)$ &#x2F;index.html [L]  &#x2F;&#x2F; 注意：这个目录是你设置存放vue上线文件的目录&#x2F;phptest&#x2F;index.html</span><br></pre></td></tr></table></figure>
+
+<p>并在httpd.conf中开启<code>LoadModule rewrite_module modules/mod_rewrite.so</code>模块</p>
+<p>参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/litings/p/10802972.html">https://www.cnblogs.com/litings/p/10802972.html</a></p>
+<p>Vue-Router官网对history描述和参考<a href="[https://router.vuejs.org/zh/guide/essentials/history-mode.html#%E5%90%8E%E7%AB%AF%E9%85%8D%E7%BD%AE%E4%BE%8B%E5%AD%90](https://router.vuejs.org/zh/guide/essentials/history-mode.html#后端配置例子)">配置</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-SpringCloud/Nacos动态推送持久化配置导Sentinel" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -370,171 +541,13 @@
 
 </article>
     
-    <article id="post-SpringCloud/SpringCloud项目相关问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/07/31/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
-    >SpringCloud项目相关问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/07/31/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2020-07-31T08:00:00.000Z" itemprop="datePublished">2020-07-31</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Nacos"><a href="#Nacos" class="headerlink" title="Nacos"></a>Nacos</h2><h3 id="更新发布nacos配置文件时-项目提示找不到-project-version-的报错信息"><a href="#更新发布nacos配置文件时-项目提示找不到-project-version-的报错信息" class="headerlink" title="更新发布nacos配置文件时,项目提示找不到${project.version}的报错信息"></a>更新发布nacos配置文件时,项目提示找不到${project.version}的报错信息</h3><p>更新配置后，nacos会检索刷新，但并不会直接映射到注入的属性上，必须要@RefreshScope。</p>
-<p>出现这个问题原因可能是<strong>jasypt</strong>加密原因<code>jasypt-spring-boot-starter</code>的2.1版本会造成此问题。3.0版本已经修复。且3.0版本和2.0版本的默认算法有变更。因此替换3.0版本后，需要把加密文本替换到配置文件中，否则使用2.1的加密值，无法启动项目。</p>
-<h3 id="控制台一直刷新c-a-n-client-config-impl-ClientWorker-get-changedGroupKeys"><a href="#控制台一直刷新c-a-n-client-config-impl-ClientWorker-get-changedGroupKeys" class="headerlink" title="控制台一直刷新c.a.n.client.config.impl.ClientWorker    : get changedGroupKeys:[]"></a>控制台一直刷新<code>c.a.n.client.config.impl.ClientWorker    : get changedGroupKeys:[]</code></h3><h2 id="Feign"><a href="#Feign" class="headerlink" title="Feign"></a>Feign</h2><h3 id="子线程中调用feign失败问题"><a href="#子线程中调用feign失败问题" class="headerlink" title="子线程中调用feign失败问题"></a>子线程中调用feign失败问题</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">RequestContextHolder.setRequestAttributes(attributes,<span class="keyword">true</span>);</span><br></pre></td></tr></table></figure>
-
-<p>在主线程中重设RequestAttributes，并由true参数，表示共享给子线程</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringCloud/SpringCloud Gateway整合WebSocket" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/07/24/SpringCloud/SpringCloud%20Gateway%E6%95%B4%E5%90%88WebSocket/"
-    >SpringCloud Gateway整合WebSocket</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/07/24/SpringCloud/SpringCloud%20Gateway%E6%95%B4%E5%90%88WebSocket/" class="article-date">
-  <time datetime="2020-07-24T02:00:00.000Z" itemprop="datePublished">2020-07-24</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>本文解决方案参考<a target="_blank" rel="noopener" href="http://springcloud.cn/view/36">SpringCloud.cn</a></p>
-<h3 id="添加Maven配置"><a href="#添加Maven配置" class="headerlink" title="添加Maven配置"></a>添加Maven配置</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-websocket<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-gateway<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>Maven依赖的添加，网关的依赖放网关pom里，websocket的依赖对应服务里，两者不会在同一服务中。</p>
-<h3 id="网关路由配置"><a href="#网关路由配置" class="headerlink" title="网关路由配置"></a>网关路由配置</h3><figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">xxha-gateway</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">      	<span class="bullet">-</span> <span class="attr">id:</span> <span class="string">check-ws</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">lb:ws://xxha-check</span></span><br><span class="line">          <span class="attr">predicates:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/ws/**</span></span><br></pre></td></tr></table></figure>
-
-<p>uri的配置与http服务不同，<code>lb:ws://</code>的格式，专门用来转发websocket服务。其中Path<code>/ws/**</code>表示websocket的端点匹配</p>
-<h3 id="websocket服务配置"><a href="#websocket服务配置" class="headerlink" title="websocket服务配置"></a>websocket服务配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.xxha.check.websocket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> lombok.extern.slf4j.Slf4j;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.websocket.OnClose;</span><br><span class="line"><span class="keyword">import</span> javax.websocket.OnError;</span><br><span class="line"><span class="keyword">import</span> javax.websocket.OnMessage;</span><br><span class="line"><span class="keyword">import</span> javax.websocket.OnOpen;</span><br><span class="line"><span class="keyword">import</span> javax.websocket.Session;</span><br><span class="line"><span class="keyword">import</span> javax.websocket.server.PathParam;</span><br><span class="line"><span class="keyword">import</span> javax.websocket.server.ServerEndpoint;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.ConcurrentHashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.concurrent.atomic.AtomicInteger;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * webSocket 服务端类</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cgq_r</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020/7/6</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@ServerEndpoint(&quot;/ws/check/&#123;userId&#125;&quot;)</span></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebSocketServer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String PREFIX = <span class="string">&quot;WebSocket:&quot;</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 存储连接数</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> AtomicInteger onlineNum = <span class="keyword">new</span> AtomicInteger();</span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 存储socket连接池</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> ConcurrentHashMap&lt;String, Session&gt; users = <span class="keyword">new</span> ConcurrentHashMap&lt;String, Session&gt;(<span class="number">50</span>);</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@OnOpen</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onOpen</span><span class="params">(Session session, <span class="meta">@PathParam(&quot;userId&quot;)</span> String userId)</span> </span>&#123;</span><br><span class="line">        log.info(PREFIX + userId + <span class="string">&quot; 连接通讯&quot;</span>);</span><br><span class="line">        users.put(userId, session);</span><br><span class="line">        <span class="keyword">int</span> i = onlineNum.incrementAndGet();</span><br><span class="line">        log.info(PREFIX + <span class="string">&quot;当前连接数&quot;</span> + i);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 关闭连接</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> session</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnClose</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onClose</span><span class="params">(Session session, <span class="meta">@PathParam(&quot;userId&quot;)</span> String userId)</span> </span>&#123;</span><br><span class="line">        users.remove(userId);</span><br><span class="line">        <span class="keyword">int</span> i = onlineNum.decrementAndGet();</span><br><span class="line">        log.info(PREFIX + <span class="string">&quot;目标 &quot;</span> + userId + <span class="string">&quot; 关闭连接,现连接数:&quot;</span> + i);</span><br><span class="line">        <span class="comment">/*Set&lt;Map.Entry&lt;String, Session&gt;&gt; entries = users.entrySet();</span></span><br><span class="line"><span class="comment">        Iterator&lt;Map.Entry&lt;String, Session&gt;&gt; iterator = entries.iterator();</span></span><br><span class="line"><span class="comment">        while (iterator.hasNext()) &#123;</span></span><br><span class="line"><span class="comment">            Map.Entry&lt;String, Session&gt; next = iterator.next();</span></span><br><span class="line"><span class="comment">            Session temp = next.getValue();</span></span><br><span class="line"><span class="comment">            if (!temp.isOpen()) &#123;</span></span><br><span class="line"><span class="comment">                iterator.remove();</span></span><br><span class="line"><span class="comment">                log.info(&quot;webSocket &quot; + next.getKey() + &quot; 断开连接,移除通信用户队列&quot;);</span></span><br><span class="line"><span class="comment">                onlineNum.decrementAndGet();</span></span><br><span class="line"><span class="comment">            &#125;</span></span><br><span class="line"><span class="comment">        &#125;*/</span></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 接收消息</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> session</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> message</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnMessage</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onMessage</span><span class="params">(Session session, String message, <span class="meta">@PathParam(&quot;userId&quot;)</span> String userId)</span> </span>&#123;</span><br><span class="line">        log.info(PREFIX + <span class="string">&quot;接收到 &quot;</span> + userId + <span class="string">&quot;的会话,sessionId为&quot;</span> + session.getId() + <span class="string">&quot;消息:&quot;</span> + message);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 异常情况</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@OnError</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">oneError</span><span class="params">(Throwable throwable, <span class="meta">@PathParam(&quot;userId&quot;)</span> String userId)</span> </span>&#123;</span><br><span class="line">        log.error(PREFIX + userId + <span class="string">&quot; 发生错误，连接异常或中断&quot;</span>);</span><br><span class="line">        throwable.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 发送消息给用户</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskId  用户在socket标识，该值为成果包id，作为唯一标识</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> message 发送的消息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 是否发送成功</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">sendMessageToUser</span><span class="params">(String taskId, String message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (users.get(taskId) == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Session session = users.get(taskId);</span><br><span class="line">        log.info(PREFIX + <span class="string">&quot;向 &quot;</span> + taskId + <span class="string">&quot; 发送消息,消息id为:&quot;</span> + session.getId());</span><br><span class="line">        <span class="keyword">if</span> (!session.isOpen()) &#123;</span><br><span class="line">            log.error(PREFIX + <span class="string">&quot;消息发送时,&quot;</span> + taskId + <span class="string">&quot; 已关闭连接&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            session.getAsyncRemote().sendText(message);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            log.error(PREFIX + <span class="string">&quot;发送消息到目标 &quot;</span> + taskId + <span class="string">&quot; 出现异常&quot;</span>);</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 发送消息到所有连接用户</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> message 发送消息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">sendMessageToAll</span><span class="params">(String message)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (users != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">for</span> (String s : users.keySet()) &#123;</span><br><span class="line">                    Session session = users.get(s);</span><br><span class="line">                    session.getAsyncRemote().sendText(message);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">catch</span> (RuntimeException e) &#123;</span><br><span class="line">                log.error(PREFIX + <span class="string">&quot;发送消息到出现异常:MessageAll&quot;</span>);</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.xxha.check.websocket;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.socket.config.annotation.StompEndpointRegistry;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;</span><br><span class="line"><span class="keyword">import</span> org.springframework.web.socket.server.standard.ServerEndpointExporter;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* websocket配置</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> cgq_r</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2020/7/6</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSocketMessageBroker</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebSocketConfiguration</span> <span class="keyword">implements</span> <span class="title">WebSocketMessageBrokerConfigurer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ServerEndpointExporter <span class="title">serverEndpointExporter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> ServerEndpointExporter();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">registerStompEndpoints</span><span class="params">(StompEndpointRegistry registry)</span> </span>&#123;</span><br><span class="line">        registry.addEndpoint(<span class="string">&quot;/ws&quot;</span>)</span><br><span class="line">                .setAllowedOrigins(<span class="string">&quot;*&quot;</span>)</span><br><span class="line">                .withSockJS();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>在WebSocketConfiguration的修改中，追加了实现WebSocketMessageBrokerConfigurer类，并实现了registerStompEndpoints的方法。其他的时之前加的。</p>
-<p>包括路径的新增也是之前没有的，所有会通过网关访问不了。</p>
-<p><strong>另外,shiro的拦截也会将websocket进行拦截。因此需要按需进行放行。</strong></p>
-<p>重要的是路由配置和这个WebSocketConfiguration配置，以及拦截配置。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/8/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/41/">41</a><a class="extend next" rel="next" href="/page/10/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/8/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="page-number current">9</span><a class="page-number" href="/page/10/">10</a><a class="page-number" href="/page/11/">11</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/10/">下一页</a>
   </nav>
   
 </section>
@@ -559,12 +572,6 @@
     </ul>
     <ul class="list-inline">
       <li>
-        
-        
-        <span>
-  <i>PV:<span id="busuanzi_value_page_pv"></span></i>
-  <i>UV:<span id="busuanzi_value_site_uv"></span></i>
-</span>
         
       </li>
       
@@ -833,10 +840,6 @@
     mathjax: true
   }
 </script>
-
-
-
-<script src="/js/busuanzi-2.3.pure.min.js"></script>
 
 
 
