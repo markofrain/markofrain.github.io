@@ -78,6 +78,128 @@
     
     
     
+    <article id="post-开源/JFinal基础搭建" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/"
+    >JFinal基础搭建</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/" class="article-date">
+  <time datetime="2019-09-04T02:40:26.000Z" itemprop="datePublished">2019-09-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>创建Maven普通项目，添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
+    &lt;artifactId&gt;jfinal&lt;/artifactId&gt;
+    &lt;version&gt;4.5&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
+    &lt;artifactId&gt;jfinal-undertow&lt;/artifactId&gt;
+    &lt;version&gt;1.9&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>创建DemoConfig集成JFinalConfig类，实现所有方法</p>
+<p>创建main方法启动</p>
+<pre><code>public static void main(String[] args) &#123;
+    UndertowServer.start(DemoConfig.class, 80, true);
+&#125;</code></pre><p>在resources下创建undertow.txt文件，文件名可通过程序修改。</p>
+<pre><code># 配置 undertow
+
+undertow.devMode=true
+undertow.host=localhost
+undertow.port=80
+
+# 打成 fatjar 部署的项目开启下面的配置。。。。。第一个是模板资源存放位置，第二个是静态文件存放位置(暂时可以这么认为)
+undertow.resourcePath=src/main/resources, classpath:static</code></pre><p>这个文件会被自动加载装配，以上分别表示热部署，主机地址，端口号。</p>
+<p>undertow.resourcePath表示资源文件存放位置，目前也不具体清楚，只是测试了一下项目跑起来。src/amin/resources表示模板资源存放的位置，后面的是静态资源存放的位置。</p>
+<p>在DemoConfig里实现的方法configConstant</p>
+<pre><code>private static Prop prop;
+public void configConstant(Constants constants) &#123;
+    if (prop==null)&#123;
+        prop = PropKit.use(&quot;undertow.txt&quot;);
+    &#125;
+    constants.setDevMode(prop.getBoolean(&quot;undertow.devMode&quot;));
+    constants.setViewType(ViewType.JFINAL_TEMPLATE);
+&#125;</code></pre><p>上面的代码表示，获取文件并设置属性</p>
+<p>配置configRoute方法</p>
+<pre><code>public void configRoute(Routes routes) &#123;
+    routes.setBaseViewPath(&quot;/template&quot;);//设置视图基础路径
+    routes.add(&quot;/&quot;,DemoController.class);
+&#125;</code></pre><p>需要创建DemoController类</p>
+<pre><code>@Log4j
+public class DemoController extends Controller &#123;
+
+    public void index()&#123;
+        set(&quot;name&quot;,&quot;chen&quot;);
+        log.info(&quot;inf&quot;);
+        log.error(&quot;error&quot;);
+        render(&quot;index.html&quot;);
+    &#125;
+&#125;</code></pre><p>render方法可传入视图名称，可直接返回到视图中。</p>
+<p>那么模板和静态文件的存储位置为</p>
+<ul>
+<li>模板位置:resources/template/index.html(因为上面设置了BaseViewPath所以有template目录，然后因为路由直接设置的是/所以没有目录，直接index.html)</li>
+<li>静态资源位置:resources/static/index.js</li>
+</ul>
+<p>如何在页面中访问静态资源。通过以上的配置之后，在index.html可直接通过/static/index.js获取script文件</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-other/IDEA打断点也无法debug问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -443,94 +565,6 @@ $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;
     <footer class="article-footer">
       
       
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/Axis2中不支持1.8新特性" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/"
-    >Axis2中不支持1.8新特性</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/" class="article-date">
-  <time datetime="2019-07-31T09:16:35.000Z" itemprop="datePublished">2019-07-31</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>在Axis2中不能使用包括lambda表达式stream流等相关代码，否则在发布wsdl服务时会报错。</p>
-<pre><code>Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
-    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:441) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.deployment.ServiceGroupBuilder.populateServiceGroup(ServiceGroupBuilder.java:101) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    ... 31 common frames omitted
-Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
-    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:404) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    ... 32 common frames omitted
-Caused by: java.lang.IllegalStateException: Error looking for paramter names in bytecode: unexpected bytes in file
-    at org.apache.axis2.description.java2wsdl.bytecode.ClassReader.readCpool(ClassReader.java:354) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:78) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:57) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.ChainedParamReader.&lt;init&gt;(ChainedParamReader.java:52) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.MethodTable.&lt;init&gt;(MethodTable.java:31) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.DefaultSchemaGenerator.&lt;init&gt;(DefaultSchemaGenerator.java:177) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.deployment.util.Utils.fillAxisService(Utils.java:439) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:396) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    ... 32 common frames omitted</code></pre><p>这是使用spring配置axis2的时候，若发布服务的类中有新特性就会出现问题，但是你可以把新特性放在其它类中，那么axis2就不会出现问题。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/axis2/" rel="tag">axis2</a></li></ul>
-
 
     </footer>
 

@@ -78,6 +78,224 @@
     
     
     
+    <article id="post-Vue/Vue2.0-Vuex插件学习" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/21/Vue/Vue2.0-Vuex%E6%8F%92%E4%BB%B6%E5%AD%A6%E4%B9%A0/"
+    >Vue2.0-Vuex插件学习</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/21/Vue/Vue2.0-Vuex%E6%8F%92%E4%BB%B6%E5%AD%A6%E4%B9%A0/" class="article-date">
+  <time datetime="2018-09-21T05:00:42.000Z" itemprop="datePublished">2018-09-21</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Vuex"><a href="#Vuex" class="headerlink" title="Vuex"></a>Vuex</h1><p>Vuex 是一个专为 Vue.js 应用程序开发的状态管理模式。它采用集中式存储管理应用的所有组件的状态，并以相应的规则保证状态以一种可预测的方式发生变化。 按其他vue友所说,就是集中管理数据的，例如父子组件数据之间传递，如果项目很大复杂，那么这个就是一个问题，就需要用到它。可以说是一个数据共享的一个中心仓库。</p>
+<h2 id="基本使用"><a href="#基本使用" class="headerlink" title="基本使用"></a>基本使用</h2><p>每个vuex的核心是store，意思上是一个容器，包含应用中大部分的状态。Vuex和单纯的全局对象的不同点:</p>
+<ul>
+<li>Vuex的状态存储是响应式的。</li>
+<li>不能直接改变store中的状态</li>
+</ul>
+<h3 id="安装vuex"><a href="#安装vuex" class="headerlink" title="安装vuex"></a>安装vuex</h3><pre><code>cnpm install vuex -S</code></pre><h3 id="store"><a href="#store" class="headerlink" title="store"></a>store</h3><p>既然是集中式管理，那么数据就存储在store中。 <img src="https://vuex.vuejs.org/vuex.png" alt="vuex"> 该图片解释了vuex的核心过程。</p>
+<ul>
+<li>首先通过组件调度发出(Dispatch)一个动作(Actions)</li>
+<li>随后动作提交到变化对象(Mutations)</li>
+<li>然后变化对象改变数据，数据都在State对象中</li>
+<li>数据改变后，重新渲染到组件中。</li>
+</ul>
+<p>Vuex的核心是Store(仓库)，相当于一个容器，一个store容器中包含如下属性的方法</p>
+<p>核心概念</p>
+<p>释义</p>
+<p>State</p>
+<p>定义属性(状态、数据)</p>
+<p>Getter</p>
+<p>获取属性数据</p>
+<p>Action</p>
+<p>定义动作方法</p>
+<p>commit</p>
+<p>提交变化</p>
+<p>Mutation</p>
+<p>真正的变化</p>
+<h3 id="一、设置属性数据-关键state-getters"><a href="#一、设置属性数据-关键state-getters" class="headerlink" title="一、设置属性数据(关键state,getters)"></a>一、设置属性数据(关键state,getters)</h3><h4 id="1-创建store-js并将store设置到main-js的Vue实例的store属性中"><a href="#1-创建store-js并将store设置到main-js的Vue实例的store属性中" class="headerlink" title="1. 创建store.js并将store设置到main.js的Vue实例的store属性中"></a>1. 创建store.js并将store设置到main.js的Vue实例的store属性中</h4><pre><code>import store from &apos;./store.js&apos;
+
+new Vue(&#123;
+  store
+&#125;);</code></pre><h4 id="2-编辑App-vue"><a href="#2-编辑App-vue" class="headerlink" title="2. 编辑App.vue"></a>2. 编辑App.vue</h4><p>定义两个button和一个count</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+  &lt;p&gt;&#123; &#123;count&#125;&#125;&lt;/p&gt;
+  &lt;button&gt;增加&lt;/button&gt;
+  &lt;button&gt;减小&lt;/button&gt;
+&lt;/div&gt;</code></pre><h4 id="3-编辑store，设置state-将state设置到store实例，并导出"><a href="#3-编辑store，设置state-将state设置到store实例，并导出" class="headerlink" title="3. 编辑store，设置state,将state设置到store实例，并导出"></a>3. 编辑store，设置state,将state设置到store实例，并导出</h4><pre><code>// 引入组件
+import Vue from &apos;vue&apos;
+import Vuex from &apos;vuex&apos;
+// 将vuex设置进来
+Vue.use(Vuex)
+
+// 设置state对象
+const state = &#123;
+  count: 6
+&#125;
+// 创建state对象
+const store = new Vuex.Store(&#123;
+  state // 设置state属性
+&#125;)
+// 导出store
+export default store</code></pre><h4 id="4-App-vue中在computed选项中设置count，并通过this-store-state-count返回数据"><a href="#4-App-vue中在computed选项中设置count，并通过this-store-state-count返回数据" class="headerlink" title="4. App.vue中在computed选项中设置count，并通过this.$store.state.count返回数据"></a>4. App.vue中在computed选项中设置count，并通过this.$store.state.count返回数据</h4><pre><code>computed: &#123;
+  count () &#123;
+    return this.$store.state.count
+  &#125;
+&#125;</code></pre><p>然后count值就出来了。 简洁的来说就是:</p>
+<ol>
+<li><p>创建store.js文件，并引入到main.js文件中，作为store选项的值</p>
+</li>
+<li><p>在App.vue组件中设置要展示的数据</p>
+</li>
+<li><p>在store中引入vue和vuex,创建state对象，在其中设置共享数据。并创建store对象并设置state，然后导出</p>
+</li>
+<li><p>App.vue中设置计算属性，通过this.$store.state.count获得值</p>
+</li>
+</ol>
+<p>** 我们还可以通过mapGetters,mapActions辅助函数,mapGetters用来获取属性数据，mapActions用来获取方法动作的。**</p>
+<h4 id="1-要想使用，需要导入这两个函数-定义在App-vue的script标签中"><a href="#1-要想使用，需要导入这两个函数-定义在App-vue的script标签中" class="headerlink" title="1. 要想使用，需要导入这两个函数,定义在App.vue的script标签中"></a>1. 要想使用，需要导入这两个函数,定义在App.vue的script标签中</h4><pre><code>import &#123;mapGetters&#125; from &apos;vuex&apos;</code></pre><h4 id="2-然后设置computed选项-设置为mapGetters函数，参数为数组，值为要获取的属性数据"><a href="#2-然后设置computed选项-设置为mapGetters函数，参数为数组，值为要获取的属性数据" class="headerlink" title="2. 然后设置computed选项,设置为mapGetters函数，参数为数组，值为要获取的属性数据"></a>2. 然后设置computed选项,设置为mapGetters函数，参数为数组，值为要获取的属性数据</h4><pre><code>computed: mapGetters([
+  &apos;count&apos;
+])</code></pre><h4 id="3-那么这个count的值从哪里来，这就通过store的另一个概念getter。store文件中设置getters"><a href="#3-那么这个count的值从哪里来，这就通过store的另一个概念getter。store文件中设置getters" class="headerlink" title="3. 那么这个count的值从哪里来，这就通过store的另一个概念getter。store文件中设置getters"></a>3. 那么这个count的值从哪里来，这就通过store的另一个概念<strong>getter</strong>。store文件中设置getters</h4><pre><code>// 设置getters对象
+var getters = &#123;
+  count (state) &#123;
+    return state.count
+  &#125;
+&#125;
+
+// 然后添加到store选项中</code></pre><p>计算属性中的count值就与getters中的count名称对应，与state.count的count无关，他只是数据属性而已。</p>
+<h3 id="二、事件方法-关键action"><a href="#二、事件方法-关键action" class="headerlink" title="二、事件方法(关键action)"></a>二、事件方法(关键action)</h3><p>组件调度action去提交更改,action是定义方法的。所以需要action</p>
+<h4 id="1-为App-vue中的button定义单击事件"><a href="#1-为App-vue中的button定义单击事件" class="headerlink" title="1. 为App.vue中的button定义单击事件"></a>1. 为App.vue中的button定义单击事件</h4><pre><code>&lt;button @click=&quot;increment&quot;&gt;增加&lt;/button&gt;
+&lt;button @click=&quot;decrement&quot;&gt;减小&lt;/button&gt;</code></pre><h4 id="2-在store中设置actions-并添加到store中"><a href="#2-在store中设置actions-并添加到store中" class="headerlink" title="2. 在store中设置actions,并添加到store中"></a>2. 在store中设置actions,并添加到store中</h4><pre><code>const actions = &#123;
+  increment (context) &#123;
+    console.log(context)
+  &#125;,
+  decrement (context) &#123;
+    console.log(context)
+  &#125;
+&#125;</code></pre><h4 id="3-在App-vue中定义methods-需要通mapGetters一样导入mapActions"><a href="#3-在App-vue中定义methods-需要通mapGetters一样导入mapActions" class="headerlink" title="3. 在App.vue中定义methods,需要通mapGetters一样导入mapActions"></a>3. 在App.vue中定义methods,需要通mapGetters一样导入mapActions</h4><pre><code>import &#123;mapGetters, mapActions&#125; from &apos;vuex&apos;
+
+
+methods: mapActions([
+    &apos;increment&apos;,
+    &apos;decrement&apos;
+  ])</code></pre><p>actions中事件方法的参数context包含多个函数或对象，包括commit函数，dispath函数,getters对象,state对象等。 commit函数就用来提交改数据，actions指定定义事件方法，而更改在Mutations。</p>
+<h3 id="三、更改数据-关键，mutations"><a href="#三、更改数据-关键，mutations" class="headerlink" title="三、更改数据(关键，mutations)"></a>三、更改数据(关键，mutations)</h3><h4 id="1-提交名称变化"><a href="#1-提交名称变化" class="headerlink" title="1. 提交名称变化"></a>1. 提交名称变化</h4><pre><code>const actions = &#123;
+  increment (context) &#123;
+    context.commit(&apos;increment&apos;) // 提交标识
+  &#125;,
+  decrement (context) &#123;
+    context.commit(&apos;decrement&apos;)
+  &#125;
+&#125;</code></pre><h4 id="2-mutations"><a href="#2-mutations" class="headerlink" title="2. mutations"></a>2. mutations</h4><pre><code>const mutations = &#123;
+  increment (state) &#123;
+    state.count++
+  &#125;,
+  decrement (state) &#123;
+    state.count--
+  &#125;
+&#125;</code></pre><p>mutations中的方法的参数就是state对象，可以通过state操作属性数据。 在这里，我们需要注意的是，mutations中的increment与actions中的commit函数的参数increment相同，他俩的值要相同不能更改.而actions中的increment方法名要和App.Vue中的methods中的mapActions里的值相同。 其实在actions中也是可以改state中的数据的，因为他的方法参数有state对象，但是并不建议这么做，而是把它放在mutations中做，它是专门做这件事的，而且这样更有利于devtools的查看，也符合vuex的设计思想。而actions中state要做的是什么?可以是对值的一个判断，是否去提交这个更改。 而getters，前面说了Getter是获取属性数据，所以i你可以定义方法来返回一个值，参数依然是state，然后你把方法名放在mapGetters中，就可以直接在模板中显示。 还有state，它通getters和actions一样，也有个mapState,可以放在Vue实例中。</p>
+<h4 id="3-提交载荷和对象风格的提交方式"><a href="#3-提交载荷和对象风格的提交方式" class="headerlink" title="3. 提交载荷和对象风格的提交方式"></a>3. 提交载荷和对象风格的提交方式</h4><p>在和就是commit的参数，你在commit时，不仅可以传递一个type,还可以有一个附加参数。这个载荷会在devtools中显示出来.但大多数情况下载荷都是对象。</p>
+<pre><code>store.commit(&apos;increment&apos;, 10)
+
+mutations: &#123;
+  increment (state, n) &#123;
+    state.count += n
+  &#125;
+&#125;</code></pre><p>对象风格的提交就是，你可以直接在commit()中放置一个对象，而且是一个包含type属性的对象</p>
+<pre><code>store.commit(&#123;
+  type: &apos;increment&apos;,
+  amount: 10
+&#125;)
+
+mutations: &#123;
+  increment (state, payload) &#123;
+    state.count += payload.amount
+  &#125;
+&#125;</code></pre><h4 id="4-使用常量代替Mutations事件类型"><a href="#4-使用常量代替Mutations事件类型" class="headerlink" title="4. 使用常量代替Mutations事件类型"></a>4. 使用常量代替Mutations事件类型</h4><p>意思就是mutations中increment方法名需要改成一个常量，这个常量从专门定义的一个文件中获取</p>
+<pre><code>//type.js
+const INCRENTMT = &apos;increment&apos;
+const DECREMENT = &apos;decrement&apos;
+
+export default&#123;
+  INCRENTMT,
+  DECREMENT
+&#125;
+
+
+//store.js
+import types from &apos;../type&apos;
+const mutations = &#123;
+  [types.INCREMENT] (state) &#123;
+    //...
+  &#125;
+&#125;
+//或者
+const actions = &#123;
+  increment (&#123;commit,state&#125;) &#123;
+    commit(types.INCREMENT)
+  &#125;
+&#125;</code></pre><h4 id="5-mutation必须是同步的"><a href="#5-mutation必须是同步的" class="headerlink" title="5. mutation必须是同步的"></a>5. mutation必须是同步的</h4><p>一条重要的原则就是要记住 mutation 必须是同步函数。 在devtools观察mutations时，会记录每一条mutations，能捕捉到前一状态后后一状态。而假如使用异步时:当 mutation 触发的时候，回调函数还没有被调用，devtools 不知道什么时候回调函数实际上被调用——实质上任何在回调函数中进行的状态的改变都是不可追踪的。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0-自定义全局组件(插件)" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -584,86 +802,6 @@ VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="tag">虚拟机</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/"
-    >在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2018-09-16T11:24:23.000Z" itemprop="datePublished">2018-09-16</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="关于js-ajax方法的success函数执行问题"><a href="#关于js-ajax方法的success函数执行问题" class="headerlink" title="关于js ajax方法的success函数执行问题"></a>关于js ajax方法的success函数执行问题</h2><p>首先对于ajax的success和post，get的回调函数都是同一中，都是成功后要执行的函数，这时肯定的。 那问题是什么？ 在执行ajax的success回调函数时，可能你会由返回值，由外部去获得这个值，但是外部却无法获得这个值，也不是说无法获得，只是时间点不对。当调用包含ajax方法时得到的返回值是undefined,随后执行后面的代码，当所有代码执行完成后它才返回你需要的那个返回值。 你可以写个简单的示例：</p>
-<ul>
-<li>定义一个普通方法来调用带有ajax的方法</li>
-<li>然后在该普通方法调用ajax方法之后输出这个返回值</li>
-<li>然后在ajax的方法中，在回调方法success里输出你ajax请求操作成功后返回的result值。</li>
-</ul>
-<p>通过执行你会发现，先弹出你的 返回值，而且返回值是undefined的，随后再弹出你的result值，有值。 那为什么会这样，通过js调试发现，当你执行到$.post(…),$.get(…),$.ajax({…})这行之后，它会直接跳到ajax末尾的”}”去，也就是说回掉函数没有执行，随后返回到上一级输出你的返回值，导致是未定义的变量，随后当代码执行完之后，代码又进入jquery.min.js中，弹出了回掉函数中的result的弹框。 就是这样一种情况，如果你想要获得ajax回调的返回结果，并对结果进行判断或其他操作，它是得不到值的。 那么么为什么会这样，一篇博客中说出了道理，起始也是一个ajax底层的问题，也不是多困难。 答:ajax默认是异步传递的。<strong>它不会暂停它之后代码的执行。在后面代码执行时，ajax肯定还没有返回数据</strong>。如果不理解异步传递。请记住，ajax()之后不要写需要用到ajax返回数据的代码。<strong>所有需要用到ajax返回数据的代码都要放到success回调函数中</strong>。 将后面需要用到的都放在success中，这个确实是一个方法，但可能可用性不太好。但是如果你把async设置为false，好像仍然能解决问题。 这样就引出了后面的第二个问题，因为当你在同一页面或同一层窗口中不太需要success的返回值或其他返回值，因为既然在同一页面你可以再success中判断并直接调用其他方法。所以没不要获得返回值。而另一种情况就是通过对话框做form表单操作，也就是把form的增该不单独放页面中，而是放在弹出框里，这样就相当于是一个iframe，多个一层框架，有一个父子窗口的关系。</p>
-<h2 id="父窗口与子窗口函数的互相调用"><a href="#父窗口与子窗口函数的互相调用" class="headerlink" title="父窗口与子窗口函数的互相调用"></a>父窗口与子窗口函数的互相调用</h2><p>对于这个问题，也就是刚才引出的话题。只需要调用就好。 <strong>对于子窗口调用父窗口的方法:</strong></p>
-<pre><code>window.parent.xxx;//xxx就是父窗口的的方法</code></pre><p>我为什么会用到这个，因为我需要再父窗口弹出一个右下角的提示小窗，所以如果再子窗口里，窗口大小太小，也不好看，所以操作完成后再父窗口中显示。 <strong>对于父窗口调用子窗口的方法</strong></p>
-<pre><code>document.getElementById(&quot;#iframe&quot;).contentWindow.xxx;</code></pre><p>document.getElementById(“#iframe”)就是获得子窗口的iframe Document对象，然后通过contentWindow来调用方法。 <strong>对于兄弟级别的窗口</strong> 需要先获得父级dom，再获得子窗口的dom。也相当于子窗口转到父窗口再转到另一个子窗口。</p>
-<pre><code>window.parent.$(&quot;#childFrm&quot;)[0].contentWindow.xxx;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
 
 
     </footer>

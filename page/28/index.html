@@ -78,6 +78,140 @@
     
     
     
+    <article id="post-Oracle/Oracle 定时任务Job" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/15/Oracle/Oracle%20%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1Job/"
+    >Oracle 定时任务Job</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/15/Oracle/Oracle%20%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1Job/" class="article-date">
+  <time datetime="2018-10-15T06:29:31.000Z" itemprop="datePublished">2018-10-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Oracle定时任务"><a href="#Oracle定时任务" class="headerlink" title="Oracle定时任务"></a>Oracle定时任务</h1><p>创建的定时任务都存储在DBMS_JOB中，通过dba_jobs表可以查询。</p>
+<pre><code>select * from dba_jobs;
+select * from user_jobs;</code></pre><ol>
+<li><p>创建语法</p>
+<p>DECLARE<br>  JOB_ID PLS_INTEGER;<br>BEGIN<br>  SYS.DBMS_JOB.SUBMIT(JOB =&gt; JOB_ID, – 自动生成JOB_ID</p>
+<pre><code>WHAT =&gt; &apos;PRO_JOB;&apos;, -- 执行的存储过程或sql语句
+next_date =&gt; sysdate -- 第一次执行时间
+INTERVAL =&gt; &apos;TRUNC(SYSDATE) + 1 + 3 / (24)&apos;);--间隔</code></pre><p>  COMMIT;<br>END;</p>
+</li>
+</ol>
+<p>或物化视图刷新</p>
+<pre><code>begin
+  sys.dbms_job.submit(job =&gt; :job,
+                      what =&gt; &apos;dbms_refresh.refresh(&apos;&apos;&quot;BDCCXTJ&quot;.&quot;MV_QZRQ_DJQK_FWYT_TBLB&quot;&apos;&apos;);&apos;,
+                      next_date =&gt; to_date(&apos;08-09-2018 13:47:40&apos;, &apos;dd-mm-yyyy hh24:mi:ss&apos;),
+                      interval =&gt; &apos;TO_DATE(CONCAT(TO_CHAR(SYSDATE+1,&apos;&apos;DD-MM-YYYY&apos;&apos;),&apos;&apos;13:47:40&apos;&apos;),&apos;&apos;DD-MM-YYYY HH24:MI:SS&apos;&apos;)&apos;);
+  commit;
+end;</code></pre><p>当interval为null时，该job执行结束后，就会被从队列中删除。</p>
+<ol start="2">
+<li><p>手动执行</p>
+<p>begin<br>  DBMS_JOB.RUN(JOB_ID);–手动执行，参数为job_id<br>  COMMIT;<br>end</p>
+</li>
+</ol>
+<ol start="3">
+<li><p>停止job</p>
+<p>begin<br>  DBMS_JOB.broken(JOB_ID,true,next_date);<br>  –job编号，是否停止，停止时间(可以为sysdate)<br>  COMMIT;<br>end;</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>删除job</p>
+<p>begin<br>  dbms_job.remove(JOB_ID); /<em>删除自动执行的job,参数是 job_id</em>/<br>  commit;<br>end;</p>
+</li>
+</ol>
+<ol start="5">
+<li><p>修改job的间隔时间</p>
+<p>begin<br>  dbms_job.interval(job_id，interval);<br>  /<em>参数为job的ID;interval: 计算下一次任务执行的时间表达式</em>/<br>  commit;<br>end;</p>
+</li>
+</ol>
+<ol start="6">
+<li><p>修改job要执行的任务</p>
+<p>begin</p>
+<pre><code>dbms_job.what(&apos;newProcedures();&apos;);
+/*newProcedures(); 要更改的新操作名称*/</code></pre><p>  commit;<br>end;</p>
+</li>
+</ol>
+<p>注意存储过程后的分毫不要遗漏;</p>
+<ol start="7">
+<li>运行时间表达式</li>
+</ol>
+<p>描述</p>
+<p>表达式</p>
+<p>每秒钟执行</p>
+<p>SYSDATE + 1 /(60_24_60)</p>
+<p>每分钟执行</p>
+<p>TRUNC(sysdate,’mi’) + 1/ (24*60)</p>
+<p>每10分钟执行</p>
+<p>SYSDATE+10/(60*24)</p>
+<p>每天0点执行</p>
+<p>select TRUNC(sysdate+ 1)+0/(24)</p>
+<p>每周一0点执行</p>
+<p>TRUNC(next_day(sysdate,’星期一’))+0/24</p>
+<p>每月一日0点执行</p>
+<p>TRUNC(LAST_DAY(SYSDATE))+1+0/24</p>
+<p>注意：如果带trunc函数和参数的话将会执行到某个整点，而不带的话每次以当前日期为准</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle RMAN命令总结" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -598,116 +732,6 @@ GROUP BY tbs;</code></pre></li>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mail/" rel="tag">mail</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Activiti/ArcGIS for Javascript搭建及HelloWorld" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/29/Activiti/ArcGIS%20for%20Javascript%E6%90%AD%E5%BB%BA%E5%8F%8AHelloWorld/"
-    >ArcGIS for Javascript搭建及HelloWorld</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/29/Activiti/ArcGIS%20for%20Javascript%E6%90%AD%E5%BB%BA%E5%8F%8AHelloWorld/" class="article-date">
-  <time datetime="2018-09-29T09:23:30.000Z" itemprop="datePublished">2018-09-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/arcgis/">arcgis</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="ArcGIS-for-Javascript搭建及HelloWorld"><a href="#ArcGIS-for-Javascript搭建及HelloWorld" class="headerlink" title="ArcGIS for Javascript搭建及HelloWorld"></a>ArcGIS for Javascript搭建及HelloWorld</h1><p>首先去官网下载ArcGIS for Javascript SDK,下载前必须要登录的。 <a target="_blank" rel="noopener" href="https://developers.arcgis.com/downloads/apis-and-sdks?product=javascript">下载地址</a>,下载3.x版本。因为3.x版本和4.x版本结构会不太一样。</p>
-<ol>
-<li>下载完成后解压，将此文件夹放入tomcat webapps下</li>
-</ol>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929170547.png?x-oss-process=style/600" alt=""></p>
-<ol start="2">
-<li>修改build，构建配置选项</li>
-</ol>
-<p>打开arcgis_js_api/library/3.26/下的install_api_windows.html文件，进行谷歌翻译,然后找到此处 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929170936.png?x-oss-process=style/600" alt=""> 然后进行修改，将arcgis_js_api/library/3.26/3.26/下的init.js进行修改，打开文本编辑器，搜索[HOSTNAME_AND_PATH_TO_JSAPI],并将其替换为localhost:8080/arcgis_js_api/library/3.26/3.26/dojo,注意前面的https改成http。 同样将arcgis_js_api/library/3.26/3.26/dojo/下的dojo.js进行修改，一样搜索[HOSTNAME_AND_PATH_TO_JSAPI]，并进行替换。 注意这两个路径一定要和此arcgis_js_api放在tomcat中的路径一致，否则404。</p>
-<h2 id="HelloWorld示例"><a href="#HelloWorld示例" class="headerlink" title="HelloWorld示例"></a>HelloWorld示例</h2><p>首先废话不多说，在webapps下创建一个文件夹test，并创建文件index.html,贴上示例代码</p>
-<pre><code>&lt;html&gt;
-&lt;head&gt;
-  &lt;meta charset=&quot;utf-8&quot; /&gt;
-  &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
-  &lt;title&gt;Page Title&lt;/title&gt;
-  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
-  &lt;link rel=&quot;stylesheet&quot; href=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/esri/css/esri.css&quot;&gt;
-  &lt;link rel=&quot;stylesheet&quot; href=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/dijit/themes/tundra/tundra.css&quot;&gt;
-  &lt;style&gt;
-    html, body, #mapDiv&#123;
-      padding: 0;
-      margin: 0;
-      height: 100%;
-      width: 100%;
-    &#125;
-  &lt;/style&gt;
-  &lt;script src=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/init.js&quot;&gt;&lt;/script&gt;
-  &lt;script&gt;
-    require([&quot;esri/map&quot;,&quot;dojo/domReady!&quot;],
-        function(Map)&#123;
-            var myMap = new Map(&quot;mapDiv&quot;,&#123;
-                basemap:&quot;topo&quot;
-            &#125;);
-        &#125;)
-  &lt;/script&gt;
-&lt;/head&gt;
-&lt;body class=tundra&gt;
-  &lt;div id=&quot;mapDiv&quot;&gt;&lt;/div&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre><p>这个，你仍需要注意的时，就是你的script引用地址是否正确。 通过localhost:8080/test访问即可，或者不需要tomcat，直接任意创建html文件也可以。 如果打开后出现4个框或空白，则表示可能script引入错误，F12控制台查看一下。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929172144.png?x-oss-process=style/600" alt=""></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/arcgis/" rel="tag">arcgis</a></li></ul>
 
 
     </footer>

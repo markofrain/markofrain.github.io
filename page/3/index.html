@@ -78,6 +78,199 @@
     
     
     
+    <article id="post-k8s/持久化存储nfs,pv和pvc" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/20/k8s/%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8nfs,pv%E5%92%8Cpvc/"
+    >持久化存储nfs,pv和pvc</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/20/k8s/%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8nfs,pv%E5%92%8Cpvc/" class="article-date">
+  <time datetime="2021-01-20T04:00:00.000Z" itemprop="datePublished">2021-01-20</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/k8s/">k8s</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="持久化存储nfs"><a href="#持久化存储nfs" class="headerlink" title="持久化存储nfs"></a>持久化存储nfs</h3><h4 id="nfs操作"><a href="#nfs操作" class="headerlink" title="nfs操作"></a>nfs操作</h4><p>pod是临时的，销毁后数据不会被存储到本地磁盘上。</p>
+<ol>
+<li>找一台专门的服务器用于挂载nfs持久化。首先在新服务需要安装<code>nfs-utils</code>，node节点上也需要安装。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y nfs-utils</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>为nfs服务器设置挂载路径</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim &#x2F;etc&#x2F;exports</span><br><span class="line"></span><br><span class="line">&#x2F;data&#x2F;nfs *(rw,no_root_squash)</span><br></pre></td></tr></table></figure>
+
+<p>指定nfs存在/data/nfs目录。*标识可访问所有目录文件，rw为可读写，</p>
+<ul>
+<li>no_root_squash：登入 NFS 主机使用分享目录的使用者，如果是 root 的话，那么对于这个分享的目录来说，他就具有 root 的权限！这个项目『极不安全』，不建议使用！</li>
+<li>root_squash：在登入 NFS 主机使用分享之目录的使用者如果是 root 时，那么这个使用者的权限将被压缩成为匿名使用者，通常他的 UID 与 GID 都会变成 nobody 那个系统账号的身份。</li>
+</ul>
+<blockquote>
+<p>nfs的存储位置一定要预先创建出来。</p>
+</blockquote>
+<ol start="3">
+<li>nfs服务器启动nfs服务</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start nfs</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>在k8s中使用nfs</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-dep1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">nfs:</span></span><br><span class="line">            <span class="attr">server:</span> <span class="number">192.168</span><span class="number">.44</span><span class="number">.134</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/data/nfs</span></span><br></pre></td></tr></table></figure>
+
+<p>deployment中使用了nfs，定义挂载nfs服务器地址和路径，绑定挂载数据卷，mountPath为容器内部挂载路径</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f nfs-nginx.yaml</span><br></pre></td></tr></table></figure>
+
+<p>启动后使用<code>kubectl exec -it pod名称 bash</code>命令进入容器内。通过进入<code>/usr/share/nginx/html</code>目录查看，没有数据，在/data/nfs中创建一个文件，然后在容器内目录中就能看到文件</p>
+<h3 id="PV和PVC"><a href="#PV和PVC" class="headerlink" title="PV和PVC"></a>PV和PVC</h3><p>因为直接配置nfs到deployment中可能不安全，因此，将nfs的配置放到PV中，也就是Kind为<code>PersistentVolume</code>的yaml。其中定义了PV的大小，读写权限，服务器和所在位置等。</p>
+<p>PVC的Kind为<code>PersistentVolumeClaim</code>，其条件定义读写权限、存储大小等这些，用于匹配已经定义的PV。再将deployment与pvc进行关联。</p>
+<p>由应用来配置pvc，pvc绑定pv。pv用来数据存储，pvc用来查找与调用。匹配方式为存储容量和匹配模式(读写)</p>
+<ol>
+<li>pv.yaml。定义模式为读写模式，大小为5G</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolume</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-pv</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">capacity:</span></span><br><span class="line">    <span class="attr">storage:</span> <span class="string">5Gi</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">nfs:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/data/nfs</span></span><br><span class="line">    <span class="attr">server:</span> <span class="number">192.168</span><span class="number">.38</span><span class="number">.131</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl get pv</span><br><span class="line">NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE</span><br><span class="line">my-pv   5Gi        RWX            Retain           Available                                   4s</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>pvc.yaml，其中包含了Deployment和PersistentVolumeClaim</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-dep1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">        <span class="attr">persistentVolumeClaim:</span></span><br><span class="line">          <span class="attr">claimName:</span> <span class="string">my-pvc</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolumeClaim</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-pvc</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">    <span class="attr">requests:</span></span><br><span class="line">      <span class="attr">storage:</span> <span class="string">5Gi</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl get pv,pvc</span><br><span class="line">NAME                     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   REASON   AGE</span><br><span class="line">persistentvolume&#x2F;my-pv   5Gi        RWX            Retain           Bound    default&#x2F;my-pvc                           16s</span><br><span class="line"></span><br><span class="line">NAME                           STATUS   VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span><br><span class="line">persistentvolumeclaim&#x2F;my-pvc   Bound    my-pv    5Gi        RWX                           9s</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Javascript/ajax-post请求下载文件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/18/Javascript/ajax-post%E8%AF%B7%E6%B1%82%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/"
+    >ajax post请求下载文件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/18/Javascript/ajax-post%E8%AF%B7%E6%B1%82%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2021-01-18T04:00:00.000Z" itemprop="datePublished">2021-01-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Javascript/">Javascript</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>post请求携带字符串类型,list,map类型数据,后台使用<code>@RequestBody Map&lt;String,Object&gt;</code>进行接收</p>
+<p>html参考</p>
+<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Document<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://cdn.bootcdn.net/ajax/libs/jquery/1.9.0/jquery.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span></span><br><span class="line"><span class="javascript">        $(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="javascript">            $.ajax(&#123;</span></span><br><span class="line"><span class="javascript">                url: <span class="string">&#x27;http://localhost:8080/download&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                method: <span class="string">&#x27;POST&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                data: <span class="built_in">JSON</span>.stringify(&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;1231&quot;</span>, <span class="string">&quot;array&quot;</span>: [&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;123&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">12</span> &#125;] &#125;),</span></span><br><span class="line"><span class="javascript">                contentType: <span class="string">&quot;application/json&quot;</span>, <span class="comment">//必须有</span></span></span><br><span class="line"><span class="javascript">                responseType: <span class="string">&#x27;blob&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                processData: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                <span class="keyword">async</span>: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                success: <span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> url = <span class="built_in">window</span>.URL.createObjectURL(<span class="keyword">new</span> Blob([data]))</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> link = <span class="built_in">document</span>.createElement(<span class="string">&#x27;a&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    link.style.display = <span class="string">&#x27;none&#x27;</span></span></span><br><span class="line">                    link.href = url</span><br><span class="line"><span class="javascript">                    link.setAttribute(<span class="string">&#x27;download&#x27;</span>, <span class="string">&#x27;asdasd.md&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.appendChild(link)</span></span><br><span class="line">                    link.click()</span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.removeChild(link); <span class="comment">//下载完成移除元素</span></span></span><br><span class="line"><span class="javascript">                    <span class="built_in">window</span>.URL.revokeObjectURL(url); <span class="comment">//释放掉blob对象</span></span></span><br><span class="line">                &#125;,</span><br><span class="line"><span class="javascript">                error: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>用此方式是通过创建一个blob的对象来处理的，没办法得到后台设置的下载文件名，因此这块需要在前端来设置文件名。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Linux/linux上仅编译redis-cli" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -348,178 +541,6 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[Desktop Entry]</span><br><span class="line">Encoding&#x3D;UTF-8</span><br><span class="line">Type&#x3D;Application</span><br><span class="line">X-Created-By&#x3D;IDEA</span><br><span class="line">Categories&#x3D;chat;</span><br><span class="line">Icon&#x3D;idea</span><br><span class="line">Exec&#x3D;&quot;&#x2F;opt&#x2F;apps&#x2F;idea&#x2F;bin&#x2F;idea.sh&quot;</span><br><span class="line">Name&#x3D;idea</span><br><span class="line">Name[zh_CN]&#x3D;IDEA</span><br><span class="line">Comment&#x3D;IDEA</span><br><span class="line">#StartupWMClass&#x3D;WeChat.exe</span><br><span class="line">MimeType&#x3D;</span><br><span class="line">X-Deepin-CreatedBy&#x3D;com.deepin.dde.daemon.Launcher</span><br><span class="line">X-Deepin-AppID&#x3D;com.idea</span><br></pre></td></tr></table></figure>
 
 <p>X-Deepin-AppID是随意起的AppID标识不同应用，而最后保存的名称是com.idea.desktop。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Docker/deepin-v20版本安装docker" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/14/Docker/deepin-v20%E7%89%88%E6%9C%AC%E5%AE%89%E8%A3%85docker/"
-    >deepin v20版本安装docker</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/14/Docker/deepin-v20%E7%89%88%E6%9C%AC%E5%AE%89%E8%A3%85docker/" class="article-date">
-  <time datetime="2021-01-14T04:00:00.000Z" itemprop="datePublished">2021-01-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Docker/">Docker</a> / <a class="article-category-link" href="/categories/Docker/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>按照官方文档依次安装</p>
-<ol>
-<li><p>删除旧版本</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get remove docker docker-engine docker.io containerd runc</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>安装依赖及密钥</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line"></span><br><span class="line">sudo apt-get install \</span><br><span class="line">    apt-transport-https \</span><br><span class="line">    ca-certificates \</span><br><span class="line">    curl \</span><br><span class="line">    gnupg-agent \</span><br><span class="line">    software-properties-common</span><br><span class="line"></span><br><span class="line">curl -fsSL https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;debian&#x2F;gpg | sudo apt-key add -</span><br><span class="line"></span><br><span class="line">sudo apt-key fingerprint 0EBFCD88</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>安装仓库</p>
-<p>此处无法通过官方文档进行安装，但主要的命令是将仓库源添加到sources.list中</p>
-<p><code>$(lsb_release -cs)</code>此处版本标识换为debian的发行版本代号。通过<code>cat /etc/debian_version</code>查看版本号，deepin20基于debian10，版本号为buster，debain9版本代号为stretch，debian8版本代号为jessie</p>
-<p>如果使用官方命令执行add-apt-repository命令无法添加，报错</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Traceback (most recent call last):</span><br><span class="line">  File &quot;&#x2F;usr&#x2F;bin&#x2F;add-apt-repository&quot;, line 95, in &lt;module&gt;</span><br><span class="line">    sp &#x3D; SoftwareProperties(options&#x3D;options)</span><br><span class="line">  File &quot;&#x2F;usr&#x2F;lib&#x2F;python3&#x2F;dist-packages&#x2F;softwareproperties&#x2F;SoftwareProperties.py&quot;, line 109, in __init__</span><br><span class="line">    self.reload_sourceslist()</span><br><span class="line">  File &quot;&#x2F;usr&#x2F;lib&#x2F;python3&#x2F;dist-packages&#x2F;softwareproperties&#x2F;SoftwareProperties.py&quot;, line 599, in reload_sourceslist</span><br><span class="line">    self.distro.get_sources(self.sourceslist)    </span><br><span class="line">  File &quot;&#x2F;usr&#x2F;lib&#x2F;python3&#x2F;dist-packages&#x2F;aptsources&#x2F;distro.py&quot;, line 93, in get_sources</span><br><span class="line">    (self.id, self.codename))</span><br><span class="line">aptsources.distro.NoDistroTemplateException: Error: could not find a distribution template for Deepin&#x2F;n&#x2F;a</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>我们需要直接将命令放到<code>/etc/apt/sources/list</code>中，使用<code>sudo dedit /etc/apt/sources.list</code>命令打开文本编辑器，sudo的作用是权限，如果没有则只打开为只读模式。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deb [arch&#x3D;amd64] https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;debian buster stable</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>安装docker engine</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install docker-ce docker-ce-cli containerd.io</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>配置普通用户访问权限</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo gpasswd -a $USER docker</span><br><span class="line">newgrp docker</span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/监听程序及远程连接NETWORK配置" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/14/Oracle/%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E5%8F%8A%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5NETWORK%E9%85%8D%E7%BD%AE/"
-    >监听程序及远程连接NETWORK配置</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/14/Oracle/%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E5%8F%8A%E8%BF%9C%E7%A8%8B%E8%BF%9E%E6%8E%A5NETWORK%E9%85%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2021-01-14T04:00:00.000Z" itemprop="datePublished">2021-01-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>NETWORK/ADMIN/listener.ora</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"># listener.ora Network Configuration File: D:\app\chen\product\11.2.0\dbhome_1\network\admin\listener.ora</span><br><span class="line"># Generated by Oracle configuration tools.</span><br><span class="line"></span><br><span class="line">SID_LIST_LISTENER &#x3D;</span><br><span class="line">  (SID_LIST &#x3D;</span><br><span class="line">    (SID_DESC &#x3D;</span><br><span class="line">      (SID_NAME &#x3D; CLRExtProc)</span><br><span class="line">      (ORACLE_HOME &#x3D; D:\app\chen\product\11.2.0\dbhome_1)</span><br><span class="line">      (PROGRAM &#x3D; extproc)</span><br><span class="line">      (ENVS &#x3D; &quot;EXTPROC_DLLS&#x3D;ONLY:D:\app\chen\product\11.2.0\dbhome_1\bin\oraclr11.dll&quot;)</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">LISTENER &#x3D;</span><br><span class="line">  (DESCRIPTION_LIST &#x3D;</span><br><span class="line">    (DESCRIPTION &#x3D;</span><br><span class="line">      (ADDRESS &#x3D; (PROTOCOL &#x3D; IPC)(KEY &#x3D; EXTPROC1521))</span><br><span class="line">      (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; LAPTOP-2SMJEG8K)(PORT &#x3D; 1521))</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">ADR_BASE_LISTENER &#x3D; D:\app\chen</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>NETWORK/ADMIN/sqlnet.ora</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"># sqlnet.ora Network Configuration File: D:\app\chen\product\11.2.0\dbhome_1\network\admin\sqlnet.ora</span><br><span class="line"># Generated by Oracle configuration tools.</span><br><span class="line"></span><br><span class="line"># This file is actually generated by netca. But if customers choose to </span><br><span class="line"># install &quot;Software Only&quot;, this file wont exist and without the native </span><br><span class="line"># authentication, they will not be able to connect to the database on NT.</span><br><span class="line"></span><br><span class="line">#SQLNET.AUTHENTICATION_SERVICES&#x3D; (NONE)</span><br><span class="line"></span><br><span class="line">NAMES.DIRECTORY_PATH&#x3D; (TNSNAMES, EZCONNECT)</span><br><span class="line"></span><br><span class="line">ADR_BASE &#x3D; D:\app\chen\product\11.2.0\dbhome_1\log</span><br></pre></td></tr></table></figure>
-
-<p>NETWORK/ADMIN/tnsnames.ora</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"># tnsnames.ora Network Configuration File: D:\app\chen\product\11.2.0\dbhome_1\network\admin\tnsnames.ora</span><br><span class="line"># Generated by Oracle configuration tools.</span><br><span class="line"></span><br><span class="line">HSBDC &#x3D;</span><br><span class="line">  (DESCRIPTION &#x3D;</span><br><span class="line">    (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; LAPTOP-2SMJEG8K)(PORT &#x3D; 1521))</span><br><span class="line">    (CONNECT_DATA &#x3D;</span><br><span class="line">      (SERVER &#x3D; DEDICATED)</span><br><span class="line">      (SERVICE_NAME &#x3D; hsbdc)</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">ORACLR_CONNECTION_DATA &#x3D;</span><br><span class="line">  (DESCRIPTION &#x3D;</span><br><span class="line">    (ADDRESS_LIST &#x3D;</span><br><span class="line">      (ADDRESS &#x3D; (PROTOCOL &#x3D; IPC)(KEY &#x3D; EXTPROC1521))</span><br><span class="line">    )</span><br><span class="line">    (CONNECT_DATA &#x3D;</span><br><span class="line">      (SID &#x3D; CLRExtProc)</span><br><span class="line">      (PRESENTATION &#x3D; RO)</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">BTBDC &#x3D;</span><br><span class="line">  (DESCRIPTION &#x3D;</span><br><span class="line">    (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; LAPTOP-2SMJEG8K)(PORT &#x3D; 1521))</span><br><span class="line">    (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; localhost)(PORT &#x3D; 1521))</span><br><span class="line">    (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; 127.0.0.1)(PORT &#x3D; 1521))</span><br><span class="line">    (CONNECT_DATA &#x3D;</span><br><span class="line">      (SERVER &#x3D; DEDICATED)</span><br><span class="line">      (SERVICE_NAME &#x3D; btbdc)</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line">ORCL &#x3D;</span><br><span class="line">  (DESCRIPTION &#x3D;</span><br><span class="line">    (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; LAPTOP-2SMJEG8K)(PORT &#x3D; 1521))</span><br><span class="line">    (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; localhost)(PORT &#x3D; 1521))</span><br><span class="line">    (ADDRESS &#x3D; (PROTOCOL &#x3D; TCP)(HOST &#x3D; 127.0.0.1)(PORT &#x3D; 1521))</span><br><span class="line">    (CONNECT_DATA &#x3D;</span><br><span class="line">      (SERVER &#x3D; DEDICATED)</span><br><span class="line">      (SERVICE_NAME &#x3D; orcl)</span><br><span class="line">    )</span><br><span class="line">  )</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
 
       
       <!-- reward -->

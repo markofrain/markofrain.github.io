@@ -78,6 +78,137 @@
     
     
     
+    <article id="post-Vue/Vue2.0事件对象，事件冒泡，默认行为及键盘事件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E4%BA%8B%E4%BB%B6%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1%EF%BC%8C%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA%E5%8F%8A%E9%94%AE%E7%9B%98%E4%BA%8B%E4%BB%B6/"
+    >Vue2.0事件对象，事件冒泡，默认行为及键盘事件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E4%BA%8B%E4%BB%B6%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1%EF%BC%8C%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA%E5%8F%8A%E9%94%AE%E7%9B%98%E4%BA%8B%E4%BB%B6/" class="article-date">
+  <time datetime="2018-05-28T13:35:46.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="事件对象"><a href="#事件对象" class="headerlink" title="事件对象"></a>事件对象</h3><p>关于事件即v-on在指令中已经介绍过，@简写也说过,就不再说明如何声明使用了。 我们可以在调用事件方法是为方法添加参数 $event,表示一个事件实例。 在处理方法中，得到这个实参，可通过这个对象获得一些方法和作用。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;button @click=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;
+&lt;/div&gt;
+
+methods:&#123;
+            clickPrint(e,str)&#123;
+                console.log(str);
+                console.log(e);
+                console.log(e.type);
+                console.log(e.target);//获得事件的目标对象DOM
+            &#125;
+&#125;</code></pre><p>如果有多个参数，那么将$event设置为第一个参数。</p>
+<h3 id="事件冒泡"><a href="#事件冒泡" class="headerlink" title="事件冒泡"></a>事件冒泡</h3><p>当事件发生后，这个事件就要开始传播(从里到外或者从外向里)，如何阻止事件冒泡，在js中是通过stopPropagation()方法来阻止事件冒泡的。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+        &lt;div @click=&quot;printD()&quot;&gt;
+            &lt;p @click=&quot;printP()&quot;&gt;
+                &lt;button @click=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;
+            &lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</code></pre><p>此时将会出现向上冒泡情况。 只需在触发事件的指令后添加修饰符.stop</p>
+<pre><code>&lt;button @click.stop=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;</code></pre><h3 id="默认行为"><a href="#默认行为" class="headerlink" title="默认行为"></a>默认行为</h3><p>阻止默认行为，在js中调用event.preventDefault(),在Vue中，添加修饰符.prevent</p>
+<pre><code>&lt;a href=&quot;http://www.baidu.com&quot; target=&quot;_blank&quot; @click.stop=&quot;study&quot;&gt;链接&lt;/a&gt;</code></pre><p>此时添加.stop将不会链接到百度的主页面。 当然也可以通过串联的方式</p>
+<pre><code>&lt;a href=&quot;http://www.baidu.com&quot; target=&quot;_blank&quot; @click.stop.prevent=&quot;study&quot;&gt;链接&lt;/a&gt;</code></pre><p>还有，如：.once，只触发一次事件</p>
+<pre><code>&lt;button v-on:click.once=&quot;clickOnce()&quot;&gt;该事件只触发一次&lt;/button&gt;</code></pre><h3 id="键盘事件"><a href="#键盘事件" class="headerlink" title="键盘事件"></a>键盘事件</h3><p>{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。 键盘事件有@keydown,@keypress,@keyup 案例:</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+        &lt;input type=&quot;text&quot; name=&quot;username&quot; @keydown=&quot;show($event)&quot;/&gt;&lt;br/&gt;
+        &lt;input type=&quot;text&quot; name=&quot;name&quot; @keydown.enter=&quot;print($event)&quot;/&gt;&lt;br/&gt;
+        &lt;input type=&quot;text&quot; name=&quot;one&quot; @keydown.up=&quot;print($event)&quot;/&gt;&lt;br/&gt;
+&lt;/div&gt;
+
+methods:&#123;
+    show(e)&#123;
+        console.log(e.target.value);
+    &#125;,
+    print(e)&#123;
+        console.log(e.keyCode);
+    &#125;
+&#125;</code></pre><p>我们运行这个例子，第一个文本框中，每更改一次文本值就会触发一次事件 第二个文本框中，无论如何更改，只要按下enter键才能触发事件，这个.enter是内置的。下面的.up也是内置的，还可以使用keyCode值,如13是enter，使用.13也可以代表enter。 还有许多内置的，可以一一试试，也可以自定义全局的。</p>
+<h4 id="全局配置keyCodes"><a href="#全局配置keyCodes" class="headerlink" title="全局配置keyCodes"></a>全局配置keyCodes</h4><p>类型：{ [key: string]: number | Array<number> } key为string类型，职位number类型或number类型的数组。 全局的，要定义在Vue实例外面</p>
+<pre><code>Vue.config.keyCode=&#123;
+    a:65,
+    space:32
+&#125;
+
+&lt;input type=&quot;text&quot; name=&quot;add&quot; @keydown.space=&quot;print($event)&quot;/&gt;
+&lt;input type=&quot;text&quot; name=&quot;add&quot; @keydown.a=&quot;print($event)&quot;/&gt;</code></pre><p>一般我们定义的这些，如果是可输出字符的键的话，就会先触发事件再输出这个字符。 配置全局的语法都是Vue.config.xxx，不只有keyCodes，还有很多。 <a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/api/#%E5%85%A8%E5%B1%80%E9%85%8D%E7%BD%AE">全局配置</a></p>
+<hr>
+<h3 id="还有其他修饰符"><a href="#还有其他修饰符" class="headerlink" title="还有其他修饰符"></a>还有其他修饰符</h3><ul>
+<li>.stop - 调用 event.stopPropagation()。</li>
+<li>.prevent - 调用 event.preventDefault()。</li>
+<li>.capture - 添加事件侦听器时使用 capture 模式。</li>
+<li>.self - 只当事件是从侦听器绑定的元素本身触发时才触发回调。</li>
+<li>.{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。</li>
+<li>.native - 监听组件根元素的原生事件。</li>
+<li>.once - 只触发一次回调。</li>
+<li>.left - (2.2.0) 只当点击鼠标左键时触发。</li>
+<li>.right - (2.2.0) 只当点击鼠标右键时触发。</li>
+<li>.middle - (2.2.0) 只当点击鼠标中键时触发。</li>
+<li>.passive - (2.3.0) 以 { passive: true } 模式添加侦听器 更多，需要查看官网<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/api/#v-on">v-on指令事件描述</a></li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0常用指令" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 

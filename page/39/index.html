@@ -78,6 +78,94 @@
     
     
     
+    <article id="post-中间件/阿里云域名加速服务阿里云CDN加速配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/03/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E9%98%BF%E9%87%8C%E4%BA%91%E5%9F%9F%E5%90%8D%E5%8A%A0%E9%80%9F%E6%9C%8D%E5%8A%A1%E9%98%BF%E9%87%8C%E4%BA%91CDN%E5%8A%A0%E9%80%9F%E9%85%8D%E7%BD%AE/"
+    >阿里云域名加速服务阿里云CDN加速配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/03/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E9%98%BF%E9%87%8C%E4%BA%91%E5%9F%9F%E5%90%8D%E5%8A%A0%E9%80%9F%E6%9C%8D%E5%8A%A1%E9%98%BF%E9%87%8C%E4%BA%91CDN%E5%8A%A0%E9%80%9F%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2018-06-03T08:19:34.000Z" itemprop="datePublished">2018-06-03</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/aliyun/">aliyun</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="CDN简介"><a href="#CDN简介" class="headerlink" title="CDN简介"></a>CDN简介</h3><p>内容分发网络(Content Delivery Network，简称CDN),是建立并覆盖在承载网之上、由分布在不同区域的边缘节点服务器群共同组成的分布式网络，替代以Web Server为中心的传统数据传输模式。 CDN的工作原理就是将您源站的资源缓存到各地的边缘节点服务器（CDN节点）上，用户请求访问和获取资源时，就近调用CDN节点上缓存的资源。这种分布式数据传输方式，使得用户请求的资源不需要都回您的源站获取，从而避免网络拥塞、分担源站压力，保证用户访问资源的速度和体验。 不多说功能其他文字叙述了。 <strong>简而言之它能加速网站内容的加载速度，从而缩短网页加载时间。通俗的讲就是，变快。</strong> <strong>使用场景:</strong> 使用场景和相应的配置，是根据你自身站点的业务来选择的。 阿里云CDN主要提供了以下五种业务类型。</p>
+<ul>
+<li>图片小文件加速(网站应用静态加速)</li>
+<li>大文件下载</li>
+<li>音视频点播加速</li>
+<li>直播流媒体加速</li>
+<li>全站加速</li>
+<li>移动加速</li>
+</ul>
+<p>对于目前的小站点，博客，论坛等。不应用视频，下载方面的站点，可以选择<strong>图片小文件加速</strong>。 站点中有动态资源(php,aps等)和静态资源(img,js,css等)，对于大量静态资源的加载，需要静态分离。动态资源放在服务器上，静态资源使用阿里云CDN加速，可以结合OSS对象存储使用。 可以有效地搞定网站图片，短视频等内容分发。 阿里云CDN帮助文档的架构图: <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/CDN1.jpg?x-oss-process=image/resize,m_fill,w_1024,h_602" alt=""> 接下来就开始动手做。</p>
+<h3 id="开通CDN"><a href="#开通CDN" class="headerlink" title="开通CDN"></a>开通CDN</h3><p>在开启阿里云CDN服务之前，确保你的域名是一定要备案通过的。 <strong>1.开通CDN服务</strong> 首先进入阿里云的CDN产品详情页,你可以查看产品价格，以及帮助文档。计费分为两种，按带宽峰值和按流量。根据在产品价格页面查看，按理来说，按流量应该便宜一点吧。你也可以选择CDN流量包。 在你进入产品详情页后，有<strong>立即开通</strong>，这就是开通服务入口，选择按流量开通，如果服务已经开通，则之即进入CDN控制台。服务开通后你就可以选择左边的流量包套餐，根据情况选择。 <strong>2.</strong> 添加加速域名 进入控制台后，选择左侧的域名管理或者右边的添加域名。填写你要<strong>加速的域名</strong>,业务类型就是<strong>图片小文件</strong>，源站类型选择<strong>IP</strong>,并输入你的<strong>服务器IP地址</strong>，端口默认80，点击下一步。域名将添加完成。 可能需要一到两天的审核，在域名管理的列表中，状态栏会显示<strong>审核中</strong>。不过很快，十分钟左右不到就显示<strong>正在运行</strong>了。不过此时还没有加速，审核完毕后，会给你一个CNAME值 点击配置按钮,确保你的回源设置中，源站设置的值是<strong>你的服务器地址:80</strong>,回源host的值设置成你的<strong>加速域名</strong>。 <strong>3.</strong> 配置域名解析CNAME 在解析之前，你需要知道，A解析与CNAME解析会存在冲突，在此处你可以了解<a target="_blank" rel="noopener" href="https://help.aliyun.com/knowledge_detail/39787.html?spm=a2c4g.11186623.2.5.itkqEW">解析规则冲突</a> 当你确保你的第2步没有问题后，打开云解析CDN控制台，找到你的加速域名对应解析。不要加速域名是fsats.com,解析到xiaoxx6.com里了。点击<strong>添加解析</strong>。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/CDN_CNAME.png" alt=""> 主机记录:</p>
+<ul>
+<li>如果你在加速域名填写xxx.com那么此处写@</li>
+<li>如果加速域名填写<em>.xxx.com,那么此处写</em></li>
+<li>如果加速域名写<a target="_blank" rel="noopener" href="http://www.xxx.com，那么此处写www">www.xxx.com，那么此处写www</a></li>
+</ul>
+<p>记录值填写，CDN控制台加速域名审核通过后那个CNAME值，然后点击确定。 如果提示你，与A类型解析冲突，那么你就删除A记录类型吧。 <strong>4.</strong> 查看是否生效 不同服务商，响应时间不同。通过cmd，ping 加速域名,如果被转向 <em>.</em>kunlun*.com,则解析生效。 <img src="http://docs-aliyun.cn-hangzhou.oss.aliyun-inc.com/assets/pic/27112/cn_zh/1511517154079/77.png" alt=""> 等待几分钟，等等那边服务处理完毕，你就可以访问了。 具体阿里云的帮助文档你可以<a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/27144.html?spm=a2c4g.11186623.2.17.XHf6tO">访问你这里</a>还有<a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/27101.html?spm=a2c4g.11186623.6.539.fLo0Z8">这里</a></p>
+<h3 id="设置CDN中的问题"><a href="#设置CDN中的问题" class="headerlink" title="设置CDN中的问题"></a>设置CDN中的问题</h3><p>在我设置CDN之前，发现A和CNAME是冲突的，你要是在A里设置@记录，在CNAME里就不能设置@了。于是配置成@，发现访问域名不能到站点。随后提交工单询问开发人员发现，<strong>回源设置错误</strong>。 当我回到源站设置，将其值改为服务器地址，回源host改为加速域名，这样它就能回源访问。 当你为<strong>源站设置</strong>设置为服务器地址后，就已经<strong>指向了服务器</strong>，这样你就可以删除A记录，而<strong>回源host</strong>就是自定义在CDN节点回源过程中所需访问的WEB服务器域名。根据更改之后，过了几分钟就可以访问了。 然而对于<strong>源站设置</strong>这个设置，帮助文档中说，推荐和OSS对象存储搭配，当我将源站设置成OSS地址时才发生了上述现象。 这个CDN加速就是对于域名网站的CDN加速，你可以在你的云虚拟主机的管理中，左侧的CDN管理，在页面上就可以看见是否开启了CDN加速。 对于OSS对象存储而言，它也有CDN加速,就是<strong>源站类型</strong>这个选项，一个是OSS域名，一个是IP，一个是源站域名。它选择的就是OSS域名，也就是OSS外网域名。我就是这个问题错的，不过对于其加速的选择，源站的选择有什么区别，有什么作用我还没明白。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CDN/" rel="tag">CDN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-中间件/阿里云OSS对象存储的作为媒体库上传" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -553,217 +641,6 @@ router.go(3)
 // 如果 history 记录不够用，那就默默地失败呗
 router.go(-100)
 router.go(100)</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue2.0组件3" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B63/"
-    >Vue2.0组件3</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B63/" class="article-date">
-  <time datetime="2018-05-29T13:02:31.000Z" itemprop="datePublished">2018-05-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="非父子组件之间的通信"><a href="#非父子组件之间的通信" class="headerlink" title="非父子组件之间的通信"></a>非父子组件之间的通信</h2><p>非父子关系的两个组件之间也需要通信。在简单的场景下，可以使用一个空的 Vue 实例作为事件总线。 这句话呢是官网原话，我们看官网的说明和例子。其通信的方法还是，<strong>触发与监听事件</strong>的方式，与子向父组件传递数据为相同的元素。也就是$emit方法和$on方法。接下来我们具体看看这个例子。 <strong>示例:</strong></p>
-<pre><code>//空的Vue实例
-var emptyVm = new Vue();
-
-var vm = new Vue(&#123;
-    el:&apos;#app&apos;,
-    components:&#123;
-        &apos;xiao-x&apos;:xiao_x,
-        &apos;xiao-y&apos;:xiao_y,
-        &apos;xiao-z&apos;:xiao_z
-    &#125;
-&#125;);
-
-var xiao_x=&#123;
-    template:&apos;&lt;div&gt;&lt;p&gt;组件x:&#123; &#123;name&#125;&#125;&lt;/p&gt;&lt;button @click=&quot;send&quot;&gt;传递数据&lt;/button&gt;&lt;/div&gt;&apos;,
-    data:function()&#123;
-        return &#123;
-            name:&apos;xiao&apos;,
-            username:&apos;yao&apos;
-        &#125;
-    &#125;,
-    methods:&#123;
-        send()&#123;
-            emptyVm.$emit(&apos;xiao-x&apos;,this.name);
-        &#125;
-    &#125;
-&#125;
-var xiao_y=&#123;
-    template:&apos;&lt;div&gt;&lt;p&gt;组件y:&#123; &#123;age&#125;&#125;&lt;/p&gt;&lt;button @click=&quot;send&quot;&gt;传递数据&lt;/button&gt;&lt;/div&gt;&apos;,
-    data:function()&#123;
-        return &#123;
-            age:18
-        &#125;
-    &#125;,
-    methods:&#123;
-        send()&#123;
-            emptyVm.$emit(&apos;xiao-y&apos;,this.age);
-        &#125;
-    &#125;
-&#125;
-
-var xiao_z=&#123;
-    template:&apos;&lt;p&gt;组件z:&#123; &#123;name&#125;&#125;,&#123; &#123;age&#125;&#125;&lt;/p&gt;&apos;,
-    data:function()&#123;
-        return &#123;
-            name:&apos;&apos;,
-            age:&apos;&apos;
-        &#125;
-    &#125;
-&#125;
-
-&lt;div id=&quot;app&quot;&gt;
-    &lt;xiao-x&gt;&lt;/xiao-x&gt;
-    &lt;xiao-y&gt;&lt;/xiao-y&gt;
-    &lt;xiao-z&gt;&lt;/xiao-z&gt;
-&lt;/div&gt;</code></pre><p>运行实例，我们已经把该准备的已经准备好了。 x和y的模板呢，因为不想写那么高的篇幅代码，就是稍微挤一块了，接下来就是点击按钮触发，然后z里监听就好了。 但是需要注意：<strong>必须先监听，再触发</strong>，才能够监听到，不然当然是接收不到的。所以监听一定是在触发执行前的。 <strong>代码:</strong></p>
-<pre><code>//x组件的事件方法
-methods:&#123;
-    send()&#123;
-        emptyVm.$emit(&apos;xiao-x&apos;,this.name);
-    &#125;
-&#125;
-//y的事件方法
-methods:&#123;
-    send()&#123;
-        emptyVm.$emit(&apos;xiao-y&apos;,this.age);
-    &#125;
-&#125;
-//z，在挂载组件模板实例之后就进行监听，所以需要用的生命周期钩子函数
-mounted()&#123;//模板挂载之后执行
-    emptyVm.$on(&apos;xiao-x&apos;, function(name)&#123;
-        vm.$children[2].name=name;
-    &#125;);
-    emptyVm.$on(&apos;xiao-y&apos;,age =&gt;&#123;
-        this.age=age;
-    &#125;);
-&#125;</code></pre><p>好了，如此如此这般这般，就好了。运行案例，单击按钮，可以显示出来。 <strong>接下来，解释一下这些代码:</strong> - 首先呢，三个组件拉出来单独写，没问题吧，声明一个变量，对象赋给它就行 - 然后就是模板问题，我单独挤一块了，代码多的话还是单独写吧 - 按钮单击事件触发这个这个这两个事件，给它参数，另一边写上事件名，加上回调函数。 - 然后，你要想监听必须是在触发前吧，什么时候最早，挂载之后呗，所以整个$on监听，回调函数里跟上实参，就好了。 <strong>说明两个问题:</strong> <strong>1.就是为什么要空的Vue实例:</strong> <strong>主要就是创建一个空的实例作为中转站</strong>继而能通过$emit和$on这两个函数来实现，为什么呢，因为，这两个方法是，<strong>触发当前实例/监听当前实例</strong>的事件，所以你需要一个共同的实例啊，所以搞一个空的实例咯。 <strong>2.$on事件方法回调问题:</strong> 就例如第一个监听name的，如果你直接this.name=name,你觉得会不会错。之所以这么写肯定是有问题的，但是它不会报错。只不过赋值赋错了，打印一下这个this，通过_data属性在某个实例中的方法_发现这个this是emptyVm的实例，因为回调函数里的this是新的this，指向emptyVm。所以你需要得到z的组件实例才能复制，所以通过$children得到子实例才能赋值，当然这个$children可能是有问题的，因为官方说它是不保证顺序的，我也不太清楚。 所以你需要使用的是第二种，箭头的方式，它不会在函数中创建一个新的this。 箭头函数的格式是：实参列表 =&gt;{//操作内容}</p>
-<h2 id="slot内容分发"><a href="#slot内容分发" class="headerlink" title="slot内容分发"></a>slot内容分发</h2><p>原意是，槽，插槽的意思。 有什么用呢，我们先看一下下面的例子。 <strong>示例:</strong></p>
-<pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;my-xiao&gt;&lt;/my-xiao&gt;
-&lt;/div&gt;
-
-&lt;template id=&quot;xiao&quot;&gt;
-    &lt;div&gt;
-        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
-    &lt;/div&gt;
-&lt;/template&gt;
-
-components:&#123;
-    &apos;my-xiao&apos;:&#123;
-        template:&apos;#xiao&apos;,
-        data:function()&#123;
-            return &#123;
-                name:&apos;xiao&apos;,
-                arr:[&apos;what&apos;,&apos;are&apos;,&apos;you&apos;,&apos;doing&apos;]
-            &#125;
-        &#125;
-    &#125;
-&#125;</code></pre><p>这个例子看起来也没怎么样，但是呢，你会发现<my-xiao>这个标签内空空如也，是不是想加点文字，可是无论怎么加，都会被模板替换掉的。 <strong>1.</strong> 这时，就是使用插槽的时候了，它<strong>使用<slot></slot>标签来显示，只需将它放在模板中任意为值即可，要注意的是，slot也是一个组件哦,内置的</strong>。</p>
-<pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;my-xiao&gt;空空如也 —— 任然&lt;/my-xiao&gt;
-&lt;/div&gt;
-
-&lt;template id=&quot;xiao&quot;&gt;
-    &lt;div&gt;
-        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
-        &lt;slot&gt;&lt;/slot&gt;&lt;!-- 代替标签内的文字 --&gt;
-    &lt;/div&gt;
-&lt;/template&gt;
-//或者，当内有内容时显示默认的值
-&lt;template id=&quot;xiao&quot;&gt;
-    &lt;div&gt;
-        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
-        &lt;slot&gt;只有在没有要分发的内容时才会显示。&lt;/slot&gt;
-    &lt;/div&gt;
-&lt;/template&gt;</code></pre><p><strong>2.</strong>你更可以在<my-xiao>标签中添加任意代码，如常用的ul，li.同样会显示。</p>
-<pre><code>&lt;my-xiao&gt;
-        &lt;ul&gt;
-            &lt;li&gt;111&lt;/li&gt;
-            &lt;li&gt;222&lt;/li&gt;
-            &lt;li&gt;333&lt;/li&gt;
-            &lt;li&gt;444&lt;/li&gt;
-        &lt;/ul&gt;
-&lt;/my-xiao&gt;</code></pre><p><strong>3.</strong>你可以通过<slot></slot>指定某个元素在模板的哪里显示</p>
-<pre><code>&lt;my-xiao&gt;
-    &lt;ul slot=&quot;one&quot;&gt;
-        &lt;li&gt;111&lt;/li&gt;
-        &lt;li&gt;222&lt;/li&gt;
-        &lt;li&gt;333&lt;/li&gt;
-        &lt;li&gt;444&lt;/li&gt;
-    &lt;/ul&gt;
-    &lt;p slot=&quot;QianSiXian&quot;&gt;你褴褛我彩绘 并肩行过山与水&lt;/p&gt;
-&lt;/my-xiao&gt;
-
-&lt;template id=&quot;xiao&quot;&gt;
-    &lt;div&gt;
-        &lt;slot name=&quot;QianSiXian&quot;&gt;&lt;/slot&gt;
-        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
-        &lt;slot name=&quot;one&quot;&gt;&lt;/slot&gt;
-    &lt;/div&gt;
-&lt;/template&gt;</code></pre><p>你可以为元素设置slot属性，并随意设置一个值，只需要在slot标签中通过name指定名称即可。</p>
-
       
       <!-- reward -->
       

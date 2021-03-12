@@ -78,6 +78,101 @@
     
     
     
+    <article id="post-Oracle/Oracle相关子查询与非相关子查询" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/18/Oracle/Oracle%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%B8%8E%E9%9D%9E%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2/"
+    >Oracle相关子查询与非相关子查询</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/18/Oracle/Oracle%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%B8%8E%E9%9D%9E%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2/" class="article-date">
+  <time datetime="2018-06-18T10:21:19.000Z" itemprop="datePublished">2018-06-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="子查询"><a href="#子查询" class="headerlink" title="子查询"></a>子查询</h3><p>子查询就是嵌套查询，嵌套在另外一个语句中的SELECT语句。为何有这种情况？因为where子句可能是不固定的，需要select查询得到值作为父select的where条件。</p>
+<h4 id="相关子查询"><a href="#相关子查询" class="headerlink" title="相关子查询"></a>相关子查询</h4><p>相关子查询的执行依赖于外部查询。多数情况下是子查询的WHERE子句中引用了外部查询表。 <strong>1.子查询返回单行</strong></p>
+<pre><code>SELECT *  FROM product WHERE productId = (SELECT productId FROM product WHERE productName=&apos;晨光签字笔&apos;);</code></pre><p>一般像子查询而言，都先执行括号里的，执行子SELECT，得到值后作为父SELECT的条件再进行查询。 <strong>2.子查询返回多行</strong></p>
+<pre><code>SELECT *  FROM product WHERE productId IN (SELECT productId FROM product WHERE productName=&apos;晨光签字笔&apos; OR productName=&apos;康师傅矿泉水&apos;);</code></pre><p>子查询返回的值为多行值，需要用到IN关键字，用法与前面一致，只是括号中返回多行时不能用“=”号。 除此之外也可以使用比较关键字SOME,ANY,ALL，需要配合&lt;、、&gt;=使用。</p>
+<ul>
+<li>ANY:满足子查询结果的任意一个,与&gt;、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询中的最小值</strong>。&lt;、、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询列表中的最大值</strong>。</li>
+<li>SOME:与ANY类似</li>
+<li>ALL:满足子查询的所有结果,与&gt;、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询列表中的最大值</strong>。</li>
+</ul>
+<p><strong>ANY示例:</strong></p>
+<pre><code>select *  from product where providerId &gt;any (select providerId from provider where providerId != 1);</code></pre><p>子查询中供应商编号！=1，返回2,3,4号，那么将返回产品中对应供应商编号大于最小值(2)的数据,即返回的产品都是编号为3和4的。 <strong>SOME示例:</strong></p>
+<pre><code>select * from product where productPrice =some(select productPrice from product where productId=3) and productId!=3;</code></pre><p>SOME与ANY用法一样，只不过ANY多用于非“=”的环境。 该语句表示的是，产品价格为 编号3价格 的产品，但不包括编号3。它将返回其他与产品3价格相等的产品。 <strong>ALL示例：</strong></p>
+<pre><code>select  * from product where productPrice &lt; ALL (select productPrice from product where productId=3);</code></pre><p>找出比指定产品的价格低的产品。 当然，这个语句里完全可以不使用ALL关键字，因为子查询结果只返回了一行。</p>
+<h4 id="非相关子查询"><a href="#非相关子查询" class="headerlink" title="非相关子查询"></a>非相关子查询</h4><p>EXISTS与NOT EXISTS关键字 EXISTS用于检查子查询是否至少会返回一行数据，该子查询实际上并不返回任何数据，而是返回值True或False EXISTS 指定一个子查询，检测 行 的存在。</p>
+<pre><code>select  * from product where exists (select productName from product where productId=1);</code></pre><p>NOT EXISTS则与之相反</p>
+<h4 id="子查询应用于FROM子句"><a href="#子查询应用于FROM子句" class="headerlink" title="子查询应用于FROM子句"></a>子查询应用于FROM子句</h4><p>同时，子查询，子SELECT语句不仅可以放在条件，也可以放在seelct列表中，FROM子句中。 <strong>FROM示例:</strong> 查询员工的编号，姓名，以及对应部门id，和部门平均薪资</p>
+<pre><code>select emp.eId,emp.eName,d_avg_sal.deptId,d_avg_sal.avgsal from emp,(select deptId,avg(sal) avgsal from dept group by deptId) d_avg_sal where emp.deptId=d_avg_sal.deptId;</code></pre><p>我们只需要将FROM子句中子查询查出来的数据作为一张表来看。</p>
+<h4 id="通过子查询创建表"><a href="#通过子查询创建表" class="headerlink" title="通过子查询创建表"></a>通过子查询创建表</h4><pre><code>CREATE TABLE semp
+as
+select * from emp where empId&gt;100;</code></pre><p>而当然，像这些语句也能使用表连接查询，那既然表连接能办到还需要子查询呢，因为子查询能办到的表连接不一定可以。 <strong>其实两者各有使用情况:</strong></p>
+<ul>
+<li>如果SELECT列表中包含的列来自多个表，那么这时连接的优势比较大。</li>
+<li>如果需要及时计算聚集值并用于外部查询比较时，子查询就比较优势，如max(column)列值作为父查询的条件值。</li>
+</ul>
+<p>不过，仍要考虑其效率和难易程度。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle表连接查询" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -606,94 +701,6 @@ ALTER TABLE  dept MODIFY name NULL;</code></pre>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-中间件/阿里云域名加速服务阿里云CDN加速配置" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/03/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E9%98%BF%E9%87%8C%E4%BA%91%E5%9F%9F%E5%90%8D%E5%8A%A0%E9%80%9F%E6%9C%8D%E5%8A%A1%E9%98%BF%E9%87%8C%E4%BA%91CDN%E5%8A%A0%E9%80%9F%E9%85%8D%E7%BD%AE/"
-    >阿里云域名加速服务阿里云CDN加速配置</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/03/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E9%98%BF%E9%87%8C%E4%BA%91%E5%9F%9F%E5%90%8D%E5%8A%A0%E9%80%9F%E6%9C%8D%E5%8A%A1%E9%98%BF%E9%87%8C%E4%BA%91CDN%E5%8A%A0%E9%80%9F%E9%85%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2018-06-03T08:19:34.000Z" itemprop="datePublished">2018-06-03</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/aliyun/">aliyun</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="CDN简介"><a href="#CDN简介" class="headerlink" title="CDN简介"></a>CDN简介</h3><p>内容分发网络(Content Delivery Network，简称CDN),是建立并覆盖在承载网之上、由分布在不同区域的边缘节点服务器群共同组成的分布式网络，替代以Web Server为中心的传统数据传输模式。 CDN的工作原理就是将您源站的资源缓存到各地的边缘节点服务器（CDN节点）上，用户请求访问和获取资源时，就近调用CDN节点上缓存的资源。这种分布式数据传输方式，使得用户请求的资源不需要都回您的源站获取，从而避免网络拥塞、分担源站压力，保证用户访问资源的速度和体验。 不多说功能其他文字叙述了。 <strong>简而言之它能加速网站内容的加载速度，从而缩短网页加载时间。通俗的讲就是，变快。</strong> <strong>使用场景:</strong> 使用场景和相应的配置，是根据你自身站点的业务来选择的。 阿里云CDN主要提供了以下五种业务类型。</p>
-<ul>
-<li>图片小文件加速(网站应用静态加速)</li>
-<li>大文件下载</li>
-<li>音视频点播加速</li>
-<li>直播流媒体加速</li>
-<li>全站加速</li>
-<li>移动加速</li>
-</ul>
-<p>对于目前的小站点，博客，论坛等。不应用视频，下载方面的站点，可以选择<strong>图片小文件加速</strong>。 站点中有动态资源(php,aps等)和静态资源(img,js,css等)，对于大量静态资源的加载，需要静态分离。动态资源放在服务器上，静态资源使用阿里云CDN加速，可以结合OSS对象存储使用。 可以有效地搞定网站图片，短视频等内容分发。 阿里云CDN帮助文档的架构图: <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/CDN1.jpg?x-oss-process=image/resize,m_fill,w_1024,h_602" alt=""> 接下来就开始动手做。</p>
-<h3 id="开通CDN"><a href="#开通CDN" class="headerlink" title="开通CDN"></a>开通CDN</h3><p>在开启阿里云CDN服务之前，确保你的域名是一定要备案通过的。 <strong>1.开通CDN服务</strong> 首先进入阿里云的CDN产品详情页,你可以查看产品价格，以及帮助文档。计费分为两种，按带宽峰值和按流量。根据在产品价格页面查看，按理来说，按流量应该便宜一点吧。你也可以选择CDN流量包。 在你进入产品详情页后，有<strong>立即开通</strong>，这就是开通服务入口，选择按流量开通，如果服务已经开通，则之即进入CDN控制台。服务开通后你就可以选择左边的流量包套餐，根据情况选择。 <strong>2.</strong> 添加加速域名 进入控制台后，选择左侧的域名管理或者右边的添加域名。填写你要<strong>加速的域名</strong>,业务类型就是<strong>图片小文件</strong>，源站类型选择<strong>IP</strong>,并输入你的<strong>服务器IP地址</strong>，端口默认80，点击下一步。域名将添加完成。 可能需要一到两天的审核，在域名管理的列表中，状态栏会显示<strong>审核中</strong>。不过很快，十分钟左右不到就显示<strong>正在运行</strong>了。不过此时还没有加速，审核完毕后，会给你一个CNAME值 点击配置按钮,确保你的回源设置中，源站设置的值是<strong>你的服务器地址:80</strong>,回源host的值设置成你的<strong>加速域名</strong>。 <strong>3.</strong> 配置域名解析CNAME 在解析之前，你需要知道，A解析与CNAME解析会存在冲突，在此处你可以了解<a target="_blank" rel="noopener" href="https://help.aliyun.com/knowledge_detail/39787.html?spm=a2c4g.11186623.2.5.itkqEW">解析规则冲突</a> 当你确保你的第2步没有问题后，打开云解析CDN控制台，找到你的加速域名对应解析。不要加速域名是fsats.com,解析到xiaoxx6.com里了。点击<strong>添加解析</strong>。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/CDN_CNAME.png" alt=""> 主机记录:</p>
-<ul>
-<li>如果你在加速域名填写xxx.com那么此处写@</li>
-<li>如果加速域名填写<em>.xxx.com,那么此处写</em></li>
-<li>如果加速域名写<a target="_blank" rel="noopener" href="http://www.xxx.com，那么此处写www">www.xxx.com，那么此处写www</a></li>
-</ul>
-<p>记录值填写，CDN控制台加速域名审核通过后那个CNAME值，然后点击确定。 如果提示你，与A类型解析冲突，那么你就删除A记录类型吧。 <strong>4.</strong> 查看是否生效 不同服务商，响应时间不同。通过cmd，ping 加速域名,如果被转向 <em>.</em>kunlun*.com,则解析生效。 <img src="http://docs-aliyun.cn-hangzhou.oss.aliyun-inc.com/assets/pic/27112/cn_zh/1511517154079/77.png" alt=""> 等待几分钟，等等那边服务处理完毕，你就可以访问了。 具体阿里云的帮助文档你可以<a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/27144.html?spm=a2c4g.11186623.2.17.XHf6tO">访问你这里</a>还有<a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/27101.html?spm=a2c4g.11186623.6.539.fLo0Z8">这里</a></p>
-<h3 id="设置CDN中的问题"><a href="#设置CDN中的问题" class="headerlink" title="设置CDN中的问题"></a>设置CDN中的问题</h3><p>在我设置CDN之前，发现A和CNAME是冲突的，你要是在A里设置@记录，在CNAME里就不能设置@了。于是配置成@，发现访问域名不能到站点。随后提交工单询问开发人员发现，<strong>回源设置错误</strong>。 当我回到源站设置，将其值改为服务器地址，回源host改为加速域名，这样它就能回源访问。 当你为<strong>源站设置</strong>设置为服务器地址后，就已经<strong>指向了服务器</strong>，这样你就可以删除A记录，而<strong>回源host</strong>就是自定义在CDN节点回源过程中所需访问的WEB服务器域名。根据更改之后，过了几分钟就可以访问了。 然而对于<strong>源站设置</strong>这个设置，帮助文档中说，推荐和OSS对象存储搭配，当我将源站设置成OSS地址时才发生了上述现象。 这个CDN加速就是对于域名网站的CDN加速，你可以在你的云虚拟主机的管理中，左侧的CDN管理，在页面上就可以看见是否开启了CDN加速。 对于OSS对象存储而言，它也有CDN加速,就是<strong>源站类型</strong>这个选项，一个是OSS域名，一个是IP，一个是源站域名。它选择的就是OSS域名，也就是OSS外网域名。我就是这个问题错的，不过对于其加速的选择，源站的选择有什么区别，有什么作用我还没明白。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/CDN/" rel="tag">CDN</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
 
 
     </footer>

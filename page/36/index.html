@@ -78,6 +78,364 @@
     
     
     
+    <article id="post-Java/JAXB——从Java对象到XML的序列化和反序列化" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/07/Java/JAXB%E2%80%94%E2%80%94%E4%BB%8EJava%E5%AF%B9%E8%B1%A1%E5%88%B0XML%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"
+    >JAXB——从Java对象到XML的序列化和反序列化</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/07/Java/JAXB%E2%80%94%E2%80%94%E4%BB%8EJava%E5%AF%B9%E8%B1%A1%E5%88%B0XML%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="article-date">
+  <time datetime="2018-07-07T02:58:31.000Z" itemprop="datePublished">2018-07-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="JAXB"><a href="#JAXB" class="headerlink" title="JAXB"></a>JAXB</h2><p>JAXB（Java Architecture for XML Binding) 是一个业界的标准，是一项可以根据XML Schema产生Java类的技术。该过程中，JAXB也提供了将XML实例文档反向生成Java对象树的方法，并能将Java对象树的内容重新写到XML实例文档。从另一方面来讲，JAXB提供了快速而简便的方法将XML模式绑定到Java表示，从而使得Java开发者在Java应用程序中能方便地结合XML数据和处理函数。 哔哔说了那么多，简单地说就是，Java对象生成XML文档，XML文档反向生成Java对象。</p>
+<h4 id="在JDK中JAXB重要的类和接口-抽象类"><a href="#在JDK中JAXB重要的类和接口-抽象类" class="headerlink" title="在JDK中JAXB重要的类和接口/抽象类"></a>在JDK中JAXB重要的类和接口/抽象类</h4><ul>
+<li>JAXB类：提供marshaller和unmarshaller方法，用来序列化和反序列化。</li>
+<li>JAXBContext类:应用的入口，创建自身实例，创建Marshaller,Ummarshaller,Binder实例</li>
+<li>Marshaller接口:将Java对象序列化为XML数据</li>
+<li>Unmarshaller接口:将XML数据反序列化为Java对象</li>
+</ul>
+<h4 id="在JDK中JAXB重要的注解"><a href="#在JDK中JAXB重要的注解" class="headerlink" title="在JDK中JAXB重要的注解"></a>在JDK中JAXB重要的注解</h4><ul>
+<li>@XmlRootElement：将Java类或枚举类型映射到XML元素,该元素唯一，并且作为XML根元素</li>
+<li>@XmlElement：将Java类的一个属性映射到与属性同名的一个XML元素</li>
+<li>@XmlAttribute：将Java类的一个属性映射到与属性同名的一个XML属性</li>
+<li>@XmlType：将Java类或枚举类型映射到XML模式类型，propOrder属性定义字段生成的XML节点顺序</li>
+<li>@XmlAccessorType(XmlAccessType.FIELD)：控制字段或属性的序列化,<strong>FIELD</strong>表示自动绑定Java类中的每个非静态的，非瞬态的字段到XML，除非@XmlTransient，<strong>PROPERTY</strong>表示绑定Java中所有getter/setter的属性到XML，除非标识了@XmlTransient,<strong>PUBLIC_MEMBER</strong>表示每个public修饰的成员变量和每个通过公共getter/setter访问的变量自动绑定到XML,除非标识了@XmlTransient，<strong>NONE</strong>表示所有属性都不映射到XML,除非使用专门注解(@XmlElement或@XmlAttribute等专门标注的)。</li>
+<li>@XmlAccessorOrder：控制JAXB绑定类中的属性和字段的排序,XmlAccessOrder枚举的<strong>UNDEFINED</strong>值表示不定义排序,<strong>ALPHABETICAL</strong>表示按字母顺序排序</li>
+<li>@XmlElementWrapper：对于数组或集合，生成一个包装该数组或集合的XML元素(包装器)</li>
+<li>@XmlJavaTypeAdapter:使用定制的适配器（即扩展抽象类XmlAdapter并覆盖marshal()和unmarshal()方法）</li>
+<li>@XmlTransient：对于标注了此注解的java属性，将不被映射。</li>
+</ul>
+<h4 id="简单的类转换"><a href="#简单的类转换" class="headerlink" title="简单的类转换"></a>简单的类转换</h4><pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType
+public class Student implements Serializable&#123;
+
+    private static final long serialVersionUID = -7928946466770112840L;
+
+    public Student() &#123;
+    &#125;
+
+    public Student(Integer id, String name, Integer age, String sex, String address) &#123;
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.sex = sex;
+        this.address = address;
+    &#125;
+
+    private Integer id;
+    private String name;
+
+    private Integer age;
+    private String sex;
+    private String address;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+    @XmlAttribute
+    public Integer getAge() &#123;
+        return age;
+    &#125;
+
+
+    public void setAge(Integer age) &#123;
+        this.age = age;
+    &#125;
+
+    public String getSex() &#123;
+        return sex;
+    &#125;
+
+    public void setSex(String sex) &#123;
+        this.sex = sex;
+    &#125;
+
+    public String getAddress() &#123;
+        return address;
+    &#125;
+
+    public void setAddress(String address) &#123;
+        this.address = address;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Student&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&apos;&quot; + name + &apos;\&apos;&apos; +
+                &quot;, age=&quot; + age +
+                &quot;, sex=&apos;&quot; + sex + &apos;\&apos;&apos; +
+                &quot;, address=&apos;&quot; + address + &apos;\&apos;&apos; +
+                &apos;&#125;&apos;;
+    &#125;</code></pre><p>测试:</p>
+<pre><code>Student student = new Student(1,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+File file = new File(&quot;student.xml&quot;);
+
+JAXBContext jaxbContext = JAXBContext.newInstance(Student.class);
+Marshaller marshaller = jaxbContext.createMarshaller();
+marshaller.setProperty(Marshaller.JAXB_ENCODING, &quot;UTF-8&quot;);
+marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
+marshaller.setProperty(Marshaller.JAXB_FRAGMENT, false);
+marshaller.marshal(student, file);
+System.out.println(&quot;序列化完成&quot;);
+或
+JAXB.marshal(student,file);
+
+//反序列化
+File file = new File(&quot;student.xml&quot;);
+JAXBContext jaxbContext = null;
+
+jaxbContext = JAXBContext.newInstance(Student.class);
+Unmarshaller marshaller = jaxbContext.createUnmarshaller();
+Student student = (Student) marshaller.unmarshal(file);
+System.out.println(student);
+或
+JAXB.unmarshal(file, Student.class);</code></pre><ol>
+<li><p>在为实体类添加注解时，向@XmlElement,@XmlAttrbute,@XmlTransient都放在getter方法上,以避免放在私有属性上导致重复映射报错。</p>
+</li>
+<li><p>@XmlAccessorType注解的四个值用于指定什么情况将什么字段进行映射</p>
+</li>
+<li><p>@XmlType注解的propOrder属性用于列出属性映射的顺序，但如果某个值为空或未映射，将发生错误。如果不指定顺序，将出现未知的顺序。</p>
+</li>
+<li><p>如果想直接系列化或反序列化，可以直接使用JAXB的静态方法。如果需要在转换前设置一些必要的参数，可以通过创建Marshaller实例设置，和Unmarshaller都由JAXBContext对象创建的。JAXB的静态。</p>
+</li>
+<li><p>如果你指定了propOrder属性，那么除了标注了@XmlTransient注解的，其他的都必须写在属性中。</p>
+</li>
+</ol>
+<h4 id="简单对象处理"><a href="#简单对象处理" class="headerlink" title="简单对象处理"></a>简单对象处理</h4><p>将对象类型作为实体类的一个属性，设置与实体类一致。</p>
+<pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType(propOrder = &#123;&quot;school&quot;,&quot;grade&quot;,&quot;classes&quot;&#125;)
+public class Classes &#123;
+
+    public Classes() &#123;
+    &#125;
+
+    public Classes(String school, String grade, String classes) &#123;
+        this.school = school;
+        this.grade = grade;
+        this.classes = classes;
+    &#125;
+    //学校
+    private String school;
+    //年级
+    private String grade;
+    //班级
+    private String classes;
+
+    public String getSchool() &#123;
+        return school;
+    &#125;
+
+    public void setSchool(String school) &#123;
+        this.school = school;
+    &#125;
+
+    public String getGrade() &#123;
+        return grade;
+    &#125;
+
+    public void setGrade(String grade) &#123;
+        this.grade = grade;
+    &#125;
+    @XmlElement(name = &quot;class&quot;)
+    public String getClasses() &#123;
+        return classes;
+    &#125;
+
+    public void setClasses(String classes) &#123;
+        this.classes = classes;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Classes&#123;&quot; +
+                &quot;school=&apos;&quot; + school + &apos;\&apos;&apos; +
+                &quot;, grade=&apos;&quot; + grade + &apos;\&apos;&apos; +
+                &quot;, classes=&apos;&quot; + classes + &apos;\&apos;&apos; +
+                &apos;&#125;&apos;;
+    &#125;
+&#125;</code></pre><p>测试</p>
+<pre><code>Student student = new Student(1,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+student.setClasses(new Classes(&quot;xxx学校&quot;,&quot;三年级&quot;,&quot;十一班&quot;));
+File file = new File(&quot;class-student.xml&quot;);
+JAXB.marshal(student, file);</code></pre><ol>
+<li>如果要指定对象属性的xml元素名称，在@XmlRootElement中指定是不起作用的，必需要在实体类的对象属性getter方法上通过@XmlElement的name属性指定。</li>
+</ol>
+<h4 id="集合对象的操作"><a href="#集合对象的操作" class="headerlink" title="集合对象的操作"></a>集合对象的操作</h4><p>需要在集合对象上添加@XmlElementWrapper注解 注释Student类中的Classes对象以及propOrder属性中的值，然后我们再重新创建一个Classes2类</p>
+<pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType(propOrder = &#123;&quot;grade&quot;,&quot;classs&quot;,&quot;student&quot; &#125;)
+public class Classes2 implements Serializable &#123;
+
+    public Classes2() &#123;
+    &#125;
+
+    public Classes2(String grade, String classs) &#123;
+        this.grade = grade;
+        this.classs = classs;
+    &#125;
+
+    private static final long serialVersionUID = 3265433234257907279L;
+
+    private String grade;
+    //class不可用，直接在后面加个s吧
+    private String classs;
+
+    private List&lt;Student&gt; student;
+
+    @XmlAttribute
+    public String getGrade() &#123;
+        return grade;
+    &#125;
+
+    public void setGrade(String grade) &#123;
+        this.grade = grade;
+    &#125;
+    @XmlAttribute
+    public String getClasss() &#123;
+        return classs;
+    &#125;
+
+    public void setClasss(String classs) &#123;
+        this.classs = classs;
+    &#125;
+    @XmlElementWrapper(name = &quot;students&quot;)
+    public List&lt;Student&gt; getStudent() &#123;
+        return student;
+    &#125;
+
+    public void setStudent(List&lt;Student&gt; student) &#123;
+        this.student = student;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Classes2&#123;&quot; +
+                &quot;grade=&apos;&quot; + grade + &apos;\&apos;&apos; +
+                &quot;, classs=&apos;&quot; + classs + &apos;\&apos;&apos; +
+                &quot;, students=&quot; + student +
+                &apos;&#125;&apos;;
+    &#125;
+&#125;</code></pre><p>测试</p>
+<pre><code>Classes2 classes2 = new Classes2(&quot;三年级&quot;,&quot;十一班&quot;);
+List&lt;Student&gt; students = new ArrayList&lt;Student&gt;();
+
+Student student1 = new Student(123,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+Student student2 = new Student(124,&quot;Li&quot;,19,&quot;女&quot;,&quot;北京丰台&quot;);
+students.add(student1);
+students.add(student2);
+classes2.setStudent(students);
+
+JAXB.marshal(classes2, file);
+
+//反序列化
+File file = new File(&quot;class-student.xml&quot;);
+Classes2 classes2 = JAXB.unmarshal(file, Classes2.class);
+System.out.println(classes2);</code></pre><ol>
+<li><p>在不加上@XmlElementWrapper注解时，是没问题的，只是直接把多个student显示出来了，外层parent没有一个students元素包裹着，如果你指定这个注解，那么外侧就会包裹住了。可根据自己的情况。</p>
+</li>
+<li><p>集合属性的属性名作为每个集合元素的xml名称，而@XmlElementWrapper注解指定的name值将是包裹外侧元素的名称。所以建议集合属性名称不带s，而注解的name值带s。</p>
+</li>
+<li><p>属性的顺序也是可以在propOrder属性中指定的,其中属性作为属性的顺序，元素作为元素的顺序。</p>
+</li>
+<li><p>不管如何操作，都肯定涉及到文件，那就会有FileNotFoundException的异常，所以需要捕获，我这里既没有写了,开发中使用以防万一。</p>
+</li>
+</ol>
+<h4 id="格式化处理"><a href="#格式化处理" class="headerlink" title="格式化处理"></a>格式化处理</h4><p>修改Student类，添加birth属性,（别忘了propOrder添加birth）,并配置日期转换适配器</p>
+<pre><code>public class DateFormtAdapter extends XmlAdapter&lt;String,Date&gt; &#123;
+
+    private static DateFormat format = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+
+    public Date unmarshal(String v) throws Exception &#123;
+        return format.parse(v);
+    &#125;
+
+    public String marshal(Date v) throws Exception &#123;
+        return format.format(v);
+    &#125;
+&#125;
+
+
+@XmlJavaTypeAdapter(DateFormtAdapter.class)
+public Date getBirth() &#123;
+    return birth;
+&#125;</code></pre><p>之后只需要为Student对象setBirth属性就好。 <strong>注:如果你在测试中出现了问题，则注意看测试下面的1,2,3,4标号问题，是否出现了一些失误。</strong></p>
+<h4 id="部分代码"><a href="#部分代码" class="headerlink" title="部分代码"></a>部分代码</h4><p>使用idea开发工具，maven项目，mavenHelper插件更利于maven依赖包管理 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/learnxml.rar">下载地址</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JAXB/" rel="tag">JAXB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-XML/XML的使用——DOM4J以及XPath语法" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -690,191 +1048,6 @@ COMMIT;</code></pre><p>END;</p>
 </li>
 </ul>
 
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle PLSQL异常处理" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"
-    >Oracle PL/SQL异常处理</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="article-date">
-  <time datetime="2018-06-26T13:59:17.000Z" itemprop="datePublished">2018-06-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="PL-SQL异常"><a href="#PL-SQL异常" class="headerlink" title="PL/SQL异常"></a>PL/SQL异常</h3><p>PL/SQL运行过程中可能出现错误，有程序本身原因或者来自法开发人员自定义的数据，而所有的这些错误我们称为异常。 为了使程序更具有健壮性，需要捕获这些异常并进行处理。当异常发生时，程序会调到异常块处，将控制权限交给异常处理程序。 例如一个数除以0时，会导致异常发生，并提示出错误号。而除以0的异常属于Oracle内部定义异常。 <strong>处理异常的语法:</strong></p>
-<pre><code>EXCEPTION
-    WHEN exception1 [OR exception2...] THEN
-        statement...
-    WHEN exception3 [OR exception4...] THEN
-        statement...
-    [WHEN OTHERS THEN statement..]</code></pre><p><strong>语法解释:</strong></p>
-<ul>
-<li>EXCEPTION表示异常块的关键字</li>
-<li>WHEN exception THEN则是用来匹配异常名称，并执行对应的语句</li>
-<li>WHEN OTHERS THEN则表示当其他异常都不匹配时，执行对应的语句</li>
-</ul>
-<p>这个异常代码放在那，在最开始PL/SQL结构中就写了,加上EXCEPTION,通常就是这样的:</p>
-<pre><code>DECLARE
-BEGIN
-EXECEPTION
-END;</code></pre><p>Oracle中的异常分为三类:</p>
-<ul>
-<li>预定义异常</li>
-<li>非预定义异常(官网的说法是<strong>内部定义异常</strong>)</li>
-<li>自定义异常</li>
-</ul>
-<h4 id="预定义异常"><a href="#预定义异常" class="headerlink" title="预定义异常"></a>预定义异常</h4><p>Oracle中为每个错误提供一个错误号，而捕获异常则需要异常有名称。Oracle提供了一些已经定义好名称的常用异常，就是预定义异常。</p>
-<p>Exception</p>
-<p>ORA Error</p>
-<p>Condition</p>
-<p>CASE_NOT_FOUND</p>
-<p>ORA-06592</p>
-<p>case语句中，when子句没有匹配条件，且没有else语句，则触发该异常</p>
-<p>NO_DATA_FOUND</p>
-<p>ORA-01403</p>
-<p>不存在请求的行时出现，当引用引用已删除的元素时，也会触发</p>
-<p>TOO_MANY_ROWS</p>
-<p>ORA-01422</p>
-<p>执行SELECT INTO语句后返回多行时出现</p>
-<p>DUP_VAL_ON_INDEX</p>
-<p>ORA-00001</p>
-<p>试图将重复值插入在唯一索引的列时触发异常</p>
-<p>VALUE_ERROR</p>
-<p>ORA-06502</p>
-<p>赋值时，产生大小错误限制或变量长度不够时，引发异常</p>
-<p>ZERO_DIVIDE</p>
-<p>ORA-01476</p>
-<p>除数为0的时候引发该异常</p>
-<p>STORAGE_ERROR</p>
-<p>ORA-6500</p>
-<p>内存溢出或破坏时引发</p>
-<p>TIMEOUT_ON_RESOURCE</p>
-<p>ORA-00051</p>
-<p>等待资源超时引发该异常</p>
-<p>CURSOR_ALREADY_OPEN</p>
-<p>ORA-06511</p>
-<p>打开一个已经打开的游标引发该异常</p>
-<p>INVALID_CURSOR</p>
-<p>ORA-1001</p>
-<p>执行一个未打开的游标时出现</p>
-<p>ACCESS_INTO_NULL</p>
-<p>ORA-6530</p>
-<p>未初始化对象时</p>
-<p>当然，预定义异常也不止这些，这些只是在开发中比较常用的异常。到Oracle12c为止，一共提供了25中预定义异常。利用下面的语句可查看Oracle的预定义异常。</p>
-<pre><code>SELECT *  FROM DBA_SOURCE WHERE NAME=&apos;STANDARD&apos; AND TEXT LIKE &apos;%EXCEPTION_INIT%&apos;;</code></pre><p><strong>示例:</strong> 就拿除以0的例子.</p>
-<pre><code>DECLARE
-    v_num number(8);
-BEGIN
-    v_num := 20/0;
-EXCEPTION
-    WHEN ZERO_DIVIDE THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;除数为0&apos;);
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;其他异常&apos;);
-END;</code></pre><p>当除数出现0时，程序会马上进入异常捕获部分，当发生的异常和列表中的异常名称匹配成功时，执行对应语句，异常匹配的顺序是从上往下的,所以尽量把合适的异常放在第一位。</p>
-<h4 id="非预定义异常-内部定义异常"><a href="#非预定义异常-内部定义异常" class="headerlink" title="非预定义异常(内部定义异常)"></a>非预定义异常(内部定义异常)</h4><p>Oracle中有很多异常都是非预定义异常。他们只有错误编号和错误描述，而没有名称是不能被异常捕获的。 为了解决该问题，Oralce允许开发人员为这些异常添加一个名称，使它们被异常捕获到。 <strong>注：用户声明名称的内部定义异常仍然是内部定义的异常，而不是用户定义的异常</strong> 为一个非预定义异常定义名称需要如下步骤: 1. 声明一个异常的名称 2. 把名称与异常编号相互关联 <strong>声明部分定义异常名称:</strong></p>
-<pre><code>exception_name EXCEPTION;</code></pre><p>将定义好的异常与错误编号关联起来，需使用如下语句</p>
-<pre><code>PRAGMA EXCEPTION_INIT(exception_name,exception_code)； </code></pre><p><strong>示例:</strong></p>
-<pre><code>DECLARE
-    v_id provider.providerId%TYPE :=456;
-    my_exception EXCEPTION;
-    PRAGMA EXCEPTION_INIT(my_exception, -2291);
-BEGIN
-    UPDATE PRODUCT SET providerId = v_id where productId = 8;
-EXCEPTION
-    WHEN my_exception THEN
-      DBMS_OUTPUT.PUT_LINE(&apos;违反完整约束条件&apos;);
-      DBMS_OUTPUT.PUT_LINE(SQLCODE);
-      DBMS_OUTPUT.PUT_LINE(SQLERRM);
-      ROLLBACK;
-END;</code></pre><p>这样可以捕获异常，可能你会不太清楚SQL CODE是多少，没办法关联。我似乎也没有找到办法。只能在开发时尝试通过SQLCODE函数获得错误号，SQLERRM获得错误信息。</p>
-<h4 id="自定义异常"><a href="#自定义异常" class="headerlink" title="自定义异常"></a>自定义异常</h4><p>通常我们想自己定义异常，来控制自己的业务情况，比如产品数量不为负数，生产日期等，预定义和非预定义都无法捕获。 <strong>语法:</strong></p>
-<pre><code>--声明异常
-exception_name EXCEPTION;
---抛出异常
-RAISE exception_name;</code></pre><p><strong>自定义异常示例:</strong></p>
-<pre><code>DECLARE
-    v_price product.productPrice%TYPE;      ---产品数量
-    my_price_excep EXCEPTION;
-BEGIN
-    select productPrice INTO v_price FROM product WHERE productId=1;
-    IF v_price&lt;=0 THEN
-        RAISE my_price_excep;
-    END IF;
-EXCEPTION
-    WHEN my_price_excep THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;价格不正确，需大于0&apos;);
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;出现其他错误&apos;);
-END;</code></pre><p>该例子看起来似乎没有什么意义，只是介绍如何使用。</p>
-<h4 id="重新定义错误消息"><a href="#重新定义错误消息" class="headerlink" title="重新定义错误消息"></a>重新定义错误消息</h4><p>RAISE_EXCEPTION_ERROR存储过程可以重新定义异常错误信息。用于抛出一个异常并给异常赋予一个错误号以及错误信息。</p>
-<pre><code>RAISE_EXCEPTION_ERROR(error_number,error_message[,&#123; TRUE | FALSE &#125;]);</code></pre><p>错误号的范围是-20,000到-20,999。错误信息是文本字符串，最多为2048字节。 TRUE和FALSE表示是添加(TRUE)进错误堆(ERROR STACK)还是覆盖(overwrite)错误堆(FALSE)。缺省情况下是FALSE。 <strong>示例:</strong></p>
-<pre><code>DECLARE
-    v_num number(8);
-BEGIN
-    v_num := 20;
-  IF v_num&gt;10 THEN
-    raise_application_error(-20000,&apos;错误&apos;);
-  END IF;
-END;</code></pre>
       
       <!-- reward -->
       

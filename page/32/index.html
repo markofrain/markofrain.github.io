@@ -78,6 +78,86 @@
     
     
     
+    <article id="post-Javascript/在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/"
+    >在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-09-16T11:24:23.000Z" itemprop="datePublished">2018-09-16</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/JS/">JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="关于js-ajax方法的success函数执行问题"><a href="#关于js-ajax方法的success函数执行问题" class="headerlink" title="关于js ajax方法的success函数执行问题"></a>关于js ajax方法的success函数执行问题</h2><p>首先对于ajax的success和post，get的回调函数都是同一中，都是成功后要执行的函数，这时肯定的。 那问题是什么？ 在执行ajax的success回调函数时，可能你会由返回值，由外部去获得这个值，但是外部却无法获得这个值，也不是说无法获得，只是时间点不对。当调用包含ajax方法时得到的返回值是undefined,随后执行后面的代码，当所有代码执行完成后它才返回你需要的那个返回值。 你可以写个简单的示例：</p>
+<ul>
+<li>定义一个普通方法来调用带有ajax的方法</li>
+<li>然后在该普通方法调用ajax方法之后输出这个返回值</li>
+<li>然后在ajax的方法中，在回调方法success里输出你ajax请求操作成功后返回的result值。</li>
+</ul>
+<p>通过执行你会发现，先弹出你的 返回值，而且返回值是undefined的，随后再弹出你的result值，有值。 那为什么会这样，通过js调试发现，当你执行到$.post(…),$.get(…),$.ajax({…})这行之后，它会直接跳到ajax末尾的”}”去，也就是说回掉函数没有执行，随后返回到上一级输出你的返回值，导致是未定义的变量，随后当代码执行完之后，代码又进入jquery.min.js中，弹出了回掉函数中的result的弹框。 就是这样一种情况，如果你想要获得ajax回调的返回结果，并对结果进行判断或其他操作，它是得不到值的。 那么么为什么会这样，一篇博客中说出了道理，起始也是一个ajax底层的问题，也不是多困难。 答:ajax默认是异步传递的。<strong>它不会暂停它之后代码的执行。在后面代码执行时，ajax肯定还没有返回数据</strong>。如果不理解异步传递。请记住，ajax()之后不要写需要用到ajax返回数据的代码。<strong>所有需要用到ajax返回数据的代码都要放到success回调函数中</strong>。 将后面需要用到的都放在success中，这个确实是一个方法，但可能可用性不太好。但是如果你把async设置为false，好像仍然能解决问题。 这样就引出了后面的第二个问题，因为当你在同一页面或同一层窗口中不太需要success的返回值或其他返回值，因为既然在同一页面你可以再success中判断并直接调用其他方法。所以没不要获得返回值。而另一种情况就是通过对话框做form表单操作，也就是把form的增该不单独放页面中，而是放在弹出框里，这样就相当于是一个iframe，多个一层框架，有一个父子窗口的关系。</p>
+<h2 id="父窗口与子窗口函数的互相调用"><a href="#父窗口与子窗口函数的互相调用" class="headerlink" title="父窗口与子窗口函数的互相调用"></a>父窗口与子窗口函数的互相调用</h2><p>对于这个问题，也就是刚才引出的话题。只需要调用就好。 <strong>对于子窗口调用父窗口的方法:</strong></p>
+<pre><code>window.parent.xxx;//xxx就是父窗口的的方法</code></pre><p>我为什么会用到这个，因为我需要再父窗口弹出一个右下角的提示小窗，所以如果再子窗口里，窗口大小太小，也不好看，所以操作完成后再父窗口中显示。 <strong>对于父窗口调用子窗口的方法</strong></p>
+<pre><code>document.getElementById(&quot;#iframe&quot;).contentWindow.xxx;</code></pre><p>document.getElementById(“#iframe”)就是获得子窗口的iframe Document对象，然后通过contentWindow来调用方法。 <strong>对于兄弟级别的窗口</strong> 需要先获得父级dom，再获得子窗口的dom。也相当于子窗口转到父窗口再转到另一个子窗口。</p>
+<pre><code>window.parent.$(&quot;#childFrm&quot;)[0].contentWindow.xxx;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-XML/XML XSTL技术笔记 XML样式表" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -865,105 +945,6 @@ xml中
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/cannot backup or copy active file in NOARCHIVELOG mode" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/"
-    >数据库ORA-19602 cannot backup or copy active file in NOARCHIVELOG mode</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/" class="article-date">
-  <time datetime="2018-09-07T01:17:37.000Z" itemprop="datePublished">2018-09-07</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>此错误的起源再，使用了RMAN的backup database命令</p>
-<pre><code>RMAN&gt; backup database;
-
-Starting backup at 07-SEP-18
-using channel ORA_DISK_1
-channel ORA_DISK_1: starting full datafile backup set
-channel ORA_DISK_1: specifying datafile(s) in backup set
-RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
-ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode
-continuing other job steps, job failed will not be re-run
-channel ORA_DISK_1: starting full datafile backup set
-channel ORA_DISK_1: specifying datafile(s) in backup set
-including current control file in backup set
-including current SPFILE in backup set
-channel ORA_DISK_1: starting piece 1 at 07-SEP-18
-channel ORA_DISK_1: finished piece 1 at 07-SEP-18
-piece handle=/data/oracle/flash_recovery_area/ORCL/backupset/2018_09_07/o1_mf_ncsnf_TAG20180907T090021_fs3mf6o4_.bkp tag=TAG20180907T090021 comment=NONE
-channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
-RMAN-00571: ===========================================================
-RMAN-00569: =============== ERROR MESSAGE STACK FOLLOWS ===============
-RMAN-00571: ===========================================================
-
-RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
-ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode</code></pre><p>​    </p>
-<p>原因是该数据库运行再非归档模式。 我们知道Oracle中 重做日志文件被分为若干组，当一组重做日志被写满，ORACLE就开始写下一组，这叫做日志切换。切换是以循环的方式进行的，即当最后一组写满后又从第一 组开始写。所以如果只有重做日志，即oracle运行在非归档模式下，当遇到数据文件丢失或损坏时，oracle很难保证能够完全恢复数据库，因为可能所 需的重做记录因为因重做日志循环被覆盖掉了。但在归档方式下，归档日志进程会把切换后的重做日志文件复制到归档日志文件，我们可以把归档日志文件看成是重 做日志文件的备份，但归档日志文件是脱机的，即除了在进行复制时，ORACLE数据库在正常运行时是不会关注归档日志文件的。 所以我们应该把数据库改为归档模式。 需要将数据库运行在归档模式</p>
-<pre><code>shutdown immediate;-- 关闭数据库
-startup mount;-- 启动数据库到mount状态
-alter database archivelog;-- 修改数据库为归档模式
-alter database open;-- 打开数据库</code></pre><p>之后便可以备份了</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
 
 
     </footer>

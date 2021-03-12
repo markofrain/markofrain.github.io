@@ -78,6 +78,191 @@
     
     
     
+    <article id="post-Oracle/Oracle PLSQL异常处理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"
+    >Oracle PL/SQL异常处理</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="article-date">
+  <time datetime="2018-06-26T13:59:17.000Z" itemprop="datePublished">2018-06-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="PL-SQL异常"><a href="#PL-SQL异常" class="headerlink" title="PL/SQL异常"></a>PL/SQL异常</h3><p>PL/SQL运行过程中可能出现错误，有程序本身原因或者来自法开发人员自定义的数据，而所有的这些错误我们称为异常。 为了使程序更具有健壮性，需要捕获这些异常并进行处理。当异常发生时，程序会调到异常块处，将控制权限交给异常处理程序。 例如一个数除以0时，会导致异常发生，并提示出错误号。而除以0的异常属于Oracle内部定义异常。 <strong>处理异常的语法:</strong></p>
+<pre><code>EXCEPTION
+    WHEN exception1 [OR exception2...] THEN
+        statement...
+    WHEN exception3 [OR exception4...] THEN
+        statement...
+    [WHEN OTHERS THEN statement..]</code></pre><p><strong>语法解释:</strong></p>
+<ul>
+<li>EXCEPTION表示异常块的关键字</li>
+<li>WHEN exception THEN则是用来匹配异常名称，并执行对应的语句</li>
+<li>WHEN OTHERS THEN则表示当其他异常都不匹配时，执行对应的语句</li>
+</ul>
+<p>这个异常代码放在那，在最开始PL/SQL结构中就写了,加上EXCEPTION,通常就是这样的:</p>
+<pre><code>DECLARE
+BEGIN
+EXECEPTION
+END;</code></pre><p>Oracle中的异常分为三类:</p>
+<ul>
+<li>预定义异常</li>
+<li>非预定义异常(官网的说法是<strong>内部定义异常</strong>)</li>
+<li>自定义异常</li>
+</ul>
+<h4 id="预定义异常"><a href="#预定义异常" class="headerlink" title="预定义异常"></a>预定义异常</h4><p>Oracle中为每个错误提供一个错误号，而捕获异常则需要异常有名称。Oracle提供了一些已经定义好名称的常用异常，就是预定义异常。</p>
+<p>Exception</p>
+<p>ORA Error</p>
+<p>Condition</p>
+<p>CASE_NOT_FOUND</p>
+<p>ORA-06592</p>
+<p>case语句中，when子句没有匹配条件，且没有else语句，则触发该异常</p>
+<p>NO_DATA_FOUND</p>
+<p>ORA-01403</p>
+<p>不存在请求的行时出现，当引用引用已删除的元素时，也会触发</p>
+<p>TOO_MANY_ROWS</p>
+<p>ORA-01422</p>
+<p>执行SELECT INTO语句后返回多行时出现</p>
+<p>DUP_VAL_ON_INDEX</p>
+<p>ORA-00001</p>
+<p>试图将重复值插入在唯一索引的列时触发异常</p>
+<p>VALUE_ERROR</p>
+<p>ORA-06502</p>
+<p>赋值时，产生大小错误限制或变量长度不够时，引发异常</p>
+<p>ZERO_DIVIDE</p>
+<p>ORA-01476</p>
+<p>除数为0的时候引发该异常</p>
+<p>STORAGE_ERROR</p>
+<p>ORA-6500</p>
+<p>内存溢出或破坏时引发</p>
+<p>TIMEOUT_ON_RESOURCE</p>
+<p>ORA-00051</p>
+<p>等待资源超时引发该异常</p>
+<p>CURSOR_ALREADY_OPEN</p>
+<p>ORA-06511</p>
+<p>打开一个已经打开的游标引发该异常</p>
+<p>INVALID_CURSOR</p>
+<p>ORA-1001</p>
+<p>执行一个未打开的游标时出现</p>
+<p>ACCESS_INTO_NULL</p>
+<p>ORA-6530</p>
+<p>未初始化对象时</p>
+<p>当然，预定义异常也不止这些，这些只是在开发中比较常用的异常。到Oracle12c为止，一共提供了25中预定义异常。利用下面的语句可查看Oracle的预定义异常。</p>
+<pre><code>SELECT *  FROM DBA_SOURCE WHERE NAME=&apos;STANDARD&apos; AND TEXT LIKE &apos;%EXCEPTION_INIT%&apos;;</code></pre><p><strong>示例:</strong> 就拿除以0的例子.</p>
+<pre><code>DECLARE
+    v_num number(8);
+BEGIN
+    v_num := 20/0;
+EXCEPTION
+    WHEN ZERO_DIVIDE THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;除数为0&apos;);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;其他异常&apos;);
+END;</code></pre><p>当除数出现0时，程序会马上进入异常捕获部分，当发生的异常和列表中的异常名称匹配成功时，执行对应语句，异常匹配的顺序是从上往下的,所以尽量把合适的异常放在第一位。</p>
+<h4 id="非预定义异常-内部定义异常"><a href="#非预定义异常-内部定义异常" class="headerlink" title="非预定义异常(内部定义异常)"></a>非预定义异常(内部定义异常)</h4><p>Oracle中有很多异常都是非预定义异常。他们只有错误编号和错误描述，而没有名称是不能被异常捕获的。 为了解决该问题，Oralce允许开发人员为这些异常添加一个名称，使它们被异常捕获到。 <strong>注：用户声明名称的内部定义异常仍然是内部定义的异常，而不是用户定义的异常</strong> 为一个非预定义异常定义名称需要如下步骤: 1. 声明一个异常的名称 2. 把名称与异常编号相互关联 <strong>声明部分定义异常名称:</strong></p>
+<pre><code>exception_name EXCEPTION;</code></pre><p>将定义好的异常与错误编号关联起来，需使用如下语句</p>
+<pre><code>PRAGMA EXCEPTION_INIT(exception_name,exception_code)； </code></pre><p><strong>示例:</strong></p>
+<pre><code>DECLARE
+    v_id provider.providerId%TYPE :=456;
+    my_exception EXCEPTION;
+    PRAGMA EXCEPTION_INIT(my_exception, -2291);
+BEGIN
+    UPDATE PRODUCT SET providerId = v_id where productId = 8;
+EXCEPTION
+    WHEN my_exception THEN
+      DBMS_OUTPUT.PUT_LINE(&apos;违反完整约束条件&apos;);
+      DBMS_OUTPUT.PUT_LINE(SQLCODE);
+      DBMS_OUTPUT.PUT_LINE(SQLERRM);
+      ROLLBACK;
+END;</code></pre><p>这样可以捕获异常，可能你会不太清楚SQL CODE是多少，没办法关联。我似乎也没有找到办法。只能在开发时尝试通过SQLCODE函数获得错误号，SQLERRM获得错误信息。</p>
+<h4 id="自定义异常"><a href="#自定义异常" class="headerlink" title="自定义异常"></a>自定义异常</h4><p>通常我们想自己定义异常，来控制自己的业务情况，比如产品数量不为负数，生产日期等，预定义和非预定义都无法捕获。 <strong>语法:</strong></p>
+<pre><code>--声明异常
+exception_name EXCEPTION;
+--抛出异常
+RAISE exception_name;</code></pre><p><strong>自定义异常示例:</strong></p>
+<pre><code>DECLARE
+    v_price product.productPrice%TYPE;      ---产品数量
+    my_price_excep EXCEPTION;
+BEGIN
+    select productPrice INTO v_price FROM product WHERE productId=1;
+    IF v_price&lt;=0 THEN
+        RAISE my_price_excep;
+    END IF;
+EXCEPTION
+    WHEN my_price_excep THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;价格不正确，需大于0&apos;);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;出现其他错误&apos;);
+END;</code></pre><p>该例子看起来似乎没有什么意义，只是介绍如何使用。</p>
+<h4 id="重新定义错误消息"><a href="#重新定义错误消息" class="headerlink" title="重新定义错误消息"></a>重新定义错误消息</h4><p>RAISE_EXCEPTION_ERROR存储过程可以重新定义异常错误信息。用于抛出一个异常并给异常赋予一个错误号以及错误信息。</p>
+<pre><code>RAISE_EXCEPTION_ERROR(error_number,error_message[,&#123; TRUE | FALSE &#125;]);</code></pre><p>错误号的范围是-20,000到-20,999。错误信息是文本字符串，最多为2048字节。 TRUE和FALSE表示是添加(TRUE)进错误堆(ERROR STACK)还是覆盖(overwrite)错误堆(FALSE)。缺省情况下是FALSE。 <strong>示例:</strong></p>
+<pre><code>DECLARE
+    v_num number(8);
+BEGIN
+    v_num := 20;
+  IF v_num&gt;10 THEN
+    raise_application_error(-20000,&apos;错误&apos;);
+  END IF;
+END;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle PLSQL中执行DML数据操作语言和DDL数据定义语言" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -953,101 +1138,6 @@ END;</code></pre><p>第三行v_test赋初始值，varr是VARRAY数组的类型�
 <p><strong>示例:</strong></p>
 <pre><code>select nvl(null,&apos;abc&apos;),nvl2(&apos;0&apos;,&apos;abc&apos;,123),coalesce(null,5,158) from product where productId=1;</code></pre><p>案例较为简单</p>
 <pre><code>select decode(to_char(sysdate,&apos;MM&apos;),&apos;01&apos;,&apos;一月&apos;,&apos;02&apos;,&apos;二月&apos;,&apos;06&apos;,&apos;六月&apos;,&apos;其他月份&apos;) from product where productId=1;</code></pre><p>to_char()函数中，获得值为06，则返回六月。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle相关子查询与非相关子查询" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/18/Oracle/Oracle%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%B8%8E%E9%9D%9E%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2/"
-    >Oracle相关子查询与非相关子查询</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/18/Oracle/Oracle%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%B8%8E%E9%9D%9E%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-06-18T10:21:19.000Z" itemprop="datePublished">2018-06-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="子查询"><a href="#子查询" class="headerlink" title="子查询"></a>子查询</h3><p>子查询就是嵌套查询，嵌套在另外一个语句中的SELECT语句。为何有这种情况？因为where子句可能是不固定的，需要select查询得到值作为父select的where条件。</p>
-<h4 id="相关子查询"><a href="#相关子查询" class="headerlink" title="相关子查询"></a>相关子查询</h4><p>相关子查询的执行依赖于外部查询。多数情况下是子查询的WHERE子句中引用了外部查询表。 <strong>1.子查询返回单行</strong></p>
-<pre><code>SELECT *  FROM product WHERE productId = (SELECT productId FROM product WHERE productName=&apos;晨光签字笔&apos;);</code></pre><p>一般像子查询而言，都先执行括号里的，执行子SELECT，得到值后作为父SELECT的条件再进行查询。 <strong>2.子查询返回多行</strong></p>
-<pre><code>SELECT *  FROM product WHERE productId IN (SELECT productId FROM product WHERE productName=&apos;晨光签字笔&apos; OR productName=&apos;康师傅矿泉水&apos;);</code></pre><p>子查询返回的值为多行值，需要用到IN关键字，用法与前面一致，只是括号中返回多行时不能用“=”号。 除此之外也可以使用比较关键字SOME,ANY,ALL，需要配合&lt;、、&gt;=使用。</p>
-<ul>
-<li>ANY:满足子查询结果的任意一个,与&gt;、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询中的最小值</strong>。&lt;、、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询列表中的最大值</strong>。</li>
-<li>SOME:与ANY类似</li>
-<li>ALL:满足子查询的所有结果,与&gt;、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询列表中的最大值</strong>。</li>
-</ul>
-<p><strong>ANY示例:</strong></p>
-<pre><code>select *  from product where providerId &gt;any (select providerId from provider where providerId != 1);</code></pre><p>子查询中供应商编号！=1，返回2,3,4号，那么将返回产品中对应供应商编号大于最小值(2)的数据,即返回的产品都是编号为3和4的。 <strong>SOME示例:</strong></p>
-<pre><code>select * from product where productPrice =some(select productPrice from product where productId=3) and productId!=3;</code></pre><p>SOME与ANY用法一样，只不过ANY多用于非“=”的环境。 该语句表示的是，产品价格为 编号3价格 的产品，但不包括编号3。它将返回其他与产品3价格相等的产品。 <strong>ALL示例：</strong></p>
-<pre><code>select  * from product where productPrice &lt; ALL (select productPrice from product where productId=3);</code></pre><p>找出比指定产品的价格低的产品。 当然，这个语句里完全可以不使用ALL关键字，因为子查询结果只返回了一行。</p>
-<h4 id="非相关子查询"><a href="#非相关子查询" class="headerlink" title="非相关子查询"></a>非相关子查询</h4><p>EXISTS与NOT EXISTS关键字 EXISTS用于检查子查询是否至少会返回一行数据，该子查询实际上并不返回任何数据，而是返回值True或False EXISTS 指定一个子查询，检测 行 的存在。</p>
-<pre><code>select  * from product where exists (select productName from product where productId=1);</code></pre><p>NOT EXISTS则与之相反</p>
-<h4 id="子查询应用于FROM子句"><a href="#子查询应用于FROM子句" class="headerlink" title="子查询应用于FROM子句"></a>子查询应用于FROM子句</h4><p>同时，子查询，子SELECT语句不仅可以放在条件，也可以放在seelct列表中，FROM子句中。 <strong>FROM示例:</strong> 查询员工的编号，姓名，以及对应部门id，和部门平均薪资</p>
-<pre><code>select emp.eId,emp.eName,d_avg_sal.deptId,d_avg_sal.avgsal from emp,(select deptId,avg(sal) avgsal from dept group by deptId) d_avg_sal where emp.deptId=d_avg_sal.deptId;</code></pre><p>我们只需要将FROM子句中子查询查出来的数据作为一张表来看。</p>
-<h4 id="通过子查询创建表"><a href="#通过子查询创建表" class="headerlink" title="通过子查询创建表"></a>通过子查询创建表</h4><pre><code>CREATE TABLE semp
-as
-select * from emp where empId&gt;100;</code></pre><p>而当然，像这些语句也能使用表连接查询，那既然表连接能办到还需要子查询呢，因为子查询能办到的表连接不一定可以。 <strong>其实两者各有使用情况:</strong></p>
-<ul>
-<li>如果SELECT列表中包含的列来自多个表，那么这时连接的优势比较大。</li>
-<li>如果需要及时计算聚集值并用于外部查询比较时，子查询就比较优势，如max(column)列值作为父查询的条件值。</li>
-</ul>
-<p>不过，仍要考虑其效率和难易程度。</p>
 
       
       <!-- reward -->

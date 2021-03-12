@@ -78,6 +78,171 @@
     
     
     
+    <article id="post-Java/Maven中repository和mirror的使用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/"
+    >Maven中repository和mirror的使用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2021-02-24T04:00:00.000Z" itemprop="datePublished">2021-02-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>原文参考自: <a target="_blank" rel="noopener" href="https://blog.csdn.net/sky_tree_delivery/article/details/105415048">https://blog.csdn.net/sky_tree_delivery/article/details/105415048</a></p>
+<p>本文也是在使用到geotool工具时找到原文博客描述。在此记录一下非中央仓库引入jar包的问题。</p>
+<p>repository称为仓库，是maven中储存jar包的站点，会提供pom文件、jar包等。为了使用户不配置任何仓库也可以加载资源，maven隐含地配置了maven的中央仓库（<code>name</code>属性为<code>central</code>），不论用户是否配置了自己的仓库。</p>
+<p>repository仓库在项目pom中引入后可直接进行使用仓库下的jar依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>osgeo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>OSGeo Release Repository<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://repo.osgeo.org/repository/release/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">releases</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.geotools<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>gt-referencing<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>24.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>但如果settings.xml文件中配置了,mirror标签，则mirror会对仓库进行拦截并代理下载。</p>
+<p>mirror称为镜像，起拦截器的作用，本身不存储资源，而是指向一个资源地址（url）。镜像对项目中配置的仓库进行拦截，当一个镜像的<code>mirrodOf</code>参数匹配上了仓库的<code>name</code>参数，则进行资源映射，否则使用仓库中指定的url地址请求资源。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>nexus-aliyun<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>Nexus aliyun<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果mirrorOf设置了*，则所有的jar依赖 都匹配到从此url中获取jar依赖，但aliyun中只提供中央仓库central的jar，因此部分通过其他仓库引入的jar就回获取失败。</p>
+<p>所以可以认定为mirror的优先级别大于repository，不在mirrorOf中使用*匹配。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/arcgis/" rel="tag">arcgis</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Javascript/Echarts相关属性设置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/02/22/Javascript/Echarts%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/"
+    >Echarts相关属性设置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/02/22/Javascript/Echarts%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/" class="article-date">
+  <time datetime="2021-02-22T09:20:28.154Z" itemprop="datePublished">2021-02-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/echarts/">echarts</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="通用设置"><a href="#通用设置" class="headerlink" title="通用设置"></a>通用设置</h3><h4 id="图表整体上下左右位置设置"><a href="#图表整体上下左右位置设置" class="headerlink" title="图表整体上下左右位置设置"></a>图表整体上下左右位置设置</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">grid: &#123;</span><br><span class="line">    top:20,</span><br><span class="line">    bottom: 20,</span><br><span class="line">    right:&#x27;15%&#x27;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
+
+<p>图表整体居上空白20，居下空白20，右侧空白百分之15%</p>
+<h4 id="xy轴单位设置"><a href="#xy轴单位设置" class="headerlink" title="xy轴单位设置"></a>xy轴单位设置</h4><p>name属性则为单位</p>
+<h4 id="tooltip悬浮信息自定义"><a href="#tooltip悬浮信息自定义" class="headerlink" title="tooltip悬浮信息自定义"></a>tooltip悬浮信息自定义</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">formatter: function (params) &#123;</span><br><span class="line">    return params.data.name + &quot;: &quot; + params.data.value + &quot; &quot; + res.data.body.unit</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>params具有一些属性和值。</p>
+<h3 id="坐标系图表"><a href="#坐标系图表" class="headerlink" title="坐标系图表"></a>坐标系图表</h3><h4 id="折线图x轴上的值没有与刻度线对齐"><a href="#折线图x轴上的值没有与刻度线对齐" class="headerlink" title="折线图x轴上的值没有与刻度线对齐"></a>折线图x轴上的值没有与刻度线对齐</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    boundaryGap: false, //值是否在刻度中间</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="折线图x轴的值没有显示全"><a href="#折线图x轴的值没有显示全" class="headerlink" title="折线图x轴的值没有显示全"></a>折线图x轴的值没有显示全</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    axisLabel: &#123;</span><br><span class="line">        interval: 0,</span><br><span class="line">        rotate: 30</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>interval表示间隔多少个值才显示一个值，设为0则全部显示。</p>
+<p>此时x轴密密麻麻，rotate属性设置值的倾斜角度，值越大倾斜越大</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/echarts/" rel="tag">echarts</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue相关操作" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -299,199 +464,6 @@
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
 
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-k8s/持久化存储nfs,pv和pvc" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/20/k8s/%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8nfs,pv%E5%92%8Cpvc/"
-    >持久化存储nfs,pv和pvc</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/20/k8s/%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8nfs,pv%E5%92%8Cpvc/" class="article-date">
-  <time datetime="2021-01-20T04:00:00.000Z" itemprop="datePublished">2021-01-20</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/k8s/">k8s</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="持久化存储nfs"><a href="#持久化存储nfs" class="headerlink" title="持久化存储nfs"></a>持久化存储nfs</h3><h4 id="nfs操作"><a href="#nfs操作" class="headerlink" title="nfs操作"></a>nfs操作</h4><p>pod是临时的，销毁后数据不会被存储到本地磁盘上。</p>
-<ol>
-<li>找一台专门的服务器用于挂载nfs持久化。首先在新服务需要安装<code>nfs-utils</code>，node节点上也需要安装。</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y nfs-utils</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>为nfs服务器设置挂载路径</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim &#x2F;etc&#x2F;exports</span><br><span class="line"></span><br><span class="line">&#x2F;data&#x2F;nfs *(rw,no_root_squash)</span><br></pre></td></tr></table></figure>
-
-<p>指定nfs存在/data/nfs目录。*标识可访问所有目录文件，rw为可读写，</p>
-<ul>
-<li>no_root_squash：登入 NFS 主机使用分享目录的使用者，如果是 root 的话，那么对于这个分享的目录来说，他就具有 root 的权限！这个项目『极不安全』，不建议使用！</li>
-<li>root_squash：在登入 NFS 主机使用分享之目录的使用者如果是 root 时，那么这个使用者的权限将被压缩成为匿名使用者，通常他的 UID 与 GID 都会变成 nobody 那个系统账号的身份。</li>
-</ul>
-<blockquote>
-<p>nfs的存储位置一定要预先创建出来。</p>
-</blockquote>
-<ol start="3">
-<li>nfs服务器启动nfs服务</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start nfs</span><br></pre></td></tr></table></figure>
-
-<ol start="4">
-<li>在k8s中使用nfs</li>
-</ol>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-dep1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">nfs:</span></span><br><span class="line">            <span class="attr">server:</span> <span class="number">192.168</span><span class="number">.44</span><span class="number">.134</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/data/nfs</span></span><br></pre></td></tr></table></figure>
-
-<p>deployment中使用了nfs，定义挂载nfs服务器地址和路径，绑定挂载数据卷，mountPath为容器内部挂载路径</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f nfs-nginx.yaml</span><br></pre></td></tr></table></figure>
-
-<p>启动后使用<code>kubectl exec -it pod名称 bash</code>命令进入容器内。通过进入<code>/usr/share/nginx/html</code>目录查看，没有数据，在/data/nfs中创建一个文件，然后在容器内目录中就能看到文件</p>
-<h3 id="PV和PVC"><a href="#PV和PVC" class="headerlink" title="PV和PVC"></a>PV和PVC</h3><p>因为直接配置nfs到deployment中可能不安全，因此，将nfs的配置放到PV中，也就是Kind为<code>PersistentVolume</code>的yaml。其中定义了PV的大小，读写权限，服务器和所在位置等。</p>
-<p>PVC的Kind为<code>PersistentVolumeClaim</code>，其条件定义读写权限、存储大小等这些，用于匹配已经定义的PV。再将deployment与pvc进行关联。</p>
-<p>由应用来配置pvc，pvc绑定pv。pv用来数据存储，pvc用来查找与调用。匹配方式为存储容量和匹配模式(读写)</p>
-<ol>
-<li>pv.yaml。定义模式为读写模式，大小为5G</li>
-</ol>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolume</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-pv</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">capacity:</span></span><br><span class="line">    <span class="attr">storage:</span> <span class="string">5Gi</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">nfs:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/data/nfs</span></span><br><span class="line">    <span class="attr">server:</span> <span class="number">192.168</span><span class="number">.38</span><span class="number">.131</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl get pv</span><br><span class="line">NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE</span><br><span class="line">my-pv   5Gi        RWX            Retain           Available                                   4s</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>pvc.yaml，其中包含了Deployment和PersistentVolumeClaim</li>
-</ol>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-dep1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">        <span class="attr">persistentVolumeClaim:</span></span><br><span class="line">          <span class="attr">claimName:</span> <span class="string">my-pvc</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolumeClaim</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-pvc</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">    <span class="attr">requests:</span></span><br><span class="line">      <span class="attr">storage:</span> <span class="string">5Gi</span></span><br></pre></td></tr></table></figure>
-
-
-
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl get pv,pvc</span><br><span class="line">NAME                     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   REASON   AGE</span><br><span class="line">persistentvolume&#x2F;my-pv   5Gi        RWX            Retain           Bound    default&#x2F;my-pvc                           16s</span><br><span class="line"></span><br><span class="line">NAME                           STATUS   VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span><br><span class="line">persistentvolumeclaim&#x2F;my-pvc   Bound    my-pv    5Gi        RWX                           9s</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/ajax-post请求下载文件" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/18/Javascript/ajax-post%E8%AF%B7%E6%B1%82%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/"
-    >ajax post请求下载文件</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/18/Javascript/ajax-post%E8%AF%B7%E6%B1%82%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/" class="article-date">
-  <time datetime="2021-01-18T04:00:00.000Z" itemprop="datePublished">2021-01-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Javascript/">Javascript</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>post请求携带字符串类型,list,map类型数据,后台使用<code>@RequestBody Map&lt;String,Object&gt;</code>进行接收</p>
-<p>html参考</p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Document<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://cdn.bootcdn.net/ajax/libs/jquery/1.9.0/jquery.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span></span><br><span class="line"><span class="javascript">        $(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="javascript">            $.ajax(&#123;</span></span><br><span class="line"><span class="javascript">                url: <span class="string">&#x27;http://localhost:8080/download&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                method: <span class="string">&#x27;POST&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                data: <span class="built_in">JSON</span>.stringify(&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;1231&quot;</span>, <span class="string">&quot;array&quot;</span>: [&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;123&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">12</span> &#125;] &#125;),</span></span><br><span class="line"><span class="javascript">                contentType: <span class="string">&quot;application/json&quot;</span>, <span class="comment">//必须有</span></span></span><br><span class="line"><span class="javascript">                responseType: <span class="string">&#x27;blob&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                processData: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                <span class="keyword">async</span>: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                success: <span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> url = <span class="built_in">window</span>.URL.createObjectURL(<span class="keyword">new</span> Blob([data]))</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> link = <span class="built_in">document</span>.createElement(<span class="string">&#x27;a&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    link.style.display = <span class="string">&#x27;none&#x27;</span></span></span><br><span class="line">                    link.href = url</span><br><span class="line"><span class="javascript">                    link.setAttribute(<span class="string">&#x27;download&#x27;</span>, <span class="string">&#x27;asdasd.md&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.appendChild(link)</span></span><br><span class="line">                    link.click()</span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.removeChild(link); <span class="comment">//下载完成移除元素</span></span></span><br><span class="line"><span class="javascript">                    <span class="built_in">window</span>.URL.revokeObjectURL(url); <span class="comment">//释放掉blob对象</span></span></span><br><span class="line">                &#125;,</span><br><span class="line"><span class="javascript">                error: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>用此方式是通过创建一个blob的对象来处理的，没办法得到后台设置的下载文件名，因此这块需要在前端来设置文件名。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
 
     </footer>
 

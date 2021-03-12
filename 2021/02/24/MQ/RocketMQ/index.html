@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">2.9k字</span>
+            <span class="post-count">4.2k字</span>
         </span>
     </span>
 
@@ -85,7 +85,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">12分钟</span>
+            <span class="post-count">17分钟</span>
         </span>
     </span>
 </div>
@@ -196,6 +196,47 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rocketmq.config.namesrvAddr&#x3D;192.168.38.131:9876;192.168.38.130:9876</span><br></pre></td></tr></table></figure>
 
 <p>更改后进入含pom的rockemq-console根目录下，执行<code>mvn clean package</code>即可。</p>
+<h2 id="RocketMQ-队列"><a href="#RocketMQ-队列" class="headerlink" title="RocketMQ 队列"></a>RocketMQ 队列</h2><p>RocketMQ 每个主题都会有若干个队列，分布于集群中各个 broker 上，分布规律如下</p>
+<p><img src="1.png" alt=""></p>
+<p>队列会在 broker 中抽象成一个 consumer queue，在集群模式下，每个队列每个消费组只能存在一个消费者进行订阅消费，但是一个消费者可以消费多个队列，这也保证了在集群模式下消息不会被重复消费</p>
+<p><img src="2.png" alt=""></p>
+<p>在RocketMQ开源版本中，在创建主题时，通过集群创建模式，指定主题在集群中的队列数量，比如集群中有 2 个 broker，我们创建主题时选择队列数量为 4，就会在每个 broker 中为该主题创建 4 个 队列，那么该主题在集群中就会有 4 * 2 个队列数量，这里有个不好的地方就是无法精确控制队列数量，但这个问题不大</p>
+<p>因此，RocketMQ 是依靠队列进行消费的，而队列数据通过主从同步实现消息的冗余。</p>
+<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">producer.setDefaultTopicQueueNums()</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h2 id="消息操作样例"><a href="#消息操作样例" class="headerlink" title="消息操作样例"></a>消息操作样例</h2><h3 id="生产者"><a href="#生产者" class="headerlink" title="生产者"></a>生产者</h3><h4 id="同步消息发送"><a href="#同步消息发送" class="headerlink" title="同步消息发送"></a>同步消息发送</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SendResult sendResult = producer.send(msg);</span><br></pre></td></tr></table></figure>
+
+<p>发送到broker后等待响应结果。</p>
+<h4 id="异步消息发送"><a href="#异步消息发送" class="headerlink" title="异步消息发送"></a>异步消息发送</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">producer.send(msg, <span class="keyword">new</span> SendCallback() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSuccess</span><span class="params">(SendResult sendResult)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10d OK %s %n&quot;</span>, index,</span><br><span class="line">                          sendResult.getMsgId());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onException</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10d Exception %s %n&quot;</span>, index, e);</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>增加一个回调接口，方法继续往下执行，得到响应后执行回调方法</p>
+<h4 id="单向消息发送"><a href="#单向消息发送" class="headerlink" title="单向消息发送"></a>单向消息发送</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">producer.sendOneway(msg);</span><br></pre></td></tr></table></figure>
+
+<p>无任何返回结果</p>
+<h3 id="消费者"><a href="#消费者" class="headerlink" title="消费者"></a>消费者</h3><h4 id="负载均衡消费模式"><a href="#负载均衡消费模式" class="headerlink" title="负载均衡消费模式"></a>负载均衡消费模式</h4><p>多个消费者共同消费队列消息，每个消费者处理的消息不同</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//负载均衡模式消费</span></span><br><span class="line">consumer.setMessageModel(MessageModel.CLUSTERING);</span><br><span class="line"><span class="comment">// 注册回调函数，处理消息</span></span><br><span class="line">consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerConcurrently() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ConsumeConcurrentlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; msgs,</span></span></span><br><span class="line"><span class="function"><span class="params">        ConsumeConcurrentlyContext context)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%s Receive New Messages: %s %n&quot;</span>, </span><br><span class="line">        Thread.currentThread().getName(), msgs);</span><br><span class="line">        <span class="keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h4 id="广播模式"><a href="#广播模式" class="headerlink" title="广播模式"></a>广播模式</h4><p>消费者采用广播的方式消费消息，每个消费者消费的消息都是相同的</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//广播模式消费</span><br><span class="line">consumer.setMessageModel(MessageModel.BROADCASTING);</span><br><span class="line">// 注册回调函数，处理消息</span><br><span class="line">consumer.registerMessageListener(new MessageListenerConcurrently() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public ConsumeConcurrentlyStatus consumeMessage(List&lt;MessageExt&gt; msgs,</span><br><span class="line">                                                    ConsumeConcurrentlyContext context) &#123;</span><br><span class="line">        System.out.printf(&quot;%s Receive New Messages: %s %n&quot;, </span><br><span class="line">                          Thread.currentThread().getName(), msgs);</span><br><span class="line">        return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="顺序消息"><a href="#顺序消息" class="headerlink" title="顺序消息"></a>顺序消息</h3><p>消息有序指的是可以按照消息的发送顺序来消费(FIFO)。RocketMQ可以严格的保证消息有序，可以分为分区有序或者全局有序</p>
+<p>顺序消费的原理解析，在默认的情况下消息发送会采取Round Robin轮询方式把消息发送到不同的queue(分区队列)；而<strong>消费消息的时候从多个queue上拉取消息</strong>，这种情况发送和消费是不能保证顺序。但是如果<strong>控制发送的顺序消息只依次发送到同一个queue中，消费的时候只从这个queue上依次拉取</strong>，则就保证了顺序。<u>当发送和消费参与的queue只有一个，则是全局有序</u>；如果多个queue参与，则为分区有序，即相对每个queue，消息都是有序的</p>
+<p>消息发送会存在多个队列，一个消费者只绑定一个队列，只从这一个队列中读取，发送消息时也是按队列号发送特定消息。</p>
+<p>下面用订单进行分区有序的示例。一个订单的顺序流程是：创建、付款、推送、完成。订单号相同的消息会被先后发送到同一个队列中，消费时，同一个OrderId获取到的肯定是同一个队列</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">String[] tags = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;TagA&quot;</span>, <span class="string">&quot;TagC&quot;</span>, <span class="string">&quot;TagD&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 订单列表</span></span><br><span class="line">List&lt;OrderStep&gt; orderList = <span class="keyword">new</span> Producer().buildOrders();</span><br><span class="line"></span><br><span class="line">Date date = <span class="keyword">new</span> Date();</span><br><span class="line">SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>);</span><br><span class="line">String dateStr = sdf.format(date);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">    <span class="comment">// 加个时间前缀</span></span><br><span class="line">    String body = dateStr + <span class="string">&quot; Hello RocketMQ &quot;</span> + orderList.get(i);</span><br><span class="line">    Message msg = <span class="keyword">new</span> Message(<span class="string">&quot;TopicTest&quot;</span>, tags[i % tags.length], <span class="string">&quot;KEY&quot;</span> + i, body.getBytes());</span><br><span class="line"></span><br><span class="line">    SendResult sendResult = producer.send(msg, <span class="keyword">new</span> MessageQueueSelector() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> MessageQueue <span class="title">select</span><span class="params">(List&lt;MessageQueue&gt; mqs, Message msg, Object arg)</span> </span>&#123;</span><br><span class="line">            Long id = (Long) arg;  <span class="comment">//根据订单id选择发送queue</span></span><br><span class="line">            <span class="keyword">long</span> index = id % mqs.size();</span><br><span class="line">            <span class="keyword">return</span> mqs.get((<span class="keyword">int</span>) index);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, orderList.get(i).getOrderId());<span class="comment">//订单id</span></span><br><span class="line"></span><br><span class="line">    System.out.println(String.format(<span class="string">&quot;SendResult status:%s, queueId:%d, body:%s&quot;</span>,</span><br><span class="line">                                     sendResult.getSendStatus(),</span><br><span class="line">                                     sendResult.getMessageQueue().getQueueId(),</span><br><span class="line">                                     body));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="延时消息"><a href="#延时消息" class="headerlink" title="延时消息"></a>延时消息</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Message message = <span class="keyword">new</span> Message(<span class="string">&quot;TopicTest&quot;</span>, (<span class="string">&quot;Hello scheduled message &quot;</span> + i).getBytes());</span><br><span class="line"><span class="comment">// 设置延时等级3,这个消息将在10s之后发送(现在只支持固定的几个时间,详看delayTimeLevel)</span></span><br><span class="line">message.setDelayTimeLevel(<span class="number">3</span>);</span><br><span class="line"><span class="comment">// 发送消息</span></span><br><span class="line">producer.send(message);</span><br></pre></td></tr></table></figure>
+
+<p>RocketMq并不支持任意时间的延时，需要设置几个固定的延时等级，从1s到2h分别对应着等级1到18</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org/apache/rocketmq/store/config/MessageStoreConfig.java</span></span><br><span class="line"><span class="keyword">private</span> String messageDelayLevel = <span class="string">&quot;1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
 <h2 id="相关问题"><a href="#相关问题" class="headerlink" title="相关问题"></a>相关问题</h2><h3 id="默认虚拟机内存占用较大导致无法启动"><a href="#默认虚拟机内存占用较大导致无法启动" class="headerlink" title="默认虚拟机内存占用较大导致无法启动"></a>默认虚拟机内存占用较大导致无法启动</h3><p><span id="jvmmem">修改JVM内存</span></p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vi runbroker.sh</span><br><span class="line">vi runserver.sh</span><br></pre></td></tr></table></figure>
 
@@ -313,9 +354,9 @@
       </a>
     
     
-      <a href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-nav-link">
+      <a href="/2021/02/24/PostGIS/PostGIS%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Maven中repository和mirror的使用</div>
+        <div class="article-nav-title">PostGIS相关操作</div>
       </a>
     
   </nav>
