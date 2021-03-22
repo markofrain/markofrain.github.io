@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">597字</span>
+            <span class="post-count">599字</span>
         </span>
     </span>
 
@@ -122,26 +122,14 @@
 <p>如果提示什么套接字，可能不是安装失败问题。可以先看一下services安装上没，如果有了那就是安装上了，因为端口占用的原因出的这个错。如果没安装上，根据报错信息找一下httpd.conf是不是有属性配置错了。</p>
 <h2 id="Vue部署时history模式部署-单页面路径404"><a href="#Vue部署时history模式部署-单页面路径404" class="headerlink" title="Vue部署时history模式部署,单页面路径404"></a>Vue部署时history模式部署,单页面路径404</h2><p>以前端项目作为htdocs根应用。</p>
 <p>单页面，只有一个根路径，任何路径都会跳到/，这个许多history问题的博客都有解释。</p>
-<ol>
-<li><p>修改httpd.conf，将&lt;Directory “${SRVROOT}/htdocs”&gt;下的<code>AllowOverride None</code>修改为<code>AllowOverride All</code>,大约在278行左右</p>
-</li>
-<li><p>在htdocs根路径下，添加<code>.htaccess</code>文件</p>
-</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;IfModule mod_rewrite.c&gt;</span><br><span class="line">  RewriteEngine On</span><br><span class="line">  RewriteRule ^index\.html$ - [L]</span><br><span class="line">  RewriteCond %&#123;REQUEST_FILENAME&#125; !-f</span><br><span class="line">  RewriteCond %&#123;REQUEST_FILENAME&#125; !-d</span><br><span class="line">  RewriteRule . &#x2F;index.html [L]</span><br><span class="line">&lt;&#x2F;IfModule&gt;</span><br></pre></td></tr></table></figure>
+<h4 id="1-修改httpd-conf，将-lt-Directory-“-SRVROOT-htdocs”-gt-下的AllowOverride-None修改为AllowOverride-All-大约在278行左右"><a href="#1-修改httpd-conf，将-lt-Directory-“-SRVROOT-htdocs”-gt-下的AllowOverride-None修改为AllowOverride-All-大约在278行左右" class="headerlink" title="1. 修改httpd.conf，将&lt;Directory “${SRVROOT}/htdocs”&gt;下的AllowOverride None修改为AllowOverride All,大约在278行左右"></a>1. 修改httpd.conf，将&lt;Directory “${SRVROOT}/htdocs”&gt;下的<code>AllowOverride None</code>修改为<code>AllowOverride All</code>,大约在278行左右</h4><h4 id="2-在htdocs根路径下，添加-htaccess文件"><a href="#2-在htdocs根路径下，添加-htaccess文件" class="headerlink" title="2.在htdocs根路径下，添加.htaccess文件"></a>2.在htdocs根路径下，添加<code>.htaccess</code>文件</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;IfModule mod_rewrite.c&gt;</span><br><span class="line">  RewriteEngine On</span><br><span class="line">  RewriteRule ^index\.html$ - [L]</span><br><span class="line">  RewriteCond %&#123;REQUEST_FILENAME&#125; !-f</span><br><span class="line">  RewriteCond %&#123;REQUEST_FILENAME&#125; !-d</span><br><span class="line">  RewriteRule . &#x2F;index.html [L]</span><br><span class="line">&lt;&#x2F;IfModule&gt;</span><br></pre></td></tr></table></figure>
 
 <p>并在httpd.conf中开启<code>LoadModule rewrite_module modules/mod_rewrite.so</code>模块</p>
-<ol start="3">
-<li><p>前端项目的router不设置base属性，则默认是/，即部署容器的根路径。</p>
-</li>
-<li><p>如果重写完成后刷新页面出现空白，看console出现,static/js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index.html。因此js文件变成了首页的index.html内容，所以会出现<code>&lt;</code>解析失败的报错。</p>
-<p>查看index.html，发现script引入的js是以<code>./static</code>开头的，需要改成<code>/static</code>才行。因此更改conf/index.js处</p>
+<p> 前端项目的router不设置base属性，则默认是/，即部署容器的根路径。</p>
+<h4 id="3-如果重写完成后刷新页面出现空白，看console出现-static-js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index-html。因此js文件变成了首页的index-html内容，所以会出现-lt-解析失败的报错。"><a href="#3-如果重写完成后刷新页面出现空白，看console出现-static-js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index-html。因此js文件变成了首页的index-html内容，所以会出现-lt-解析失败的报错。" class="headerlink" title="3. 如果重写完成后刷新页面出现空白，看console出现,static/js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index.html。因此js文件变成了首页的index.html内容，所以会出现&lt;解析失败的报错。"></a>3. 如果重写完成后刷新页面出现空白，看console出现,static/js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index.html。因此js文件变成了首页的index.html内容，所以会出现<code>&lt;</code>解析失败的报错。</h4><p>查看index.html，发现script引入的js是以<code>./static</code>开头的，需要改成<code>/static</code>才行。因此更改conf/index.js处</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;*</span><br><span class="line">* 将.&#x2F;更改为&#x2F;</span><br><span class="line">*&#x2F;</span><br><span class="line">assetsPublicPath: &#39;&#x2F;&#39;, </span><br></pre></td></tr></table></figure>
-</li>
-<li><p>Avoided redundant navigation to current location: “/layout/task”。</p>
-<p>在router的index.js中<code>Vue.use(Router)</code>以上增加如下代码，保证不会出现菜单重复问题。</p>
-</li>
-</ol>
+
+<h4 id="4-Avoided-redundant-navigation-to-current-location-“-layout-task”。"><a href="#4-Avoided-redundant-navigation-to-current-location-“-layout-task”。" class="headerlink" title="4. Avoided redundant navigation to current location: “/layout/task”。"></a>4. Avoided redundant navigation to current location: “/layout/task”。</h4><p>在router的index.js中<code>Vue.use(Router)</code>以上增加如下代码，保证不会出现菜单重复问题。</p>
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 检查结果子界面</span><br><span class="line">const originalPush &#x3D; Router.prototype.push</span><br><span class="line">Router.prototype.push &#x3D; function push(location) &#123;</span><br><span class="line">  return originalPush.call(this, location).catch(err &#x3D;&gt; err)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/litings/p/10802972.html">https://www.cnblogs.com/litings/p/10802972.html</a></p>

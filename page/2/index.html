@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Java/Maven中repository和mirror的使用" class="article article-type-post" itemscope
+    <article id="post-fultter/安装" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/"
-    >Maven中repository和mirror的使用</a
+  <a class="article-title" href="/2021/03/14/fultter/%E5%AE%89%E8%A3%85/"
+    >filtter安装使用</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
-  <time datetime="2021-02-24T04:00:00.000Z" itemprop="datePublished">2021-02-24</time>
+      <a href="/2021/03/14/fultter/%E5%AE%89%E8%A3%85/" class="article-date">
+  <time datetime="2021-03-14T04:00:00.000Z" itemprop="datePublished">2021-03-14</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
+    <a class="article-category-link" href="/categories/flutter/">flutter</a>
   </div>
 
       
@@ -119,181 +119,31 @@
       
 
       
-      <p>原文参考自: <a target="_blank" rel="noopener" href="https://blog.csdn.net/sky_tree_delivery/article/details/105415048">https://blog.csdn.net/sky_tree_delivery/article/details/105415048</a></p>
-<p>本文也是在使用到geotool工具时找到原文博客描述。在此记录一下非中央仓库引入jar包的问题。</p>
-<p>repository称为仓库，是maven中储存jar包的站点，会提供pom文件、jar包等。为了使用户不配置任何仓库也可以加载资源，maven隐含地配置了maven的中央仓库（<code>name</code>属性为<code>central</code>），不论用户是否配置了自己的仓库。</p>
-<p>repository仓库在项目pom中引入后可直接进行使用仓库下的jar依赖</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>osgeo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>OSGeo Release Repository<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://repo.osgeo.org/repository/release/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">releases</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.geotools<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>gt-referencing<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>24.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>但如果settings.xml文件中配置了,mirror标签，则mirror会对仓库进行拦截并代理下载。</p>
-<p>mirror称为镜像，起拦截器的作用，本身不存储资源，而是指向一个资源地址（url）。镜像对项目中配置的仓库进行拦截，当一个镜像的<code>mirrodOf</code>参数匹配上了仓库的<code>name</code>参数，则进行资源映射，否则使用仓库中指定的url地址请求资源。</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>nexus-aliyun<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>Nexus aliyun<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>如果mirrorOf设置了*，则所有的jar依赖 都匹配到从此url中获取jar依赖，但aliyun中只提供中央仓库central的jar，因此部分通过其他仓库引入的jar就回获取失败。</p>
-<p>所以可以认定为mirror的优先级别大于repository，不在mirrorOf中使用*匹配。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/arcgis/" rel="tag">arcgis</a></li></ul>
+      <h2 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h2><p><code>Navigator</code>是一个路由管理的组件，它提供了打开和退出路由页方法。<code>Navigator</code>通过一个栈来管理活动路由集合。通常当前屏幕显示的页面就是栈顶的路由。<code>Navigator</code>提供了一系列方法来管理路由栈。</p>
+<p><code>Navigator</code>提供了一系列方法来管理路由栈，在此我们只介绍其最常用的两个方法：</p>
+<ul>
+<li><p>Future push(BuildContext context, Route route)</p>
+<p>将给定的路由入栈(即打开新的页面)，返回一个<code>Future</code>对象，用以接收新路由出栈(即关闭)时返回的数据</p>
+</li>
+<li><p>bool pop(BuildContext context, [ result ])</p>
+<p>将栈顶路由出栈，result为页面关闭时返回给上一个页面的数据</p>
+</li>
+</ul>
+<p><code>Navigator</code> 还有很多其它方法，如<code>Navigator.replace</code>、<code>Navigator.popUntil</code>等。</p>
+<h3 id="命名路由"><a href="#命名路由" class="headerlink" title="命名路由"></a>命名路由</h3><p>路由配置，在MaterialApp添加属性routes，通过路由名和Widget对象，routes是一个map类型</p>
+<p>在使用路由的时候通过<code>Navigator.pushNamed(context, &quot;new_page&quot;);</code>push到新的路由界面</p>
+<h4 id="命名路由传参"><a href="#命名路由传参" class="headerlink" title="命名路由传参"></a>命名路由传参</h4><p><code>Navigator.pushNamed</code>的第三个参数是一个object类型的值，可传递参数</p>
+<h4 id="路由生成钩子"><a href="#路由生成钩子" class="headerlink" title="路由生成钩子"></a>路由生成钩子</h4><p><code>MaterialApp</code>有一个<code>onGenerateRoute</code>属性，它在打开命名路由时可能会被调用。</p>
+<p>当调用<code>Navigator.pushNamed(...)</code>打开命名路由时，如果指定的路由名在路由表中已注册，则会调用路由表中的<code>builder</code>函数来生成路由组件；如果路由表中没有注册，才会调用<code>onGenerateRoute</code>来生成路由。</p>
+<p><code>Route&lt;dynamic&gt; Function(RouteSettings settings)</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">onGenerateRoute:(RouteSettings settings)&#123;</span><br><span class="line"> return MaterialPageRoute(builder: (context)&#123;</span><br><span class="line">   String routeName &#x3D; settings.name;</span><br><span class="line">     &#x2F;&#x2F; 如果访问的路由页需要登录，但当前未登录，则直接返回登录页路由，</span><br><span class="line">     &#x2F;&#x2F; 引导用户登录；其它情况则正常打开路由。</span><br><span class="line">   &#125;</span><br><span class="line"> );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
-    </footer>
 
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/Echarts相关属性设置" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/02/22/Javascript/Echarts%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/"
-    >Echarts相关属性设置</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/02/22/Javascript/Echarts%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/" class="article-date">
-  <time datetime="2021-02-22T09:20:28.154Z" itemprop="datePublished">2021-02-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/echarts/">echarts</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="通用设置"><a href="#通用设置" class="headerlink" title="通用设置"></a>通用设置</h3><h4 id="图表整体上下左右位置设置"><a href="#图表整体上下左右位置设置" class="headerlink" title="图表整体上下左右位置设置"></a>图表整体上下左右位置设置</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">grid: &#123;</span><br><span class="line">    top:20,</span><br><span class="line">    bottom: 20,</span><br><span class="line">    right:&#x27;15%&#x27;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
-
-<p>图表整体居上空白20，居下空白20，右侧空白百分之15%</p>
-<h4 id="xy轴单位设置"><a href="#xy轴单位设置" class="headerlink" title="xy轴单位设置"></a>xy轴单位设置</h4><p>name属性则为单位</p>
-<h4 id="tooltip悬浮信息自定义"><a href="#tooltip悬浮信息自定义" class="headerlink" title="tooltip悬浮信息自定义"></a>tooltip悬浮信息自定义</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">formatter: function (params) &#123;</span><br><span class="line">    return params.data.name + &quot;: &quot; + params.data.value + &quot; &quot; + res.data.body.unit</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>params具有一些属性和值。</p>
-<h3 id="坐标系图表"><a href="#坐标系图表" class="headerlink" title="坐标系图表"></a>坐标系图表</h3><h4 id="折线图x轴上的值没有与刻度线对齐"><a href="#折线图x轴上的值没有与刻度线对齐" class="headerlink" title="折线图x轴上的值没有与刻度线对齐"></a>折线图x轴上的值没有与刻度线对齐</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    boundaryGap: false, //值是否在刻度中间</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="折线图x轴的值没有显示全"><a href="#折线图x轴的值没有显示全" class="headerlink" title="折线图x轴的值没有显示全"></a>折线图x轴的值没有显示全</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    axisLabel: &#123;</span><br><span class="line">        interval: 0,</span><br><span class="line">        rotate: 30</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>interval表示间隔多少个值才显示一个值，设为0则全部显示。</p>
-<p>此时x轴密密麻麻，rotate属性设置值的倾斜角度，值越大倾斜越大</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/echarts/" rel="tag">echarts</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue相关操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/02/17/Vue/Vue%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
-    >Vue相关操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/02/17/Vue/Vue%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2021-02-17T05:58:50.012Z" itemprop="datePublished">2021-02-17</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="for循环为指定元素设置事件"><a href="#for循环为指定元素设置事件" class="headerlink" title="for循环为指定元素设置事件"></a>for循环为指定元素设置事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;i :class&#x3D;&quot;item.name&quot; class&#x3D;&quot;icon&quot; @dblclick&#x3D;&quot;chooseMethod(item.num)&quot; :style&#x3D;&quot;&#123;zIndex:item.zIndex&#125;&quot; v-for&#x3D;&quot;(item,i) in names&quot; :key&#x3D;&quot;i&quot;&gt;&lt;&#x2F;i&gt;</span><br></pre></td></tr></table></figure>
-
-<p>为当前循环的设置一个事件，以dblclick为例，向方法参数传递num，整个num是一个标识，是一个已经在methods中定义的方法的方法名。</p>
-<p>例如我的names的数据为</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">		name: &#x27;el-icon-setting&#x27;,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">		name: &#x27;el-icon-delete&#x27;,</span><br><span class="line">        num: &#x27;openClose&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
-
-<p>在第二个元素中设置num标识位openClose，则通过一下方式会自动调用绑定的方法</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">chooseMethod(method)&#123;</span><br><span class="line">	if (method&#x3D;&#x3D;&#x3D; undefined || method&#x3D;&#x3D;&#x3D;&#39;&#39; || method&#x3D;&#x3D;&#x3D;null)&#123;</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">	this[method]()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>直接会调用this[openClose]()这个方法。需要进行method判断，否则会发出异常。</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>在执行fultter doctor后，出现需要执行添加android-license时，说命令不正确，找不到命令，则需要再android studio处安装commandtool</p>
+<p><img src="QQ%E6%88%AA%E5%9B%BE20210314152543.png" alt=""></p>
+<p>然后再执行<code>flutter doctor --android-licenses</code></p>
+<p>这个licenses一定要执行通过的，否则AVD Manger添加的虚拟设备，在执行android studio 的fultter demo的时候不会将包安装到虚拟设备中</p>
 
       
       <!-- reward -->
@@ -321,7 +171,7 @@
 
 </article>
     
-    <article id="post-Vue/常见问题" class="article article-type-post" itemscope
+    <article id="post-Linux/windows与deepin双系统" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -329,8 +179,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/02/06/Vue/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/"
-    >Vue常见问题</a
+  <a class="article-title" href="/2021/03/06/Linux/windows%E4%B8%8Edeepin%E5%8F%8C%E7%B3%BB%E7%BB%9F/"
+    >windows与deepin双系统</a
   >
 </h2>
   
@@ -340,12 +190,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/02/06/Vue/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-02-06T04:00:00.000Z" itemprop="datePublished">2021-02-06</time>
+      <a href="/2021/03/06/Linux/windows%E4%B8%8Edeepin%E5%8F%8C%E7%B3%BB%E7%BB%9F/" class="article-date">
+  <time datetime="2021-03-06T04:00:00.000Z" itemprop="datePublished">2021-03-06</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
   </div>
 
       
@@ -362,14 +212,10 @@
       
 
       
-      <h3 id="window定义的属性不能再vue渲染时引用"><a href="#window定义的属性不能再vue渲染时引用" class="headerlink" title="window定义的属性不能再vue渲染时引用"></a>window定义的属性不能再vue渲染时引用</h3><p>Property or method “window” is not defined on the instance but referenced during render. Make sure that this property is reactive, either in the data option, or for class-based components, by initializing the property. See: <a target="_blank" rel="noopener" href="https://vuejs.org/v2/guide/reactivity.html#Declaring-Reactive-Properties">https://vuejs.org/v2/guide/reactivity.html#Declaring-Reactive-Properties</a>.</p>
-<p>如果需要进行循环属性拼接，则在method中定义。</p>
-<h3 id="JSONObject对象转换HashMap-lt-String-Bean-gt-类型"><a href="#JSONObject对象转换HashMap-lt-String-Bean-gt-类型" class="headerlink" title="JSONObject对象转换HashMap&lt;String,Bean&gt;类型"></a>JSONObject对象转换HashMap&lt;String,Bean&gt;类型</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 设置缓存</span><br><span class="line">redisUtil.set(Constants.PICTURE_CATEGORY_REFIX+userId,JSONObject.toJSONString(collect));</span><br><span class="line">&#x2F;&#x2F; json字符串转HashMap</span><br><span class="line">HashMap&lt;String, PictureCategory&gt; hashMap &#x3D; JSONObject.parseObject(o.toString(), new TypeReference&lt;HashMap&lt;String, PictureCategory&gt;&gt;() &#123;&#125;);</span><br></pre></td></tr></table></figure>
+      <p>deepin安装失败问题？<br>说磁盘为MBR，最大支持2T，最多4个分区，最后怎么设置大小都无法安装上。</p>
+<p>window双系统安装<br>先安装windows系统，默认是UEFI引导安装，将机械硬盘整个格式化，并修改为GPT格式。<br>安装Deepin，选择手动安装，首先添加挂载/分区,然后按提示添加efi分区、swap分区</p>
+<p><a target="_blank" rel="noopener" href="https://jingyan.baidu.com/article/ea24bc394ac30c9a63b33175.html">https://jingyan.baidu.com/article/ea24bc394ac30c9a63b33175.html</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_36059638/article/details/112162511">https://blog.csdn.net/weixin_36059638/article/details/112162511</a></p>
 
-
-
-<h3 id="Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用-他销毁的是这个组件"><a href="#Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用-他销毁的是这个组件" class="headerlink" title="Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用,他销毁的是这个组件"></a>Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用,他销毁的是这个组件</h3><p>参考: <a target="_blank" rel="noopener" href="https://www.jianshu.com/p/77d1ba476a6d">https://www.jianshu.com/p/77d1ba476a6d</a></p>
-<h3 id="在el-dialog使用-before-close属性时，绑定的回调方法中一定要在最后执行done-函数，否则无法关闭"><a href="#在el-dialog使用-before-close属性时，绑定的回调方法中一定要在最后执行done-函数，否则无法关闭" class="headerlink" title="在el-dialog使用:before-close属性时，绑定的回调方法中一定要在最后执行done()函数，否则无法关闭"></a>在el-dialog使用:before-close属性时，绑定的回调方法中一定要在最后执行done()函数，否则无法关闭</h3>
       
       <!-- reward -->
       
@@ -381,8 +227,6 @@
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
-
 
     </footer>
 
@@ -398,7 +242,7 @@
 
 </article>
     
-    <article id="post-Javascript/apache与nginx允许跨域访问" class="article article-type-post" itemscope
+    <article id="post-Javascript/axios及xhr携带请求头下载文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -406,8 +250,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/01/26/Javascript/apache%E4%B8%8Enginx%E5%85%81%E8%AE%B8%E8%B7%A8%E5%9F%9F%E8%AE%BF%E9%97%AE/"
-    >apache与nginx允许静态资源跨域访问</a
+  <a class="article-title" href="/2021/03/03/Javascript/axios%E5%8F%8Axhr%E6%90%BA%E5%B8%A6%E8%AF%B7%E6%B1%82%E5%A4%B4%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/"
+    >axios携带请求头下载文件</a
   >
 </h2>
   
@@ -417,12 +261,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/01/26/Javascript/apache%E4%B8%8Enginx%E5%85%81%E8%AE%B8%E8%B7%A8%E5%9F%9F%E8%AE%BF%E9%97%AE/" class="article-date">
-  <time datetime="2021-01-26T09:26:48.524Z" itemprop="datePublished">2021-01-26</time>
+      <a href="/2021/03/03/Javascript/axios%E5%8F%8Axhr%E6%90%BA%E5%B8%A6%E8%AF%B7%E6%B1%82%E5%A4%B4%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2021-03-03T04:00:00.000Z" itemprop="datePublished">2021-03-03</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a> / <a class="article-category-link" href="/categories/Vue2-0/Javascript/">Javascript</a>
   </div>
 
       
@@ -439,17 +283,35 @@
       
 
       
-      <h3 id="Nginx静态资源跨域访问配置"><a href="#Nginx静态资源跨域访问配置" class="headerlink" title="Nginx静态资源跨域访问配置"></a>Nginx静态资源跨域访问配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F;oss&#x2F; &#123;</span><br><span class="line">    add_header &#39;Access-Control-Allow-Origin&#39; &#39;*&#39;;</span><br><span class="line">    add_header &#39;Access-Control-Allow-Methods&#39; &#39;GET,POST,PUT,DELETE,OPTIONS&#39;;</span><br><span class="line">    if ($request_method &#x3D; OPTIONS ) &#123;</span><br><span class="line">        add_header Access-Control-Allow-Origin *;</span><br><span class="line">        add_header Access-Control-Allow-Credentials true; </span><br><span class="line">        add_header &#39;Access-Control-Allow-Methods&#39; &#39;GET,POST,PUT,DELETE,OPTIONS&#39;;</span><br><span class="line">        add_header Access-Control-Allow-Headers Origin,X-Requested-With,Content-Type,Accept,Authorization;</span><br><span class="line">        return 200;</span><br><span class="line">    &#125;</span><br><span class="line">    alias D:&#x2F;oss&#x2F;;</span><br><span class="line">    autoindex on;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+      <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">checkDownLoad</span>(<span class="params">id</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> request(&#123;</span><br><span class="line">    url: <span class="string">&quot;sk-web/f/kjgh/plan/kjghQualityResult/download/pkg/&quot;</span>+id,</span><br><span class="line">    responseType:<span class="string">&#x27;blob&#x27;</span>,</span><br><span class="line">    method:<span class="string">&quot;get&quot;</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>在nginx.conf中，改代码为静态资源映射，目标为D:/oss/目录，访问资源标识名为/oss/。</p>
-<p>其中在Access-Control-Allow-Headers的配置中,可能会根据不同的请求头中的请求头名称而不同</p>
-<p><code>nginx.exe -s reload</code>重启nginx</p>
-<h3 id="Apache跨域访问"><a href="#Apache跨域访问" class="headerlink" title="Apache跨域访问"></a>Apache跨域访问</h3><p>修改conf/httpd.conf文件的<code>LoadModule headers_module modules/mod_headers.so</code>注释打开</p>
-<p>修改conf/extra/httpd-vhosts.conf的配置</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">    #ServerAdmin localhost</span><br><span class="line">    DocumentRoot &quot;$&#123;SRVROOT&#125;&#x2F;htdocs&quot;</span><br><span class="line">    Header set Access-Control-Allow-Origin *</span><br><span class="line">    ServerName localhost</span><br><span class="line">    #ServerAlias www.dummy-host.example.com</span><br><span class="line">    #ErrorLog &quot;logs&#x2F;dummy-host.example.com-error.log&quot;</span><br><span class="line">    #CustomLog &quot;logs&#x2F;dummy-host.example.com-access.log&quot; common</span><br><span class="line">&lt;&#x2F;VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+<p>以上代码request函数是封装的，内部还是使用axios设置参数，重要的属性是responseType设置为blob类型。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">checkDownLoad(val.id).then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (res.data.type===<span class="string">&#x27;application/octet-stream&#x27;</span>) &#123;</span><br><span class="line">        <span class="keyword">const</span> filename = res.headers[<span class="string">&quot;content-disposition&quot;</span>];</span><br><span class="line">        <span class="keyword">const</span> blob = <span class="keyword">new</span> Blob([res.data]);</span><br><span class="line">        <span class="keyword">var</span> downloadElement = <span class="built_in">document</span>.createElement(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">        <span class="keyword">var</span> href = <span class="built_in">window</span>.URL.createObjectURL(blob);</span><br><span class="line">        downloadElement.href = href;</span><br><span class="line">        downloadElement.download = filename.split(<span class="string">&quot;filename=&quot;</span>)[<span class="number">1</span>].replaceAll(<span class="string">&quot;\&quot;&quot;</span>,<span class="string">&quot;&quot;</span>);</span><br><span class="line">        downloadElement.click();</span><br><span class="line">        <span class="built_in">window</span>.URL.revokeObjectURL(href);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
 
-<p>在httpd.conf,找到<code>Include conf/extra/httpd-vhosts.conf</code>并解开注释</p>
-<p>然后重新启动Apache服务</p>
+<p>在调用时，通过URL.createObjectURL(blob);的方式获取blob转href的一个功能进行a标签的下载。</p>
+<p>首先需要注意的是，跨域问题首先要解决，这不是主要的，因为其它接口也会出现跨域。</p>
+<p>其次<code>res.data.type</code>和<code>content-disposition</code>的响应头值需要得到。这两个是响应头需要在后台设置。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">response.addHeader(<span class="string">&quot;Content-Disposition&quot;</span>, <span class="string">&quot;attachment; filename=\&quot;&quot;</span> + downloadFile + <span class="string">&quot;\&quot;&quot;</span>);</span><br><span class="line"><span class="comment">// 二进制流</span></span><br><span class="line">response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);</span><br><span class="line">response.setHeader(<span class="string">&quot;Access-Control-Expose-Headers&quot;</span>,<span class="string">&quot;Content-Disposition&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>第一行设置Content-Disposition包含文件名称</p>
+<p>第二行设置ContentType，值一定是MediaType下带VALUE的字符串返回值，不要拿APPLICATION_OCTET_STREAM来获取。</p>
+<p>第三行设置用于导出的响应头，因为需要拿到文件名,<code>Content-Disposition</code>属性是一定要前段拿到的。</p>
+<p>在默认请求下，浏览器只能访问到默认的响应头</p>
+<ul>
+<li>Cache-Control</li>
+<li>Content-Language</li>
+<li>Content-Type</li>
+<li>Expires</li>
+<li>Last-Modified</li>
+<li>Pragma</li>
+</ul>
+<p>其他属性需要通过Access-Control-Expose-Headers响应头设置要额外返回的响应头名字。</p>
+<p>携带head时：</p>
+<p>a标签download下载，非同源跨域，则download属性不起作用，若下载类型为浏览器不可直接预览的则依旧会自动下载。</p>
+<p>get进行下载时，全局设置跨域后依然跨域(有时候好的有时候不行)。</p>
+<p>post进行下载时，不跨域，但是无法弹出下载器进行下载(此问题不管是原生ajax还是封装的，只要res.data获取blob数据都会一次性将文件下载到浏览器内存，下载完成后拷贝到磁盘上，拷贝这个速度很快，如果下载的文件较大则会导致浏览器内存溢出并崩溃)。</p>
+<p>携带认证头的可选择使用param参数的方式，加密到后台，并进行解密，使用两种方式混合。然后直接使用get方式进行加载就正常。</p>
+<p>以上方式只适用于小文件。</p>
 
       
       <!-- reward -->
@@ -462,7 +324,291 @@
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-other/大坑情况" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/01/other/%E5%A4%A7%E5%9D%91%E6%83%85%E5%86%B5/"
+    >大坑情况</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/01/other/%E5%A4%A7%E5%9D%91%E6%83%85%E5%86%B5/" class="article-date">
+  <time datetime="2021-03-01T03:17:16.730Z" itemprop="datePublished">2021-03-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%A4%A7%E5%9D%91/">大坑</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="【已解决】谷歌浏览器提示：无法访问此网站网址为-http-localhost-6667-XXX-XXX-的网页可能暂时无法连接，或者它已永久性地移动到了新网址"><a href="#【已解决】谷歌浏览器提示：无法访问此网站网址为-http-localhost-6667-XXX-XXX-的网页可能暂时无法连接，或者它已永久性地移动到了新网址" class="headerlink" title="【已解决】谷歌浏览器提示：无法访问此网站网址为 http://localhost:6667/XXX/XXX 的网页可能暂时无法连接，或者它已永久性地移动到了新网址"></a>【已解决】谷歌浏览器提示：无法访问此网站网址为 <a target="_blank" rel="noopener" href="http://localhost:6667/XXX/XXX">http://localhost:6667/XXX/XXX</a> 的网页可能暂时无法连接，或者它已永久性地移动到了新网址</h1><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_44799924/article/details/112989945">https://blog.csdn.net/qq_44799924/article/details/112989945</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-MQ/RocketMQ" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/02/24/MQ/RocketMQ/"
+    >RocketMQ</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/02/24/MQ/RocketMQ/" class="article-date">
+  <time datetime="2021-02-24T12:00:00.000Z" itemprop="datePublished">2021-02-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/RocketMQ/">RocketMQ</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="安装部署"><a href="#安装部署" class="headerlink" title="安装部署"></a>安装部署</h2><p>下载发行版本并解压即可。</p>
+<h3 id="单机启动"><a href="#单机启动" class="headerlink" title="单机启动"></a>单机启动</h3><ol>
+<li>启动nameserver</li>
+</ol>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 1.启动NameServer</span></span><br><span class="line">nohup sh bin/mqnamesrv &amp;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 2.查看启动日志</span></span><br><span class="line">tail -f ~/logs/rocketmqlogs/namesrv.log</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>启动broker</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 1.启动Broker</span><br><span class="line">nohup sh bin&#x2F;mqbroker -n localhost:9876 &amp;</span><br><span class="line"># 2.查看启动日志</span><br><span class="line">tail -f ~&#x2F;logs&#x2F;rocketmqlogs&#x2F;broker.log </span><br></pre></td></tr></table></figure>
+
+<ol start="3">
+<li><p><a href="#jvmmem">修改默认jvm内存大小</a></p>
+</li>
+<li><p>可在conf/broker.conf下配置属性</p>
+<p>配置brokerIP1设置访问ip</p>
+</li>
+</ol>
+<h3 id="关闭nameserver和broker"><a href="#关闭nameserver和broker" class="headerlink" title="关闭nameserver和broker"></a>关闭nameserver和broker</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sh mqshutdown namesrv</span><br><span class="line">sh mqshutdown broker</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="多master多slave同步集群"><a href="#多master多slave同步集群" class="headerlink" title="多master多slave同步集群"></a>多master多slave同步集群</h3><p>首先将rocketmq的bin配置到环境变量中，方便使用命令。</p>
+<h4 id="集群规划"><a href="#集群规划" class="headerlink" title="集群规划"></a>集群规划</h4><table>
+<thead>
+<tr>
+<th>编号</th>
+<th>IP</th>
+<th>角色</th>
+<th>架构模式</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>192.168.38.130</td>
+<td>nameserver,broker</td>
+<td>master1,slave2</td>
+</tr>
+<tr>
+<td>2</td>
+<td>192.168.38.131</td>
+<td>nameserver,broker</td>
+<td>master2,slave1</td>
+</tr>
+</tbody></table>
+<p>在进行nameserver集群是无需配置文件，一般一台机器一个nameserver，直接启动即可。</p>
+<p>配置多主多从相关文件。在conf下有2m-2s-sync、2m-2s-async、2m-noslave目录，分别对应多种多从同步模式，多主多从异步模式，多主无从模式</p>
+<p>多主多从同步与异步配置基本一致，本配置以同步为例。</p>
+<p>在2m-2s-sync目录下包含broker-a.properties  broker-a-s.properties  broker-b.properties  broker-b-s.properties这些文件。不含-s的文件为master，否则为slave，但这只是一个名字的易于区分，具体角色在配置中的<code>brokerRole</code>属性进行区分。</p>
+<p>在130机器中编辑broker-a.properties配置，和broker-b-s.properties</p>
+<h4 id="broker-a-properties"><a href="#broker-a-properties" class="headerlink" title="broker-a.properties"></a>broker-a.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-a</span><br><span class="line">brokerIP1=192.168.38.131</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=0</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;193.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=10911</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SYNC_MASTER</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=SYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="broker-b-s-properties"><a href="#broker-b-s-properties" class="headerlink" title="broker-b-s.properties"></a>broker-b-s.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-b</span><br><span class="line">brokerIP1=192.168.38.131</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=1</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;192.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=11011</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store2</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store2/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store2/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store2/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store2/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store2/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SLAVE</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>以130的这两个配置为例，131的配置属性相同，需要在部署时需要注意的属性如下:</p>
+<ul>
+<li>brokerClusterName：集群名字，多个broker配置相同的brokerClusterName组成一个broker集群</li>
+<li>brokerName：broker名字可用来指定主从关系，如果同属于一个broker则brokerName应该相同，如何区分master和slave使用brokerId属性。</li>
+<li>brokerId：同brokerName下的brokerId标识，如果为0则在当前brokerName中，该broker为master，大于0则为slave</li>
+<li>brokerIP1：broker监听的IP，在多网卡ip的情况下需要显示设定ip，否则可能出现客户端连接失败的情况。</li>
+<li>brokerIP2：主从关系存在时，slave会根据master的brokerIP2进行同步数据。</li>
+<li>namesrvAddr：连接的nameserver地址，集群nameserver使用分号分开。</li>
+<li>listenPort：broker监听端口，每个broker的端口在同一台机器上不能相同。</li>
+<li>store*：数据存储目录，同一台机器上的broker的路径均不能重复。</li>
+<li>brokerRole：当前broker配置文件定义了自身的角色。</li>
+</ul>
+<p>brokerName相同可以认为是一组broker，但仍然是由master和slave组成的多个broker，仅仅是确定了主从关系。</p>
+<p>在131机器中编辑broker-b.properties配置，和broker-a-s.properties</p>
+<h4 id="broker-b-properties"><a href="#broker-b-properties" class="headerlink" title="broker-b.properties"></a>broker-b.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-b</span><br><span class="line">brokerIP1=192.168.38.130</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=0</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;192.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=10911</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SYNC_MASTER</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=SYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="broker-a-s-properties"><a href="#broker-a-s-properties" class="headerlink" title="broker-a-s.properties"></a>broker-a-s.properties</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">所属集群名字</span></span><br><span class="line">brokerClusterName=rocketmq-cluster</span><br><span class="line"><span class="meta">#</span><span class="bash">broker名字，注意此处不同的配置文件填写的不一样</span></span><br><span class="line">brokerName=broker-a</span><br><span class="line">brokerIP1=192.168.38.130</span><br><span class="line"><span class="meta">#</span><span class="bash">0 表示 Master，&gt;0 表示 Slave</span></span><br><span class="line">brokerId=1</span><br><span class="line"><span class="meta">#</span><span class="bash">nameServer地址，分号分割</span></span><br><span class="line">namesrvAddr=192.168.38.130:9876;192.168.38.131:9876</span><br><span class="line"><span class="meta">#</span><span class="bash">在发送消息时，自动创建服务器不存在的topic，默认创建的队列数</span></span><br><span class="line">defaultTopicQueueNums=4</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建Topic，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateTopicEnable=true</span><br><span class="line"><span class="meta">#</span><span class="bash">是否允许 Broker 自动创建订阅组，建议线下开启，线上关闭</span></span><br><span class="line">autoCreateSubscriptionGroup=true</span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 对外服务的监听端口</span></span><br><span class="line">listenPort=11011</span><br><span class="line"><span class="meta">#</span><span class="bash">删除文件时间点，默认凌晨 4点</span></span><br><span class="line">deleteWhen=04</span><br><span class="line"><span class="meta">#</span><span class="bash">文件保留时间，默认 48 小时</span></span><br><span class="line">fileReservedTime=120</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog每个文件的大小默认1G</span></span><br><span class="line">mapedFileSizeCommitLog=1073741824</span><br><span class="line"><span class="meta">#</span><span class="bash">ConsumeQueue每个文件默认存30W条，根据业务情况调整</span></span><br><span class="line">mapedFileSizeConsumeQueue=300000</span><br><span class="line"><span class="meta">#</span><span class="bash">destroyMapedFileIntervalForcibly=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">redeleteHangedFileInterval=120000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">检测物理文件磁盘空间</span></span><br><span class="line">diskMaxUsedSpaceRatio=88</span><br><span class="line"><span class="meta">#</span><span class="bash">存储路径</span></span><br><span class="line">storePathRootDir=/usr/local/rocketmq/store2</span><br><span class="line"><span class="meta">#</span><span class="bash">commitLog 存储路径</span></span><br><span class="line">storePathCommitLog=/usr/local/rocketmq/store2/commitlog</span><br><span class="line"><span class="meta">#</span><span class="bash">消费队列存储路径存储路径</span></span><br><span class="line">storePathConsumeQueue=/usr/local/rocketmq/store2/consumequeue</span><br><span class="line"><span class="meta">#</span><span class="bash">消息索引存储路径</span></span><br><span class="line">storePathIndex=/usr/local/rocketmq/store2/index</span><br><span class="line"><span class="meta">#</span><span class="bash">checkpoint 文件存储路径</span></span><br><span class="line">storeCheckpoint=/usr/local/rocketmq/store2/checkpoint</span><br><span class="line"><span class="meta">#</span><span class="bash">abort 文件存储路径</span></span><br><span class="line">abortFile=/usr/local/rocketmq/store2/abort</span><br><span class="line"><span class="meta">#</span><span class="bash">限制的消息大小</span></span><br><span class="line">maxMessageSize=65536</span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogLeastPages=4</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueLeastPages=2</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushCommitLogThoroughInterval=10000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">flushConsumeQueueThoroughInterval=60000</span></span><br><span class="line"><span class="meta">#</span><span class="bash">Broker 的角色</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_MASTER 异步复制Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_MASTER 同步双写Master</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SLAVE</span></span><br><span class="line">brokerRole=SLAVE</span><br><span class="line"><span class="meta">#</span><span class="bash">刷盘方式</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- ASYNC_FLUSH 异步刷盘</span></span><br><span class="line"><span class="meta">#</span><span class="bash">- SYNC_FLUSH 同步刷盘</span></span><br><span class="line">flushDiskType=ASYNC_FLUSH</span><br><span class="line"><span class="meta">#</span><span class="bash">checkTransactionMessageEnable=<span class="literal">false</span></span></span><br><span class="line"><span class="meta">#</span><span class="bash">发消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">sendMessageThreadPoolNums=128</span></span><br><span class="line"><span class="meta">#</span><span class="bash">拉消息线程池数量</span></span><br><span class="line"><span class="meta">#</span><span class="bash">pullMessageThreadPoolNums=128</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h4 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h4><p>启动nameserver</p>
+<p>分别在130和131机器上启动nameserver</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup sh mqnamesrv &amp;</span><br></pre></td></tr></table></figure>
+
+<p>启动broker</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 130启动broker</span></span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-a.properties &amp;</span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-b-s.properties &amp;</span><br><span class="line"><span class="meta">#</span><span class="bash"> 131启动broker</span></span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-b.properties &amp;</span><br><span class="line">nohup sh mqbroker -c /root/rocketmq/conf/2m-2s-sync/broker-a-s.properties &amp;</span><br></pre></td></tr></table></figure>
+
+<h4 id="关闭集群"><a href="#关闭集群" class="headerlink" title="关闭集群"></a>关闭集群</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sh mqshutdown namesrv</span><br><span class="line">sh mqshutdown broker</span><br></pre></td></tr></table></figure>
+
+<h3 id="rocketmq-console控制台使用"><a href="#rocketmq-console控制台使用" class="headerlink" title="rocketmq-console控制台使用"></a>rocketmq-console控制台使用</h3><p>在<a target="_blank" rel="noopener" href="https://github.com/apache/rocketmq-externals项目中下载或https://gitee.com/mirrors/RocketMQ-Externals上下载。进入rokcetmq-console中">https://github.com/apache/rocketmq-externals项目中下载或https://gitee.com/mirrors/RocketMQ-Externals上下载。进入rokcetmq-console中</a></p>
+<p>进入resource，修改application.properties的<code>rocketmq.config.namesrvAddr</code>属性，配置rocketmq的nameserver，多个使用分号分隔</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">rocketmq.config.namesrvAddr&#x3D;192.168.38.131:9876;192.168.38.130:9876</span><br></pre></td></tr></table></figure>
+
+<p>更改后进入含pom的rockemq-console根目录下，执行<code>mvn clean package</code>即可。</p>
+<h2 id="RocketMQ-队列"><a href="#RocketMQ-队列" class="headerlink" title="RocketMQ 队列"></a>RocketMQ 队列</h2><p>RocketMQ 每个主题都会有若干个队列，分布于集群中各个 broker 上，分布规律如下</p>
+<p><img src="1.png" alt=""></p>
+<p>队列会在 broker 中抽象成一个 consumer queue，在集群模式下，每个队列每个消费组只能存在一个消费者进行订阅消费，但是一个消费者可以消费多个队列，这也保证了在集群模式下消息不会被重复消费</p>
+<p><img src="2.png" alt=""></p>
+<p>在RocketMQ开源版本中，在创建主题时，通过集群创建模式，指定主题在集群中的队列数量，比如集群中有 2 个 broker，我们创建主题时选择队列数量为 4，就会在每个 broker 中为该主题创建 4 个 队列，那么该主题在集群中就会有 4 * 2 个队列数量，这里有个不好的地方就是无法精确控制队列数量，但这个问题不大</p>
+<p>因此，RocketMQ 是依靠队列进行消费的，而队列数据通过主从同步实现消息的冗余。</p>
+<blockquote>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">producer.setDefaultTopicQueueNums()</span><br></pre></td></tr></table></figure>
+</blockquote>
+<h2 id="消息操作样例"><a href="#消息操作样例" class="headerlink" title="消息操作样例"></a>消息操作样例</h2><h3 id="生产者"><a href="#生产者" class="headerlink" title="生产者"></a>生产者</h3><h4 id="同步消息发送"><a href="#同步消息发送" class="headerlink" title="同步消息发送"></a>同步消息发送</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SendResult sendResult = producer.send(msg);</span><br></pre></td></tr></table></figure>
+
+<p>发送到broker后等待响应结果。</p>
+<h4 id="异步消息发送"><a href="#异步消息发送" class="headerlink" title="异步消息发送"></a>异步消息发送</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">producer.send(msg, <span class="keyword">new</span> SendCallback() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onSuccess</span><span class="params">(SendResult sendResult)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10d OK %s %n&quot;</span>, index,</span><br><span class="line">                          sendResult.getMsgId());</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">onException</span><span class="params">(Throwable e)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%-10d Exception %s %n&quot;</span>, index, e);</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<p>增加一个回调接口，方法继续往下执行，得到响应后执行回调方法</p>
+<h4 id="单向消息发送"><a href="#单向消息发送" class="headerlink" title="单向消息发送"></a>单向消息发送</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">producer.sendOneway(msg);</span><br></pre></td></tr></table></figure>
+
+<p>无任何返回结果</p>
+<h3 id="消费者"><a href="#消费者" class="headerlink" title="消费者"></a>消费者</h3><h4 id="负载均衡消费模式"><a href="#负载均衡消费模式" class="headerlink" title="负载均衡消费模式"></a>负载均衡消费模式</h4><p>多个消费者共同消费队列消息，每个消费者处理的消息不同</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//负载均衡模式消费</span></span><br><span class="line">consumer.setMessageModel(MessageModel.CLUSTERING);</span><br><span class="line"><span class="comment">// 注册回调函数，处理消息</span></span><br><span class="line">consumer.registerMessageListener(<span class="keyword">new</span> MessageListenerConcurrently() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ConsumeConcurrentlyStatus <span class="title">consumeMessage</span><span class="params">(List&lt;MessageExt&gt; msgs,</span></span></span><br><span class="line"><span class="function"><span class="params">        ConsumeConcurrentlyContext context)</span> </span>&#123;</span><br><span class="line">        System.out.printf(<span class="string">&quot;%s Receive New Messages: %s %n&quot;</span>, </span><br><span class="line">        Thread.currentThread().getName(), msgs);</span><br><span class="line">        <span class="keyword">return</span> ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h4 id="广播模式"><a href="#广播模式" class="headerlink" title="广播模式"></a>广播模式</h4><p>消费者采用广播的方式消费消息，每个消费者消费的消息都是相同的</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">//广播模式消费</span><br><span class="line">consumer.setMessageModel(MessageModel.BROADCASTING);</span><br><span class="line">// 注册回调函数，处理消息</span><br><span class="line">consumer.registerMessageListener(new MessageListenerConcurrently() &#123;</span><br><span class="line">    @Override</span><br><span class="line">    public ConsumeConcurrentlyStatus consumeMessage(List&lt;MessageExt&gt; msgs,</span><br><span class="line">                                                    ConsumeConcurrentlyContext context) &#123;</span><br><span class="line">        System.out.printf(&quot;%s Receive New Messages: %s %n&quot;, </span><br><span class="line">                          Thread.currentThread().getName(), msgs);</span><br><span class="line">        return ConsumeConcurrentlyStatus.CONSUME_SUCCESS;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;);</span><br></pre></td></tr></table></figure>
+
+<h3 id="顺序消息"><a href="#顺序消息" class="headerlink" title="顺序消息"></a>顺序消息</h3><p>消息有序指的是可以按照消息的发送顺序来消费(FIFO)。RocketMQ可以严格的保证消息有序，可以分为分区有序或者全局有序</p>
+<p>顺序消费的原理解析，在默认的情况下消息发送会采取Round Robin轮询方式把消息发送到不同的queue(分区队列)；而<strong>消费消息的时候从多个queue上拉取消息</strong>，这种情况发送和消费是不能保证顺序。但是如果<strong>控制发送的顺序消息只依次发送到同一个queue中，消费的时候只从这个queue上依次拉取</strong>，则就保证了顺序。<u>当发送和消费参与的queue只有一个，则是全局有序</u>；如果多个queue参与，则为分区有序，即相对每个queue，消息都是有序的</p>
+<p>消息发送会存在多个队列，一个消费者只绑定一个队列，只从这一个队列中读取，发送消息时也是按队列号发送特定消息。</p>
+<p>下面用订单进行分区有序的示例。一个订单的顺序流程是：创建、付款、推送、完成。订单号相同的消息会被先后发送到同一个队列中，消费时，同一个OrderId获取到的肯定是同一个队列</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">String[] tags = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;TagA&quot;</span>, <span class="string">&quot;TagC&quot;</span>, <span class="string">&quot;TagD&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 订单列表</span></span><br><span class="line">List&lt;OrderStep&gt; orderList = <span class="keyword">new</span> Producer().buildOrders();</span><br><span class="line"></span><br><span class="line">Date date = <span class="keyword">new</span> Date();</span><br><span class="line">SimpleDateFormat sdf = <span class="keyword">new</span> SimpleDateFormat(<span class="string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>);</span><br><span class="line">String dateStr = sdf.format(date);</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) &#123;</span><br><span class="line">    <span class="comment">// 加个时间前缀</span></span><br><span class="line">    String body = dateStr + <span class="string">&quot; Hello RocketMQ &quot;</span> + orderList.get(i);</span><br><span class="line">    Message msg = <span class="keyword">new</span> Message(<span class="string">&quot;TopicTest&quot;</span>, tags[i % tags.length], <span class="string">&quot;KEY&quot;</span> + i, body.getBytes());</span><br><span class="line"></span><br><span class="line">    SendResult sendResult = producer.send(msg, <span class="keyword">new</span> MessageQueueSelector() &#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">        <span class="function"><span class="keyword">public</span> MessageQueue <span class="title">select</span><span class="params">(List&lt;MessageQueue&gt; mqs, Message msg, Object arg)</span> </span>&#123;</span><br><span class="line">            Long id = (Long) arg;  <span class="comment">//根据订单id选择发送queue</span></span><br><span class="line">            <span class="keyword">long</span> index = id % mqs.size();</span><br><span class="line">            <span class="keyword">return</span> mqs.get((<span class="keyword">int</span>) index);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;, orderList.get(i).getOrderId());<span class="comment">//订单id</span></span><br><span class="line"></span><br><span class="line">    System.out.println(String.format(<span class="string">&quot;SendResult status:%s, queueId:%d, body:%s&quot;</span>,</span><br><span class="line">                                     sendResult.getSendStatus(),</span><br><span class="line">                                     sendResult.getMessageQueue().getQueueId(),</span><br><span class="line">                                     body));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="延时消息"><a href="#延时消息" class="headerlink" title="延时消息"></a>延时消息</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">Message message = <span class="keyword">new</span> Message(<span class="string">&quot;TopicTest&quot;</span>, (<span class="string">&quot;Hello scheduled message &quot;</span> + i).getBytes());</span><br><span class="line"><span class="comment">// 设置延时等级3,这个消息将在10s之后发送(现在只支持固定的几个时间,详看delayTimeLevel)</span></span><br><span class="line">message.setDelayTimeLevel(<span class="number">3</span>);</span><br><span class="line"><span class="comment">// 发送消息</span></span><br><span class="line">producer.send(message);</span><br></pre></td></tr></table></figure>
+
+<p>RocketMq并不支持任意时间的延时，需要设置几个固定的延时等级，从1s到2h分别对应着等级1到18</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// org/apache/rocketmq/store/config/MessageStoreConfig.java</span></span><br><span class="line"><span class="keyword">private</span> String messageDelayLevel = <span class="string">&quot;1s 5s 10s 30s 1m 2m 3m 4m 5m 6m 7m 8m 9m 10m 20m 30m 1h 2h&quot;</span>;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="相关问题"><a href="#相关问题" class="headerlink" title="相关问题"></a>相关问题</h2><h3 id="默认虚拟机内存占用较大导致无法启动"><a href="#默认虚拟机内存占用较大导致无法启动" class="headerlink" title="默认虚拟机内存占用较大导致无法启动"></a>默认虚拟机内存占用较大导致无法启动</h3><p><span id="jvmmem">修改JVM内存</span></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">vi runbroker.sh</span><br><span class="line">vi runserver.sh</span><br></pre></td></tr></table></figure>
+
+<p>修改两个文件的此处<code>JAVA_OPT=&quot;$&#123;JAVA_OPT&#125; -server -Xms256m -Xmx256m -Xmn128m -XX:MetaspaceSize=128m  -XX:MaxMetaspaceSize=320m&quot;</code></p>
+<h3 id="集群分号问题"><a href="#集群分号问题" class="headerlink" title="集群分号问题"></a>集群分号问题</h3><p>集群配置，在properties配置文件还是在设置namesrvAddr都是分号分隔不同地址。</p>
+<h3 id="存储消息路径问题"><a href="#存储消息路径问题" class="headerlink" title="存储消息路径问题"></a>存储消息路径问题</h3><p>同一台机器下，如果有多个broker，则不同broker的存储路径不能一致，如某机器下有1个master和1个slave，则在配置broker-a.properties文件和broker-b-s.properties中的一下路径是不能冲突的。否则可能造成broker无法启动成功。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">#存储路径</span><br><span class="line">storePathRootDir&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store</span><br><span class="line">#commitLog 存储路径</span><br><span class="line">storePathCommitLog&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;commitlog</span><br><span class="line">#消费队列存储路径存储路径</span><br><span class="line">storePathConsumeQueue&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;consumequeue</span><br><span class="line">#消息索引存储路径</span><br><span class="line">storePathIndex&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;index</span><br><span class="line">#checkpoint 文件存储路径</span><br><span class="line">storeCheckpoint&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;checkpoint</span><br><span class="line">#abort 文件存储路径</span><br><span class="line">abortFile&#x3D;&#x2F;usr&#x2F;local&#x2F;rocketmq&#x2F;store&#x2F;abort</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h3 id="Exception-in-thread-“main”-org-apache-rocketmq-remoting-exception-RemotingTooMuchRequestException-sendDefaultImpl-call-timeout"><a href="#Exception-in-thread-“main”-org-apache-rocketmq-remoting-exception-RemotingTooMuchRequestException-sendDefaultImpl-call-timeout" class="headerlink" title="Exception in thread “main” org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException: sendDefaultImpl call timeout"></a>Exception in thread “main” org.apache.rocketmq.remoting.exception.RemotingTooMuchRequestException: sendDefaultImpl call timeout</h3><p>集群启动完成并且console上可以看到集群，但是生产者无法连接到broker发送消息。</p>
+<p>IP问题，如果服务器有多个ip，需要在properties或conf中设置brokerIP1=192.168.38.130指定ip即可,并且namesrvAddr也尽量设置准确地址。 </p>
+<p><strong>brokerIP1</strong> 当前broker监听的IP<br><strong>brokerIP2</strong> 存在broker主从时，在broker主节点上配置了brokerIP2的话,broker从节点会连接主节点配置的brokerIP2来同步。</p>
+<p>默认不配置brokerIP1和brokerIP2时，都会根据当前网卡选择一个IP使用，当你的机器有多块网卡时，很有可能会有问题s</p>
+<h3 id="org-apache-rocketmq-client-exception-MQClientException-Not-found-the-producer-group-connection-For-more-information-please-visit-the-url-http-rocketmq-apache-org-docs-faq"><a href="#org-apache-rocketmq-client-exception-MQClientException-Not-found-the-producer-group-connection-For-more-information-please-visit-the-url-http-rocketmq-apache-org-docs-faq" class="headerlink" title="org.apache.rocketmq.client.exception.MQClientException: Not found the producer group connection For more information, please visit the url, http://rocketmq.apache.org/docs/faq/"></a>org.apache.rocketmq.client.exception.MQClientException: Not found the producer group connection For more information, please visit the url, <a target="_blank" rel="noopener" href="http://rocketmq.apache.org/docs/faq/">http://rocketmq.apache.org/docs/faq/</a></h3><p>在console上查询生产者页面信息时报错。原因为生产者生产完消息后不执行<code>producer.shutdown();</code>才行，否则无法查询到。</p>
+<p>统称为主题。对于activemq的队列和消息区分有别。</p>
+<p>activemq在最开始就定义当前消息组是队列还是主题。</p>
+<p>rocketmq只向类型为top主题类型中发送消息，是队列还是主题由消费者来确定，负载均衡CLUSTERING则为队列模式，广播BROADCASTING则为主题模式。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MQ/" rel="tag">MQ</a></li></ul>
 
 
     </footer>
@@ -485,7 +631,7 @@
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/">上一页</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/3/">下一页</a>
+    <a class="extend prev" rel="prev" href="/">上一页</a><a class="page-number" href="/">1</a><span class="page-number current">2</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="space">&hellip;</span><a class="page-number" href="/page/43/">43</a><a class="extend next" rel="next" href="/page/3/">下一页</a>
   </nav>
   
 </section>

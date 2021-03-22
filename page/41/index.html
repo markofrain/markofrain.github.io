@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Vue/Vue2.0 Vue实例" class="article article-type-post" itemscope
+    <article id="post-Vue/vue-router路由" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%20Vue%E5%AE%9E%E4%BE%8B/"
-    >Vue2.0 Vue实例</a
+  <a class="article-title" href="/2018/05/29/Vue/vue-router%E8%B7%AF%E7%94%B1/"
+    >vue-router路由</a
   >
 </h2>
   
@@ -97,8 +97,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%20Vue%E5%AE%9E%E4%BE%8B/" class="article-date">
-  <time datetime="2018-05-28T14:16:18.000Z" itemprop="datePublished">2018-05-28</time>
+      <a href="/2018/05/29/Vue/vue-router%E8%B7%AF%E7%94%B1/" class="article-date">
+  <time datetime="2018-05-29T13:30:12.000Z" itemprop="datePublished">2018-05-29</time>
 </a>
       
   <div class="article-category">
@@ -119,508 +119,126 @@
       
 
       
-      <h3 id="Vue实例"><a href="#Vue实例" class="headerlink" title="Vue实例"></a>Vue实例</h3><p>每个 Vue 应用都是通过用 Vue 函数创建一个新的 Vue 实例开始的：</p>
-<pre><code>var vm = new Vue(&#123;
-    // 选项
-&#125;)</code></pre><p>当创建一个 Vue 实例时，你可以传入一个选项对象,就如前面所提到的如:data,methods,computed,watch等等。 一个 Vue 应用由一个通过 new Vue 创建的根 Vue 实例，以及可选的嵌套的、可复用的组件树组成。举个例子，一个 todo 应用的组件树可以是这样的：</p>
-<pre><code>根实例Root
-└─ TodoList
-   ├─ TodoItem
-   │  ├─ DeleteTodoButton
-   │  └─ EditTodoButton
-   └─ TodoListFooter
-      ├─ ClearTodosButton
-      └─ TodoListStatistics</code></pre><p>我们会在稍后的组件系统章节具体展开。</p>
-<h3 id="数据和方法"><a href="#数据和方法" class="headerlink" title="数据和方法"></a>数据和方法</h3><p>只要是包含在Vue实例中的属性都是响应式的。当这些属性的值发生改变时，视图将会产生“响应”，即匹配更新为新的值。</p>
-<pre><code>// 我们的数据对象
-var data = &#123; a: 1 &#125;
-
-// 该对象被加入到一个 Vue 实例中
-var vm = new Vue(&#123;
-  data: data
-&#125;)
-
-// 获得这个实例上的属性
-// 返回源数据中对应的字段
-vm.a == data.a // =&gt; true
-
-// 设置属性也会影响到原始数据
-vm.a = 2
-data.a // =&gt; 2
-
-// ……反之亦然
-data.a = 3
-vm.a // =&gt; 3</code></pre><p>当这些数据改变时，视图会进行重渲染。值得注意的是只有当实例被创建时 data 中存在的属性才是响应式的。 如果你晚些需要使用到某个属性，你可以为它定义初始值，以防止后面无法直接使用到属性。 当然，可以不对属性进行响应式追踪，<strong>Object.freeze()</strong>，这会阻止修改现有的属性，也意味着响应系统无法再_追踪_变化。</p>
-<pre><code>var obj = &#123;
-    foo: &apos;bar&apos;
-&#125;
-
-Object.freeze(obj)
-
-new Vue(&#123;
-    el: &apos;#app&apos;,
-    data: obj
-&#125;)</code></pre><p>除了数据属性，还暴露了实例的属性和方法，他们都有前缀<strong>$</strong>,如$set,$delete,$watch,以便于用户自定义的属性区分开来。 这些属性方法在下节述说。可以查看<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/api/#vm-data">官方API</a></p>
-<h3 id="生命周期"><a href="#生命周期" class="headerlink" title="生命周期"></a>生命周期</h3><p>跟其他语言实例对象一样，Vue实例也有自己的生命周期。 而这些生命周期中的过程，运行的一些函数叫<strong>生命周期钩子</strong> 这些函数分别为: + beforeCreate //实例刚创建，为监视或配置属性，事件，只进行了new操作 + created //创建实例已经完成，并完成了属性的监视和事件配置 + beforeMount //模板编译之前，未挂载，数据还未显示到视图已依旧为模板{ {}} + mounted //模板编译之后，已经挂载，渲染页面，显示数据 + beforeUpdate //组件更新之前执行 + updated //组件更新之后执行 + beforeDestroy //组件销毁之前执行 + destroyed //组件销毁，清理它与其它实例的连接，解绑它的全部指令及事件监听器 举个案例：</p>
+      <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>使用Vue.js开发SPA（Single Page Application）单页面应用。 vue-router可以通过html5的history API或者hash实现单页应用，即不刷新跳转，切换地址，只是页面上的组件的切换； vue-router可以实现页面间传参等其他功能；</p>
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><p>当你要把 vue-router 添加进来，我们需要做的是，将组件(components)映射到路由(routes)，然后告诉 vue-router 在哪里渲染它们。 首先我们需要定义链接url，而vue-router使用<router-link>对a标签进行包装。 <strong>HTML:</strong></p>
 <pre><code>&lt;div id=&quot;app&quot;&gt;
-    message:&#123; &#123;msg&#125;&#125;
-    &lt;br/&gt;
-    &lt;button @click=&quot;changeMsg&quot;&gt;修改message属性&lt;/button&gt;&lt;br/&gt;
-    &lt;button onclick=&quot;destory()&quot;&gt;销毁实例&lt;/button&gt;
-&lt;/div&gt;
-
-
-var vm = new Vue(&#123;
-        el:&apos;#app&apos;,
-        data:&#123;
-            msg:&apos;this is Vue Test&apos;
-        &#125;,
-        methods:&#123;
-            changeMsg()&#123;
-                this.msg = &apos;此章节为Vue2.0笔记——Vue实例&apos;;
-            &#125;
-        &#125;,
-        beforeCreate()&#123;
-            alert(&apos;组件实例刚刚创建，还未进行数据观测和事件配置&apos;);
-        &#125;,
-        created()&#123;  //常用！！！
-            alert(&apos;实例已经创建完成，并且已经进行数据观测和事件配置&apos;);
-        &#125;,
-        beforeMount()&#123;
-            alert(&apos;模板编译之前，还没挂载&apos;);
-        &#125;,
-        mounted()&#123; //常用！！！
-            alert(&apos;模板编译之后，已经挂载，此时才会渲染页面，才能看到页面上数据的展示&apos;);
-        &#125;,
-        beforeUpdate()&#123;
-            alert(&apos;组件更新之前&apos;);
-        &#125;,
-        updated()&#123;
-            alert(&apos;组件更新之后&apos;);
-        &#125;,
-        beforeDestroy()&#123;
-            alert(&apos;组件销毁之前&apos;);
-        &#125;,
-        destroyed()&#123;
-            alert(&apos;组件销毁之后&apos;);
-        &#125;
-
-    &#125;)
-    function destory()&#123;
-        vm.$destroy();
-    &#125;</code></pre><p>当执行完毕后，更新会自动触发，销毁后，无法更改值。</p>
-<blockquote>
-<p>在其中created函数和mounted函数是较为常用的钩子函数 另外:不要在选项属性或回调上使用箭头函数 比如 created: () =&gt; console.log(this.a) 或 vm.$watch(‘a’, newValue =&gt; this.myMethod())。因为箭头函数是和父级上下文绑定在一起的，this 不会是如你所预期的 Vue 实例，经常导致 Uncaught TypeError: Cannot read property of undefined 或 Uncaught TypeError: this.myMethod is not a function 之类的错误。</p>
-</blockquote>
-<p><img src="https://cn.vuejs.org/images/lifecycle.png" alt="生命周期图片"> 如果此文章未能让您更明白，请参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/xiaofenguo/p/6605091.html?_blank">Vue实例与生命周期</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue2.0计算属性和侦听器" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7%E5%92%8C%E4%BE%A6%E5%90%AC%E5%99%A8/"
-    >Vue2.0计算属性和侦听器</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7%E5%92%8C%E4%BE%A6%E5%90%AC%E5%99%A8/" class="article-date">
-  <time datetime="2018-05-28T14:04:26.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="计算属性"><a href="#计算属性" class="headerlink" title="计算属性"></a>计算属性</h3><p>在模板使用表达式会非常便利，但是仅适用于简单的运算。当放入太多的逻辑，使得模板过于难以维护。对于这样，就像一个数据需要根据另一个数据的变动而变动。也因此计算属性有了可以监视的能力。<br>所以，对于任何复杂逻辑，你都应当使用计算属性。 计算属性也是用来存储数据，但具有以下几个特点：</p>
-<ul>
-<li>数据可以进行逻辑处理操作</li>
-<li>对计算属性中的数据进行监视</li>
-</ul>
-<h4 id="计算属性逻辑处理"><a href="#计算属性逻辑处理" class="headerlink" title="计算属性逻辑处理"></a>计算属性逻辑处理</h4><p>计算属性跟data选项一样，也是用来存储数据的。 计算属性写在<strong>computed</strong>选项里。 可以看下面一个例子:</p>
-<pre><code>var vm = new Vue(&#123;
-        el:&apos;#app&apos;,
-        data:&#123;
-            message:&apos;Hello&apos;
-        &#125;,
-        computed:&#123;
-            //计算属性的getter方法
-            reversedMessage:function()&#123;
-                return this.message.split(&apos;&apos;).reverse().join(&apos;&apos;);
-            &#125;
-        &#125;
-&#125;)
-&lt;div id=&quot;app&quot;&gt;
-    &lt;p&gt;message:&#123; &#123;message&#125;&#125;&lt;/p&gt;
-    &lt;p&gt;Computed reversed message:&#123; &#123; reversedMessage &#125;&#125;&lt;/p&gt;
-&lt;/div&gt;</code></pre><p>通过执行代码，message属性值为Hello，翻转了值为olleH。 reversedMessage属性的值为一个函数，这个函数是一个getter方法，<strong>如果该属性所依赖的属性(message)发生变更，此计算属性会重新触发</strong>。 <strong>修改代码如下:</strong></p>
-<pre><code>&lt;input type=&quot;text&quot; v-model=&quot;message&quot;&gt;
-&#123; &#123;message&#125;&#125;
-&lt;p&gt;Computed reversed message:&#123; &#123; reversedMessage &#125;&#125;&lt;/p&gt;</code></pre><p>该message属性进行了双向绑定，message值一更改，reversedMessage就会执行，并的到新的值，这就是它的监听的能力。  </p>
-<h4 id="计算属性的setter方法"><a href="#计算属性的setter方法" class="headerlink" title="计算属性的setter方法"></a>计算属性的setter方法</h4><p>当然计算属性默认只有getter方法，你还可以添加setter方法。</p>
-<pre><code>computed: &#123;
-  fullName: &#123;
-    // getter
-    get: function () &#123;
-      return this.firstName + &apos; &apos; + this.lastName
-    &#125;,
-    // setter
-    set: function (newValue) &#123;
-      var names = newValue.split(&apos; &apos;)
-      this.firstName = names[0]
-      this.lastName = names[names.length - 1]
-    &#125;
-  &#125;
-&#125;</code></pre><h4 id="计算属性缓存与方法的比较"><a href="#计算属性缓存与方法的比较" class="headerlink" title="计算属性缓存与方法的比较"></a>计算属性缓存与方法的比较</h4><p>方法和计算属性都能为其进行单词翻转，结果都是一样的，但是不同的是，<strong>计算属性是基于他们的依赖进行缓存的</strong>，也就是说，只要message不改变，多次访问将返回原来的计算结果，而不必再执行函数。 相比之下，每当触发重新渲染时，调用方法将总会再次执行函数。</p>
-<h3 id="侦听器"><a href="#侦听器" class="headerlink" title="侦听器"></a>侦听器</h3><p>虽然计算属性在大多数情况下更合适，但有时也需要一个自定义的侦听器。 局部的侦听器写在<strong>watch选项</strong>中。</p>
-<pre><code>watch:&#123;
-            name:function(newName,oldName)&#123;
-                console.log(&apos;新值:&apos; +newName +&apos;,&apos; + &apos;旧值：&apos; + oldName);
-            &#125;
-        &#125;</code></pre><p>name为监听的某个属性，第一个参数是的得到新值，第二个参数是旧值。  </p>
-<h4 id="选项deep"><a href="#选项deep" class="headerlink" title="选项deep"></a>选项deep</h4><p>如果你监视对象，，你改变了此对象的属性，但是并不会改变对象的地址，因为它监视的是地址, 如果不发生改变就不会执行这个处理器，为了<strong>发现对象内部值变化</strong>，需要设置选项deep:true,注意监听数组是不用这么做。</p>
-<pre><code>user:&#123; 
-    handler:function(newVal,oldVal)&#123;
-        console.log(&apos;原值为&apos; + oldVal.name + &apos;新值为&apos; + newVal.name);
-    &#125;,
-    deep:true 
-&#125;</code></pre><p>加了之后会执行这个处理器函数，显示值。但是newVal和oldVal都是新的值， 因为对象时引用类型，两个变量都指向那个对象，所以，改变了值之后，自然oldVal.name也会改变成新值</p>
-<h4 id="选项：immediate"><a href="#选项：immediate" class="headerlink" title="选项：immediate"></a>选项：immediate</h4><p>在选项参数中指定 immediate: true 将立即以表达式的当前值触发回调：</p>
-<pre><code>user:&#123; 
-    handler:function(newVal,oldVal)&#123;
-        console.log(&apos;原值为&apos; + oldVal.name + &apos;新值为&apos; + newVal.name);
-    &#125;,
-    immediate:true
-&#125;
-// 立即以 `name` 的当前值触发回调</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue2.0Ajax，JSONP跨域" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/"
-    >Vue2.0Ajax，JSONP跨域</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/" class="article-date">
-  <time datetime="2018-05-28T14:02:16.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="Ajax实现"><a href="#Ajax实现" class="headerlink" title="Ajax实现"></a>Ajax实现</h3><p>vue本身不支持发送AJAX请求，需要使用vue-resource、axios等插件实现。 axios是一个基于Promise的HTTP请求客户端，用来发送请求，也是vue2.0官方推荐的，同时不再对vue-resource进行更新和维护。 参考GitHub上的<a target="_blank" rel="noopener" href="https://github.com/axios/axios">axios</a>,dist目录下的文件就是axios.min.js。 语法:</p>
-<pre><code>axios([options])
-axios.get(url[,options])
-    传参方式:
-        1.通过url传参
-        2.通过params选项传参</code></pre><h4 id="案例-axios-options"><a href="#案例-axios-options" class="headerlink" title="案例:axios([options])"></a>案例:axios([options])</h4><pre><code>data:&#123;
-            id:1001
-        &#125;,
-    methods:&#123;
-            sendAjax()&#123;
-                axios(&#123;
-                    method:&apos;get&apos;,
-                    url:&apos;https://api.github.com/users/&apos; + vm.id
-                &#125;).then(function(resp)&#123; //表示请求成功，将执行的回调函数
-                    console.log(resp.data);
-                    vm.user=resp.data;
-                &#125;).catch(function()&#123;  //请求失败，将执行的回调函数
-                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
-                &#125;);
-            &#125;
-        &#125;</code></pre><p>在这个代码中，github是一个开源网站，所以可以访问到用户的信息。 1.vm.id表示vm引用当前Vue实例的属性，在后面Vue实例中说明。 2.axios表示执行ajax请求，method选项表示请求方式，url表示请求路径。 3..then回调函数，表示请求成功将被执行,resp为请求成功返回的数据。 4.catch表示请求失败将被执行的回调函数。。</p>
-<h4 id="axiso-get-url-options"><a href="#axiso-get-url-options" class="headerlink" title="axiso.get(url[,options])"></a>axiso.get(url[,options])</h4><p>与其类似，但需要注意，第一个参数为url，后面才是选项。</p>
-<pre><code>sendAjaxGet()&#123;
-                axios.get(&apos;/user&apos;,&#123;
-                    params:&#123;
-                        id:1001
-                    &#125;
-                &#125;).then(function(resp)&#123;
-                    console.log(resp.data);
-                    vm.user=resp.data;
-                &#125;).catch(function()&#123;
-                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
-                &#125;);
-            &#125;</code></pre><h4 id="axios-post-url-data-options"><a href="#axios-post-url-data-options" class="headerlink" title="axios.post(url,data,[options])"></a>axios.post(url,data,[options])</h4><p>post方式请求，第一个参数为请求路径，第二个参数直接就是需要传递的数据，格式为json格式，后面的为选项。</p>
-<pre><code>sendAjaxPost()&#123;
-    axios.post(&apos;server.php&apos;,&#123;
-        name:&apos;KaiEr&apos;,
-        age:19
-    &#125;).then(function(resp)&#123;
-        console.log(resp.data);
-    &#125;).catch(function()&#123;
-        console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
-    &#125;);
-&#125;</code></pre><p>还有其他的Request Config请求配置 如:<strong>transformRequest</strong></p>
-<pre><code>transformRequest: [function (data, headers) &#123;
-    // Do whatever you want to transform the data
-    return data;
-  &#125;],</code></pre><p>按照文档的意思是说，在请求数据发到服务器之前对其进行更改，仅适用于’PUT’,’POST’和’PATCH’。 该值为数组， 数组中最后一个函数应返回一个字符串或Buffer，ArrayBuffer实例。其实返回字符串就可以。 该函数接收的data参数表示传递的数据，即post方式请求的第二个参数。<br>还有如 + timeout：表示请求超时的毫秒数 + heads：自定义头部文件 + responseType：响应类型 + responseEncoding：响应编码格式 等等，都可以在Github的axios项目的README.md文件中查看文档。 <a target="_blank" rel="noopener" href="https://github.com/axios/axios">GitHub的axios开源项目</a></p>
-<h3 id="JSONP跨域请求"><a href="#JSONP跨域请求" class="headerlink" title="JSONP跨域请求"></a>JSONP跨域请求</h3><p>axios本身并不支持发送跨域的请求，没有提供相应的API。 尽管vue-resource不再维护，但是还可以使用它来进行跨域请求。 您可以考虑使用Jquery.js来进行跨域请求和Ajax请求。然而还有其他使用ajax跨域的更好方法。我们只是说明Vue也可以支持此功能，但如果需要，你任然可以选择。 引入vue-resource.js文件,可以访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> <strong>文档语法</strong>:</p>
-<pre><code>this.$http.jsonp(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);
-this.$http.get(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);</code></pre><ul>
-<li>get(url, [config])</li>
-<li>head(url, [config])</li>
-<li>delete(url, [config])</li>
-<li>jsonp(url, [config])</li>
-<li>post(url, [body], [config])</li>
-<li>put(url, [body], [config])</li>
-<li>patch(url, [body], [config])</li>
-</ul>
-<p><strong>Example</strong>:</p>
-<pre><code>&#123;
-  // GET /someUrl
-  this.$http.get(&apos;/someUrl&apos;).then(response =&gt; &#123;
-    // get body data
-    this.someData = response.body;
-  &#125;, response =&gt; &#123;
-    // error callback
-  &#125;);
-&#125;</code></pre><p>案例: 通过跨域请求Baidu的搜索,打开百度，F12，输入a字符，搜索，Ajax请求，network中找到这样一条请求。 <a href="#">https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=a&amp;json=1&amp;p=3&amp;sid=1444_12897_21084_26182_22158&amp;req=2&amp;csor=1&amp;cb=jQuery110209410333632536945_1523889174484&amp;_=1523889174489</a> wd代表搜索的单词a,我们只需要前边的。 另外我们可以在heads中看到百度使用的jsonp参数名为cb，所以需要修改。</p>
-<pre><code>sendJsonp()&#123;
-    this.$http.jsonp(&apos;https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su&apos;,&#123;
-        params:&#123;
-            wd:&apos;a&apos;
-        &#125;,
-        jsonp:&apos;cb&apos; //百度使用的jsonp参数名为cb，所以需要修改
-        &#125;).then(resp =&gt; &#123;
-            console.log(resp.data.s);
-        &#125;);
-&#125;</code></pre><p>通过测试，发现可以得到结果</p>
-<pre><code>(10) [&quot;爱奇艺&quot;, &quot;阿里云&quot;, &quot;安居客&quot;, &quot;阿里巴巴&quot;, &quot;阿里巴巴批发网&quot;, &quot;爱奇艺网&quot;, &quot;阿里云邮箱&quot;, &quot;安卓模拟器&quot;, &quot;爱思助手&quot;, &quot;acfun&quot;]</code></pre><p>文档访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> 另外，我也不怎么建议使用这个跨域，况且也不是经常用到。 可以使用<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000011145364">Jquery，document.domain + iframe跨域以及nodejs中间件代理跨域</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue2.0{{}}模板与自定义过滤器" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/"
-    >Vue2.0{{}}模板与自定义过滤器</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/" class="article-date">
-  <time datetime="2018-05-28T13:59:06.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="模板语法"><a href="#模板语法" class="headerlink" title="模板语法"></a>模板语法</h3><p>让我们回到最开始</p>
-<pre><code>    &lt;div id=&quot;app&quot;&gt;
-        &lt;h1&gt;&#123; &#123;message&#125;&#125;&lt;/h1&gt;
+    &lt;div&gt;
+        &lt;!-- 通过router-link来导航，to属性指定链接， 默认 会渲染成a标签 --&gt;
+        &lt;router-link to=&quot;/home&quot;&gt;Home&lt;/router-link&gt;
+        &lt;router-link to=&quot;/user&quot;&gt;User&lt;/router-link&gt;
     &lt;/div&gt;
-&lt;script&gt;
+    &lt;div&gt;
+        &lt;!-- 路由出口，路由匹配到的组件将在这里渲染 --&gt;
+        &lt;router-view&gt;&lt;/router-view&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre><p><strong>Javascript:</strong></p>
+<pre><code>//1.定义(路由)组件
+    var home = &#123;template:&apos;&lt;p&gt;This is Home Page。。。&lt;/p&gt;&apos;&#125;
+    var user = &#123;template:&apos;&lt;p&gt;This is User Page&lt;/p&gt;&apos;&#125;
+    //2.定义路由，这是一组路由，每个路由使用一个大括号
+    const routes = [
+        &#123;path:&apos;/home&apos;,component:home&#125;,
+        &#123;path:&apos;/user&apos;,component:user&#125;
+    ];
+    //3.创建路由实例,然后传入路由配置
+    var router= new VueRouter(&#123;
+       routes   //缩写，相当于routes:routes
+    &#125;);
+    //4.在Vue实例中注入路由
     var vm = new Vue(&#123;
         el:&apos;#app&apos;,
-        data:&#123;
-            message:&apos;HelloWorld&apos;
-        &#125;
-    &#125;)
-&lt;/script&gt;</code></pre><p>这是一个HelloWorld，简单的通过模板输出。我们称之为数据绑定，而最常见的就是“Mustache”语法 (双大括号) 。 <strong>v-once</strong>指令，前面介绍过，一次性绑定，数据改变时，绑定的值是不会改变的。</p>
-<pre><code>&lt;span v-once&gt;这个将不会改变&#123; &#123;message&#125;&lt;/span&gt;</code></pre><h4 id="原始HTML"><a href="#原始HTML" class="headerlink" title="原始HTML"></a>原始HTML</h4><p>使用{ {}}语法，输出时普通文本，而如果要输出带有HTML的，则要使用<strong>v-html</strong>指令</p>
-<pre><code>data:&#123;
-    message:&apos;HelloWorld&apos;,
-    htmlText:&apos;&lt;h2&gt;这是一个标题,h2的标题&lt;/h2&gt;&apos;
+        router   //缩写,相当于router:router
+    &#125;);</code></pre><p>运行一下，可以完美的跑起来。</p>
+<h3 id="router-link类样式"><a href="#router-link类样式" class="headerlink" title="router-link类样式"></a>router-link类样式</h3><p>我们看一下控制台Elements，发现确实变成了<a>标签,并且还为当前选定的<router-link>添加了class “router-link-exact-active”和“router-link-active”，我们可以为其添加类样式。 还可以重新设置它的名称只需要在router路由实例中配置。</p>
+<pre><code>linkActiveClass:&apos;active&apos;//或其他值</code></pre><h3 id="HTML5-History模式"><a href="#HTML5-History模式" class="headerlink" title="HTML5 History模式"></a>HTML5 History模式</h3><p>我们看路径，默认会给前面加上#号，可能会看起来很丑,我们可以使用HTML5 History模式。这种模式充分利用 history.pushState API 来完成 URL 跳转而无须重新加载页面</p>
+<pre><code>const router = new VueRouter(&#123;
+  mode: &apos;history&apos;,
+  routes: [...]
+&#125;);</code></pre><p>而如果你这样做的话，后台服务器需要配置，因为我们的应用是个单页客户端应用，如果后台没有正确的配置，可能就会出现404页面。那么就需要一个通配符的方法解决,你可以使用重定向。 <strong>3.重定向</strong> <strong>1.通过路径方式</strong></p>
+<pre><code>const routes=[
+    ....
+    //若为/,表示默认重定向/home路径，*则表示匹配任何则重定向到
+    &#123;path:&apos;/&apos;,redirect:&apos;/home&apos;&#125;//或者&#123;path:&apos;*&apos;,redirect:&apos;/home&apos;&#125;
+]</code></pre><p>当匹配找不到的时候，就会转到这个路由。 <strong>2.通过路由名称</strong> 当然还可以通过路由名称的方式重定向,前提是你为路由设置了name参数</p>
+<pre><code>const routes = [
+    &#123;path:&apos;/user&apos;,component:user,name:&apos;user&apos;&#125;,//此时通过name设置路由名称
+    &#123;path:&apos;/&apos;,redirect:&#123;name:&apos;user&apos;&#125;&#125;//此处通过name属性给与路由名称
+];</code></pre><h2 id="嵌套路由"><a href="#嵌套路由" class="headerlink" title="嵌套路由"></a>嵌套路由</h2><p>嵌套路由无非是在路由里再加路由，与组件一样。 假如user中需要login和regist</p>
+<pre><code>//重新为user定义模板
+&lt;template id=&quot;user&quot;&gt;
+    &lt;div&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;router-link to=&quot;/user/login&quot;&gt;User Login&lt;/router-link&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;router-link to=&quot;/user/regist&quot;&gt;User Regist&lt;/router-link&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+        &lt;router-view&gt;&lt;/router-view&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+//为user路由添加子路由
+children:[
+    &#123;path:&apos;login&apos;,component:login&#125;,
+    &#123;path:&apos;regist&apos;,component:regist&#125;
 &#125;
-
-&#123; &#123;htmlText&#125;&#125;&lt;br/&gt;
-&lt;span v-html=&quot;htmlText&quot;&gt;&lt;/span&gt;</code></pre><p>这个 span 的内容将会被替换成为属性值 htmlText</p>
-<h4 id="不编译模板"><a href="#不编译模板" class="headerlink" title="不编译模板"></a>不编译模板</h4><p><strong>v-pre</strong>指令，可以跳过该元素和它子元素的编译过程，来显示原始的Mustache标签</p>
-<pre><code>&lt;span v-pre&gt;&#123; &#123;message&#125;&#125;&lt;/span&gt;</code></pre><p>输出的结果是{ {message}}，不对其进行编译。</p>
-<h4 id="延缓显示"><a href="#延缓显示" class="headerlink" title="延缓显示"></a>延缓显示</h4><p><strong>v-cloak</strong>指令保持在元素上直到关联实例结束编译。 CSS 规则如 [v-cloak] { display: none } 一起用时，这个指令可以隐藏未编译的 Mustache 标签直到实例准备完毕。</p>
-<pre><code> &lt;div v-cloak&gt;
-    &#123; &#123;message&#125;&#125;
-&lt;/div&gt;
-
-
-    [v-cloak]&#123;
-        display:none;
-    &#125;</code></pre><p>当DOM运行到此处时，该模板还未编译，所以将其隐藏，等实例准备完毕后，显示。</p>
-<h3 id="自定义过滤器"><a href="#自定义过滤器" class="headerlink" title="自定义过滤器"></a>自定义过滤器</h3><p>在Vue2.0中已经除去了1.0的过滤器，但是可以自定义。分为局部的和全局的。 过滤器可以用在两个地方，双花括号插值和v-bind表达式。 语法为:</p>
-<pre><code>&lt;!-- 在双花括号中 --&gt;
-&#123; &#123; message | capitalize &#125;&#125;
-&lt;!-- 在 `v-bind` 中 --&gt;
-&lt;div v-bind:id=&quot;rawId | formatId&quot;&gt;&lt;/div&gt;</code></pre><p>“|”符号 左侧为需要过滤的数据，右侧为过滤器名称。 <strong>另外注意,使用过滤器后，需要返回值，才能正常显示。</strong></p>
-<h4 id="局部过滤器定义"><a href="#局部过滤器定义" class="headerlink" title="局部过滤器定义"></a>局部过滤器定义</h4><p>局部过滤器定义在实例中的filters选项中。 示例:过滤数字，四舍五入。</p>
-<pre><code>filters:&#123;    //局部过滤器，仅当前Vue实例可用
-    number:(data,n) =&gt; &#123;
-        return data.toFixed(n);  //四舍五入,参数为保留的位数
+//定义组件
+var login = &#123;template:&apos;&lt;p&gt;用户登录&lt;/p&gt;&apos;&#125;
+var regist = &#123;template:&apos;&lt;p&gt;用户注册&lt;/p&gt;&apos;&#125;</code></pre><p>运行一下，可以正常显示。 注意user模板中的router-link和router-view，他俩是一一对应的，跟外面的不一样。</p>
+<h3 id="router-link标签渲染"><a href="#router-link标签渲染" class="headerlink" title="router-link标签渲染"></a>router-link标签渲染</h3><p>前面说过，router-link的默认渲染为<a>标签，我们可以更改,通过<strong>tag属性</strong></p>
+<pre><code>&lt;router-link to=&quot;/user/login&quot; tag=&quot;li&quot;&gt;User Login&lt;/router-link&gt;
+&lt;router-link to=&quot;/user/regist&quot; tag=&quot;li&quot;&gt;User Regist&lt;/router-link&gt;</code></pre><h3 id="动态路由匹配"><a href="#动态路由匹配" class="headerlink" title="动态路由匹配"></a>动态路由匹配</h3><p>如果我们通过路径路径来匹配到某个路由。例如，我们有一个 User 组件，对于所有 ID 各不相同的用户，都要使用这个组件来渲染。那么，我们可以在 vue-router 的路由路径中使用『动态路径参数』。 通俗地讲就是参数嘛，</p>
+<ul>
+<li>字符串参数 ?uname=xiao&amp;pwd=123</li>
+<li>rest风格传参 /yao/456</li>
+</ul>
+<p>当然我们这样映射路由的话，肯定是要参数值的，字符串的获得参数和rest获得参数使用了不同的方法</p>
+<ul>
+<li><p>字符串参数 $route.query</p>
+</li>
+<li><p>rest风格参数 $route.params</p>
+<p>//字符串参数的方式无需配置映射路径,直接显示<br>var login = {template:’<p>用户登录,获取参数,{ {$route.query}}</p>‘}</p>
+<p>//rest方式<br>children:[</p>
+<pre><code>&#123;path:&apos;login&apos;,component:login&#125;,
+&#123;path:&apos;regist/:uname/:pwd&apos;,component:regist&#125;</code></pre><p>]<br>var regist = {template:’<p>用户注册,获取参数,{ {$route.params}}</p>‘}</p>
+</li>
+</ul>
+<p>主要说一下第二种动态路径参数，它类似REST ful,匹配的路径都能够映射,<strong>一个『路径参数』使用冒号</strong> ** *: 标记* ** <strong>,当匹配到一个路由时，参数值会被设置到 this.$route.params，可以在每个组件内使用</strong>。</p>
+<h3 id="响应路由参数的变化"><a href="#响应路由参数的变化" class="headerlink" title="响应路由参数的变化"></a>响应路由参数的变化</h3><p>当使用路由参数时，例如从 /user/login 导航到 /user/regist，<strong>原来的组件实例会被复用</strong>。因为两个路由都渲染同个组件，比起销毁再创建，复用则显得更加高效。不过，<strong>这也意味着组件的生命周期钩子不会再被调用</strong> 复用组件时，想对路由参数的变化作出响应的话，你可以简单地 watch（监测变化） $route 对象</p>
+<pre><code>watch: &#123;
+    &apos;$route&apos; (to, from) &#123;
+      // 对路由变化作出响应...
     &#125;
-&#125;
+  &#125;</code></pre><h3 id="匹配优先级"><a href="#匹配优先级" class="headerlink" title="匹配优先级"></a>匹配优先级</h3><p>有时候，同一个路径可以匹配多个路由，此时，匹配的优先级就按照路由的定义顺序：谁先定义的，谁的优先级就最高。</p>
+<h2 id="编程式导航"><a href="#编程式导航" class="headerlink" title="编程式导航"></a>编程式导航</h2><h3 id="router-push向当前添加一个路由并使用"><a href="#router-push向当前添加一个路由并使用" class="headerlink" title="router.push向当前添加一个路由并使用"></a>router.push向当前添加一个路由并使用</h3><p>除了使用 <router-link> 创建 a 标签来定义导航链接，我们还可以借助 router 的实例方法，通过编写代码来实现。 <strong>router.push(location, onComplete?, onAbort?)</strong> <strong>注意:在 Vue 实例内部，你可以通过 $router 访问路由实例。因此你可以调用 this.$router.push</strong> <strong>这个方法会向 history 栈添加一个新的记录</strong>，所以，当用户点击浏览器后退按钮时，则回到之前的 URL。 当你点击 <router-link> 时，这个方法会在内部调用，所以说，点击 <router-link :to="..." > 等同于调用 router.push(…)。</p>
+<p>声明式</p>
+<p>编程式</p>
+<router-link :to="..." >
 
-&#123; &#123;12.356 | number(2)&#125;&#125;</code></pre><p>过滤器方法声明，第一个参数始终未为传递来的数据，后面的参数一次为方法传递的参数。</p>
-<h4 id="全局过滤器"><a href="#全局过滤器" class="headerlink" title="全局过滤器"></a>全局过滤器</h4><p>语法：Vue.filter( id, [definition] )</p>
-<pre><code>// 注册
-Vue.filter(&apos;my-filter&apos;, function (value) &#123;
-  // 返回处理后的值
-&#125;)
+<p>router.push(…)</p>
+<pre><code>//this.$router.push(&quot;home&quot;);//字符串，值为路由名称
+//this.$router.push(&#123;path:&apos;/user&apos;&#125;);//对象，path指定路径
+//this.$router.push(&#123;name:&apos;regist&apos;,params:&#123;uname:&apos;chen&apos;,pwd:123&#125;&#125;);//动态参数路由
+//this.$router.push(&#123;path:&apos;/user/login&apos;,query:&#123;uname:&apos;chen&apos;,pwd:123&#125;&#125;);//带查询参数
+以及
+router.push(&#123; name: &apos;user&apos;, params: &#123; userId &#125;&#125;) // -&gt; /user/123
+router.push(&#123; path: `/user/$&#123;userId&#125;` &#125;) // -&gt; /user/123</code></pre><p><strong>注意：如果提供了 path，params 会被忽略</strong> <strong>你还需注意，你使用的方式是query还是params，如果你的path使用的是：标注方式的，则使用params，否则使用query</strong></p>
+<h3 id="router-replace替换掉当前记录"><a href="#router-replace替换掉当前记录" class="headerlink" title="router.replace替换掉当前记录"></a>router.replace替换掉当前记录</h3><p>跟 router.push 很像，唯一的不同就是，<strong>它不会向 history 添加新记录</strong>，而是跟它的方法名一样 —— <strong>替换掉当前的 history 记录。</strong></p>
+<p>声明式</p>
+<p>编程式</p>
+<p>router-link :to=”…” replace</p>
+<p>router.replace(…)</p>
+<p>其语法结构与router.push方法完全一样，只不过重要的是，不会生成一条历史记录。</p>
+<h3 id="router-go-n-前进或后退"><a href="#router-go-n-前进或后退" class="headerlink" title="router.go(n)前进或后退"></a>router.go(n)前进或后退</h3><p>这个方法的参数是一个整数，意思是在 history 记录中向前或者后退多少步，类似 window.history.go(n)。</p>
+<pre><code>// 在浏览器记录中前进一步，等同于 history.forward()
+router.go(1)
 
-// getter，返回已注册的过滤器
-var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
-<pre><code>Vue.filter(&apos;formatDate&apos;,function(val)&#123;
-        var d = new Date(val);
-        return d.getFullYear() + &apos;-&apos; + (d.getMonth()+1) + &apos;-&apos; + d.getDate() + &apos; &apos; + d.getHours() + &apos;:&apos; + d.getMinutes();
-    &#125;);
+// 后退一步记录，等同于 history.back()
+router.go(-1)
 
-&lt;h3&gt;时间:&lt;span&gt;&#123; &#123;currentDate | formatDate&#125;&#125;&lt;/span&gt;&lt;/h3&gt;</code></pre>
+// 前进 3 步记录
+router.go(3)
+
+// 如果 history 记录不够用，那就默默地失败呗
+router.go(-100)
+router.go(100)</code></pre>
       
       <!-- reward -->
       
@@ -649,7 +267,7 @@ var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
 
 </article>
     
-    <article id="post-Vue/Vue2.0属性绑定和Class与Style绑定" class="article article-type-post" itemscope
+    <article id="post-Vue/Vue2.0组件3" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -657,8 +275,8 @@ var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E5%B1%9E%E6%80%A7%E7%BB%91%E5%AE%9A%E5%92%8CClass%E4%B8%8EStyle%E7%BB%91%E5%AE%9A/"
-    >Vue2.0属性绑定和Class与Style绑定</a
+  <a class="article-title" href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B63/"
+    >Vue2.0组件3</a
   >
 </h2>
   
@@ -668,8 +286,8 @@ var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
 
     
     <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%E5%B1%9E%E6%80%A7%E7%BB%91%E5%AE%9A%E5%92%8CClass%E4%B8%8EStyle%E7%BB%91%E5%AE%9A/" class="article-date">
-  <time datetime="2018-05-28T13:56:32.000Z" itemprop="datePublished">2018-05-28</time>
+      <a href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B63/" class="article-date">
+  <time datetime="2018-05-29T13:02:31.000Z" itemprop="datePublished">2018-05-29</time>
 </a>
       
   <div class="article-category">
@@ -690,63 +308,691 @@ var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
       
 
       
-      <h3 id="属性绑定"><a href="#属性绑定" class="headerlink" title="属性绑定"></a>属性绑定</h3><p>通过指令v-bind可以绑定属性,该指令同v-on一样，也有一个简写，“：”冒号。 绑定元素的属性，并且可与元素的原属性共存。当原属性有值时则显示原属性的值，无值则使用绑定的值。</p>
+      <h2 id="非父子组件之间的通信"><a href="#非父子组件之间的通信" class="headerlink" title="非父子组件之间的通信"></a>非父子组件之间的通信</h2><p>非父子关系的两个组件之间也需要通信。在简单的场景下，可以使用一个空的 Vue 实例作为事件总线。 这句话呢是官网原话，我们看官网的说明和例子。其通信的方法还是，<strong>触发与监听事件</strong>的方式，与子向父组件传递数据为相同的元素。也就是$emit方法和$on方法。接下来我们具体看看这个例子。 <strong>示例:</strong></p>
+<pre><code>//空的Vue实例
+var emptyVm = new Vue();
+
+var vm = new Vue(&#123;
+    el:&apos;#app&apos;,
+    components:&#123;
+        &apos;xiao-x&apos;:xiao_x,
+        &apos;xiao-y&apos;:xiao_y,
+        &apos;xiao-z&apos;:xiao_z
+    &#125;
+&#125;);
+
+var xiao_x=&#123;
+    template:&apos;&lt;div&gt;&lt;p&gt;组件x:&#123; &#123;name&#125;&#125;&lt;/p&gt;&lt;button @click=&quot;send&quot;&gt;传递数据&lt;/button&gt;&lt;/div&gt;&apos;,
+    data:function()&#123;
+        return &#123;
+            name:&apos;xiao&apos;,
+            username:&apos;yao&apos;
+        &#125;
+    &#125;,
+    methods:&#123;
+        send()&#123;
+            emptyVm.$emit(&apos;xiao-x&apos;,this.name);
+        &#125;
+    &#125;
+&#125;
+var xiao_y=&#123;
+    template:&apos;&lt;div&gt;&lt;p&gt;组件y:&#123; &#123;age&#125;&#125;&lt;/p&gt;&lt;button @click=&quot;send&quot;&gt;传递数据&lt;/button&gt;&lt;/div&gt;&apos;,
+    data:function()&#123;
+        return &#123;
+            age:18
+        &#125;
+    &#125;,
+    methods:&#123;
+        send()&#123;
+            emptyVm.$emit(&apos;xiao-y&apos;,this.age);
+        &#125;
+    &#125;
+&#125;
+
+var xiao_z=&#123;
+    template:&apos;&lt;p&gt;组件z:&#123; &#123;name&#125;&#125;,&#123; &#123;age&#125;&#125;&lt;/p&gt;&apos;,
+    data:function()&#123;
+        return &#123;
+            name:&apos;&apos;,
+            age:&apos;&apos;
+        &#125;
+    &#125;
+&#125;
+
+&lt;div id=&quot;app&quot;&gt;
+    &lt;xiao-x&gt;&lt;/xiao-x&gt;
+    &lt;xiao-y&gt;&lt;/xiao-y&gt;
+    &lt;xiao-z&gt;&lt;/xiao-z&gt;
+&lt;/div&gt;</code></pre><p>运行实例，我们已经把该准备的已经准备好了。 x和y的模板呢，因为不想写那么高的篇幅代码，就是稍微挤一块了，接下来就是点击按钮触发，然后z里监听就好了。 但是需要注意：<strong>必须先监听，再触发</strong>，才能够监听到，不然当然是接收不到的。所以监听一定是在触发执行前的。 <strong>代码:</strong></p>
+<pre><code>//x组件的事件方法
+methods:&#123;
+    send()&#123;
+        emptyVm.$emit(&apos;xiao-x&apos;,this.name);
+    &#125;
+&#125;
+//y的事件方法
+methods:&#123;
+    send()&#123;
+        emptyVm.$emit(&apos;xiao-y&apos;,this.age);
+    &#125;
+&#125;
+//z，在挂载组件模板实例之后就进行监听，所以需要用的生命周期钩子函数
+mounted()&#123;//模板挂载之后执行
+    emptyVm.$on(&apos;xiao-x&apos;, function(name)&#123;
+        vm.$children[2].name=name;
+    &#125;);
+    emptyVm.$on(&apos;xiao-y&apos;,age =&gt;&#123;
+        this.age=age;
+    &#125;);
+&#125;</code></pre><p>好了，如此如此这般这般，就好了。运行案例，单击按钮，可以显示出来。 <strong>接下来，解释一下这些代码:</strong> - 首先呢，三个组件拉出来单独写，没问题吧，声明一个变量，对象赋给它就行 - 然后就是模板问题，我单独挤一块了，代码多的话还是单独写吧 - 按钮单击事件触发这个这个这两个事件，给它参数，另一边写上事件名，加上回调函数。 - 然后，你要想监听必须是在触发前吧，什么时候最早，挂载之后呗，所以整个$on监听，回调函数里跟上实参，就好了。 <strong>说明两个问题:</strong> <strong>1.就是为什么要空的Vue实例:</strong> <strong>主要就是创建一个空的实例作为中转站</strong>继而能通过$emit和$on这两个函数来实现，为什么呢，因为，这两个方法是，<strong>触发当前实例/监听当前实例</strong>的事件，所以你需要一个共同的实例啊，所以搞一个空的实例咯。 <strong>2.$on事件方法回调问题:</strong> 就例如第一个监听name的，如果你直接this.name=name,你觉得会不会错。之所以这么写肯定是有问题的，但是它不会报错。只不过赋值赋错了，打印一下这个this，通过_data属性在某个实例中的方法_发现这个this是emptyVm的实例，因为回调函数里的this是新的this，指向emptyVm。所以你需要得到z的组件实例才能复制，所以通过$children得到子实例才能赋值，当然这个$children可能是有问题的，因为官方说它是不保证顺序的，我也不太清楚。 所以你需要使用的是第二种，箭头的方式，它不会在函数中创建一个新的this。 箭头函数的格式是：实参列表 =&gt;{//操作内容}</p>
+<h2 id="slot内容分发"><a href="#slot内容分发" class="headerlink" title="slot内容分发"></a>slot内容分发</h2><p>原意是，槽，插槽的意思。 有什么用呢，我们先看一下下面的例子。 <strong>示例:</strong></p>
 <pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;img :src=&quot;url&quot; :width=&quot;width&quot; width=&quot;800&quot; :height=&quot;height&quot;/&gt;
+    &lt;my-xiao&gt;&lt;/my-xiao&gt;
 &lt;/div&gt;
 
-data:&#123;
-    url:&quot;https://www.baidu.com/img/bd_logo1.png&quot;,
-    width:300,
-    height:300
-&#125;</code></pre><p>这是属性绑定的用法。</p>
-<h3 id="Class与Style绑定"><a href="#Class与Style绑定" class="headerlink" title="Class与Style绑定"></a>Class与Style绑定</h3><p>我们同常绑定class时，直接写在class中,这是普通的css绑定。</p>
-<pre><code>&lt;style&gt;
-    .aa&#123;
-        color: red;
-    &#125;
-    .bb&#123;
-        color: blue;
-    &#125;
-&lt;/style&gt;
+&lt;template id=&quot;xiao&quot;&gt;
+    &lt;div&gt;
+        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
 
-&lt;p class=&quot;aa&quot;&gt;这是一段文字，用来测试Class与Style绑定&lt;/p&gt;</code></pre><p>而如果将这种普通绑定应用在Vue中是不行的。不能直接写:class=’aa’</p>
-<pre><code>&lt;p :class=&quot;aa&quot;&gt;这是一段文字，用来测试Class与Style绑定&lt;/p&gt;</code></pre><p>这样做它是不会显示出来的。 我们需要通过Vue数据data来动态实现。</p>
-<h4 id="直接通过data选项中变量-的方式"><a href="#直接通过data选项中变量-的方式" class="headerlink" title="直接通过data选项中变量 的方式"></a>直接通过data选项中变量 的方式</h4><p>先定义class样式，然后再:class里填写与样式名绑定的名称</p>
-<pre><code>data:&#123;
-    color:&apos;aa&apos;
-&#125;
-&lt;p :class=&quot;color&quot;&gt;通过Vue中data选项的变量来动态控制&lt;/p&gt;</code></pre><p>此时color值为aa，那么么颜色就是red,如果动态的为color属性值赋值为bb，那么字体颜色就为blue了。</p>
-<h4 id="通过数组的方式"><a href="#通过数组的方式" class="headerlink" title="通过数组的方式"></a>通过数组的方式</h4><pre><code>.line&#123;
-        text-decoration: underline;
+components:&#123;
+    &apos;my-xiao&apos;:&#123;
+        template:&apos;#xiao&apos;,
+        data:function()&#123;
+            return &#123;
+                name:&apos;xiao&apos;,
+                arr:[&apos;what&apos;,&apos;are&apos;,&apos;you&apos;,&apos;doing&apos;]
+            &#125;
+        &#125;
     &#125;
-&lt;p :class=&quot;[color,line]&quot;&gt;通过数组的方式来控制多个&lt;/p&gt;</code></pre><p>另外，指令中是可以有表达式的，就如上面的数组，还可以对data选项的某个number类型的属性进行数据操作，它仅能实现小的操作，而不能去实现语句。</p>
-<h4 id="通过json格式的方式绑定"><a href="#通过json格式的方式绑定" class="headerlink" title="通过json格式的方式绑定"></a>通过json格式的方式绑定</h4><p>这次可以不与data选项的属性有牵扯,直接通过设置类样式的值为true|false 为true则使用这个样式，为false则不使用这个样式，通过true|false来判定是否出现样式。这种方式也是最佳常用的。</p>
-<pre><code>&lt;p :class=&quot;&#123;bb:false,line:true&#125;&quot;&gt;通过json的方式来绑定class&lt;/p&gt;</code></pre><p>由于，值为true|false，那么么我们也可以通过值大小的方式给定true或false。</p>
-<pre><code>data:&#123;
-    num:-99
+&#125;</code></pre><p>这个例子看起来也没怎么样，但是呢，你会发现<my-xiao>这个标签内空空如也，是不是想加点文字，可是无论怎么加，都会被模板替换掉的。 <strong>1.</strong> 这时，就是使用插槽的时候了，它<strong>使用<slot></slot>标签来显示，只需将它放在模板中任意为值即可，要注意的是，slot也是一个组件哦,内置的</strong>。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;my-xiao&gt;空空如也 —— 任然&lt;/my-xiao&gt;
+&lt;/div&gt;
+
+&lt;template id=&quot;xiao&quot;&gt;
+    &lt;div&gt;
+        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
+        &lt;slot&gt;&lt;/slot&gt;&lt;!-- 代替标签内的文字 --&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+//或者，当内有内容时显示默认的值
+&lt;template id=&quot;xiao&quot;&gt;
+    &lt;div&gt;
+        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
+        &lt;slot&gt;只有在没有要分发的内容时才会显示。&lt;/slot&gt;
+    &lt;/div&gt;
+&lt;/template&gt;</code></pre><p><strong>2.</strong>你更可以在<my-xiao>标签中添加任意代码，如常用的ul，li.同样会显示。</p>
+<pre><code>&lt;my-xiao&gt;
+        &lt;ul&gt;
+            &lt;li&gt;111&lt;/li&gt;
+            &lt;li&gt;222&lt;/li&gt;
+            &lt;li&gt;333&lt;/li&gt;
+            &lt;li&gt;444&lt;/li&gt;
+        &lt;/ul&gt;
+&lt;/my-xiao&gt;</code></pre><p><strong>3.</strong>你可以通过<slot></slot>指定某个元素在模板的哪里显示</p>
+<pre><code>&lt;my-xiao&gt;
+    &lt;ul slot=&quot;one&quot;&gt;
+        &lt;li&gt;111&lt;/li&gt;
+        &lt;li&gt;222&lt;/li&gt;
+        &lt;li&gt;333&lt;/li&gt;
+        &lt;li&gt;444&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p slot=&quot;QianSiXian&quot;&gt;你褴褛我彩绘 并肩行过山与水&lt;/p&gt;
+&lt;/my-xiao&gt;
+
+&lt;template id=&quot;xiao&quot;&gt;
+    &lt;div&gt;
+        &lt;slot name=&quot;QianSiXian&quot;&gt;&lt;/slot&gt;
+        &#123; &#123;arr.join(&apos; &apos;)&#125;&#125;&lt;br/&gt;
+        &lt;slot name=&quot;one&quot;&gt;&lt;/slot&gt;
+    &lt;/div&gt;
+&lt;/template&gt;</code></pre><p>你可以为元素设置slot属性，并随意设置一个值，只需要在slot标签中通过name指定名称即可。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0组件2" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B62/"
+    >Vue2.0组件2</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/29/Vue/Vue2.0%E7%BB%84%E4%BB%B62/" class="article-date">
+  <time datetime="2018-05-29T13:00:24.000Z" itemprop="datePublished">2018-05-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="组件组合"><a href="#组件组合" class="headerlink" title="## 组件组合"></a>## 组件组合</h2><h3 id="父子组件的通信"><a href="#父子组件的通信" class="headerlink" title="父子组件的通信"></a>父子组件的通信</h3><p>组件 A 在它的模板中使用了组件 B。它们之间必然需要相互通信：父组件可能要给子组件下发数据，子组件则可能要将它内部发生的事情告知父组件。 <img src="http://i2.51cto.com/images/blog/201804/22/a108f0df519d83ccfd5261fdd349bd01.png?x-oss-process=image/watermark,size_16,text_QDUxQ1RP5Y2a5a6i,color_FFFFFF,t_100,g_se,x_10,y_10,shadow_90,type_ZmFuZ3poZW5naGVpdGk=" alt="父子组件数据传递图"></p>
+<hr>
+<p>首先，需要在Vue实例里定义一个组件，设置data，然后在这个组件里再添加一个conponents选项，注意不要添错位置。 <strong>示例:</strong></p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;my-father&gt;&lt;/my-father&gt;
+&lt;/div&gt;
+//父组件的模板
+&lt;template id=&quot;fatherTl&quot;&gt;
+    &lt;div&gt;
+        &lt;p&gt;这是父组件&lt;/p&gt;
+        &lt;p&gt;访问父组件数据:&#123; &#123;name&#125;&#125;,&#123; &#123;age&#125;&#125;,姓名:&#123; &#123;user.name&#125;&#125;,年龄:&#123; &#123;user.age&#125;&#125;&lt;/p&gt;
+        &lt;my-child&gt;&lt;/my-child&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+//子组件的模板
+&lt;template id=&quot;childTl&quot;&gt;
+    &lt;div&gt;
+        &lt;p&gt;这是子组件&lt;/p&gt;
+        &lt;p&gt;访问子组件数据:性别:&#123; &#123;sex&#125;&#125;,身高:&#123; &#123;height&#125;&#125;&lt;/p&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+
+
+var vm = new Vue(&#123;
+    el:&apos;#app&apos;,
+    components:&#123;
+        &apos;my-father&apos;:&#123;
+            template:&apos;#fatherTl&apos;,
+            data:function()&#123;
+                return &#123;
+                    name:&apos;Xiao&apos;,
+                    age:19,
+                    user:&#123;name:&apos;小幂幂&apos;,age:31&#125;
+                &#125;
+            &#125;,
+            components:&#123;
+                &apos;my-child&apos;:&#123;
+                    template:&apos;#childTl&apos;,
+                    data:function()&#123;
+                        return &#123;
+                            height:166,
+                            sex:&apos;Female&apos;
+                        &#125;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;);</code></pre><p>作为子组件my-child，<my-child></my-child>标签应放在父组件标签<my-father></my-father>标签内，而不能是实例挂载元素下。 如果你尝试直接在父组件模板或子组件模板中通过{ {}}模板语法引用则会出现错误。 运行此案例，完美运行,你可以通过vue-devtool查看组件结构图。 目前还没有通信，只是显示了一下各自的数据，接下来传递数据了。</p>
+<h4 id="父向子传递数据"><a href="#父向子传递数据" class="headerlink" title="父向子传递数据"></a>父向子传递数据</h4><p>父向子传递数据，我们需要做的就是<strong>将要传递的数据绑定到子组件的标签上，并在子组件内通过props选项来接收。</strong></p>
+<pre><code>//father模板中添加
+&lt;my-child :childName=&quot;user.name&quot; :age=&quot;user.age&quot;&gt;&lt;/my-child&gt;
+//接着，在my-child组件中添加选项
+props:[&apos;childName&apos;,&apos;age&apos;]
+//最后，我们引用name和age
+//my-child模板中
+&lt;div&gt;
+    &lt;p&gt;这是子组件&lt;/p&gt;
+    &lt;p&gt;访问子组件数据:性别:&#123; &#123;sex&#125;&#125;,身高:&#123; &#123;height&#125;&#125;&lt;/p&gt;
+    &lt;p&gt;访问父组件数据:&#123; &#123;childName&#125;&#125;,&#123; &#123;age&#125;&#125;&lt;/p&gt;//添加了这一条
+&lt;/div&gt;</code></pre><p>接下来访问，即可看到数据显示了。 分析一下,：name和：age，这个冒号“：”后的name和age，就是，props中接收的属性名，<strong>将作为子组件的属性名</strong>，就是说这两个名可以改，无论改成什么，最后都需要通过这个名字访问。 而属性值就是引号中的user.name,user.age，它直接也是<strong>父组件的属性名</strong>。</p>
+<h4 id="子向父传递数据"><a href="#子向父传递数据" class="headerlink" title="子向父传递数据"></a>子向父传递数据</h4><p>子向父传递书序需要通过事件的方式向上传递数据。要做的就是通过<strong>$emit方法触发事件，并添加附加参数(就是属性)，通过事件传递数据,父组件中的事件方法接收这参数即可</strong>。 <strong>示例:</strong></p>
+<pre><code>//my-child模板中定义一个按钮，作为媒介，用来触发
+&lt;button @click=&quot;send&quot;&gt;向上传递给父组件数据&lt;/button&gt;
+//组组件定义
+methods:&#123;
+    send()&#123;
+        this.$emit(&apos;child-up&apos;,this.sex,this.height);
+    &#125;
 &#125;
-&lt;p :class=&quot;&#123;bb:false,line:num&gt;0&#125;&quot;&gt;通过json的方式来绑定class&lt;/p&gt;</code></pre><p>此时line的属性值是返回false，此时不会显示下划线。</p>
-<h4 id="通过变量引用json形式"><a href="#通过变量引用json形式" class="headerlink" title="通过变量引用json形式"></a>通过变量引用json形式</h4><p>就是不把json数据写在：class中了，而是定义为实例的一个属性，放在data中。 格式还是这样，不过是放在一个属性中。</p>
-<pre><code>data:&#123;
-    line_blue:&#123;aa:true,line:true&#125;
+//my-father组件模板中监听这个事件
+&lt;my-child :name=&quot;user.name&quot; :age=&quot;user.age&quot;  @child-up=&quot;getData&quot;&gt;&lt;/my-child&gt;
+//所以你需要在my-father组件中定义这个getData方法来接收
+//但你需注意，你必须提前初始化这些属性
+methods:&#123;
+    getData(sex,height)&#123;
+        this.sex=sex;
+        this.height=height;
+    &#125;
 &#125;
-&lt;p :class=&quot;line_blue&quot;&gt;通过json变量的方式来绑定&lt;/p&gt;</code></pre><blockquote>
-<p>另外，在数组和json中都可以使用三元表达式？ ：的方式。</p>
+//myfather模板中
+&lt;h3&gt;访问子组件数据,&#123; &#123;sex&#125;&#125;,&#123; &#123;height&#125;&#125;&lt;/h3&gt;</code></pre><p>这样，通过某个媒介(点击或其他方式)作为触发事件的方式，来传递数据，并在该实例处监听该事件，并接收数据。 此处将监听在my-child标签中，因my-chlid标签作为myfather标签的子组件，所以将getData方法定义在父组件methods中。</p>
+<hr>
+<h2 id="单向数据流"><a href="#单向数据流" class="headerlink" title="单向数据流"></a>单向数据流</h2><p>props 是单向绑定的：当父组件的属性变化时，将传导给子组件，但是反过来不会。这是为了防止子组件无意间修改了父组件的状态，来避免应用的数据流变得难以理解。 另外，每次父组件更新时，子组件的所有 prop 都会更新为最新值。这意味着你不应该在子组件内部改变 prop。如果你这么做了，Vue 会在控制台给出警告。 接下来我们想试着修改父组件内属性的值，看看是不是会跟着修改,且如果修改prop中属性是否会出现错误。 <strong>示例:</strong> 代码较多，我们再新建一个html。我们只注册使用一个组件，因为Vue实例本身也是一个组件，它是根组件，所以在实例中components中注册一个组件作为子组件。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;p&gt;父组件:&#123; &#123;age&#125;&#125;&lt;/p&gt;
+    &lt;p&gt;&lt;input type=&quot;text&quot; v-model=&quot;name&quot;&gt;&lt;/p&gt;
+    &lt;hr/&gt;
+    &lt;my-component :username=&quot;name&quot; :age=&quot;age&quot;&gt;&lt;/my-component&gt;
+&lt;/div&gt;
+
+&lt;template id=&quot;templ&quot;&gt;
+    &lt;p&gt;子组件中父组件的数据,&#123; &#123;username&#125;&#125;&lt;/p&gt;
+&lt;/template&gt;
+
+
+var vm = new Vue(&#123;
+    el:&apos;#app&apos;,
+    data:&#123;
+        name:&apos;XiaoYao&apos;,
+        age:19
+    &#125;,
+    components:&#123;
+        &apos;my-component&apos;:&#123;
+            template:&apos;#templ&apos;,
+            props:[&apos;username&apos;,&apos;age&apos;]
+        &#125;
+    &#125;
+&#125;);</code></pre><p>我们已经通过props属性进行向下传递数据了，父组件中我们把name属性设置为双向绑定的属性，以便于修改。 接下来直接在文本框中修改name的值，子组件模板中，值就跟着变了。 那么，我们开始尝试着修改它。 <strong>示例:</strong></p>
+<pre><code>//在组件模板中添加如下按钮。注意模板中只有一个根元素，需要div包起来
+&lt;button @click=&quot;change&quot;&gt;直接修改父组件传递下来的值&lt;/button&gt;
+
+//在子组件中定义方法，注意不要写错位置，会发生错误的
+methods:&#123;
+    change()&#123;
+        this.username=&apos;I Love You&apos;;//直接修改它的值
+    &#125;
+&#125;</code></pre><p>运行结果，浏览器控制台发生异常了。</p>
+<pre><code>Avoid mutating a prop directly since the value will be overwritten whenever the parent component re-renders. Instead, use a data or computed property based on the prop&apos;s value. Prop being mutated: &quot;username&quot;</code></pre><p>由此可见，它是不可以更改的，因为它是自动更新值的。</p>
+<h3 id="如果你很需要在子组件中修改它的话"><a href="#如果你很需要在子组件中修改它的话" class="headerlink" title="如果你很需要在子组件中修改它的话"></a>如果你很需要在子组件中修改它的话</h3><p>当然如果非要这么做的话，也还是有方法的，因为你很有必要用它。</p>
+<ul>
+<li>你可能希望把它当做局部变量处理</li>
+<li>你可能需要得到它的值显示出来，并修改它</li>
+</ul>
+<p>那么你有两种选择，</p>
+<ul>
+<li>一种是定义局部变量，来操作它。</li>
+<li>另一种就是定义计算属性，依据原值的修改来动态的改变这个计算属性，而你使用的就是这个计算属性</li>
+</ul>
+<p>接下来我们只需要这样：</p>
+<pre><code>//1.添加属性，并将传来的属性复制给新的局部定义属性
+data:function()&#123;
+    return &#123;
+        myName:this.username
+    &#125;
+&#125;
+//2.接下来要改变和使用的值就都是myName了
+methods:&#123;
+    change()&#123;
+        this.myName=&apos;I Love you&apos;
+    &#125;
+&#125;
+//模板中
+&lt;p&gt;子组件中父组件的数据,&#123; &#123;myName&#125;&#125;&lt;/p&gt;</code></pre><p>对于使用计算属性，我们可以做:</p>
+<pre><code>props: [&apos;size&apos;],
+computed: &#123;
+  normalizedSize: function () &#123;
+    return this.size.trim().toLowerCase()
+  &#125;
+&#125;
+//接下来就是使用normalizedSize属性显示了</code></pre><p>以上是单项数据流的问题，如果需要双向呢，看下面。</p>
+<hr>
+<h3 id="双向数据流，父子双向绑定"><a href="#双向数据流，父子双向绑定" class="headerlink" title="双向数据流，父子双向绑定"></a>双向数据流，父子双向绑定</h3><p>我们使用<strong>.sync修饰符</strong>,该修饰符在1.0中使用，在2.0中废除，后又在2.3中重新引用，只是错了稍加修改，具体情况看官网。</p>
+<pre><code>//父组件向下传递时，子组件标签上传递的属性后面添加.sync修饰符
+&lt;my-component :username.sync=&quot;name&quot; :age=&quot;age&quot;&gt;&lt;/my-component&gt;</code></pre><p>然后需要显式的触发一个更新事件。</p>
+<pre><code>methods:&#123;
+    change()&#123;
+        this.$emit(&apos;update:username&apos;, &apos;I Love You&apos;);
+        //this.username=&apos;I Love you&apos;;
+    &#125;
+&#125;</code></pre><p>通过$emit事件方法，然后第一个参数，<strong>update：</strong>是固定写法，后面是新属性值，这样就可以双向绑定了。使用按钮触发不是必需的，只要在某处调用这个触发方法即可。</p>
+<h4 id="假如你向下传递的是对象，那么如果要修改的话会更方便。"><a href="#假如你向下传递的是对象，那么如果要修改的话会更方便。" class="headerlink" title="假如你向下传递的是对象，那么如果要修改的话会更方便。"></a>假如你向下传递的是对象，那么如果要修改的话会更方便。</h4><p>我们可以直接修改对象的属性值而不需要.sync修饰符。</p>
+<pre><code>//为父组件定义一个对象,并且显示他
+emp:&#123;salary:6000,workingAge:2,name:&apos;XiaoChenchen&apos;&#125;
+&lt;p&gt;父组件emp:&#123; &#123;emp&#125;&#125;&lt;/p&gt;
+
+//在单击按钮方法中直接设置对象的属性值
+this.emp.salary=8000;</code></pre><p>单击按钮，发现salarys从6000变成了8000，而且不会不会发生任何错误。 这是因为对象的引用地址没有发生改变，改变的只是里面的属性，属性改变并不会影响对象地址。 所以我们建议封装成对象更方便，但有时也是需要到.sync修饰符的，主要是看情况了。 谢谢观看，下节继续讲组件，非父子间通信，以及slot插槽分发。</p>
+<hr>
+<p>爱自己，更爱需要爱的人。。。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0组件1" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E7%BB%84%E4%BB%B61/"
+    >Vue2.0组件1</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E7%BB%84%E4%BB%B61/" class="article-date">
+  <time datetime="2018-05-28T14:29:42.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>组件 (Component) 是 Vue.js 最强大的功能之一。组件可以扩展 HTML 元素，封装可重用的代码。 组件是自定义元素，Vue.js 的编译器为它添加特殊功能。</p>
+<h2 id="使用组件"><a href="#使用组件" class="headerlink" title="## 使用组件"></a>## 使用组件</h2><h3 id="组件的注册与使用"><a href="#组件的注册与使用" class="headerlink" title="组件的注册与使用"></a>组件的注册与使用</h3><h4 id="全局注册"><a href="#全局注册" class="headerlink" title="全局注册"></a>全局注册</h4><p>我们需要通过一个全局的API来构造。 <strong>Vue.extend(options)</strong> <strong>用法:</strong>使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象。 同时还需要一个API通过这个构造器来注册组件，之后才能使用。 <strong>Vue.component(id, [definition])</strong> <strong>用法:</strong>注册或获取全局组件。注册还会自动使用给定的id设置组件的名称。注意:他仅仅是个构造器而已。 <strong>示例:</strong></p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;my-global&gt;&lt;/my-global&gt;
+&lt;/div&gt;
+
+var myComponent = Vue.extend(&#123;
+    template:&apos;&lt;div&gt;&lt;h2&gt;This is the use of a global component&lt;/h2&gt;&lt;/div&gt;&apos;
+&#125;);
+Vue.component(&apos;my-global&apos;,myComponent);</code></pre><p>通过测试后，我们发现最终被渲染为:</p>
+<pre><code>&lt;div&gt;
+    &lt;h2&gt;This is the use of a global component&lt;/h2&gt;
+&lt;/div&gt;</code></pre><p><my-global></my-global>就可以使用组件。 template属性就是模板，该组件将被渲染后代替。 你可以写两个标签</p>
+<pre><code>&lt;my-global&gt;&lt;/my-global&gt;
+&lt;my-global&gt;&lt;/my-global&gt;</code></pre><p><strong>但是注意:</strong>这两个组件是相互独立的，虽然是通过各构造器注册的，但各自独立，局部的注册也是一样的。 这样写，又定义构造器，又注册，再使用，未免有些麻烦，也不常用。可以简短点写。</p>
+<pre><code>//我们是直接可以这样写的，也是全局注册最常用的方式
+Vue.component(&apos;my-global&apos;,&#123;
+    template:&apos;&lt;div&gt;&lt;h2&gt;This is the use of a global component&lt;/h2&gt;&lt;/div&gt;&apos;
+&#125;);</code></pre><h4 id="局部注册"><a href="#局部注册" class="headerlink" title="局部注册"></a>局部注册</h4><p>即在某个Vue实例中通过components选项中注册。 <strong>示例:</strong></p>
+<pre><code>data:&#123;
+    msg:&apos;Hello Vue2.0&apos;
+&#125;,
+components:&#123;
+    &apos;my-local&apos;:&#123;
+        data:function()&#123;
+            return &#123;
+                msg:&apos;Hello Vue2.0---Local&apos;
+            &#125;
+        &#125;,
+        template:&apos;&lt;div&gt;&lt;h2&gt;&#123; &#123;msg&#125;&#125;&lt;/h2&gt;&lt;/div&gt;&apos;
+    &#125;
+&#125;</code></pre><p>好了，这就是局部的注册，我们这里在template属性里使用了模板语法{ {}}，而不过要在子组件中使用模板的到属性值得话，就必须使用子组件自己的data，虽然是子组件，但也不能直接使用父组件的data。需要定义data，注意，<strong>组件的data必须是一个函数</strong>，属性由函数返回，多个属性使用对象{}的方式。</p>
+<blockquote>
+<p>官方原话：构造 Vue 实例时传入的各种选项大多数都可以在组件里使用。只有一个例外：data 必须是函数 如果这么做，那么 Vue 会停止运行，并在控制台发出警告，告诉你在组件实例中 data 必须是一个函数</p>
 </blockquote>
-<h3 id="绑定内联样式"><a href="#绑定内联样式" class="headerlink" title="绑定内联样式"></a>绑定内联样式</h3><p>即通过绑定style, :style方式</p>
-<pre><code>data:&#123;
-    color:red,
-    fontSize:20,
+<p>所以此时，打印的语句为Hello Vue2.0—Local。 如果有Vue的开发工具插件vue-devtools，我们就可以看到。 <img src="http://i2.51cto.com/images/blog/201804/21/aeebe30bf0af8d5604e740fc9b253266.png?x-oss-process=image/watermark,size_16,text_QDUxQ1RP5Y2a5a6i,color_FFFFFF,t_100,g_se,x_10,y_10,shadow_90,type_ZmFuZ3poZW5naGVpdGk=" alt="vue-devtools工具查看到组件图"> 应官方的要求，这个id，即组件定义的这个标签名不强制遵循 W3C 规则 (小写，并且包含一个短杠)。但是在vue-devtool中就被改成这种名字了，驼峰命名法吧。当然我们可以定义name属性，它是通过name属性来显示的，默认的值就是id变成驼峰，我们可以自己写name。依然是没问题的。</p>
+<h4 id="引用模板"><a href="#引用模板" class="headerlink" title="引用模板"></a>引用模板</h4><p>如果我们的template属性中的内容太多，未免会造成麻烦，不仅影响美感，还容易出错，所以我们通过template标签定义引用。</p>
+<pre><code>//挂载元素div外定义的模板
+&lt;template id=&quot;templ&quot;&gt;
+    &lt;ul&gt;
+        &lt;li v-for=&quot;(val,key) in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/template&gt;
+components:&#123;
+    &apos;my-local&apos;:&#123;
+        name:&apos;MyLocal2&apos;,
+        data:function()&#123;
+            return &#123;
+                msg:&apos;Hello Vue2.0---Local&apos;,
+                arr:[&apos;what&apos;,&apos;are&apos;,&apos;you&apos;,&apos;doing&apos;]
+            &#125;
+        &#125;,
+        template:&apos;#templ&apos;
+    &#125;
+&#125;</code></pre><p>我们在挂载元素div外定义模板元素template，然后添加一个id元素，在子组件template属性中，通过’#templ’对其引用。 然而有一中易错误现象，当在template元素中使用两个独立的标签时会出错。</p>
+<pre><code>&lt;template id=&quot;templ&quot;&gt;
+    &lt;ul&gt;
+        &lt;li v-for=&quot;(val,key) in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
+    &lt;/ul&gt;
+    &lt;p&gt;你好，你是谁&lt;/p&gt;&lt;!-- 或是&#123; &#123;msg&#125;&#125; --&gt;
+&lt;/template&gt;</code></pre><p>此时它会给你一个错误，这个错误主要说的就是，“<strong>模板中有且仅有一个根元素</strong>”,就是说要么你template标签中有一个ul，要么有一个p，你只能在template中有一个根元素，所以你需要做的是<strong>添加一个div标签在所有标签的最外层作为根元素</strong>。</p>
+<h4 id="DOM-模板解析注意事项"><a href="#DOM-模板解析注意事项" class="headerlink" title="DOM 模板解析注意事项"></a>DOM 模板解析注意事项</h4><p>这篇就不写了，看官网的<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/guide/components.html#DOM-%E6%A8%A1%E6%9D%BF%E8%A7%A3%E6%9E%90%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">DOM 模板解析注意事项</a>来详细看，最后的要求就是说<strong>尽可能使用字符串模板。</strong></p>
+<h3 id="动态组件的渲染"><a href="#动态组件的渲染" class="headerlink" title="动态组件的渲染"></a>动态组件的渲染</h3><p>有时候你可能由于一个if判断，根据数据该选择到底显示渲染哪个组件。此时就需要动态渲染。 动态渲染需要使用到内置的组件<strong>component</strong>，如果可能的话还有<strong>keep-alive</strong>。 component的作用就是<strong>渲染一个“元组件”为动态组件。依 is 的值，来决定哪个组件被渲染。</strong> 我们需要做的就是设置这个is的值，值得内容是什么，就显示名字叫什么组件。</p>
+<h4 id="component"><a href="#component" class="headerlink" title="component"></a>component</h4><p>示例:</p>
+<pre><code>//我们再定义一个子组件
+&apos;my-chen&apos;:&#123;
+    data:function()&#123;
+        return &#123;
+            msg:&apos;My name is Xiaoxiaochen Xiansen&apos;
+        &#125;
+    &#125;,
+    template:&apos;&lt;p&gt;&#123; &#123;msg&#125;&#125;&lt;/p&gt;&apos;
+&#125;
+//同时，为Vue实例添加一个currentView属性
+data:&#123;
+    currentView:&apos;my-local&apos;
+&#125;
+//Vue实例挂载处。:is就是v-bind:is的简写
+&lt;div id=&quot;app&quot;&gt;
+    &lt;component :is=&quot;currentView&quot;&gt;&lt;/component&gt;
+&lt;/div&gt;</code></pre><p>然后测试，默认显示的就是my-local组件的模板内容，通过按钮点击的方式改变currentView的值就可以动态的改变组件了。</p>
+<h4 id="keep-alive"><a href="#keep-alive" class="headerlink" title="keep-alive"></a>keep-alive</h4><p>如果你想把切换出去的组件保留在内存中，可以保留它的状态或避免重新渲染，那么你就可以使用<strong>keep-alive</strong>内置组件了。 <strong><keep-alive></strong>包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们。 只需要把这个标签套在component标签的外边就好了。</p>
+<pre><code>&lt;keep-alive&gt;
+    &lt;component :is=&quot;currentView&quot;&gt;
+        &lt;!-- 非活动组件将被缓存！ --&gt;
+    &lt;/component&gt;
+&lt;/keep-alive&gt;</code></pre><p>2.它有两个属性可以设置“<strong>include</strong>”和“<strong>exclude</strong>”，值为字符串或正则表达式,只有匹配的组件才会被缓存或不缓存。 <strong>示例:</strong></p>
+<pre><code>&lt;!-- 逗号分隔字符串 --&gt;
+&lt;keep-alive include=&quot;a,b&quot;&gt;
+  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
+&lt;/keep-alive&gt;
 
-&#125;
-&lt;p :style=&quot;&#123;color:color,fontSize:fontSize + &apos;px&apos;&#125;&quot;&gt;绑定内联&lt;/p&gt;</code></pre><p>因为内联的style可以直接在元素中写，所以json中的key都是css属性，color,textDecoration,fontSize这些内联的样式，(内联的和style文件内的样式名不一样,文件里是横杠，内联是驼峰首字母大写)。 另一个就是直接通过属性的方式了，把json赋值给属性。</p>
-<pre><code>data:&#123;
-    style1:&#123;color:&apos;blue&apos;,fontSize:&apos;15px&apos;&#125;
-&#125;
-&lt;p :style=&quot;style1&quot;&gt;绑定内联&lt;/p&gt;</code></pre><p>同样，数组也是可以的。</p>
-<h4 id="多重值"><a href="#多重值" class="headerlink" title="多重值"></a>多重值</h4><p>绑定中的属性提供一个包含多个值的数组，常用于提供多个带前缀的值</p>
-<pre><code>&lt;div :style=&quot;&#123; display: [&apos;-webkit-box&apos;, &apos;-ms-flexbox&apos;, &apos;flex&apos;] &#125;&quot;&gt;&lt;/div&gt;</code></pre><p>这样写只会渲染数组中最后一个被浏览器支持的值。在本例中，如果浏览器支持不带浏览器前缀的 flexbox，那么就只会渲染 display: flex。</p>
+&lt;!-- 正则表达式 (使用 `v-bind`) --&gt;
+&lt;keep-alive :include=&quot;/a|b/&quot;&gt;
+  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
+&lt;/keep-alive&gt;
+
+&lt;!-- 数组 (使用 `v-bind`) --&gt;
+&lt;keep-alive :include=&quot;[&apos;a&apos;, &apos;b&apos;]&quot;&gt;
+  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
+&lt;/keep-alive&gt;</code></pre><p>匹配首先检查组件自身的 name 选项，如果 name 选项不可用，则匹配它的局部注册名称 (父组件 components 选项的键值)。匿名组件不能被匹配。</p>
+<blockquote>
+<p><keep-alive> 不会在函数式组件中正常工作，因为它们没有缓存实例。</p>
+</blockquote>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0自定义指令" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4/"
+    >Vue2.0自定义指令</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4/" class="article-date">
+  <time datetime="2018-05-28T14:26:37.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="自定义指令"><a href="#自定义指令" class="headerlink" title="自定义指令"></a>自定义指令</h3><p>自定义指令主要用于，除系统提供外，自己对DOM的底层操作。 例如当页面加载时需要将一个文本框为自动获得焦点。只要你在打开这个页面后还没点击过任何内容，这个输入框就应当还是处于聚焦状态。 我们通过全局自定义指令和局部自定义指令来讲解autofouce案例。</p>
+<h4 id="全局自定义指令"><a href="#全局自定义指令" class="headerlink" title="全局自定义指令"></a>全局自定义指令</h4><p>在全局API中通过<strong>Vue.directive( id, [definition] )</strong>来注册或获取全局指令。 <strong>参数:</strong></p>
+<ul>
+<li>id表示自定义的指令名称</li>
+<li>definition为自定义指令的定义，一般可以含有几个生命周期钩子函数</li>
+<li>bind() 指令第一次绑定到元素上时调用，且只调用一次，可执行初始化操作</li>
+<li>inserted() 被绑定元素插入到DOM时调用</li>
+<li>update() 被绑定元素所在模板更新时调用</li>
+<li>componentUpdated() 被绑定元素所在模板完成一次更新周期时调用</li>
+<li>unbind() 指令与元素解绑时调用，只调用一次</li>
+</ul>
+<blockquote>
+<p>bind与inserted在加载页面初始化实例并挂载之后调用 update，componentUpdated 当指令所绑定的元素模板更新时调用 unbind解绑时调用</p>
+</blockquote>
+<p><strong>语法:</strong></p>
+<pre><code>// 注册
+Vue.directive(&apos;my-directive&apos;, &#123;
+  bind: function () &#123;&#125;,
+  inserted: function () &#123;&#125;,
+  update: function () &#123;&#125;,
+  componentUpdated: function () &#123;&#125;,
+  unbind: function () &#123;&#125;
+&#125;)
+
+// 注册 (指令函数)
+Vue.directive(&apos;my-directive&apos;, function () &#123;
+  // 这里将会被 `bind` 和 `update` 调用
+&#125;)
+
+// getter，返回已注册的指令
+var myDirective = Vue.directive(&apos;my-directive&apos;)</code></pre><p><strong>示例:</strong></p>
+<pre><code>//el参数为绑定的元素，自动载入
+Vue.directive(&apos;focus&apos;,&#123;
+    inserted:function(el)&#123;
+        console.log(el);
+        el.focus();
+    &#125;
+&#125;);
+
+&lt;div id=&quot;app&quot;&gt;
+    &lt;input type=&quot;text&quot; v-focus&gt;
+&lt;/div&gt;</code></pre><p>2.当然，你也可以使用简单的指令函数。</p>
+<pre><code>// 注册 (指令函数)
+Vue.directive(&apos;my-directive&apos;, function () &#123;
+  // 这里将会被 `bind` 和 `update` 调用
+&#125;)</code></pre><p>3.我们可以在bind函数中为其添加两个参数，第一个是绑定的元素，第二个是当前自定义指令对象。</p>
+<pre><code>Vue.directive(&apos;focus&apos;,&#123;
+    bind(el,binding)&#123;
+        console.log(binding);
+    &#125;
+&#125;);</code></pre><h4 id="局部，实例的自定义指令"><a href="#局部，实例的自定义指令" class="headerlink" title="局部，实例的自定义指令"></a>局部，实例的自定义指令</h4><p>局部的自定义指令定义在<strong>directives选项</strong>中，所配置的数据与全局的完全一样。</p>
+<pre><code>directives:&#123;
+    focus:&#123;
+        inserted(el)&#123; //当被绑定元素插入到DOM的时候，进行自动获焦
+        el.focus();
+    &#125;
+&#125;</code></pre><p>focus即为指令名称，使用时直接，v-focus即可。</p>
+<blockquote>
+<p>el参数和binding参数，获得绑定元素与当前指令对象只有在bind函数绑定之后才能得到值。所以inserted，update也是可以的。</p>
+</blockquote>
 
       
       <!-- reward -->
@@ -782,7 +1028,7 @@ data:&#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/40/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/39/">39</a><a class="page-number" href="/page/40/">40</a><span class="page-number current">41</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/42/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/40/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/39/">39</a><a class="page-number" href="/page/40/">40</a><span class="page-number current">41</span><a class="page-number" href="/page/42/">42</a><a class="page-number" href="/page/43/">43</a><a class="extend next" rel="next" href="/page/42/">下一页</a>
   </nav>
   
 </section>

@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-SpringCloud/SpringCloud项目基础搭建1" class="article article-type-post" itemscope
+    <article id="post-k8s/k8s-ingress暴露应用" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/"
-    >SpringCloud项目基础搭建1</a
+  <a class="article-title" href="/2020/01/11/k8s/k8s-ingress%E6%9A%B4%E9%9C%B2%E5%BA%94%E7%94%A8/"
+    >k8s ingress暴露应用</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/" class="article-date">
-  <time datetime="2019-11-01T12:57:49.000Z" itemprop="datePublished">2019-11-01</time>
+      <a href="/2020/01/11/k8s/k8s-ingress%E6%9A%B4%E9%9C%B2%E5%BA%94%E7%94%A8/" class="article-date">
+  <time datetime="2020-01-11T04:00:00.000Z" itemprop="datePublished">2020-01-11</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+    <a class="article-category-link" href="/categories/K8S/">K8S</a>
   </div>
 
       
@@ -119,301 +119,32 @@
       
 
       
-      <p>首先从可以通信开始，然后再配置负载均衡熔断器之类的。<br>首先，学完了springcloud之后，许多名词，虽然了解一点，但是他们之间的关系还是不太明确清晰。<br>分布式微服务，既然是分布式肯定会通信的，离不开ip的。</p>
-<p>服务注册:也就是注册中心，通俗一点就是 将服务提供者注册到这个服务中心中，<strong>由注册中心来进行资源调配管理，上线下线等</strong>，服务提供者可以同时注册多个，可以负载均衡。</p>
-<p>服务提供者:就是平常写的一套单机程序，controller，service,mapper一整套代码，它能对外提供接口，因此被称为提供者，他需要注册到注册中心去</p>
-<p>服务消费者:也就是对外部开放的,而提供者可以不对外开放，也就是说，浏览器直接调用服务消费者的代码，而在后台，直接由服务消费者请求服务提供者，而中间请求的过程就是请求服务注册中心，由他来确定请求哪个服务提供者的服务。</p>
-<p>简而言之,服务注册是管理所有的服务，服务提供者对内，服务消费者对外。<br>服务消费者通过什么调用请求注册中心调用服务提供者,Feign。<br>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。</p>
-<p>虽然说到这，基本简单的微服务已经形成了，但是还无法明确项目搭建的机构。Feign，服务消费者，服务提供者该往哪写。</p>
-<h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>springcloud如果没有教程入门，可能还没进门就卡死在外。<br>springboot 与springcloud，springcloud是依赖springboot的，而springboot的版本有1.x和2.x，而2.x又分为2.1和2.2。而springcloud的版本号却不是以数字命名，这就很难搞。而且两者版本的依赖是有非常严格的，否则就会莫名的出错，甚至连项目都起不来。springboot2.1和2.2也有很大的区别，以及springcloud的不同版本引用有有较大的改动。<br>还有就是依赖的问题,老版本的eureka依赖名教eureka，而新版本的叫eureka-server，feign也有老版和新版,为openfeign和feign。<br>通过教程的学习以及多次尝试，最后找到匹配的版本。</p>
-<p><strong>父工程POM</strong></p>
-<pre><code>&lt;parent&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
-    &lt;version&gt;2.1.6.RELEASE&lt;/version&gt;
-    &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
-&lt;/parent&gt;
-&lt;properties&gt;
-    &lt;java.version&gt;1.8&lt;/java.version&gt;
-    &lt;spring-cloud.version&gt;Greenwich.BUILD-SNAPSHOT&lt;/spring-cloud.version&gt;
-&lt;/properties&gt;
+      <p>一组基于DNS名称或URL路径把请求转发到指定的Service资源的规则。用于将集群外部的请求流量转发到集群内部完成的服务发布。只提供外部暴露访问，类似于改造nginx形式。</p>
+<p>ingress作为统一入口，通过定义一组规则，以通过域名的方式关联service，再由service关联pod</p>
+<p>使用ingress，第一步需要ingress Controller，第二步需要ingress</p>
+<p><strong>创建pod，和service</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl create deployment web --image&#x3D;nginx</span><br><span class="line">deployment.apps&#x2F;web created</span><br><span class="line">[root@k8smaster ~]# kubectl expose deployment web --port&#x3D;80 --target-port&#x3D;80 --type&#x3D;NodePort</span><br><span class="line">service&#x2F;web exposed</span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;!--&lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
-    &lt;/dependency&gt;--&gt;
-    &lt;!--&lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-oauth2-client&lt;/artifactId&gt;
-    &lt;/dependency&gt;--&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-    &lt;/dependency&gt;
 
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
-        &lt;scope&gt;runtime&lt;/scope&gt;
-        &lt;optional&gt;true&lt;/optional&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;mysql&lt;/groupId&gt;
-        &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
-        &lt;scope&gt;runtime&lt;/scope&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;
-        &lt;optional&gt;true&lt;/optional&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
-        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
-        &lt;optional&gt;true&lt;/optional&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
-        &lt;scope&gt;test&lt;/scope&gt;
-        &lt;exclusions&gt;
-            &lt;exclusion&gt;
-                &lt;groupId&gt;org.junit.vintage&lt;/groupId&gt;
-                &lt;artifactId&gt;junit-vintage-engine&lt;/artifactId&gt;
-            &lt;/exclusion&gt;
-        &lt;/exclusions&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
-        &lt;artifactId&gt;druid&lt;/artifactId&gt;
-        &lt;version&gt;1.1.16&lt;/version&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;
 
-&lt;dependencyManagement&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
-            &lt;version&gt;$&#123;spring-cloud.version&#125;&lt;/version&gt;
-            &lt;type&gt;pom&lt;/type&gt;
-            &lt;scope&gt;import&lt;/scope&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/dependencyManagement&gt;</code></pre><p>以上的版本匹配是:<br>SpringBoot:2.1.6.RELEASE<br>SpringCloud:Greenwich.BUILD-SNAPSHOT<br>这个是没有问题的。</p>
-<h2 id="服务注册"><a href="#服务注册" class="headerlink" title="服务注册"></a>服务注册</h2><p>服务注册是用eureka,分为eureka-server和eureka-client。<br>server及服务注册中心本身，他也是服务，但他不需要注册自己，只作为服务管理者。<br>模块名:eureka-server<br><strong>POM文件</strong></p>
-<pre><code>&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;</code></pre><p>依赖security的原因是，这个springcloud的版本对安全要求更严格，当然也有方法来阻止这种安全检查。<br><strong>application.yml</strong></p>
-<pre><code>server:
-  port: 7001
-eureka:
-  instance:
-    hostname: localhost
-  client:
-    register-with-eureka: false
-    fetch-registry: false
-    service-url:
-      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/
-spring:
-  security:
-    user:
-      name: root
-      password: root</code></pre><p>以上配置文件标识注册中心端口为7001，注册服务地址为defaultZone的值地址，然后是配置一下security的用户名密码，这个用户名密码需要在eureka-client连接时写上。<br>此处需要添加对security的配置</p>
-<pre><code>@EnableWebSecurity
-public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter &#123;
-    @Override
-    protected void configure(HttpSecurity http) throws Exception &#123;
-        // Configure HttpSecurity as needed (e.g. enable http basic).
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-        http.csrf().disable();
-        //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
-        // 如果是form方式,不能使用url格式登录
-        http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
-    &#125;
-&#125;</code></pre><p>然后就是启动类了,只需要@EnableEurekaServer注解</p>
-<pre><code>@EnableEurekaServer
-@SpringBootApplication
-public class EurekaServerApplication &#123;
-    public static void main(String[] args) &#123;
-        SpringApplication.run(EurekaServerApplication.class,args);
-    &#125;
-&#125;</code></pre><p>最后访问localhost:7001即可进入页面，如果有密码，则输入security配置的即可。</p>
-<h2 id="服务提供者"><a href="#服务提供者" class="headerlink" title="服务提供者"></a>服务提供者</h2><p>接下来讲就是服务提供者，就是一般的访问数据库的，我只列出Controller的简单代码。</p>
-<pre><code>@RestController
-public class UserController &#123;
+<p><strong>部署ingress Controller</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Namespace</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-configuration</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">tcp-services</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">udp-services</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-clusterrole</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">endpoints</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">nodes</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pods</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">secrets</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">watch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">nodes</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">services</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">watch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">events</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">create</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">patch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;extensions&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;networking.k8s.io&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ingresses</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">watch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;extensions&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;networking.k8s.io&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ingresses/status</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">update</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Role</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-role</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pods</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">secrets</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">namespaces</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">    <span class="attr">resourceNames:</span></span><br><span class="line">      <span class="comment"># Defaults to &quot;&lt;election-id&gt;-&lt;ingress-class&gt;&quot;</span></span><br><span class="line">      <span class="comment"># Here: &quot;&lt;ingress-controller-leader&gt;-&lt;nginx&gt;&quot;</span></span><br><span class="line">      <span class="comment"># This has to be adapted if you change either parameter</span></span><br><span class="line">      <span class="comment"># when launching the nginx-ingress-controller.</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;ingress-controller-leader-nginx&quot;</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">update</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">create</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">endpoints</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">RoleBinding</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-role-nisa-binding</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">roleRef:</span></span><br><span class="line">  <span class="attr">apiGroup:</span> <span class="string">rbac.authorization.k8s.io</span></span><br><span class="line">  <span class="attr">kind:</span> <span class="string">Role</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-role</span></span><br><span class="line"><span class="attr">subjects:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">    <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRoleBinding</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-clusterrole-nisa-binding</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">roleRef:</span></span><br><span class="line">  <span class="attr">apiGroup:</span> <span class="string">rbac.authorization.k8s.io</span></span><br><span class="line">  <span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-clusterrole</span></span><br><span class="line"><span class="attr">subjects:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">    <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-controller</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">      <span class="attr">annotations:</span></span><br><span class="line">        <span class="attr">prometheus.io/port:</span> <span class="string">&quot;10254&quot;</span></span><br><span class="line">        <span class="attr">prometheus.io/scrape:</span> <span class="string">&quot;true&quot;</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">hostNetwork:</span> <span class="literal">true</span></span><br><span class="line">      <span class="comment"># wait up to five minutes for the drain of connections</span></span><br><span class="line">      <span class="attr">terminationGracePeriodSeconds:</span> <span class="number">300</span></span><br><span class="line">      <span class="attr">serviceAccountName:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">      <span class="attr">nodeSelector:</span></span><br><span class="line">        <span class="attr">kubernetes.io/os:</span> <span class="string">linux</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx-ingress-controller</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">lizhenliang/nginx-ingress-controller:0.30.0</span></span><br><span class="line">          <span class="attr">args:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">/nginx-ingress-controller</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--configmap=$(POD_NAMESPACE)/nginx-configuration</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--tcp-services-configmap=$(POD_NAMESPACE)/tcp-services</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--udp-services-configmap=$(POD_NAMESPACE)/udp-services</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--publish-service=$(POD_NAMESPACE)/ingress-nginx</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--annotations-prefix=nginx.ingress.kubernetes.io</span></span><br><span class="line">          <span class="attr">securityContext:</span></span><br><span class="line">            <span class="attr">allowPrivilegeEscalation:</span> <span class="literal">true</span></span><br><span class="line">            <span class="attr">capabilities:</span></span><br><span class="line">              <span class="attr">drop:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">ALL</span></span><br><span class="line">              <span class="attr">add:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">NET_BIND_SERVICE</span></span><br><span class="line">            <span class="comment"># www-data -&gt; 101</span></span><br><span class="line">            <span class="attr">runAsUser:</span> <span class="number">101</span></span><br><span class="line">          <span class="attr">env:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">POD_NAME</span></span><br><span class="line">              <span class="attr">valueFrom:</span></span><br><span class="line">                <span class="attr">fieldRef:</span></span><br><span class="line">                  <span class="attr">fieldPath:</span> <span class="string">metadata.name</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">POD_NAMESPACE</span></span><br><span class="line">              <span class="attr">valueFrom:</span></span><br><span class="line">                <span class="attr">fieldRef:</span></span><br><span class="line">                  <span class="attr">fieldPath:</span> <span class="string">metadata.namespace</span></span><br><span class="line">          <span class="attr">ports:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">http</span></span><br><span class="line">              <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">              <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">https</span></span><br><span class="line">              <span class="attr">containerPort:</span> <span class="number">443</span></span><br><span class="line">              <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">          <span class="attr">livenessProbe:</span></span><br><span class="line">            <span class="attr">failureThreshold:</span> <span class="number">3</span></span><br><span class="line">            <span class="attr">httpGet:</span></span><br><span class="line">              <span class="attr">path:</span> <span class="string">/healthz</span></span><br><span class="line">              <span class="attr">port:</span> <span class="number">10254</span></span><br><span class="line">              <span class="attr">scheme:</span> <span class="string">HTTP</span></span><br><span class="line">            <span class="attr">initialDelaySeconds:</span> <span class="number">10</span></span><br><span class="line">            <span class="attr">periodSeconds:</span> <span class="number">10</span></span><br><span class="line">            <span class="attr">successThreshold:</span> <span class="number">1</span></span><br><span class="line">            <span class="attr">timeoutSeconds:</span> <span class="number">10</span></span><br><span class="line">          <span class="attr">readinessProbe:</span></span><br><span class="line">            <span class="attr">failureThreshold:</span> <span class="number">3</span></span><br><span class="line">            <span class="attr">httpGet:</span></span><br><span class="line">              <span class="attr">path:</span> <span class="string">/healthz</span></span><br><span class="line">              <span class="attr">port:</span> <span class="number">10254</span></span><br><span class="line">              <span class="attr">scheme:</span> <span class="string">HTTP</span></span><br><span class="line">            <span class="attr">periodSeconds:</span> <span class="number">10</span></span><br><span class="line">            <span class="attr">successThreshold:</span> <span class="number">1</span></span><br><span class="line">            <span class="attr">timeoutSeconds:</span> <span class="number">10</span></span><br><span class="line">          <span class="attr">lifecycle:</span></span><br><span class="line">            <span class="attr">preStop:</span></span><br><span class="line">              <span class="attr">exec:</span></span><br><span class="line">                <span class="attr">command:</span></span><br><span class="line">                  <span class="bullet">-</span> <span class="string">/wait-shutdown</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">LimitRange</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">limits:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">min:</span></span><br><span class="line">      <span class="attr">memory:</span> <span class="string">90Mi</span></span><br><span class="line">      <span class="attr">cpu:</span> <span class="string">100m</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">Container</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-    @Autowired
-    private UserService userService;
 
-    @ResponseBody
-    @PostMapping(&quot;/user/add&quot;)
-    public boolean add(@RequestBody User user)&#123;
-        return userService.add(user);
-    &#125;
 
-    @ResponseBody
-    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
-    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
-        return userService.get(id);
-    &#125;
+<p>配置ingress规则</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">networking.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Ingress</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">example-ingress</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">rules:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">host:</span> <span class="string">example.ingress.com</span></span><br><span class="line">    <span class="attr">http:</span></span><br><span class="line">      <span class="attr">paths:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">path:</span> <span class="string">/</span></span><br><span class="line">        <span class="attr">backend:</span></span><br><span class="line">          <span class="attr">serviceName:</span> <span class="string">web</span></span><br><span class="line">          <span class="attr">servicePort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
 
-    @ResponseBody
-    @GetMapping(&quot;/user/list&quot;)
-    public List&lt;User&gt; list()&#123;
-        return userService.list();
-    &#125;
-&#125;</code></pre><p>接下来，重要的还是配置文件</p>
-<pre><code>server:
-  port: 9001
-eureka:
-  instance:
-    instance-id: springcloud8001
-    prefer-ip-address: true
-  client:
-    service-url:
-      defaultZone: http://root:root@localhost:7001/eureka/
-spring:
-  application:
-    name: SPRING-PROD
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
-    driver-class-name: com.mysql.jdbc.Driver              # mysql驱动包
-    url: jdbc:mysql://localhost:3306/cloud1?serverTimezone=UTC&amp;characterEncoding=utf-8              # 数据库名称
-    username: root
-    password: root
-    dbcp2:
-      min-idle: 5                                           # 数据库连接池的最小维持连接数
-      initial-size: 5                                       # 初始化连接数
-      max-total: 5                                          # 最大连接数
-      max-wait-millis: 200                                  # 等待连接获取的最大超时时间
-mybatis:
-  type-aliases-package: com.fsats.user.entity    # 所有Entity别名类所在包
-  mapper-locations:
-    - classpath:mapper/**/*.xml                       # mapper映射文件
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl</code></pre><p>以上配置表示,服务提供者的端口,eureka.instance.instance-id表示注册在服务上的显示的名称。而spring.application.name就比较重要了，是当前服务的应用名称,多个相同的服务提供者负载均衡，instance-id可以不同，但这个值一定要一样，他表示一个独立的微服务应用。而且feign使用也是需要这个应用名称的。<br>剩下的就是mybatis和连接数据库了。<br>这个service提供者，我使用了新模块，并在新模块cloudservice里再新建的user-service模块,因此把依赖放到父模块cloudservice里。</p>
-<pre><code>&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;com.fsats&lt;/groupId&gt;
-        &lt;artifactId&gt;user-api&lt;/artifactId&gt;
-        &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
-        &lt;version&gt;2.0.1&lt;/version&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-jetty&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;</code></pre><p>启动类的话只需要加上@EnableEurekaClient注解即可。</p>
-<p>服务提供者的主要内容就是，作为服务提供外部访问，然后把自己注册到服务注册中心去。</p>
-<p>在上面依赖里依赖了user-api，它是feign客户端，是服务消费者与服务提供者沟通的桥梁。<br>如果桥梁呢,首先这个api定义后，服务提供者和服务消费者都可以依赖他，提供者可以获取实体类，也可以在自己模块定义实体类。<br>先看一下UserFeignClient类</p>
-<pre><code>@FeignClient(value = &quot;SPRING-PROD&quot;)
-public interface UserFeignClient&#123;
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl apply -f ingress-http.yaml </span><br><span class="line">Warning: networking.k8s.io&#x2F;v1beta1 Ingress is deprecated in v1.19+, unavailable in v1.22+; use networking.k8s.io&#x2F;v1 Ingress</span><br><span class="line">ingress.networking.k8s.io&#x2F;example-ingress created</span><br><span class="line">[root@k8smaster ~]# kubectl get pods -n ingress-nginx -o wide</span><br><span class="line">NAME                                       READY   STATUS    RESTARTS   AGE   IP               NODE       NOMINATED NODE   READINESS GATES</span><br><span class="line">nginx-ingress-controller-5dc64b58f-qzsgw   1&#x2F;1     Running   0          15m   192.168.38.129   k8snode2   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">[root@k8smaster ~]# </span><br><span class="line"></span><br></pre></td></tr></table></figure>
 
-    @PostMapping(&quot;/user/add&quot;)
-    boolean add(@RequestBody User user);
+<p>在window电脑配置hosts文件，增加<code>192.168.38.129 example.ingress.com</code>，访问example.ingress.com成功，但是直接访问192.168.38.129是不行的。</p>
+<p>https的ingress配置规则</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: networking.k8s.io&#x2F;v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: tls-example-ingress</span><br><span class="line">spec:</span><br><span class="line">  tls:</span><br><span class="line">  - hosts:</span><br><span class="line">    - sslexample.ctnrs.com</span><br><span class="line">    secretName: secret-tls</span><br><span class="line">  rules:</span><br><span class="line">    - host: sslexample.ctnrs.com</span><br><span class="line">      http:</span><br><span class="line">        paths:</span><br><span class="line">        - path: &#x2F;</span><br><span class="line">          backend:</span><br><span class="line">            serviceName: web</span><br><span class="line">            servicePort: 80</span><br></pre></td></tr></table></figure>
 
-    @GetMapping(&quot;/user/&#123;id&#125;&quot;)
-    User get(@PathVariable(&quot;id&quot;) Long id);
 
-    @GetMapping(&quot;/user/list&quot;)
-    List&lt;User&gt; list();
 
-&#125;</code></pre><p>它就表示一个feign客户端,主要调用SPRING-PROD应用里的请求。<br>那么，逻辑明显了，服务消费者通过自己的请求，然后注入这个UserFeignClient类，便可以操作了。这个类的方法因为已经标识了应用名称，所以他会以webservice的方式和方法上定义的请求路径去请求这个地址。并把结果给服务消费者。<br>那么很显然，服务消费者是一定需要这个类的包的，但是如何知道这个feign，那就是通过另一个注解@EnableFeignClients扫描，在服务提供者类里扫描包含@FeignClient注解的方法,因为已经引入api这个包了，所以一定是扫描的上的，并且如果扫描上，直接被注入容器中。</p>
-<h2 id="服务消费者"><a href="#服务消费者" class="headerlink" title="服务消费者"></a>服务消费者</h2><p>服务消费者也属于服务，但可以不注册。<br>看一下yml</p>
-<pre><code>server:
-  port: 8001
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://root:root@localhost:7001/eureka
-    register-with-eureka: false
-
-info:
-  app.name: springcloud-test-8001
-  company.name: www.fsats.com
-  build.artifactId: $project.artifactId$
-  build.version: $project.version$</code></pre><p>register-with-eureka表示，不在注册中心注册自己，虽然这里已经定义了路径，但是是没有注册的。info后面的可以去掉，这个是服务的相关定义信息。</p>
-<p><strong>POM文件</strong></p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;com.fsats&lt;/groupId&gt;
-    &lt;artifactId&gt;user-api&lt;/artifactId&gt;
-    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>接下来需要在启动类中标注@EnableFeignClients注解</p>
-<pre><code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
-@EnableEurekaClient
-@SpringBootApplication
-public class ConsumerApplication &#123;
-
-    public static void main(String[] args) &#123;
-        SpringApplication.run(ConsumerApplication.class,args);
-    &#125;
-&#125;</code></pre><p>其中，basePackage表示扫描的注解基础路径,此处填写api模块的包名。</p>
-<pre><code>@RestController
-public class UserController &#123;
-
-    //@Autowired
-    private IUserClient iUserClient;
-
-    @PostMapping(&quot;/consumer/user/add&quot;)
-    public boolean add(User user)&#123;
-        return this.iUserClient.add(user);
-    &#125;
-
-    @GetMapping(&quot;/consumer/user/get/&#123;id&#125;&quot;)
-    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
-        return this.iUserClient.get(id);
-    &#125;
-
-    @GetMapping(&quot;/consumer/user/list&quot;)
-    public List&lt;User&gt; list(User user)&#123;
-        return this.iUserClient.list();
-    &#125;
-&#125;</code></pre><p>在Controller中，既然启动类上已经扫描feignClient了，这里也不需要@AutoWired注解也是可以请求的。<br>另外，这个PostMapping在postman使用里测试，不能在params里写参数并使用post提交，必须在Body里，选择raw，然后填写json格式数据才能正确提交。因为feignClient里定义了@RequestBody注解。</p>
-<p>包结构如下:</p>
-<p><img src="https://i.loli.net/2019/11/01/GkJfy9WDsbRLmZC.png" alt="TIM截图20191101131246.png"></p>
-<p>项目下载地址:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/71">https://nas.tsaving.cn/file/download/71</a></p>
+<p>构建TLS，需要创建secret，对应secretName的值。</p>
+<p>全文可参考<code>https://www.cnblogs.com/linuxk/p/9706720.html</code></p>
 
       
       <!-- reward -->
@@ -441,7 +172,7 @@ public class UserController &#123;
 
 </article>
     
-    <article id="post-SpringCloud/SpringCloud微服务快速学习零碎文档" class="article article-type-post" itemscope
+    <article id="post-Java/依据word模板使用freemarker生成docx文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -449,8 +180,8 @@ public class UserController &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/"
-    >SpringCloud微服务快速学习零碎文档</a
+  <a class="article-title" href="/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/"
+    >依据word模板使用freemarker生成docx文件</a
   >
 </h2>
   
@@ -460,12 +191,12 @@ public class UserController &#123;
 
     
     <div class="article-meta">
-      <a href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/" class="article-date">
-  <time datetime="2019-11-01T10:34:46.000Z" itemprop="datePublished">2019-11-01</time>
+      <a href="/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:37:28.000Z" itemprop="datePublished">2020-01-02</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
   </div>
 
       
@@ -482,877 +213,431 @@ public class UserController &#123;
       
 
       
-      <p>项目位置为H盘符ideaProject下的springcloud-test项目</p>
-<p>该项目以尚硅谷springcloud课程为例，以dept部分为案例的项目</p>
-<h2 id="模块分析"><a href="#模块分析" class="headerlink" title="模块分析"></a>模块分析</h2><ul>
-<li>springcloud-test:项目父包，存储相关通用依赖，插件等。</li>
-<li>api模块:目前存放实体类和相关通用类</li>
-<li>provider-dept-8001:为dao，service，controller层，连接访问数据库，并提供Rest风格的请求,该模块为生产者模块</li>
-<li>consumer-dept-80:该模块为消费者模块，启动端口为80，通过RestTemplate以客户端消费者的模式来访问生产者提供的rest接口</li>
-<li>eureka-7001:该模块为eureka server模块,需添加依赖</li>
-</ul>
-<h2 id="Eureka组件相关"><a href="#Eureka组件相关" class="headerlink" title="Eureka组件相关"></a>Eureka组件相关</h2><p>添加Eureka依赖,添加之前需要在springcloud-test父工程下添加springcloud依赖管理,版本需要匹配</p>
-<pre><code>&lt;dependencyManagement&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
-            &lt;version&gt;Greenwich.SR1&lt;/version&gt;
-            &lt;type&gt;pom&lt;/type&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/dependencyManagement&gt;
-
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>添加yml配置</p>
-<pre><code>server:
-  port: 7001
-
-eureka:
-  instance:
-    hostname: localhost #eureka服务端的实例名称
-  client:
-    register-with-eureka: false     #false表示不向注册中心注册自己。
-    fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-    service-url:
-      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
-      #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>添加App启动类，添加@SpringBootApplication注解和@EnableEurekaServer注解</p>
-<p>为8001服务提供者模块添加eureka-client依赖，并配置，将模块注册到eureka注册中心。该依赖引入，若出现右侧maven红线，则检查依赖包是否下载成功，若pom.xml没有报红线，且在application.xml中有提示eureka配置则说明引入依赖成功。</p>
+      <p>使用freemarker方式生成docx，有两种方法，一种是转成word xml方式，但是这种文件在程序中使用流预览文件是有问题的，它是xml字符串，这种方式杜宇docx和doc都可以。原理就是将模板docx和doc另存为word xml文件，使用文本工具打开，就是一个xml，你只需要把要替换的地方使用${}方式改了就可以了，然后使用freemarker程序替换即可。</p>
+<p>虽然转换成功后可以再桌面上正常打开，但是输出流就是xml格式，你要想可以有流就必须手动进行另存为word格式。</p>
+<p>因此我们只能使用docx文件来操作，docx文件是有多个文件夹和文件组成，它可以通过winrar打开。只需要将后缀改为zip，但是，这个文件必须编辑过，就是打开并输入任意字符，得有东西。这样docx才能通过压缩包打开。</p>
+<p>里面的word/document.xml就是文档内容。此处我们只使用模板生成简单的文字模板即可。</p>
+<h3 id="已经完成的模板文件"><a href="#已经完成的模板文件" class="headerlink" title="已经完成的模板文件"></a>已经完成的模板文件</h3><p>将模板文件打开，修改需要更改的地方为 { 变量 },然后更改后缀为zip并通过压缩工具打开。然后把word/document.xml文件从压缩包里解压出来。这个文件存储的就是所有的文字。打开后需要查看变量，因为在文档中每个字符都有渲染标签包含着，可能 $ 与{之间就被某个渲染标签给分隔了，所以需要把中间的标签删掉，让变量连成一块。</p>
+<p>此时已经有两个文件，一个zip，一个document.xml模板文件。然后freemarker的任务就是将document.xml模板替换变量为真正的值，然后把docuemnt.xml替换到zip中并输出成docx文件即可。</p>
+<h3 id="freemarker操作"><a href="#freemarker操作" class="headerlink" title="freemarker操作"></a>freemarker操作</h3><p>首先需要将xml和zip放到resource中，此处获取文件我们通过class类路径的方式获取模板。方法共分两个，一个是替换模板文件，一个是转换zip。</p>
 <pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>application.yml追加eureka配置</p>
-<pre><code>eureka:
-  client: #客户端注册进eureka服务列表
-    service-url:
-      defaultZone: http://localhost:7001/eureka</code></pre><p>为8001服务提供者主启动类添加@EnableEurekaClient注解。</p>
-<blockquote>
-<p><strong>以上在springcloud2.0中并无法注册成功</strong></p>
-</blockquote>
-<p>解决方案:<br>因为2.0的原因，安全问题，所以</p>
-<ol>
-<li><p>在eureka server模块添加security依赖<br><code>xml &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt; &lt;/dependency&gt;</code></p>
+    &lt;groupId&gt;org.freemarker&lt;/groupId&gt;
+    &lt;artifactId&gt;freemarker&lt;/artifactId&gt;
+    &lt;version&gt;2.3.28&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h3 id="替换模板文件"><a href="#替换模板文件" class="headerlink" title="替换模板文件"></a>替换模板文件</h3><ol>
+<li><p>配置map替换变量</p>
+<p>   Map&lt;String, String&gt; paramMap = assemblyQualityResultParam(planResult);</p>
 </li>
-<li><p>修改配置</p>
-<p>eureka:<br>  instance:</p>
-<pre><code>hostname: localhost #eureka服务端的实例名称</code></pre><p>  client:</p>
-<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
-fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-service-url:
-  defaultZone: http://root:root@$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
-  #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>spring:<br>  security:</p>
-<pre><code>user:
-  name: root
-  password: root</code></pre></li>
-<li><p>添加配置类</p>
-<p>@EnableWebSecurity<br>public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {</p>
-<pre><code>@Override
-protected void configure(HttpSecurity http) throws Exception &#123;
-    // Configure HttpSecurity as needed (e.g. enable http basic).
-    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-    http.csrf().disable();
-    //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
-    // 如果是form方式,不能使用url格式登录
-    http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
-&#125;</code></pre><p>}</p>
+<li><p>传递原文件名和模板文件名</p>
+<p>   String filePath = fileDir + Constant.SEPARATOR + qualityName.replace(“.docx”,””) + “.xml”;//拼接为质检报告XML文件路径<br>   XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml<br>   //调用<br>   freemarkerWithSimple(paramMap, filePath, “XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml”);</p>
 </li>
-<li><p>在eureka client修改配置</p>
-<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@localhost:7001/eureka</code></pre></li>
-</ol>
-<p>然后，重新clean install后启动，eureka server启动会需要密码。在eureka client启动后显示启动时间后会出现类似这样的信息说明注册成功</p>
-<pre><code>2019-05-27 19:00:16.538  INFO 3396 --- [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SPRINGCLOUD-TEST/192.168.43.216:springcloud-test:8001 - registration status: 204</code></pre><h3 id="主机名称的修改，即服务注册页status名称修改"><a href="#主机名称的修改，即服务注册页status名称修改" class="headerlink" title="主机名称的修改，即服务注册页status名称修改"></a>主机名称的修改，即服务注册页status名称修改</h3><p>在springcloud下，其名称为IP地址:${spring.application.name}:端口号,但，若要改成一个名称，则需要在eureka client配置如下</p>
-<pre><code>eureka:
-  client: #客户端注册进eureka服务列表
-    service-url:
-      defaultZone: http://root:root@localhost:7001/eureka
-  instance:
-    instance-id: springcloud8001</code></pre><p>即多添加后两行的代码。<strong>修改完成后，若没有自动加载修改，则需要重新clean install</strong></p>
-<blockquote>
-<p>默认情况下可能是当前主机的ip在hosts文件中的映射，请检查windows下或linux下的hosts文件的当前主机ip配置。</p>
-</blockquote>
-<h3 id="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"><a href="#修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。" class="headerlink" title="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"></a>修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。</h3><p>只需要在eureka client中instance-id下面再添加<code>prefer-ip-address: true</code>的配置即可。</p>
-<h3 id="服务注册客户端配置info信息"><a href="#服务注册客户端配置info信息" class="headerlink" title="服务注册客户端配置info信息"></a>服务注册客户端配置info信息</h3><p>点击status下的instance-id，即可打开到新页面查看相关信息。<br>该信息为当前模块的服务信息，可进行配置。</p>
-<ol>
-<li><p>在父工程的pom.xml下配置build</p>
-<build>
-    <finalName>springcloud-test</finalName>
-    <resources>
-        <resource>
-            <directory>src/main/resources</directory>
-            <filtering>true</filtering>
-        </resource>
-    </resources>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-resources-plugin</artifactId>
-            <configuration>
-                <delimiters>
-                    <delimit>$</delimit>
-                </delimiters>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-</li>
-<li><p>然后在服务的pom.xml添加监控依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-</li>
-<li><p>然后配置application.yml文件</p>
-<p>info:<br>  app.name: springcloud-test-8001<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
-</li>
-</ol>
-<p>可以再info下添加各类信息，然后$的配置为父工程里的配置，可引用maven中的${}里的变量来显示信息。</p>
-<h3 id="自我保护机制"><a href="#自我保护机制" class="headerlink" title="自我保护机制"></a>自我保护机制</h3><p>在自我保护模式中，Eureka Server会保护注册表的信息，不再注销任何服务实例。当它收到心跳数重新恢复到阙值以上时，该节点就会退出自我保护模式。<br>默认情况下，Eureka Server在一定时间内(默认90秒)没有收到服务的实例心跳，该服务就会处于自我保护。<br>若需关闭自我保护机制则配置<code>eureka.server.enable-self-preservation: false</code>。</p>
-<p>配置Eureka Client设置心跳检测</p>
-<pre><code>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态
-lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</code></pre><h3 id="单机版集群配置"><a href="#单机版集群配置" class="headerlink" title="单机版集群配置"></a>单机版集群配置</h3><ol>
-<li><p>新增两个模块分别为eureka7002和eureka7003,pom依赖坐标一致。</p>
-</li>
-<li><p>因为是单机版，所以是一台服务器模拟三个eureka server，所以在windows下hosts文件修改域名ip映射，或在linux下的etc下的hosts修改</p>
-<p>127.0.0.1 eureka7001.com<br>127.0.0.1 eureka7002.com<br>127.0.0.1 eureka7003.com</p>
-</li>
-<li><p>修改7001,7002,7003的yml配置<br>修改<code>eureka.instance.hostname</code>为配置的映射域名,每个yml对应每个修改。<br>修改<code>eureka.client.service-url.defaultZone</code>的值为除当前url之外的另外两个serviceUrl,使用逗号分开<br>一下以7001的application.yml为例</p>
-<p>eureka:<br>  instance:</p>
-<pre><code>hostname: eureka7001.com #eureka服务端的实例名称</code></pre><p>  client:</p>
-<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
-fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-service-url:
-  defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre></li>
-<li><p>修改8001的服务提供者，eureka client的yml配置如下<br>即，将其写成3个server服务</p>
-<p>defaultZone: <a target="_blank" rel="noopener" href="http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka">http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka</a></p>
-</li>
-<li><p>替换另外两个的启动类<br>修改启动类名称</p>
-</li>
-</ol>
-<h3 id="Eureka-和Zookeeper的区别和好处"><a href="#Eureka-和Zookeeper的区别和好处" class="headerlink" title="Eureka 和Zookeeper的区别和好处"></a>Eureka 和Zookeeper的区别和好处</h3><p>CAP是强一致性，高可用性，和分区容错性。<br>Zookeeper使用CP，而Eureka使用的是AP。</p>
-<ul>
-<li>zk在master节点出现网络故障后会与其他节点失去联系，然后会leader选举一个新的master，选举的时间可能太长，导致整个集群不可用。虽然能最终恢复，但是漫长的选举时间导致注册长期不可用。</li>
-<li>eureka在设计时就保证可用性。保证了每个节点都是平等的。几个节点挂掉不会影响正常工作，剩余的依旧可以正常提供注册和查询服务，保证注册可用，不过查询的结果不保证是最新的(<strong>不保证强一致性</strong>)。除此之外，eureka的自我保护机制，如果在15分钟内超过85%的节点都没有正常心跳，那么eureka认为客户端与注册中心出现网络故障，此时出现以下情况:<ul>
-<li>Eureka不再从注册中心中移除因为长时间没有接收心跳而过期的服务</li>
-<li>仍然能够接收新服务的注册和查询服务，但是不会被同步到其他节点上(保证当前节点依然可用)</li>
-<li>当网络稳定时，当前实例新的注册信息被同步到其他节点中</li>
-</ul>
-</li>
-</ul>
-<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>Ribbon是基于Netflix Ribbon实现的客户端 负载均衡工具，其功能是提供客户端的软件负载均衡算法，。<br>Load balance分为集中式和进程内</p>
-<ul>
-<li>集中式即多数为硬件，如:F5，也可以是软件如:nginx。由该设施负责把访问请求通过某种策略转发到服务的提供方。</li>
-<li>进程内：即集成到消费方，从服务中心获知哪个地址有用，再从中选出合适的服务器。Ribbon属于进程内LB，只是一个类库，继承于消费方进程，消费方通过它来获取到服务提供方的地址。</li>
-</ul>
-<h3 id="Ribbon的入门配置"><a href="#Ribbon的入门配置" class="headerlink" title="Ribbon的入门配置"></a>Ribbon的入门配置</h3><p>Ribbon为客户端的负载均衡，且为进程内的，所以，那么集成到客户端调用consumer80模块中</p>
-<ol>
-<li><p>首先需要引入相关依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-</li>
-<li><p>配置负载均衡注解。在ConfigBean中的配置RestTempldate方法添加@LoadBalanced注解</p>
-</li>
-<li><p>在启动类上添加@EnableEurekaClient注解</p>
-</li>
-<li><p>修改Controller中的RestTempldate，访问服务提供者8001的前缀REST_URL_PREFIX。将localhost:8001修改为服务的应用名称，即注册服务的名称。</p>
-</li>
-<li><p>修改yml文件，新增eurekaclient配置</p>
-<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@eureka7001.com:7001/eureka/,http://root:root@eureka7002.com:7002/eureka/,http://root:root@eureka7003.com:7003/eureka/
-register-with-eureka: false</code></pre></li>
-</ol>
-<p>以上的配置，Ribbon为进程内的，即一个类库，且为<strong>客户端负载均衡</strong>，所以在80上进行操作，直接在RestTemplate访问时添加注解，但是其客户端需要到注册中心去查找服务地址，而非是直接访问服务提供者的地址，所以需要eureka client的依赖，因此要引入client依赖，并配置集群访问的defaultZone。通过<strong>服务注册中心注册的服务的名称来访问</strong>。</p>
-<blockquote>
-<p>经测试，要想在dept80上访问前缀<a href="http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。">http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。</a></p>
-</blockquote>
-<h3 id="多服务实例负载均衡"><a href="#多服务实例负载均衡" class="headerlink" title="多服务实例负载均衡"></a>多服务实例负载均衡</h3><p>以拷贝8001服务为8002,8003来模拟另外两台服务器部署服务，即同服务多实例的负载均衡体现。</p>
-<ol>
-<li>创建cloud02,cloud03数据库并插入数据(数据同cloud01)。</li>
-<li>拷贝8001的代码和myabtis配置及yml配置</li>
-<li>修改启动类名称</li>
-<li>修改yml文件，分别修改<code>端口号</code>,<code>数据库名称</code>，即可能的<code>info信息</code>。注意spring.application.name不需要更改，否则就不是同一个服务了。</li>
-<li>分别启动7001,7002,7001 eureka server，然后启动8001，8002，8003服务实例，然后进行localhost:8001自测</li>
-<li>启动80，使用consumer来进行测试,发现打印的信息为不同数据库的数据，且负载均衡访问为三个实例循环访问。</li>
-</ol>
-<h3 id="核心组件IRule，修改配置负载均衡算法"><a href="#核心组件IRule，修改配置负载均衡算法" class="headerlink" title="核心组件IRule，修改配置负载均衡算法"></a>核心组件IRule，修改配置负载均衡算法</h3><p>只需要在80客户端配置IRule Bean即可，默认没有配置会使用默认的IRule配置，RoundRobinRule</p>
-<pre><code>@Configuration
-public class ConfigBean &#123;
-
-    @Bean
-    @LoadBalanced
-    public RestTemplate getRestTemplate() &#123;
-        return new RestTemplate();
+<li><p>configuration设置编码格式和模板类路径</p>
+<p>public void freemarkerWithSimple(Map&lt;String, String&gt; paramMap, String saveFilePath, String templeteName) {</p>
+<pre><code>    try &#123;
+        String basePath = Constant.USER_FILE_BASE_DIR;//Global.getConfig(&quot;userfiles.basedir&quot;).replace(&quot;\\&quot;,&quot;/&quot;).replace(&quot;//&quot;,&quot;/&quot;);
+        Configuration configuration = new Configuration(new Version(&quot;2.3.28&quot;));
+        configuration.setDefaultEncoding(&quot;utf-8&quot;);
+        configuration.setClassForTemplateLoading(this.getClass(), &quot;/freemarker&quot;);
+        //指定模板路径的第二种方式,我的路径是D:/      还有其他方式
+        //configuration.setDirectoryForTemplateLoading(new File(&quot;C:/Users/cgq_r/Desktop&quot;));
+        String filePath = basePath + saveFilePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;);//fileDir + File.separator + name;
+        FileUtils.createDirectory(filePath.substring(0, filePath.lastIndexOf(&quot;/&quot;)));
+        // 输出文档路径及名称
+        File outFile = new File(filePath);
+        //以utf-8的编码读取ftl文件
+        Template t = configuration.getTemplate(templeteName, &quot;utf-8&quot;);
+        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), &quot;utf-8&quot;), 10240);
+        t.process(paramMap, out);
+        out.close();
+        logger.info(&quot;生成质检报告XML文件完成-&gt;&quot; + filePath);
+    &#125; catch (IOException e) &#123;
+        logger.error(e.getMessage());
+        e.printStackTrace();
+    &#125; catch (Exception e) &#123;
+        e.printStackTrace();
     &#125;
+&#125;</code></pre></li>
+</ol>
+<p>以上代码，首先设置编码格式和模板加载类路径，此模板我放在resource下的freemarker文件夹下，因此编译后就在项目根/freemarker下。</p>
+<p>设置模板输出和写文件。因为已经配置模板加载路径，所以tepleteName直接就是模板文件名不需要绝对相对路径。</p>
+<p>outputFile就是文件输出的位置，此处便只是创建了一下目录。虽然生成到了指定位置，但是整个过程都转换完了会后要删除这个document.xml的。</p>
+<h3 id="转换zip为docx"><a href="#转换zip为docx" class="headerlink" title="转换zip为docx"></a>转换zip为docx</h3><pre><code>filePath = generateDocxByZipAndXml(
+                        filePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;),
+                        &quot;XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）.zip&quot;,
+                        qualityName);</code></pre><p>此时，第一个参数为已经转换的xml路径,第二个是模板zip，第三个要生成的docx的文件名称。</p>
+<pre><code>private String generateDocxByZipAndXml(String filePath, String templeteZip, String qualityFileName) &#123;
+        String pathDir = Utils.getFileDir(filePath);
+        String qualityResultAllPath = Constant.USER_FILE_BASE_DIR + pathDir + Constant.SEPARATOR + qualityFileName; //质检报告docx全路径
+        try &#123;
+            //获取模板目录
+            String freemarkerDir = Servlets.getRequest().getServletContext().getRealPath(&quot;/WEB-INF/classes/freemarker&quot;);
+            String freemarkerZip = freemarkerDir + Constant.SEPARATOR + templeteZip;//模板zip路径
+            System.out.println(&quot;模板zip文件路径--&gt;&quot; + freemarkerZip);
 
-    @Bean
-    public IRule myIRule()&#123;
-        return new RandomRule();
-    &#125;
+            //zip模板替换xml并输出docx文档
+            ZipInputStream zipInputStream = ZipUtils.wrapZipInputStream(new FileInputStream(new File(freemarkerZip)));
+            ZipOutputStream zipOutputStream = ZipUtils.wrapZipOutputStream(new FileOutputStream(new File(qualityResultAllPath)));
+            String itemname = &quot;word/document.xml&quot;;
+            ZipUtils.replaceItem(zipInputStream, zipOutputStream, itemname, new FileInputStream(new File(Constant.USER_FILE_BASE_DIR+filePath)));
+            logger.info(&quot;生成质检报告--&gt;&quot; + qualityResultAllPath);
 
-&#125;</code></pre><p>在Ribbon中自带的负载均衡算法有如下几种：<br>| 类名 | 描述 |<br>|-|-|<br>|RoundRobinRule |轮询,按照定义顺序一次循环访问|<br>|RandomRule|随机进行访问|<br>|AvailabilityFilteringRule |会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问|<br>|WeightedResponseTimeRule|根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule|<br>|RetryRule|先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务|<br>|BestAvailableRule|会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务|<br>|ZoneAvoidanceRule|复合判断server所在区域的性能和server的可用性选择服务器|</p>
-<h3 id="Ribbon的自定义负载均衡策略"><a href="#Ribbon的自定义负载均衡策略" class="headerlink" title="Ribbon的自定义负载均衡策略"></a>Ribbon的自定义负载均衡策略</h3><p>负载均衡策略，主要就是继承AbstractLoadBalancerRule抽象类,可以参考RandomRule类的配置，其实现了getLoadBalancer()方法，可以获取所有的服务和可用服务。主要就是choose方法，并返回Server对象，也就是服务。</p>
-<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
+            //word生成-&gt;pdf
+            converterUtils.WordToPDF(qualityResultAllPath,qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
+            logger.info(&quot;生成质检报告PDF版--&gt;&quot; + qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
 
-    @Override
-    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
-
-    &#125;
-
-    // total = 0 // 当total==5以后，我们指针才能往下走，
-    // index = 0 // 当前对外提供服务的服务器地址，
-    // total需要重新置为零，但是已经达到过一个5次，我们的index = 1
-    // 分析：我们5次，但是微服务只有8001 8002 8003 三台，OK？
-    //</code></pre><p>​<br>        private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次<br>        private int currentIndex = 0;    // 当前提供服务的机器号</p>
-<pre><code>    public Server choose(ILoadBalancer lb, Object key) &#123;
-        if (lb == null) &#123;
-            return null;
+            //删除生成的data数据
+            File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+            if (tempData.exists()) &#123;
+                tempData.delete();
+            &#125;
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
         &#125;
-        Server server = null;
-
-        while (server == null) &#123;
-            if (Thread.interrupted()) &#123;
-                return null;
-            &#125;
-            List&lt;Server&gt; upList = lb.getReachableServers();
-            List&lt;Server&gt; allList = lb.getAllServers();
-
-            int serverCount = allList.size();
-            if (serverCount == 0) &#123;
-                /*
-                 * No servers. End regardless of pass, because subsequent passes only get more
-                 * restrictive.
-                 */
-                return null;
-            &#125;
-
-//            int index = rand.nextInt(serverCount);// java.util.Random().nextInt(3);
-//            server = upList.get(index);
-//            private int total = 0;          // 总共被调用的次数，目前要求每台被调用5次
-//            private int currentIndex = 0;   // 当前提供服务的机器号
-            if (total &lt; 5) &#123;
-                server = upList.get(currentIndex);
-                total++;
-            &#125; else &#123;
-                total = 0;
-                currentIndex++;
-                if (currentIndex &gt;= upList.size()) &#123;
-                    currentIndex = 0;
-                &#125;
-            &#125;
-            if (server == null) &#123;
-                /*
-                 * The only time this should happen is if the server list were somehow trimmed.
-                 * This is a transient condition. Retry after yielding.
-                 */
-                Thread.yield();
-                continue;
-            &#125;
-            if (server.isAlive()) &#123;
-                return (server);
-            &#125;
-
-            // Shouldn&apos;t actually happen.. but must be transient or a bug.
-            server = null;
-            Thread.yield();
+        return qualityResultAllPath.replace(Constant.USER_FILE_BASE_DIR,&quot;&quot;);
+    &#125;</code></pre><p>以上代码首先获取zip的路径，只有获取绝对路径才能进行文件操作，</p>
+<p>定义了两个ZipInputStream，其调用的方法仅仅只是inputStream和outputSteam包装一下zip输入输出流而已。</p>
+<p>ZipUtils.replaceItem是重点，就是替换文件到压缩包中。</p>
+<pre><code>/**
+     * 替换某个 item,
+     *
+     * @param zipInputStream  zip文件的zip输入流
+     * @param zipOutputStream 输出的zip输出流
+     * @param itemName        要替换的 item 名称
+     * @param itemInputStream 要替换的 item 的内容输入流
+     */
+    public static void replaceItem(ZipInputStream zipInputStream,
+                                   ZipOutputStream zipOutputStream,
+                                   String itemName,
+                                   InputStream itemInputStream
+    ) &#123;
+        //
+        if (null == zipInputStream) &#123;
+            return;
         &#125;
-        return server;
-    &#125;
-
-    @Override
-    public Server choose(Object o) &#123;
-        return choose(getLoadBalancer(), o);
-    &#125;
-&#125;</code></pre><p>该类为自定义的负载均衡算法规则类，要想使用需要进行配置。首先需要在当前启动类无法进行@CompomentScan的地方创建configuration类，即无法被Spring容器扫描到。该类有@Configuration注解，并配置IRule Bean，返回当前自定义规则类。<br>然后在启动类上配置@RibbonClient注解</p>
-<pre><code>@RibbonClient(name = &quot;SPRINGCLOUD-TEST&quot;,configuration = MyRuleConfiguration.class)</code></pre><p>name表示负载均衡所应用的服务名称，configuration为配置的configuration类</p>
-<h2 id="Feign声明式WebService客户端"><a href="#Feign声明式WebService客户端" class="headerlink" title="Feign声明式WebService客户端"></a>Feign声明式WebService客户端</h2><p>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。<br>Feign可以和Eureka与Ribbon结合使用负载均衡。<br>其使用过程就像类似于MyBatis Dao，接口访问，其作用<strong>是代替RestTemplate，而是直接使用类似Mybatis接口调用的方式</strong>。<br>步骤定义如下:</p>
-<ol>
-<li><p>首先需要在api模块处定义service接口方法，所以需要添加相关依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-openfeign</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-</li>
-<li><p>配置Service接口DeptClientService接口类,其注解，值为提供接口的服务名称，此接口将关联到服务提供者。</p>
-<p>@FeignClient(value = “SPRINGCLOUD-TEST”)<br>public interface DeptClientService {</p>
-<pre><code>@PostMapping(&quot;/dept/add&quot;)
-public boolean add(@RequestBody Dept dept);
-
-@GetMapping(&quot;/dept/get/&#123;id&#125;&quot;)
-public Dept get(@PathVariable(&quot;id&quot;) Long id);
-
-@GetMapping(&quot;/dept/list&quot;)
-public List&lt;Dept&gt; list();</code></pre><p>}</p>
-</li>
-<li><p>在客户端80 Controller中注入DeptClientService对象,通过其方法返回，不在使用RestTemplate</p>
-<p>@RestController<br>public class DeptController_Consumer {</p>
-<pre><code>@Autowired
-private DeptClientService deptClientService;</code></pre><p>   //private static final String REST_URL_PREFIX = “<a href="http://localhost:8001&quot;">http://localhost:8001&quot;</a>;</p>
-<pre><code>private static final String REST_URL_PREFIX = &quot;http://SPRINGCLOUD-TEST&quot;;
-
-@Autowired
-private RestTemplate restTemplate;
-
-@PostMapping(&quot;/consumer/dept/add&quot;)
-public boolean add(Dept dept)&#123;
-    //return restTemplate.postForObject(REST_URL_PREFIX+&quot;/dept/add&quot;,dept,Boolean.class);
-    return this.deptClientService.add(dept);
-&#125;
-
-@GetMapping(&quot;/consumer/dept/get/&#123;id&#125;&quot;)
-public Dept get(@PathVariable(&quot;id&quot;) Long id)&#123;
-    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/get/&quot; + id,Dept.class);
-    return this.deptClientService.get(id);
-&#125;
-
-@GetMapping(&quot;/consumer/dept/list&quot;)
-public List&lt;Dept&gt; list(Dept dept)&#123;
-    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/list&quot;,List.class);
-    return this.deptClientService.list();
-&#125;</code></pre><p>}</p>
-</li>
-<li><p>在80的启动类中，配置<code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.springcloud&quot;&#125;)</code>,表示扫描当前包下的FeignClient,那么其就会被Spring发现，步骤三不会报错，所以在配置Service接口的时候就不必使用@ComponentScan注解。</p>
-</li>
-</ol>
-<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>案例:多个服务，依赖调用，如A-&gt;B,B-&gt;C,C-&gt;D，如果某个服务出现错误或异常，会导致请求超时，或响应报错，等其他情况。或者项目实施原因为停止某个服务的使用是，该服务无法使用该如何处理。这是断路器要做的。<br><strong>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</strong></p>
-<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>其问题可以理解为Spring的AOP异常增强处理。通过添加注解并给予服务出错时要执行的方法。<br>只需要在方法上标注@HystrixCommand注解，并设置fallbackMethod属性值为回调方法。</p>
-<ol>
-<li><p>首先依据8001创建一个新的模块，新增hystrix依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-</li>
-<li><p>在controller的get方法上模拟Dept为null时抛出异常的情况</p>
-<p>@HystrixCommand(fallbackMethod = “requestErrorGet”)<br>@GetMapping(“/dept/get/{id}”)<br>public Dept get(@PathVariable(“id”) Long id){</p>
-<pre><code>Dept dept = deptService.get(id);
-if (dept==null)&#123;
-    throw new RuntimeException();
-&#125;
-return dept;</code></pre><p>}<br>public Dept requestErrorGet(@PathVariable(“id”) Long id){</p>
-<pre><code>return new Dept(id,&quot;没有此部门&quot;,&quot;请确认部门编号&quot;);</code></pre><p>}</p>
-</li>
-<li><p>在主启动类上标注@EnableCircuitBreaker注解</p>
-</li>
-<li><p>启动7001，当前hystrix8001,和feign80</p>
-</li>
-<li><p>测试访问localhost/consumer/dept/get/123获得服务熔断打印信息</p>
-</li>
-</ol>
-<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。</p>
-<ol>
-<li><p>在api模块，deptClientService同包目录下创建DeptClientServiceFallbackFactory实现FallbackFactory</p>
-<p>/**</p>
-<ul>
-<li><p>DeptClientService里的每一个方法的熔断都统一放在当前类中</p>
-</li>
-<li><p>/<br>@Component<br>public class DeptClientServiceFallbackFactory implements FallbackFactory<DeptClientService> {<br>  @Override<br>  public DeptClientService create(Throwable throwable) {</p>
-<pre><code>return new DeptClientService() &#123;
-    @Override
-    public boolean add(Dept dept) &#123;
-        return false;
-    &#125;
-
-    @Override
-    public Dept get(Long id) &#123;
-        return new Dept(id,&quot;服务降级&quot;,&quot;确认数据库&quot;);
-    &#125;
-
-    @Override
-    public List&lt;Dept&gt; list() &#123;
-        return null;
-    &#125;
-&#125;;</code></pre><p>  }<br>}</p>
-</li>
-</ul>
-</li>
-<li><p>在DeptClientService的FeignClient注解上，配置fallbackFactory属性，即为DeptClientServiceFallbackFactory类</p>
-<p>@FeignClient(value = “SPRINGCLOUD-TEST”,fallbackFactory = DeptClientServiceFallbackFactory.class)<br>public interface DeptClientService {<br>….<br>}</p>
-</li>
-<li><p>在客户端80feign项目中开启<code>feign.hystrix.enable:true</code>配置。使两个技术关联开启，步骤2的Feign才能解析fallbackFactory属性。</p>
-</li>
-<li><p>启动7001，当前hystrix8001,和feign80</p>
-</li>
-<li><p>测试，首先访问localhost/consumer/dept/get/123获得服务熔断的信息。然后关闭hystrix8001服务，再次访问，出现服务降级的信息。</p>
-</li>
-</ol>
-<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
-<ol>
-<li><p>创建新项目hystrixDashboard,添加依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
-</dependency>
-</li>
-<li><p>为启动类添加添加@EnableHystrixDashboard注解表示开启</p>
-</li>
-<li><p>为所有服务提供者8001,8002,8003服务，添加监控依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-</li>
-<li><p>使用<code>http://localhost:8001/hystrix.stream</code>可以看到ping:,data:,如果使用2.0以上版本，使用此地址404，那么，要在每个服务提供模块添加配置Bean，且需要hystrix依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-
-<p>@Configuration<br>public class MyConfiguration {</p>
-<pre><code>@Bean
-public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
-    ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
-    registration.addUrlMappings(&quot;/hystrix.stream&quot;);
-    return registration;
-&#125;</code></pre><p>}</p>
-</li>
-<li><p>需要服务提供者主启动类上加上@EnableCircuitBreaker注解</p>
-</li>
-<li><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
-</li>
-</ol>
-<blockquote>
-<p>需要注意的是，以上步骤并不完整，如果你的代码中没有类似@HystrixCommand注解，则尽管能访问hystrix.stream，但没有data数据，无法进行图表查看,所以，需要在方法上加上@HystrixCommand注解配置，具体问题详见<a target="_blank" rel="noopener" href="https://www.cnblogs.com/jinjiyese153/p/9172885.html">https://www.cnblogs.com/jinjiyese153/p/9172885.html</a></p>
-</blockquote>
-<h3 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h3><h2 id="Zuul路由"><a href="#Zuul路由" class="headerlink" title="Zuul路由"></a>Zuul路由</h2><p>Zuul包含了对请求的路由和过滤两个功能，<br>其中路由功能负责将外部请求转发到具体的微服务实例上，是实现外部访问统一入口的基础。<br>过滤功能负责对请求的处理过程进行干预，是实现请求校验，服务聚合等功能的基础，<br>Zuul和Eureka整合，将Zuul资深注册到Eureka服务治理下的应用，同时从Eureka获得其他微服务的消息，也即以后的微服务都是通过Zuul跳转后获得。</p>
-<h3 id="路由的简单应用"><a href="#路由的简单应用" class="headerlink" title="路由的简单应用"></a>路由的简单应用</h3><p>使用类似如下的地址通过路由即可访问服务<code>http://localhost:9527/springcloud-test/dept/list</code>,localhost:9527即为路由微服务，通过路由(路由注册到Eureka中)访问注册中心的服务。</p>
-<ol>
-<li><p>创建路由项目,添加依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-</li>
-<li><p>配置yml</p>
-<p>server:<br>  port: 9527</p>
-<p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@eureka7001.com:7001/eureka/</code></pre><p>  instance:</p>
-<pre><code>instance-id: dept-zuul-9537
-prefer-ip-address: true</code></pre><p>spring:<br>  application:</p>
-<pre><code>name: dept-zuul-geteway</code></pre><p>info:<br>  app.name: springcloud-test<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
-</li>
-<li><p>主启动类配置注解</p>
-<p>@EnableEurekaClient<br>@EnableZuulProxy<br>@SpringBootApplication<br>public class DeptZuul9527_App {</p>
-<pre><code>public static void main(String[] args) &#123;
-    SpringApplication.run(DeptZuul9527_App.class,args);
-&#125;</code></pre><p>}</p>
-</li>
-</ol>
-<h3 id="路由访问配置"><a href="#路由访问配置" class="headerlink" title="路由访问配置"></a>路由访问配置</h3><p>隐藏实际服务名称，使用自定义的名称</p>
-<pre><code>zuul:
-  routes:
-    mydept.serviceId: springcloud-test
-    mydept.path: /mydept/**</code></pre><ul>
-<li>表示将springcloud-test的服务，其路径改为mydept,使用原服务名称和mydept均可访问。</li>
-<li>配置<code>zuul.ignored-services: springcloud-test</code>可取消原服务名称的访问。若要忽略全部的服务，则使用<code>&quot;*&quot;</code>配置。</li>
-<li>若需要服务访问的前缀，则配置<code>zuul.prefix: /xxx</code>,即可使用前缀访问</li>
-</ul>
-<h2 id="Spring-Cloud-Config"><a href="#Spring-Cloud-Config" class="headerlink" title="Spring Cloud Config"></a>Spring Cloud Config</h2><p>Spring Cloud Config分为<strong>服务端和客户端两部分</strong>。<br>服务端也称为分布式配置中心，他是一个<strong>独立的微服务应用</strong>，用来++连接配置服务器并为客户端提供配置信息，加密/解密信息等访问接口。++<br>客户端是通过指定的配置中心来管理应用资源，以及业务相关的配置，并在启动的时候从配置中心获取和加载配置信息，配置服务器默认采用git来存储配置信息，有助于对环境配置进行版本管理。<br>在运行期间动态调整配置，不需要在每个服务部署的机器上编写配置文件，服务会向配置中心统一拉取自己的信息。当配置变动时，服务不需要重启即可感知到配置的变化并应用新的配置。</p>
-<h3 id="服务端配置，以Github为例，若无法访问，可使用Gitee码云"><a href="#服务端配置，以Github为例，若无法访问，可使用Gitee码云" class="headerlink" title="服务端配置，以Github为例，若无法访问，可使用Gitee码云"></a>服务端配置，以Github为例，若无法访问，可使用Gitee码云</h3><ol>
-<li><p>首先在码云创建公共仓库，然后clone到本地，在本地创建application.yml文件(注意保存为UTF-8格式)并上传拿到远程仓库,配置如下:</p>
-<p>spring:<br>  active:</p>
-<pre><code>- dev</code></pre><hr>
-<p>spring:<br>  profile: dev<br>  application:</p>
-<pre><code>name: springcloud-dev</code></pre><hr>
-<p>spring:<br>  profile: test<br>  application:</p>
-<pre><code>name: springcloud-test</code></pre></li>
-<li><p>创建configserver模块，添加依赖如下:</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-config-server</artifactId>
-</dependency>
-</li>
-<li><p>配置application.yml文件</p>
-<p>server:<br>  port: 3344<br>spring:<br>  application:</p>
-<pre><code>name: springcloud-config-server</code></pre><p>  cloud:</p>
-<pre><code>config:
-  server:
-    git:
-      uri: https://gitee.com/snow_rain/springcloud-config.git</code></pre></li>
-</ol>
-<p>表示，配置的服务git的uri为公共仓库的地址。</p>
-<ol>
-<li><p>配置主启动类，并添加@EnableConfigServer注解</p>
-</li>
-<li><p>启动项目，访问<code>http://localhost:3344/application-dev.yml</code>即可获得如下</p>
-<p>spring:<br>  active:</p>
-<ul>
-<li>dev<br>application:<br>name: springcloud-test<br>profile: test</li>
-</ul>
-</li>
-<li><p>访问的方式，有如下几种:</p>
-<p>/{application}/{profile}[/{label}]<br>/{application}-{profile}.yml<br>/{label}/{application}-{profile}.yml</p>
-</li>
-</ol>
-<p>上面访问的是第二种，另外两个可以以下方式访问:</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="http://localhost:3344/application/dev/master">http://localhost:3344/application/dev/master</a></li>
-<li><a target="_blank" rel="noopener" href="http://localhost:3344/master/application-dev.yml">http://localhost:3344/master/application-dev.yml</a></li>
-</ul>
-<h3 id="创建客户端模拟服务器提供者连通配置中心"><a href="#创建客户端模拟服务器提供者连通配置中心" class="headerlink" title="创建客户端模拟服务器提供者连通配置中心"></a>创建客户端模拟服务器提供者连通配置中心</h3><ol>
-<li><p>创建新模块，配置依赖如下:</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-</li>
-<li><p>创建springcloud-config-client.yml上传到远程仓库中</p>
-<p>spring:<br>  profile:</p>
-<pre><code>active: dev</code></pre><hr>
-<p>server:<br>  port: 8201<br>spring:<br>  profile: dev<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://eureka7001.com:7001/eureka</code></pre><hr>
-<p>server:<br>  port: 8202<br>spring:<br>  profile: test<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://eureka7002.com:7002/eureka</code></pre></li>
-<li><p>在client端,resources下创建bootstrap.yml文件<br>bootstrap是最高优先级的加载文件，是系统级的.<br>SpringCloud 会创建<code>BootStrap Context</code>作为Spring应用<code>Application Context</code>的父上下文。初始化时BootStrap Context负责从外部加载配置属性并解析配置，BootStrap具有较高优先级，默认情况下，他们不会被本地配置覆盖。<br>新增BootStrap.yml保证<code>BootStrap Context</code>和<code>Application Context</code>配置的分离。</p>
-<p>spring:<br>  cloud:</p>
-<pre><code>config:
-  label: master
-  name: springcloud-config-client
-  profile: dev
-  uri: http://localhost:3344</code></pre></li>
-</ol>
-<p>以上配置中label表示仓库的分支，name表示仓库中的要使用的yml文件名称,profile表示文件中的dev环境，uri表示配置中心服务端地址。即需要通过服务端的连接，即以上配置参数，即可通过服务端连接到仓库并获得对应的信息。</p>
-<ol>
-<li><p>可配置application.yml</p>
-<p>spring:<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre></li>
-</ol>
-<p>如果想配置，则name值需要和上面的name值一样，否则可以没有application.yml文件。即默认约定，该仓库springcloud-config-client名称为服务名称。<br>项目启动配置服务server和client，</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/Spring批量文件下载，ZIP包" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/"
-    >Spring批量文件下载，ZIP包</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/" class="article-date">
-  <time datetime="2019-09-18T01:33:36.000Z" itemprop="datePublished">2019-09-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>核心方法，递归写文件到Zip流中</p>
-<pre><code>private static void compress(File sourceFile, ZipOutputStream zos, String name,
-                                 boolean KeepDirStructure) throws Exception &#123;
-        byte[] buf = new byte[1024];
-        if (sourceFile.isFile()) &#123;
-            if (!sourceFile.getName().contains(&quot;.zip&quot;)) &#123;
-                // 向zip输出流中添加一个zip实体，构造器中name为zip实体的文件的名字
-                zos.putNextEntry(new ZipEntry(name));
-                // copy文件到zip输出流中
+        if (null == zipOutputStream) &#123;
+            return;
+        &#125;
+        if (null == itemName) &#123;
+            return;
+        &#125;
+        if (null == itemInputStream) &#123;
+            return;
+        &#125;
+        //
+        ZipEntry entryIn;
+        try &#123;
+            while ((entryIn = zipInputStream.getNextEntry()) != null) &#123;
+                String entryName = entryIn.getName();
+                ZipEntry entryOut = new ZipEntry(entryName);
+                // 只使用 name
+                zipOutputStream.putNextEntry(entryOut);
+                // 缓冲区
+                byte[] buf = new byte[8 * 1024];
                 int len;
-                FileInputStream in = new FileInputStream(sourceFile);
-                while ((len = in.read(buf)) != -1) &#123;
-                    zos.write(buf, 0, len);
-                &#125;
-                // Complete the entry
-                zos.closeEntry();
-                in.close();
-            &#125;
-        &#125; else &#123;
-            File[] listFiles = sourceFile.listFiles();
-            if (listFiles == null || listFiles.length == 0) &#123;
 
-                // 需要保留原来的文件结构时,需要对空文件夹进行处理
-                if (KeepDirStructure) &#123;
-                    // 空文件夹的处理
-                    zos.putNextEntry(new ZipEntry(name + &quot;/&quot;));
-                    // 没有文件，不需要文件的copy
-                    zos.closeEntry();
-                &#125;
-            &#125; else &#123;
-                for (File file : listFiles) &#123;
-                    // 判断是否需要保留原来的文件结构
-                    if (KeepDirStructure) &#123;
-                        // 注意：file.getName()前面需要带上父文件夹的名字加一斜杠,
-                        // 不然最后压缩包中就不能保留原来的文件结构,即：所有文件都跑到压缩包根目录下了
-                        compress(file, zos, name + &quot;/&quot; + file.getName(), KeepDirStructure);
-                    &#125; else &#123;
-                        compress(file, zos, file.getName(), KeepDirStructure);
+                if (entryName.equals(itemName)) &#123;
+                    // 使用替换流
+                    while ((len = (itemInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
+                    &#125;
+                &#125; else &#123;
+                    // 输出普通Zip流
+                    while ((len = (zipInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
                     &#125;
                 &#125;
+                // 关闭此 entry
+                zipOutputStream.closeEntry();
+
+            &#125;
+        &#125; catch (IOException e) &#123;
+            e.printStackTrace();
+        &#125; finally &#123;
+            //e.printStackTrace();
+            close(itemInputStream);
+            close(zipInputStream);
+            close(zipOutputStream);
+        &#125;
+    &#125;</code></pre><ul>
+<li>第一个参数是zip文件输入流</li>
+<li>第二个参数是最后docx文件输出流</li>
+<li>第三个参数是要替换的位置</li>
+<li>第四个是已经转换模板完成的docuemnt.xml文件</li>
+</ul>
+<p>此方法就是重新循环一下zip，并把流输出到另一个文件中，找到匹配的就使用docuemnt.xml流写进去。</p>
+<h3 id="多余docuemnt-xml删除"><a href="#多余docuemnt-xml删除" class="headerlink" title="多余docuemnt.xml删除"></a>多余docuemnt.xml删除</h3><pre><code>File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+if (tempData.exists()) &#123;
+    tempData.delete();
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/freemarker/" rel="tag">freemarker</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Java/openOffce和jacob方式转换office为pdf文件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/"
+    >openOffce和jacob方式转换office为pdf文件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:34:05.000Z" itemprop="datePublished">2020-01-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="OpenOffice-转换"><a href="#OpenOffice-转换" class="headerlink" title="OpenOffice 转换"></a>OpenOffice 转换</h2><p>首先需要到apache openoffice下载包并安装<a target="_blank" rel="noopener" href="http://www.openoffice.org/download/index.html">http://www.openoffice.org/download/index.html</a></p>
+<p>windows默认会安装到c盘program file(x86)中的openoffice4中，可以把这个文件文件夹拷贝到任意位置。</p>
+<p>要想使用转换首先需要jar包,他需要jodconverter的jar包，这包可能在maven中央仓库没有。详细的转换代码如下</p>
+<pre><code>@Component
+public class OfficeConverterUtils &#123;
+
+    private Logger logger = LoggerFactory.getLogger(OfficeConverterUtils.class);
+
+    @Value(&quot;$&#123;openoffice.path&#125;&quot;)
+    private  String openOfficePath;
+
+    public void WordToPDF(String startFile, String overFile) &#123;
+        if (StringUtils.isBlank(openOfficePath))&#123;
+            return;
+        &#125;
+
+        // 源文件目录
+        File inputFile = new File(startFile);
+        if (!inputFile.exists()) &#123;
+            System.out.println(&quot;源文件不存在！&quot;);
+            return;
+        &#125;
+
+        // 输出文件目录
+        File outputFile = new File(overFile);
+        if (!outputFile.getParentFile().exists()) &#123;
+            outputFile.getParentFile().exists();
+        &#125;
+        OpenOfficeConnection connection = null;
+        Process p = null;
+        try &#123;
+
+            // 调用openoffice服务线程
+            /** 我把openOffice下载到了 C:/Program Files (x86)/下  ,下面的写法自己修改编辑就可以**/
+            String command = openOfficePath + &quot; -headless -accept=\&quot;socket,host=127.0.0.1,port=8100;urp;\&quot;&quot;;
+            try &#123;
+                p = Runtime.getRuntime().exec(command);
+            &#125;catch (Exception e)&#123;
+                logger.error(&quot;服务无法启动或已经启动,请确认文件是否转换成功&quot;);
+            &#125;
+            // 连接openoffice服务
+            connection = new SocketOpenOfficeConnection(&quot;127.0.0.1&quot;, 8100);
+            connection.connect();
+
+            // 转换
+            DocumentConverter converter = new OpenOfficeDocumentConverter(connection);
+            converter.convert(inputFile, outputFile);
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
+            logger.error(&quot;转换PDF出现异常&quot;);
+            logger.error(&quot;切换使用jocob方式转换&quot;);
+            if (startFile.lastIndexOf(&quot;.docx&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.doc&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xlsx&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xls&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;
+        &#125; finally &#123;
+            // 关闭连接
+            if (connection != null &amp;&amp; connection.isConnected()) &#123;
+                connection.disconnect();
+            &#125;
+            // 关闭进程
+            if (p != null &amp;&amp; p.isAlive()) &#123;
+                p.destroy();
             &#125;
         &#125;
-    &#125;</code></pre><p>文件下载</p>
-<pre><code>//压缩文件zip到服务器
-ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipPath));
-compress(ywhFiles,out, ywhFiles.getName(),true);
 
-out.close();
-//下载文件
-try &#123;
-    // 以流的形式下载文件。
-    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(zipFile.getPath()));
-    byte[] buffer = new byte[fis.available()];
-    fis.read(buffer);
-    fis.close();
-    // 清空response
-    response.reset();
-    OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
-    response.setContentType(&quot;application/octet-stream&quot;);
-    response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment;filename=&quot; + new String(zipFile.getName().getBytes(&quot;UTF-8&quot;),&quot;ISO-8859-1&quot;));
-    toClient.write(buffer);
-    toClient.flush();
-    toClient.close();
-    zipFile.delete();        //是否将生成的服务器端文件删除
-&#125;
-catch (IOException ex) &#123;
-    ex.printStackTrace();
-&#125;</code></pre><p>此处使用response将流写出。如果使用springmvc的ResponseEntity返回，可能出现下载后zip包打不开的情况。</p>
+    &#125;
 
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+    public static void main(String[] args) &#123;
+        //openOfficePath = &quot;D:/soft/OpenOffice4/program/soffice.exe&quot;;
+        String start = &quot;C:\\Users\\lics\\Desktop\\abc.docx&quot;;
+        String over = &quot;C:\\Users\\lics\\Desktop\\abc.pdf&quot;;
+
+            new OfficeConverterUtils().WordToPDF(start, over);
+    &#125;
 
 
-    </footer>
+&#125;</code></pre><p>以上是通过代码的方式启动服务，操作完成后会关闭服务。</p>
+<p>还有通过cmd直接启动服务的。</p>
+<pre><code>soffice -headless -accept=&quot;socket,host=127.0.0.1,port=8100;urp;&quot; -nofirststartwizard</code></pre><p>以上中，在C:\Program Files (x86)\OpenOffice 4\program目录下执行此命令，因此soffice不需要写全，否则需要写绝对路径。执行后cmd不会有等待占用窗口，会在后台启动服务。</p>
+<p>有时候，可能莫名其妙的在服务器上有时候可以连接成功有时候就连接不上服务。所以可以试用jacob方式补充，但是经过测验，jacob比openOffice慢点，而且是越大越慢，但是转换ppt的时候openOffice却比较慢，无论怎么大jacob都比openOffice快。</p>
+<h2 id="Jacob转换"><a href="#Jacob转换" class="headerlink" title="Jacob转换"></a>Jacob转换</h2><p>jacob转换时dll方式操作，需要将dll放到jdk/bin中。首先需要jacob.jar包。然后有一个dll。</p>
+<p>有了这两个东西便可以进行转换了。</p>
+<pre><code>public class JacobUtil &#123;
+    private static Logger logger = Logger.getLogger(JocobUtil.class.getName());
 
-  </div>
+    public static void main(String[] args) &#123;
+        long b = System.currentTimeMillis();
+        //ppt2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;);
+        word2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\abc.doc&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\abc.pdf&quot;);
+        long c = System.currentTimeMillis();
+        System.out.println(c-b);
+    &#125;
 
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/Springboot2.x打jar包本地部署https访问" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/"
-    >Springboot2.x打jar包本地部署https访问</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/" class="article-date">
-  <time datetime="2019-09-15T08:03:27.000Z" itemprop="datePublished">2019-09-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>首先我的环境是springboot2.x的，可能配置不一样，这个可以去网上找一下。这个是我真实搭建使用的。</p>
-<p>首先具备条件：有一个域名是必须的。</p>
-<p>去域名的注册商，比如阿里或腾讯，去控制台找SSL证书配置，此处以阿里云为例，注册SSL</p>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/09/image.png?x-oss-process=image/resize,m_fill,h_392,w_1024" alt=""></p>
-<p>点击购买证书，选择最后一项，选择DV免费证书，提交订单。订单完成后，操作刚才的证书，填写绑定域名，免费证书只能绑定一个域名，所以填写你需要访问的一级或二级域名。填写信息等。然后会让你将txt记录解析到域名，点击验证按钮自动配置域名解析。然后等待审核给你发送邮箱消息。</p>
-<p>审核完成后，SSL已经成功了。点击下载，下载tomcat版本的就可以。解压会有一个pfx文件，和txt密码文件。将pfx拷贝到项目resources下。</p>
-<p>配置application.yml</p>
-<pre><code>server:
-  port: 443
-  ssl:
-    key-store: classpath:2812584_xxx.xxx.cn.pfx
-    key-store-password: 
-    key-store-type: PKCS12
-    enabled: true</code></pre><p>填写你的pfx路径，填写密码，密码就是txt文件里面的。</p>
-<p>然后创建配置类:</p>
-<pre><code>@Configuration
-public class HttpsConfig &#123;
-
-    @Bean
-    public TomcatServletWebServerFactory servletContainer() &#123;
-        TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() &#123;
-            @Override
-            protected void postProcessContext(Context context) &#123;
-                SecurityConstraint securityConstraint = new SecurityConstraint();
-                securityConstraint.setUserConstraint(&quot;CONFIDENTIAL&quot;);
-                SecurityCollection collection = new SecurityCollection();
-                collection.addPattern(&quot;/*&quot;);
-                securityConstraint.addCollection(collection);
-                context.addConstraint(securityConstraint);
+    public static void ppt2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;PowerPoint.Application&quot;);
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Presentations&quot;).toDispatch();
+            doc = Dispatch.call(
+                    docs,
+                    &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.TRUE, Boolean.TRUE,
+                            Boolean.FALSE &#125;).toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(32) &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
             &#125;
-        &#125;;
-        tomcat.addAdditionalTomcatConnectors(getHttpConnector());
-        return tomcat;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
     &#125;
 
-    private Connector getHttpConnector() &#123;
-        Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
-        connector.setScheme(&quot;http&quot;);
-        connector.setPort(8080);
-        connector.setSecure(false);
-        connector.setRedirectPort(443);
-        return connector;
+    public static void word2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Word.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Documents&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(17) &#125;);
+        &#125; catch (Throwable t) &#123;
+            logger.log(Level.SEVERE, t.getMessage(), t);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;, new Variant[] &#123;new Variant(false)&#125;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+
+        &#125;
     &#125;
 
-&#125;</code></pre><p>以上就完成了。如果你在本地，直接使用localhost访问，不加http前缀的话是直接https访问8080不管用，默认https访问80端口然后转发到443端口中。</p>
-<p>首先我说一下上面的问题：首先我是内网映射，映射本地8080，所以如果本地localhost访问8080的话是有问题的，必须是80，因为你输入地址后直接是以https形式访问了。那么使用域名的话，内网穿透8080，访问443使用https。</p>
-<p>但是如果使用的直接是云产品，将服务部署在云服务器上，则域名绑定服务器后，域名可直接使用服务的端口访问，然后转发到443端口上,如果服务端口是80，那么么直接可访问。</p>
-<p>我的系统使用了内网映射natapp。只要在配置中开启https即可。花生壳等也是如此。云服务器使用的话，在阿里云文档有说明，也可以使用这种方式直接配置。</p>
+    public static void excel2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Excel.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Workbooks&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;ExportAsFixedFormat&quot;,
+                    new Object[] &#123; Integer.valueOf(0), tar &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
 
+&#125;</code></pre>
       
       <!-- reward -->
       
@@ -1379,7 +664,7 @@ public class HttpsConfig &#123;
 
 </article>
     
-    <article id="post-开源/JFinal搭建后jar的部署" class="article article-type-post" itemscope
+    <article id="post-Java/使用java gdal将shp文件转为geojson" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -1387,8 +672,8 @@ public class HttpsConfig &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/"
-    >JFinal搭建后jar的部署</a
+  <a class="article-title" href="/2020/01/02/Java/%E4%BD%BF%E7%94%A8java%20gdal%E5%B0%86shp%E6%96%87%E4%BB%B6%E8%BD%AC%E4%B8%BAgeojson/"
+    >使用java gdal将shp文件转为geojson</a
   >
 </h2>
   
@@ -1398,12 +683,12 @@ public class HttpsConfig &#123;
 
     
     <div class="article-meta">
-      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/" class="article-date">
-  <time datetime="2019-09-04T06:32:44.000Z" itemprop="datePublished">2019-09-04</time>
+      <a href="/2020/01/02/Java/%E4%BD%BF%E7%94%A8java%20gdal%E5%B0%86shp%E6%96%87%E4%BB%B6%E8%BD%AC%E4%B8%BAgeojson/" class="article-date">
+  <time datetime="2020-01-02T06:33:16.000Z" itemprop="datePublished">2020-01-02</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
   </div>
 
       
@@ -1420,101 +705,271 @@ public class HttpsConfig &#123;
       
 
       
-      <p>使用jfinal开发确实是非常非常的便利，虽然我才接触了两天，看点文档和社区才把一些资源常用操作等给弄完。唯一一个不怎么舒服的就是打包了。</p>
-<p>正常springmvc或springboot打包，要么是war，要么是jar，不用做什么操作，只有有默认创建maven项目的插件，就能正常的打好包。</p>
-<p>打包里，我遇到算是最困难的就是该博客里提到的，springboot+jdk6,打的war包，要是再有个axis2的使用。就会更麻烦。</p>
-<p>虽然jfinal官方提供的打包方式很好，可以使zip，tar.gz等打包。但是关于package.xml文件配置和插件的配置始终没搞懂怎么运行。最后才在社区里找到打jar包的方法。这里我先打一个地址，行不行还得根据项目来定</p>
-<p><a target="_blank" rel="noopener" href="http://www.jfinal.com/share/422">http://www.jfinal.com/share/422</a></p>
-<p>首先按照社区的说法是要把webapp的东西放到resource中再打包。这里呢，根据上一篇的环境搭建，已经把所有的东西都放到resources了，不必大费周折。</p>
-<p>依据上一篇搭建的之后，还需要做的如下。</p>
-<ul>
-<li><p>添加jfinal的jetty依赖</p>
-<dependency>
-    <groupId>com.jfinal</groupId>
-    <artifactId>jetty-server</artifactId>
-    <version>2019.3</version>
-</dependency>
-</li>
-<li><p>配置社区里截图得maven插件</p>
-<plugins>
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-            <encoding>UTF-8</encoding>
-        </configuration>
-    </plugin>
+      <p>原因描述:因为要使用乡镇级别的地图进行显示，但是网上都没有对应的geojosn格式的文件，最低到区县级别。网上说是可以手绘的，在geojson开源网站上绘制自动生成json。 <a target="_blank" rel="noopener" href="http://geojson.io/">http://geojson.io/</a></p>
+<p>于是找了又找发现可将shp转为geojson格式，于是使用java gdal来转换shp为geojson文件。你只需要找shp文件即可了，如果没有找到，看看公司有没有arcgis相关的开发人员，问他们要。</p>
+<p>首先需要下载包，从<a target="_blank" rel="noopener" href="http://download.gisinternals.com/sdk.php">http://download.gisinternals.com/sdk.php</a>中去下载，解压后进入release-版本好-x64/bin中,将当前目录下所有dll文件放到java 的jdk/bin下,然后进入./gdal/java目录,将下面的所有dll也放到jdk/bin下面，然后再把这些放到java功能根目录下,jar供程序使用。</p>
+<p>1900版本gdal/java下只有gdal.jar和gdalalljni.dll,因此将dll分别分别放在jdk/bin下和项目根目录下即可。</p>
+<pre><code>public class Application &#123;
+    //http://download.gisinternals.com/sdk.php
+    public static void main(String[] args) &#123;
+        // 注册所有的驱动
+        ogr.RegisterAll();
+        // 为了支持中文路径，请添加下面这句代码
+        gdal.SetConfigOption(&quot;GDAL_FILENAME_IS_UTF8&quot;,&quot;YES&quot;);
+        // 为了使属性表字段支持中文，请添加下面这句
+        gdal.SetConfigOption(&quot;SHAPE_ENCODING&quot;,&quot;&quot;);
 
-<pre><code>&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
-    &lt;configuration&gt;
-        &lt;skip&gt;true&lt;/skip&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;
-&lt;plugin&gt;&lt;!--核心打成jar包插件--&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
-    &lt;version&gt;2.6&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;archive&gt;
-            &lt;manifest&gt;
-                &lt;addClasspath&gt;true&lt;/addClasspath&gt;
-                &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;
-                &lt;mainClass&gt;com.fsats.demo.DemoConfig&lt;/mainClass&gt;
-            &lt;/manifest&gt;
-        &lt;/archive&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;
-&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
-    &lt;version&gt;2.10&lt;/version&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;id&gt;copy-dependencies&lt;/id&gt;
-            &lt;phase&gt;package&lt;/phase&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;copy-dependencies&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;configuration&gt;
-                &lt;outputDirectory&gt;$&#123;project.build.directory&#125;/lib&lt;/outputDirectory&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-&lt;/plugin&gt;</code></pre></plugins>
-</li>
-<li><p>配置主启动类，就是manifest的设置。</p>
-<p>public class DemoConfig{</p>
-<pre><code>public static void main(String[] args) &#123;
-    //打包时使用
-    String baseBath = String.valueOf(DemoConfig.class.getProtectionDomain().getCodeSource().getLocation());
-    String classPath, webRootPath, jarPath;
-    if (StrKit.notBlank(baseBath) &amp;&amp; baseBath.contains(&quot;file:/&quot;)) &#123;
-        // 获取运行操作系统的运行方式  window和linux的细微区别
-        boolean windows = System.getProperties().getProperty(&quot;os.name&quot;).contains(&quot;Windows&quot;);
-        System.out.println(System.getProperties().getProperty(&quot;os.name&quot;));
-        jarPath = (windows ? &quot;&quot; : &quot;/&quot;) + baseBath.substring(&quot;file:/&quot;.length());
-        classPath = (windows ? &quot;&quot; : &quot;/&quot;) + jarPath.substring(0, jarPath.lastIndexOf(&quot;/&quot;)) + &quot;/classes&quot;;
-        System.out.println(&quot;jarPath:&quot; + jarPath);
-        System.out.println(&quot;classPath:&quot; + classPath);
-        webRootPath = classPath;
-        ZipUtil.unzip(jarPath, classPath);
+        String strVectorFile = &quot;J:\\行政区\\XZQ.shp&quot;;
+        //打开数据
+        DataSource ds = ogr.Open(strVectorFile,0);
+        if (ds == null)
+        &#123;
+            System.out.println(&quot;打开文件失败！&quot; );
+            return;
+        &#125;
+        System.out.println(&quot;打开文件成功！&quot; );
+        Driver dv = ogr.GetDriverByName(&quot;GeoJSON&quot;);
+        if (dv == null)
+        &#123;
+            System.out.println(&quot;打开驱动失败！&quot; );
+            return;
+        &#125;
+        System.out.println(&quot;打开驱动成功！&quot; );
+        dv.CopyDataSource(ds, &quot;J:\\行政区\\fibercable.geojson&quot;);
+        System.out.println(&quot;转换成功！&quot; );
     &#125;
-    UndertowServer.start(DemoConfig.class, 80, true);
-&#125;</code></pre><p>}</p>
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Hadoop/超简单基础搭建分布式hadoop" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/12/07/Hadoop/%E8%B6%85%E7%AE%80%E5%8D%95%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8Fhadoop/"
+    >超简单基础搭建分布式hadoop</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/12/07/Hadoop/%E8%B6%85%E7%AE%80%E5%8D%95%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8Fhadoop/" class="article-date">
+  <time datetime="2019-12-06T16:59:47.000Z" itemprop="datePublished">2019-12-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>新文章，之前的hadoop部署文章教程均可能出现问题，仅作为参考。以本文为准</p>
+<h1 id="第一章-虚拟机配置"><a href="#第一章-虚拟机配置" class="headerlink" title="第一章 虚拟机配置"></a>第一章 虚拟机配置</h1><p>创建centos7.x虚拟机不再描述,网卡连接方式使用NAT方式</p>
+<p><strong>网络问题,创建NAT虚拟网络</strong><br>可在VMware的编辑，虚拟网络编辑器中，添加网络，点击右下角的管理员操作权限，点击添加网络按钮，随意选一个VMnet，选择VMnet为NAT模式。<br>勾选将主机虚拟适配器连接到此网络和勾选使用本地DHCP服务将IP地址分配给虚拟机。然后可以修改HDCP设置，默认可以不更改。</p>
+<h2 id="创建完虚拟机后，无法使用sudo问题"><a href="#创建完虚拟机后，无法使用sudo问题" class="headerlink" title="创建完虚拟机后，无法使用sudo问题"></a>创建完虚拟机后，无法使用sudo问题</h2><p>使用命令<code>su root</code>进入root用户,执行<code>visudo</code>命令打开sudoer文件,找到</p>
+<pre><code>root    ALL=(ALL)       ALL</code></pre><p>在其下面添加与其一样的一行，并把root改为自己的用户名,然后保存退出,如:</p>
+<pre><code>centos    ALL=(ALL)       ALL</code></pre><h2 id="安装jdk和hadoop"><a href="#安装jdk和hadoop" class="headerlink" title="安装jdk和hadoop"></a>安装jdk和hadoop</h2><p>jdk选JDK8的,hadoop建议选择3.x版本的，这里，我使用JDK8和hadoop3.1.3。目前JDK11与hadoop3.x版本的匹配问题还没有找到解决办法，使用jdk会导致在启动时出现java.lang.ClassNotFoundException: javax.activation.DataSource的异常。</p>
+<pre><code>[centos@centos3 ~]$ java -version
+java version &quot;1.8.0_231&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_231-b11)
+Java HotSpot(TM) 64-Bit Server VM (build 25.231-b11, mixed mode)
+[centos@localhost ~]$ hadoop version
+Hadoop 3.1.3
+Source code repository https://gitbox.apache.org/repos/asf/hadoop.git -r ba631c436b806728f8ec2f54ab1e289526c90579
+Compiled by ztang on 2019-09-12T02:47Z
+Compiled with protoc 2.5.0
+From source with checksum ec785077c385118ac91aadde5ec9799
+This command was run using /home/centos/hadoop/share/hadoop/common/hadoop-common-3.1.3.jar</code></pre><p>将jdk8和hadoop解压，放置在~/下,在/etc/profile中配置环境变量,<code>sudo vim /etc/profile</code>命令，打开后在结尾追加</p>
+<pre><code>export JAVA_HOME=/home/centos/jdk8
+export PATH=$JAVA_HOME/bin:$PATH
+export HADOOP_HOME=/home/centos/hadoop
+export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH</code></pre><p>然后使用<code>source /etc/profile</code>编译文件。然后可以输入上面的版本命令，看看信息。</p>
+<h2 id="暂时关闭防火墙"><a href="#暂时关闭防火墙" class="headerlink" title="暂时关闭防火墙"></a>暂时关闭防火墙</h2><pre><code>systemctl stop firewalld.service</code></pre><h2 id="规定三台服务器的IP-这个ip地址是随意的。"><a href="#规定三台服务器的IP-这个ip地址是随意的。" class="headerlink" title="规定三台服务器的IP,这个ip地址是随意的。"></a>规定三台服务器的IP,这个ip地址是随意的。</h2><pre><code>192.168.181.129 centos1
+192.168.181.130 centos2
+192.168.181.131 centos3</code></pre><p>修改/etc/host文件，配置映射文件,将上面的配置放在该文件中。</p>
+<h2 id="克隆虚拟机"><a href="#克隆虚拟机" class="headerlink" title="克隆虚拟机"></a>克隆虚拟机</h2><p>关闭虚拟机，点击菜单栏的虚拟机，选择管理，选择克隆，选择完全克隆，选择存储位置，然后进行克隆。如果你的当前磁盘是固态，那么是非常非常快的，不超过1分钟。</p>
+<h2 id="配置网络"><a href="#配置网络" class="headerlink" title="配置网络"></a>配置网络</h2><p>打开全部虚拟机，其实完全克隆后，主机名已经变了，从centos1到centos3，hostname是直接改过了的。你可以到设置-详细信息-用户里改一下用户名称为主机名名称。<br>然后配置一下另外两个的网络,这里配ip，上面好像没说。可以直接到设置-网络，点有线连接下的那个网卡点IPV4，设为手动，分别填写，你在虚拟网络配置里配置的网络ip，或者可以不用这用，因为是hdcp的，所以直接ifconfig查看ip结构，把之前预先设计好的ip填进去，并把地址和子网掩码放进去，网关为.1，DNS设为114.114.114.114。然后ipv6这点击禁用。<br>然后尝试互相ping并ping一下<a target="_blank" rel="noopener" href="http://www.baidu.com看是否外网可以通。">www.baidu.com看是否外网可以通。</a><br>如果找不到地方，看不到英文的话，可以设置成中文，点设置-region-language，看上部分，选择语言，汉语中文，然后根据他的提示重启一下就好了，让修改home下的文件名称的话，<strong>选不修改且不再提示</strong>。</p>
+<h2 id="虚拟机免密登录"><a href="#虚拟机免密登录" class="headerlink" title="虚拟机免密登录"></a>虚拟机免密登录</h2><p>在三台机器都执行以下指令</p>
+<pre><code>ssh-keygen -t rsa ；
+ssh-copy-id IP (自身)
+ssh-copy-id IP (其他节点)</code></pre><p>执行第一条指令时，回车三次，第二条和第三条是一样的，输入yes，然后输入ip的密码。<br>这三条指令，每台机器都执行一遍。<br>执行完毕后，从129开始，ssh centos1,ssh centos2,ssh centos3,三台机器都执行一遍这三个命令，表示要ssh连接一次，记住ip。</p>
+<h1 id="第二章-集群配置"><a href="#第二章-集群配置" class="headerlink" title="第二章 集群配置"></a>第二章 集群配置</h1><h2 id="集群规划"><a href="#集群规划" class="headerlink" title="集群规划"></a>集群规划</h2><p>centos1</p>
+<p>centos2</p>
+<p>centos3</p>
+<p>HDFS</p>
+<p>NameNode<br>DataNode</p>
+<p>DataNode</p>
+<p>SecondaryNameNode<br>DataNode</p>
+<p>YARN</p>
+<p>NodeManager</p>
+<p>NodeManager<br>ResourceManager</p>
+<p>NodeManager</p>
+<p>每个DataNode一定是有个NodeManager的。NameNode是比较重要的，管理所有的节点，所以一般是单独占一个服务器，但是只有三台机器又要做三个机器的数据存储。</p>
+<h2 id="集群配置"><a href="#集群配置" class="headerlink" title="集群配置"></a>集群配置</h2><p>进入hadoop的etc/hadoop</p>
+<ol>
+<li><p>配置hadoop-env.sh，找到被注释的JAVA_HOME与HADOOP_HOME，解开注释，修改为对应位置。</p>
 </li>
-</ul>
-<p>上面的代码和社区给的有些不同</p>
-<p>PathKit似乎并没有什么用，而且社区中解压目录为class-path，这个可以再上面改，这里我改成了classes。</p>
-<p>社区里值提供了maven和启动类main方法的代码。没有继承JFinalConfig类中配置的方法出来。以目前的项目若是访问页面，可能不可行，访问的路径就有问题，访问模板路径访问不到classes，查看报错，这里被webapp替换。这是他默认的模板存放位置，就像undertow.txt中配置的resource的src/main/resources一样。但是好像读不到，所以只能修改configEngine方法，添加基础模板路径，值就是设置的最后一级目录名称。</p>
-<pre><code>public void configEngine(Engine engine) &#123;
-    engine.setBaseTemplatePath(&quot;classes&quot;);
-&#125;</code></pre><p>根据社区打包完成后，会生成一个jar包和一个lib文件夹到taraget下。你可以直接运行java -jar jar包，此时jar包里的东西就会被解压到classes目录下。</p>
-<p>其实依据之前的springboot的问题，好像可以不必要解压，而且直接将lib放在jar里，运行jar</p>
+<li><p>修改core-site.xml,添加如下</p>
+<!-- 指定HDFS中的NameNode地址 -->
+<property>
+<name>fs.defaultFS</name>
+   <value>hdfs://centos1:9000</value>
+</property>
+<!-- 指定hadoop运行时产生的临时文件 -->
+<property>
+<name>hadoop.tmp.dir</name>
+   <value>/home/centos/hadoop/data/hadoopdata</value>
+</property>
+</li>
+<li><p>修改hdfs-site.xml，添加如下</p>
+<property>
+    <name>dfs.namenode.secondary.http-address</name>
+        <value>centos3:50090</value>
+    <description>secondarynamenode运行节点的信息,和namenode不同节点</description>
+</property>
+<property>
+        <name>dfs.replication</name>
+        <value>3</value>
+    <description>HDFS的数据块副本存储个数</description>
+</property>
+<property>
+    <name>dfs.namenode.http-address</name>
+    <value>centos1:50070</value>
+</property>
+<property>
+        <name>dfs.namenode.name.dir</name>
+        <value>/home/centos/hadoop/data/name</value>
+    <description>namenode的数据存储目录</description>
+</property>
+<property>
+        <name>dfs.datanode.data.dir</name>
+        <value>/home/centos/hadoop/data/data</value>
+    <description>datanode的数据存储目录</description>
+</property>
+</li>
+<li><p>修改yarn-site.xml，添加如下</p>
+<property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>centos2</value>
+</property>
+<property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+        <description>yarn集群为mapreduce程序提供的shuffle服务</description>
+</property>
+
+</li>
+</ol>
+<p>有时候，有的yarn还是什么日志报错，具体问题忘了，是需要配置<code>yarn.application.classpath</code>的属性，它的值通过<code>hadoop classpath</code>命令打出来</p>
+<pre><code>&lt;property&gt;
+&lt;name&gt;yarn.application.classpath&lt;/name&gt;
+&lt;value&gt;/home/hadoop/install/hadoop/etc/hadoop:/home/hadoop/install/hadoop/share/hadoop/common/lib/*:/home/hadoop/install/hadoop/share/hadoop/common/*:/home/hadoop/install/hadoop/share/hadoop/hdfs:/home/hadoop/install/hadoop/share/hadoop/hdfs/lib/*:/home/hadoop/install/hadoop/share/hadoop/hdfs/*:/home/hadoop/install/hadoop/share/hadoop/mapreduce/lib/*:/home/hadoop/install/hadoop/share/hadoop/mapreduce/*:/home/hadoop/install/hadoop/share/hadoop/yarn:/home/hadoop/install/hadoop/share/hadoop/yarn/lib/*:/home/hadoop/install/hadoop/share/hadoop/yarn/*&lt;/value&gt;
+&lt;/property&gt;</code></pre><ol>
+<li><p>修改mapred-site.xml，添加如下</p>
+<property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+</property>
+<property>
+        <name>mapreduce.jobhistory.address</name>
+        <value>centos1:10020</value>
+</property>
+<property>
+        <name>mapreduce.jobhistory.webapp.address</name>
+        <value>centos1:19888</value>
+</property>
+
+</li>
+</ol>
+<h2 id="hadoop拷贝到centos2和centos3"><a href="#hadoop拷贝到centos2和centos3" class="headerlink" title="hadoop拷贝到centos2和centos3"></a>hadoop拷贝到centos2和centos3</h2><p>之前的克隆的时候的从centos1中克隆来的，但没有配置，在这里，先把centos2和centos3的hadoop目录删了，通过命令吧刚配置的centos1的hadoop拷贝过去。当前，如果读到这，你还没有克隆的话，先把这里的配置配了再克隆吧</p>
+<pre><code>scp -r ./hadoop centos@centos2:~/
+scp -r ./hadoop centos@centos3:~/</code></pre><h2 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h2><ol>
+<li><p>首先执行一次格式化hdf,centos1中(namenode)<br>这是必须的，但下此再要重启服务的话就不需要了。</p>
+<p>[centos@centos1 hadoop]$ hdfs namenode -format<br>2019-12-06 08:00:49,798 INFO namenode.NameNode: STARTUP_MSG:<br>/<strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong>****</strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong><br>STARTUP_MSG: Starting NameNode<br>STARTUP_MSG:   host = centos1/192.168.181.129<br>STARTUP_MSG:   args = [-format]<br>STARTUP_MSG:   version = 3.1.3<br>STARTUP_MSG:   classpath = /home/centos/hadoop/etc/hadoop:/home/ce<br>….省略</p>
+</li>
+<li><p>启动start-dfs,start-yarn</p>
+</li>
+</ol>
+<p>在centos1中，也就是namenode中启动<code>start-dfs.sh</code>,必须在namenode中启动<br>然后去centos2,也就是resourceManager，<code>start-yarn.sh</code>,必须在resourceManager上启动<br>以上的启动位置，是强制的，否则出现服务启动缺失等其他异常情况。</p>
+<pre><code>[centos@centos1 hadoop]$ start-dfs.sh 
+Starting namenodes on [centos1]
+Starting datanodes
+Starting secondary namenodes [centos3]
+[centos@centos2 hadoop]$ start-yarn.sh 
+Starting resourcemanager
+Starting nodemanagers
+[centos@centos1 hadoop]$ jps
+15426 NameNode
+15938 Jps
+15561 DataNode
+15868 NodeManager
+[centos@centos2 hadoop]$ jps
+15028 ResourceManager
+15428 Jps
+14872 DataNode
+15161 NodeManager
+[centos@centos3 hadoop]$ jps
+14214 SecondaryNameNode
+14104 DataNode
+14317 NodeManager
+14414 Jps</code></pre><p>这里，因为测试的时候忘记执行<code>hdfs namenode -format</code>命令了，所以出现了错误，所以日志目录没有删除，这里如果第一次启动的话会提示WARN没有logs文件，会自动创建。不必在意。</p>
+<p>以上服务，一个都不能少。如果少了哪个，则查看nameNode机器的日志或其他节点的日志。<br>如果集群启动失败，则必须把服务先关停，然后删除每个节点的data 和logs目录，然后再hdfs namenode -format。</p>
+<p>记得关闭防火墙，避免无法访问web服务，如果不想关闭，那么去开放端口吧。每次重启需要执行关闭命令，也可以永久关闭。</p>
+<pre><code># 查看状态
+systemctl status firewalld.service
+# 临时关闭
+systemctl stop firewalld.service</code></pre><p>然后可以再宿主机上，通过访问centos1的ip地址:50070端口即可访问web页面。这里的地址是192.168.181.129:50070.<br>进入后选择最后一项Utilities，选择呢Brower the file system即可看到HDFS文件系统。</p>
+<h2 id="HDFS文件测试"><a href="#HDFS文件测试" class="headerlink" title="HDFS文件测试"></a>HDFS文件测试</h2><pre><code>hdfs dfs -mkdir -p /user/input
+hdfs dfs -put abc.txt /user/input
+
+hdfs dfs -mkdir -p /user/package
+hdfs dfs -put ~/jdk-8u231-linux-x64.tar.gzip /user/package</code></pre><p>上传了一个小文件，一个大文件。查看centos1:50070,发现是有的。以128M为一个block，abc.txt占用一个块，jdk为俩个块。</p>
+<p>如何在本地查找,进入到data目录中找<br><code>/home/centos/hadoop/data/data/current/BP-2112740988-192.168.181.129-1562738006972/current/finalized/subdir0/subdir0</code></p>
 
       
       <!-- reward -->
@@ -1548,7 +1003,7 @@ public class HttpsConfig &#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/17/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="extend next" rel="next" href="/page/19/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/17/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/16/">16</a><a class="page-number" href="/page/17/">17</a><span class="page-number current">18</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="space">&hellip;</span><a class="page-number" href="/page/43/">43</a><a class="extend next" rel="next" href="/page/19/">下一页</a>
   </nav>
   
 </section>
