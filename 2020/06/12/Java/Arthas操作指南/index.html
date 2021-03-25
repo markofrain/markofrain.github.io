@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">74字</span>
+            <span class="post-count">238字</span>
         </span>
     </span>
 
@@ -110,7 +110,18 @@
       
 
       
-      <h2 id="基础命令"><a href="#基础命令" class="headerlink" title="基础命令"></a>基础命令</h2><h3 id="dashboard"><a href="#dashboard" class="headerlink" title="dashboard"></a>dashboard</h3><p>显示当前进程信息</p>
+      <h2 id="docker安装arthas"><a href="#docker安装arthas" class="headerlink" title="docker安装arthas"></a>docker安装arthas</h2><p>自定义dockerfile，将arthas添加到镜像中</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">FROM openjdk:8-jdk-alpine</span><br><span class="line"></span><br><span class="line">ADD &#x2F;target&#x2F;ha-cloud-system-server.jar &#x2F;</span><br><span class="line"></span><br><span class="line">COPY --from&#x3D;hengyunabc&#x2F;arthas:latest &#x2F;opt&#x2F;arthas &#x2F;opt&#x2F;arthas</span><br><span class="line"></span><br><span class="line">EXPOSE 8003</span><br><span class="line"></span><br><span class="line">ENTRYPOINT [&quot;java&quot;, &quot;-jar&quot;, &quot;&#x2F;ha-cloud-system-server.jar&quot;]</span><br></pre></td></tr></table></figure>
+
+<p>创建容器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name kjgh --init -e register_url&#x3D;192.168.0.182 -e profile&#x3D;test -p 8003:8003 kjgh-server:1.0</span><br></pre></td></tr></table></figure>
+
+<p>启动容器内的arthas程序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it 88a7180edbf5 &#x2F;bin&#x2F;sh -c &quot;java -jar &#x2F;opt&#x2F;arthas&#x2F;arthas-boot.jar&quot;</span><br></pre></td></tr></table></figure>
+
+<h3 id="错误问题"><a href="#错误问题" class="headerlink" title="错误问题"></a>错误问题</h3><p><strong>com.sun.tools.attach.AttachNotSupportedException: Unable to get pid of LinuxThreads manager thread Attach docker 里 pid 1的进程报错?</strong></p>
+<p>使用 –init命令可以解决此问题，参考<a target="_blank" rel="noopener" href="https://github.com/alibaba/arthas/issues/362">https://github.com/alibaba/arthas/issues/362</a></p>
+<h2 id="基础命令"><a href="#基础命令" class="headerlink" title="基础命令"></a>基础命令</h2><h3 id="dashboard"><a href="#dashboard" class="headerlink" title="dashboard"></a>dashboard</h3><p>显示当前进程信息</p>
 <h3 id="thread"><a href="#thread" class="headerlink" title="thread"></a>thread</h3><p>打印线程栈。<code>thread 1 | grep &#39;main(&#39;</code></p>
 <h3 id="jad"><a href="#jad" class="headerlink" title="jad"></a>jad</h3><p>反编译class。<code>jad demo.MathGame</code></p>
 <h3 id="watch"><a href="#watch" class="headerlink" title="watch"></a>watch</h3><p>打印函数返回值，会一直等待输出。</p>

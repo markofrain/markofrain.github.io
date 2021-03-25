@@ -6,7 +6,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    Redis缓存过期监听事件 |  Notes
+    Java监听Redis缓存过期事件 |  Notes
   </title>
   <meta name="generator" content="hexo-theme-yilia-plus">
   
@@ -52,7 +52,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  Redis缓存过期监听事件
+  Java监听Redis缓存过期事件
 </h1>
   
 
@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">0字</span>
+            <span class="post-count">847字</span>
         </span>
     </span>
 
@@ -85,7 +85,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1分钟</span>
+            <span class="post-count">4分钟</span>
         </span>
     </span>
 </div>
@@ -96,6 +96,8 @@
 
     
     
+    <div class="tocbot"></div>
+
 
 
 
@@ -108,7 +110,39 @@
       
 
       
-      
+      <p><strong>使用缓存过期监听事件并不能真实意义上的TTL为0时触发过期，只是理论上的。</strong>这意味着只能将过期事件使用在，并不需要严格的业务逻辑掺杂的键上。</p>
+<p><strong>Timing of expired events</strong></p>
+<p>Keys with a time to live associated are expired by Redis in two ways:</p>
+<ul>
+<li>When the key is accessed by a command and is found to be expired.</li>
+<li>Via a background system that looks for expired keys in the background, incrementally, in order to be able to also collect keys that are never accessed.</li>
+</ul>
+<p>The <code>expired</code> events are generated when a key is accessed and is found to be expired by one of the above systems, as a result there are no guarantees that the Redis server will be able to generate the <code>expired</code> event at the time the key time to live reaches the value of zero.</p>
+<p>If no command targets the key constantly, and there are many keys with a TTL associated, there can be a significant delay between the time the key time to live drops to zero, and the time the <code>expired</code> event is generated.</p>
+<p>Basically <code>expired</code> events <strong>are generated when the Redis server deletes the key</strong> and not when the time to live theoretically reaches the value of zero.</p>
+<p><strong>Events in a cluster</strong></p>
+<p>Every node of a Redis cluster generates events about its own subset of the keyspace as described above. However, unlike regular Pub/Sub communication in a cluster, events’ notifications <strong>are not</strong> broadcasted to all nodes. Put differently, keyspace events are node-specific. This means that to receive all keyspace events of a cluster, clients need to subscribe to each of the nodes.</p>
+<p>过期:<a target="_blank" rel="noopener" href="https://redis.io/commands/expire">https://redis.io/commands/expire</a></p>
+<p>空间通知:<a target="_blank" rel="noopener" href="https://redis.io/topics/notifications">https://redis.io/topics/notifications</a></p>
+<p>文档论述到检验过期为，命令访问时，检查缓存是否过期(被动)，或通过服务端逐步查找(主动)。</p>
+<h3 id="Redis-Server设置"><a href="#Redis-Server设置" class="headerlink" title="Redis-Server设置"></a>Redis-Server设置</h3><p>在设置缓存时，会同市设置TTL缓存过期时间，当缓存过期后希望在程序中触发监听程序来获得到这个缓存。</p>
+<p>我们可以通过redis的缓存过期策略来操作，但是只能监听到redis缓存的key，而获取不到value。</p>
+<p>我们可以在redis.conf配置文件中找到<code>notify-keyspace-events</code>配置项，为其设置值为<code>Ex</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">notify-keyspace-events Ex</span><br></pre></td></tr></table></figure>
+
+<p>他的默认值是 <code>&quot;&quot;</code>，只是一个空字符串，什么都没设。</p>
+<p>对于可设置值的介绍在配置项上边的注释中可以看到。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># K    键空间通知，以__keyspace@&lt;db&gt;__为前缀</span><br><span class="line"># E    键事件通知，以__keysevent@&lt;db&gt;__为前缀</span><br><span class="line"># g    del , expipre , rename 等类型无关的通用命令的通知, ...</span><br><span class="line"># $    String命令</span><br><span class="line"># l    List命令</span><br><span class="line"># s    Set命令</span><br><span class="line"># h    Hash命令</span><br><span class="line"># z    有序集合命令</span><br><span class="line"># x    过期事件（每次key过期时生成）</span><br><span class="line"># e    驱逐事件（当key在内存满了被清除时生成）</span><br><span class="line"># A    g$lshzxe的别名，因此”AKE”意味着所有的事件</span><br></pre></td></tr></table></figure>
+
+<p>修改完后进行重启服务</p>
+<h3 id="Java代码设置监听"><a href="#Java代码设置监听" class="headerlink" title="Java代码设置监听"></a>Java代码设置监听</h3><h4 id="继承KeyExpirationEventMessageListener类"><a href="#继承KeyExpirationEventMessageListener类" class="headerlink" title="继承KeyExpirationEventMessageListener类"></a>继承KeyExpirationEventMessageListener类</h4><p>在doRegister方法中添加的监听名称为<code>__keyevent@&lt;db&gt;__:expired</code>的这种格式，这个<code>db</code>表示Redis的第几个数据库</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* redis缓存过期事件监听</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> chen</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2021/3/10</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyKeyExpirationEventMessageListener</span> <span class="keyword">extends</span> <span class="title">KeyExpirationEventMessageListener</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates new &#123;<span class="doctag">@link</span> MessageListener&#125; for &#123;<span class="doctag">@code</span> __keyevent@*__:expired&#125; messages.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> listenerContainer must not be &#123;<span class="doctag">@literal</span> null&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyKeyExpirationEventMessageListener</span><span class="params">(RedisMessageListenerContainer listenerContainer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(listenerContainer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doRegister</span><span class="params">(RedisMessageListenerContainer listenerContainer,String dbName)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> Topic kEY_EVENT_EXPIRED_TOPIC = <span class="keyword">new</span> PatternTopic(<span class="string">&quot;__keyevent@&quot;</span>+ dbName +<span class="string">&quot;__:expired&quot;</span>);</span><br><span class="line"></span><br><span class="line">        listenerContainer.addMessageListener(<span class="keyword">this</span>, kEY_EVENT_EXPIRED_TOPIC);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="注入RedisMessageListenerContainer"><a href="#注入RedisMessageListenerContainer" class="headerlink" title="注入RedisMessageListenerContainer"></a>注入RedisMessageListenerContainer</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* redis消息监听容器bean</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> lettuceConnectionFactory</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> context</span></span><br><span class="line"><span class="comment">* <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RedisMessageListenerContainer <span class="title">container</span><span class="params">(LettuceConnectionFactory lettuceConnectionFactory, ApplicationContext context)</span> </span>&#123;</span><br><span class="line">    RedisMessageListenerContainer container = <span class="keyword">new</span> RedisMessageListenerContainer();</span><br><span class="line">    container.setConnectionFactory(lettuceConnectionFactory);</span><br><span class="line">    MyKeyExpirationEventMessageListener listener = <span class="keyword">new</span> MyKeyExpirationEventMessageListener(container);</span><br><span class="line">    listener.doRegister(container,dbNum);</span><br><span class="line">    listener.setApplicationEventPublisher(context);</span><br><span class="line">    <span class="keyword">return</span> container;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用注解来监听"><a href="#使用注解来监听" class="headerlink" title="使用注解来监听"></a>使用注解来监听</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EventListener(classes = RedisKeyExpiredEvent.class)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listenerUploadFile</span><span class="params">(RedisKeyExpiredEvent event)</span> </span>&#123;</span><br><span class="line">    String id = <span class="keyword">new</span> String(event.getId());</span><br><span class="line">    String source = <span class="keyword">new</span> String(event.getSource());</span><br><span class="line">    String keyspace = event.getKeyspace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
       
       <!-- reward -->
       
@@ -193,10 +227,19 @@
   
   <nav class="article-nav">
     
-    
       <a href="/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            Redis安装
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/03/21/Redis/redisTemplate-java%E5%B7%A5%E5%85%B7%E7%B1%BB/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">Redis安装</div>
+        <div class="article-nav-title">redisTemplate-java工具类</div>
       </a>
     
   </nav>
