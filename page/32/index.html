@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-中间件/quartz任务调度Triggers详解" class="article article-type-post" itemscope
+    <article id="post-Oracle/Oracle修改表空间大小、表空间查询" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/quartz%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Triggers%E8%AF%A6%E8%A7%A3/"
-    >quartz任务调度Triggers详解</a
+  <a class="article-title" href="/2018/10/15/Oracle/Oracle%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F%E3%80%81%E8%A1%A8%E7%A9%BA%E9%97%B4%E6%9F%A5%E8%AF%A2/"
+    >Oracle修改表空间大小、表空间查询</a
   >
 </h2>
   
@@ -97,8 +97,138 @@
 
     
     <div class="article-meta">
-      <a href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/quartz%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Triggers%E8%AF%A6%E8%A7%A3/" class="article-date">
-  <time datetime="2018-09-26T07:57:15.000Z" itemprop="datePublished">2018-09-26</time>
+      <a href="/2018/10/15/Oracle/Oracle%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F%E3%80%81%E8%A1%A8%E7%A9%BA%E9%97%B4%E6%9F%A5%E8%AF%A2/" class="article-date">
+  <time datetime="2018-10-15T03:25:29.000Z" itemprop="datePublished">2018-10-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Oracle修改表空间大小"><a href="#Oracle修改表空间大小" class="headerlink" title="Oracle修改表空间大小"></a>Oracle修改表空间大小</h1><p>对于创建表空间时，设置表空间过大或表空间过小已占满最大大小,对表空间进行修改大小操作，以节省磁盘空间</p>
+<ol>
+<li><p>查看所有表空间及表空间数据文件位置</p>
+<p>select tablespace_name,file_name from dba_data_files;</p>
+</li>
+</ol>
+<ol start="2">
+<li><p>查看所有表空间及表空间大小</p>
+<p>select tablespace_name ,sum(bytes) / 1024 / 1024 as MB　from dba_data_files group by tablespace_name;</p>
+</li>
+</ol>
+<ol start="3">
+<li><p>查看表空间使用情况</p>
+<p>SELECT tbs 表空间名,</p>
+<pre><code>sum(totalM) 总共大小M,
+sum(usedM) 已使用空间M,
+sum(remainedM) 剩余空间M,
+sum(usedM)/sum(totalM)*100 已使用百分比,
+sum(remainedM)/sum(totalM)*100 剩余百分比
+FROM(
+ SELECT b.file_id ID,
+ b.tablespace_name tbs,
+ b.file_name name,
+ b.bytes/1024/1024 totalM,
+ (b.bytes-sum(nvl(a.bytes,0)))/1024/1024 usedM,
+ sum(nvl(a.bytes,0)/1024/1024) remainedM,
+ sum(nvl(a.bytes,0)/(b.bytes)*100),
+ (100 - (sum(nvl(a.bytes,0))/(b.bytes)*100))
+ FROM dba_free_space a,dba_data_files b
+ WHERE a.file_id = b.file_id
+ GROUP BY b.tablespace_name,b.file_name,b.file_id,b.bytes
+ ORDER BY b.tablespace_name
+)
+GROUP BY tbs;</code></pre></li>
+</ol>
+<ol start="4">
+<li><p>修改表空间大小</p>
+<p>alter database datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN.DBF’ RESIZE 10240M;</p>
+</li>
+</ol>
+<ol start="5">
+<li><p>设置自增长</p>
+<p>alter database datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN.DBF’ autoextend on next 50m maxsize 500m;</p>
+</li>
+</ol>
+<ol start="6">
+<li><p>增加数据文件</p>
+<p>alter tablespace BAOWEN add datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN2.DBF’ size 500m;</p>
+</li>
+</ol>
+<ol start="7">
+<li><p>查询当前用户中表所属表空间</p>
+<p>select table_name,tablespace_name from user_tables;</p>
+</li>
+</ol>
+<ol start="8">
+<li><p>查询表空间所属文件</p>
+<p>select * from dba_data_files where tablespace_name=’BAOWEN’;</p>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A1%A8%E7%A9%BA%E9%97%B4/" rel="tag">表空间</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Java/使用javax.mail包操作邮箱发送邮件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/11/Java/%E4%BD%BF%E7%94%A8javax.mail%E5%8C%85%E6%93%8D%E4%BD%9C%E9%82%AE%E7%AE%B1%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6/"
+    >使用javax.mail包操作邮箱发送邮件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/11/Java/%E4%BD%BF%E7%94%A8javax.mail%E5%8C%85%E6%93%8D%E4%BD%9C%E9%82%AE%E7%AE%B1%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6/" class="article-date">
+  <time datetime="2018-10-11T04:45:28.000Z" itemprop="datePublished">2018-10-11</time>
 </a>
       
   <div class="article-category">
@@ -119,333 +249,85 @@
       
 
       
-      <h2 id="Triggers简单介绍"><a href="#Triggers简单介绍" class="headerlink" title="Triggers简单介绍"></a>Triggers简单介绍</h2><p>Trigger是一个触发器，用于设置循环时间和执行时间等。其类型常用的有SimpleTrigger和CronTrigger。</p>
-<h3 id="Trigger的公共属性"><a href="#Trigger的公共属性" class="headerlink" title="Trigger的公共属性"></a>Trigger的公共属性</h3><ul>
-<li>TriggerKey：表示trigger的身份</li>
-<li>jobKey：当trigger触发时，执行job的身份</li>
-<li>startTime：设置trigger第一次触发的时间，改属性值为java.util.Date，表示某个指定的时间点</li>
-<li>endTime：表示trigger的失效的时间点</li>
-</ul>
-<h3 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h3><p>++如果你的trigger很多(或者Quartz线程池的工作线程太少)，Quartz可能没有足够的资源同时触发所有的trigger++；这种情况下，你可能希望控制哪些trigger优先使用Quartz的工作线程。<strong>设置withPriority属性</strong>，只有同时触发的trigger之间才会比较优先级。trigger的默认优先级时5，可以为任意整数、正数、负数。</p>
-<h3 id="错过触发"><a href="#错过触发" class="headerlink" title="错过触发"></a>错过触发</h3><p>trigger还有一个重要的属性misfire；如果scheduler关闭了，或者Quartz线程池中没有可用的线程来执行job，此时持久性的trigger就会错过(miss)其触发时间，即错过触发(misfire)。不同类型的trigger，有不同的misfire机制。它们默认都使用“智能机制(smart policy)”，即根据trigger的类型和配置动态调整行为。当scheduler启动的时候，<strong>查询所有错过触发(misfire)的持久性trigger</strong>。然后根据它们各自的misfire机制更新trigger的信息。</p>
-<h3 id="日历示例"><a href="#日历示例" class="headerlink" title="日历示例"></a>日历示例</h3><p>Quartz的Calendar对象(不是java.util.Calendar对象)可以在定义和存储trigger的时候与trigger进行关联。Calendar用于从trigger的调度计划中排除时间段。</p>
-<pre><code>HolidayCalendar cal = new HolidayCalendar();
-cal.addExcludedDate( someDate );
-cal.addExcludedDate( someOtherDate );
-
-sched.addCalendar(&quot;myHolidays&quot;, cal, false);</code></pre><h2 id="SimpleTrigger"><a href="#SimpleTrigger" class="headerlink" title="SimpleTrigger"></a>SimpleTrigger</h2><p>SimpleTrigger可以满足的调度需求是：在具体的时间点执行一次，或者在具体的时间点执行，并且以指定的间隔重复执行若干次。</p>
-<pre><code>Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-            JobDetail jobDetail = newJob(SimpleTriggerJobTest.class).withIdentity(&quot;job1&quot;, &quot;group1&quot;).build();
-            SimpleTrigger trigger = (SimpleTrigger) newTrigger().withIdentity(&quot;trigger1&quot;, &quot;group1&quot;)
-                    .startAt(new Date())//设置开始时间
-                    .withSchedule(simpleSchedule().withIntervalInSeconds(1).withRepeatCount(10)).build();//执行每一秒一次，共10次
-            scheduler.scheduleJob(jobDetail,trigger);
-            scheduler.start();
-
-            scheduler.shutdown();
-
-
- trigger = (SimpleTrigger) newTrigger() 
-        .withIdentity(&quot;trigger5&quot;, &quot;group1&quot;)
-        .startAt(futureDate(5, IntervalUnit.MINUTE)) // 5分钟之后触发
-        .build();
-
-
-trigger = newTrigger()
-        .withIdentity(&quot;trigger7&quot;, &quot;group1&quot;)
-        .withSchedule(simpleSchedule()
-        .withIntervalInMinutes(5)
-        .repeatForever())
-        .endAt(dateOf(22, 0, 0))//每5分钟触发，知道22点结束
-        .build();
-
-
-trigger = newTrigger()
-        .withIdentity(&quot;trigger8&quot;) 
-        .startAt(evenHourDate(null))
-        .withSchedule(simpleSchedule()
-        .withIntervalInHours(2)
-        .repeatForever())//下一个整点触发，每两小时触发，evenHourDate静态方法时DateBuilder类中的
-        .build();</code></pre><h3 id="Misfire策略"><a href="#Misfire策略" class="headerlink" title="Misfire策略"></a>Misfire策略</h3><p>在SimpleScheduleBuilder类中包含众多的misfire策略 <strong>MISFIRE_INSTRUCTION_SMART_POLICY:</strong>默认且是Trigger中定义,把处理逻辑交给Quartz去决定</p>
-<ol>
-<li>如果是只执行一次的调度，使用MISFIRE_INSTRUCTION_FIRE_NOW</li>
-<li>如果是无限次的调度(repeatCount是无限的)，使用MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT</li>
-<li>否则，使用MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT</li>
-</ol>
-<p><strong>MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY:</strong>Trigger中定义，这个不是忽略已经错失的触发的意思，而是说忽略MisFire策略。它会在资源合适的时候，重新触发所有的MisFire任务，并且不会影响现有的调度时间 <strong>MISFIRE_INSTRUCTION_FIRE_NOW:</strong>忽略已经MisFire的任务，并且立即执行调度。这通常只适用于只执行一次的任务。 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_EXISTING_COUNT:</strong>在下一次调度时间点，重新开始调度任务，包括的MisFire的 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT:</strong>在下一次调度时间点执行，但会忽略已经MisFire的任务。 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT:</strong>将startTime设置当前时间，立即重新调度任务，包括的MisFire的 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_REMAINING_REPEAT_COUNT:</strong>将startTime设置当前时间，立即重新调度任务，不包括的MisFire的 后5个策略都是SimpleTrigger类中的。</p>
-<h2 id="CronTrigger"><a href="#CronTrigger" class="headerlink" title="# CronTrigger"></a># CronTrigger</h2><p>基于日历概念，使用CronTrigger，您可以指定号时间表，例如“每周五中午”或“每个工作日和上午9:30”，甚至“每周一至周五上午9:00至10点之间每5分钟”和1月份的星期五“。</p>
-<h3 id="Cron-Expressions"><a href="#Cron-Expressions" class="headerlink" title="Cron Expressions"></a>Cron Expressions</h3><p>Cron Expressions是由七个子表达式组成的字符串，用于描述日程表的各个细节。</p>
-<p>顺序</p>
-<p>时间值</p>
-<p>允许值</p>
-<p>特殊值</p>
-<p>1</p>
-<p>Seconds秒</p>
-<p>0-59</p>
-<p>, - * /</p>
-<p>2</p>
-<p>Minutes分</p>
-<p>0-59</p>
-<p>, - * /</p>
-<p>3</p>
-<p>Hours小时</p>
-<p>0-23</p>
-<p>, - * /</p>
-<p>4</p>
-<p>Day-of-Month日期</p>
-<p>1-31</p>
-<p>, - * ? / L W C</p>
-<p>5</p>
-<p>Month月份</p>
-<p>1-12</p>
-<p>, - * /</p>
-<p>6</p>
-<p>Day-of-Week星期</p>
-<p>1-7</p>
-<p>, - * ? / L C #</p>
-<p>7</p>
-<p>Year年份(可选)</p>
-<p>, - * /</p>
-<p>例如:““0 0 12？* WED”表示每个星期三12点，按顺序，从左往右依次表示0秒，0分，12点，日期无特定值，月份所有(对应每个月份)，星期三。星期可以使用英文简写。 单个表达式支持范围和/或列表，如星期可以使用“MON-FRI”,“MON,WED,FRI”甚至“MON-WED,SAT”这些表示范围和列表。</p>
-<ul>
-<li><strong>星号(*):</strong>表示在当前时间域中，对应每个允许值，例如month处为*，表示每个月.</li>
-<li><strong>问号(?):</strong>允许的日期或星期字段，表示无特定值，就如上面的示例，日期就相当于一个占用，星期三12点，自然与日期挂不上太大关系。</li>
-<li><strong>减号(-):</strong>表示一个范围，如小时，10-12，月份2-6等等</li>
-<li><strong>逗号(,):</strong>表示一个列表，如小时 1,2,3，以及上面的星期等</li>
-<li><strong>斜杠(/):</strong>指定值的增量,如果在分钟输入“0/15”,则表示“从0开始，每隔15分钟”;“3/15”表示“从3开始，每隔15分钟”</li>
-<li><strong>L:</strong>用于日期和星期字段，表示Last的意思。如果在月中使用表示31日，而非闰年的28；如果用在星期中表示星期六等同于7。如果L出现星期字段里，且前面有一个数值X，表示“这个月的最后一个星期几”，如6L表示该月最后一个星期五。</li>
-<li><strong>W:</strong>出现在日期中，表示离该日期最近的工作日，如果15W表示离该月15号最近的工作日，如果15号是星期六，则匹配14号星期五；如果15号是星期二，那就是星期二。</li>
-<li><strong>井号(#):</strong>只在星期中使用。表示本月的“第几个星期几”,如“6#3”或“FRI#3”,表示本月的第三个星期五。</li>
-</ul>
-<p>示例:</p>
-<p>示例</p>
-<p>说明</p>
-<p>0 0/5 * * * ？</p>
-<p>每5分钟就会触发一次</p>
-<p>0 30 10-13？* WED，FRI</p>
-<p>每个星期三和星期五的10:30，11:30，12:30和13:30</p>
-<p>0 0/30 8-9 5,20 *？</p>
-<p>每个月5日和20日上午8点至10点之间每半小时触发一次</p>
-<p>0 15 10 L * ?</p>
-<p>每月最后一天10:15分运行。</p>
-<p>0 15 10 ? * 6L</p>
-<p>每月最后一个星期五10:15分运行。</p>
-<p>0 15 10 ? * 6#3</p>
-<p>每月第三个星期五的10:15分运行。</p>
-<p>0 15 10 ? * 6L 2007-2009</p>
-<p>在2007,2008,2009年每个月的最后一个星期五的10:15分运行。</p>
-<p>0 0/5 14,18 * * ?</p>
-<p>每天14点到15点每5分钟运行一次，此外每天18点到19点每5钟也运行一次。</p>
-<p>另外有些虽意思上不复杂，但书写复杂不易理解的，可以使用N个简单的触发器同时运行作业。</p>
-<h3 id="构建CronTriggers"><a href="#构建CronTriggers" class="headerlink" title="构建CronTriggers"></a>构建CronTriggers</h3><p>CronTrigger实例使用TriggerBuilder（用于触发器的主要属性）和CronScheduleBuilder（对于CronTrigger特定的属性）构建. 需要静态导入</p>
-<pre><code>import  static org.quartz.TriggerBuilder.*; 
-import  static org.quartz.CronScheduleBuilder.*; 
-import  static org.quartz.DateBuilder.*:
-
-
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(cronSchedule(&quot;0 0/2 8-17 * * ?&quot;))//每天8点到17点中，每个2分钟执行一次
-    .forJob(&quot;myJob&quot;, &quot;group1&quot;)
-    .build();
-
-
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(dailyAtHourAndMinute(10, 42))//每天10点42触发
-    .forJob(myJobKey)
-    .build();
-或
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(cronSchedule(&quot;0 42 10 * * ?&quot;))
-    .forJob(myJobKey)
-    .build();
-
-
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(weeklyOnDayAndHourAndMinute(DateBuilder.WEDNESDAY, 10, 42))
-    .forJob(myJobKey)
-    .inTimeZone(TimeZone.getTimeZone(&quot;America/Los_Angeles&quot;))
-    .build();//每周三10点42分执行</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/quartz/" rel="tag">quartz</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" rel="tag">任务调度</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-中间件/任务调度Quartz的简单使用以及JobDataMap的数据" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Quartz%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E4%BB%A5%E5%8F%8AJobDataMap%E7%9A%84%E6%95%B0%E6%8D%AE/"
-    >任务调度Quartz的简单使用以及JobDataMap的数据</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Quartz%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E4%BB%A5%E5%8F%8AJobDataMap%E7%9A%84%E6%95%B0%E6%8D%AE/" class="article-date">
-  <time datetime="2018-09-26T06:08:14.000Z" itemprop="datePublished">2018-09-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="quartz任务调度框架"><a href="#quartz任务调度框架" class="headerlink" title="quartz任务调度框架"></a>quartz任务调度框架</h1><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
-<li>Quartz 是一个完全由 Java 编写的开源作业调度框架，为在 Java 应用程序中进行作业调度提供了简单却强大的机制。</li>
-<li>Quartz 可以与J2EE与 J2SE 应用程序相结合也可以单独使用。</li>
-<li>Quartz 允许程序开发人员根据时间的间隔来调度作业。</li>
-<li>Quartz 实现了作业和触发器的多对多的关系，还能把多个作业与不同的触发器关联。</li>
-</ol>
-<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><ol>
-<li><p>Job:Job表示一个工作，要执行的具体内容，该接口只有一个方法</p>
-<p>void execute(JobExecutionContext context)</p>
-</li>
-<li><p>JobDetail:表示一个具体可执行的调度程序，Job是这个可执行调度程序所需要执行的内容，另外JobDetail还包括任务调度的方案和策略</p>
-</li>
-<li><p>Trigger代表一个调度参数的配置，什么时候去调度，多长时间。</p>
-</li>
-<li><p>Scheduler代表一个调度容器，一个容器中可以注册多个JobDetail和Trigger，当JobDetail与Trigger组合，就可以被Scheduler容器调度了。</p>
-</li>
-</ol>
-<h2 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h2><ol>
-<li>Quartz 可以运行嵌入在另一个独立式应用程序。</li>
-<li>Quartz 可以在应用程序服务器(或 servlet 容器)内被实例化，并且参与 XA 事务。</li>
-<li>Quartz 可以作为一个独立的程序运行(其自己的 Java 虚拟机内)，可以通过 RMI 使用</li>
-<li>Quartz 可以被实例化，作为独立的项目集群(负载平衡和故障转移功能)，用于作业的执行</li>
-</ol>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="配置maven和properties"><a href="#配置maven和properties" class="headerlink" title="配置maven和properties"></a>配置maven和properties</h3><p>maven:</p>
-<pre><code>&lt;dependency&gt;
-  &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-  &lt;artifactId&gt;quartz&lt;/artifactId&gt;
-  &lt;version&gt;2.3.0&lt;/version&gt;
+      <h1 id="使用javax-mail包操作邮箱发送邮件"><a href="#使用javax-mail包操作邮箱发送邮件" class="headerlink" title="使用javax.mail包操作邮箱发送邮件"></a>使用javax.mail包操作邮箱发送邮件</h1><h2 id="添加maven依赖"><a href="#添加maven依赖" class="headerlink" title="添加maven依赖"></a>添加maven依赖</h2><pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;javax.mail&lt;/groupId&gt;
+    &lt;artifactId&gt;mail&lt;/artifactId&gt;
+    &lt;version&gt;1.4.7&lt;/version&gt;
 &lt;/dependency&gt;
 &lt;dependency&gt;
-  &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-  &lt;artifactId&gt;quartz-jobs&lt;/artifactId&gt;
-  &lt;version&gt;2.3.0&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>properties: 以quartz为文件名的properties文件是quartz的配置文件</p>
-<pre><code># 此调度程序的名称将为“MyScheduler”
-org.quartz.scheduler.instanceName = MyScheduler
-# 线程池中有3个线程，这意味着最多可以同时运行3个job。
-org.quartz.threadPool.threadCount = 3
-# quartz的所有数据，包括job和trigger的配置，都会存储在内存中（而不是数据库里）
-org.quartz.jobStore.class = org.quartz.simpl.RAMJobStore</code></pre><h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><p>QuartzTest.java文件如下：</p>
-<pre><code>import static org.quartz.DateBuilder.*;
-import static org.quartz.JobBuilder.*;
-import static org.quartz.SimpleScheduleBuilder.*;
-import static org.quartz.TriggerBuilder.*;
+    &lt;groupId&gt;javax.activation&lt;/groupId&gt;
+    &lt;artifactId&gt;activation&lt;/artifactId&gt;
+    &lt;version&gt;1.1.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h2 id="简单的不带附件及图片的邮件发送"><a href="#简单的不带附件及图片的邮件发送" class="headerlink" title="简单的不带附件及图片的邮件发送"></a>简单的不带附件及图片的邮件发送</h2><p>普通文本发送，分为text方式和HTML方式，一个不支持html标签，一个支持html标签。</p>
+<pre><code>/**
+     * 发送简单的邮件
+     * @param mailBody 邮件信息实体类
+     * @param type 发送的类型，text还是html
+     * @return
+     */
+    public boolean sendSimpleMail(MailBody mailBody,String type) &#123;
+        //邮件属性设置
+        Properties prop = new Properties();
+        prop.setProperty(&quot;mail.host&quot;, &quot;smtp.qq.com&quot;);
+        prop.setProperty(&quot;mail.transport.protocol&quot;, &quot;smtp&quot;);
+        prop.setProperty(&quot;mail.smtp.auth&quot;, &quot;true&quot;);
 
-public static void main(String[] args) &#123;
-    try &#123;
-        Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-        scheduler.start();
-
-        JobDetail job = newJob(HelloJob.class).withIdentity(&quot;job1&quot;,&quot;group1&quot;).build();
-        Trigger trigger = newTrigger().withIdentity(&quot;trigger1&quot;, &quot;group1&quot;).startNow().
-                withSchedule(simpleSchedule().withIntervalInSeconds(2).repeatForever()).build();
-        scheduler.scheduleJob(job, trigger);
-        Thread.sleep(10000);
-        scheduler.shutdown();
-    &#125; catch (SchedulerException e) &#123;
-        e.printStackTrace();
-    &#125; catch (InterruptedException e) &#123;
-        e.printStackTrace();
+        // 使用JavaMail发送邮件的5个步骤
+        // 1、创建session
+        Session session = Session.getInstance(prop);
+        // 开启Session的debug模式，这样就可以查看到程序发送Email的运行状态
+        session.setDebug(true);
+        // 2、通过session得到transport对象
+        Transport ts;
+        try &#123;
+            ts = session.getTransport();
+            // 3、使用邮箱的用户名和密码连上邮件服务器，发送邮件时，发件人需要提交邮箱的用户名和密码给smtp服务器，用户名和密码都通过验证之后才能够正常发送邮件给收件人。
+            ts.connect(mailBody.getMailServerHost(), mailBody.getFromAddress(), mailBody.getPassword());
+            // 4、创建邮件
+            Message message = createSimpleMail(session,mailBody,type);
+            // 5、发送邮件
+            ts.sendMessage(message, message.getAllRecipients());
+            ts.close();
+        &#125; catch (NoSuchProviderException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125; catch (MessagingException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125; catch (Exception e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+        return true;
     &#125;
-&#125;</code></pre><p>注意其导入的静态方法，导入了Builder类的所有静态方法。 HelloJob.java文件如下</p>
-<pre><code>public class HelloJob implements Job &#123;
-    @Override
-  public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException &#123;
-        System.out.println(&quot;--------This is Job&quot;);
-    &#125;
-&#125;</code></pre><h2 id="Quartz-API"><a href="#Quartz-API" class="headerlink" title="Quartz API"></a>Quartz API</h2><p>关键接口</p>
-<ul>
-<li>Scheduler:与调度程序交互的主要API</li>
-<li>Job:由调度组件执行的组件实现的接口</li>
-<li>JobDetail:用于定义作业的实例</li>
-<li>Trigger:定义执行给定作业的计划的组件</li>
-<li>JobBuilder:构建JobDetail实例</li>
-<li>TriggerBuilder:构建Trigger实例</li>
-</ul>
-<h2 id="JobDetail的JobDataMap与JobExecutionContext类"><a href="#JobDetail的JobDataMap与JobExecutionContext类" class="headerlink" title="JobDetail的JobDataMap与JobExecutionContext类"></a>JobDetail的JobDataMap与JobExecutionContext类</h2><p><strong>问题描述?</strong> 我们每次传给scheduler一个JobDetail实例，都会将要执行Job类名传递给JobDetail，scheduler就知道要执行何种类型的job，每当scheduler执行job时，在调用execute方法之前会创建该类的新实例，执行完毕后对该实例的引用被丢弃，实例会垃圾回收。 <strong>结果:</strong> 这样的后果是，job必须有一个无参的构造函数(别说你没有定义，其实是默认的构造)；另一个后果是在job类中，不应该定义有状态的数据属性，因为在job的多次执行中，这些属性的值不会保留。 <strong>解决</strong> 那么如果给Job添加实例属性，需要用到JobDetail类的属性JobDataMap对象,这个对象封装了对数据的存储，且间接实现Map接口。只需要使用usingJobData方法即可调用对象设置属性值。</p>
-<pre><code>JobDetail job = newJob(DumbJob.class)
-      .withIdentity(&quot;myJob&quot;, &quot;group1&quot;) // name &quot;myJob&quot;, group &quot;group1&quot;
-      .usingJobData(&quot;jobSays&quot;, &quot;Hello World!&quot;)
-      .usingJobData(&quot;myFloatValue&quot;, 3.141f)
-      .build();</code></pre><p>那么提取数据就可以通过execute方法中JobExecutionContext参数获得JobDetail实例，再获得JobDataMap对象即可获得值。 <strong>另一种方法</strong> JobExecutionContext类也可以获得JobDataMap对象，此类是JobDetail中的JobDataMap和Trigger中的JobDataMap的并集，但是如果存在相同的数据，则后者会覆盖前者的值。</p>
-<pre><code>public void execute(JobExecutionContext context)throws JobExecutionException&#123;
-    JobKey key = context.getJobDetail().getKey();
 
-    JobDataMap dataMap = context.getMergedJobDataMap();  // Note the difference from the previous example
 
-    String jobSays = dataMap.getString(&quot;jobSays&quot;);
-    float myFloatValue = dataMap.getFloat(&quot;myFloatValue&quot;);
-    ArrayList state = (ArrayList)dataMap.get(&quot;myStateData&quot;);
-    state.add(new Date());
-
-    System.err.println(&quot;Instance &quot; + key + &quot; of DumbJob says: &quot; + jobSays + &quot;, and val is: &quot; + myFloatValue);
-&#125;</code></pre><p>当然还可以通过为属性定义set方法，实现自动注入。Quartz的默认JobFactory实现在job被实例化的时候会自动调用这些set方法，这样你就不需要在execute()方法中显式地从map中取数据了。不需要获得JobDataMap，直接打印属性。</p>
-<pre><code>public class HelloJob implements Job &#123;
-    String name;
-    public void setName(String name) &#123;
-        this.name = name;
-    &#125;
-    @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException &#123;
-        /*JobDataMap jobDataMap = jobExecutionContext.getJobDetail().getJobDataMap();
-        String name = jobDataMap.getString(&quot;name&quot;);*/
-        //JobDataMap jobDataMap = jobExecutionContext.getMergedJobDataMap();
-        System.out.println(&quot;--------This is Job name:&quot; + name);
-    &#125;
-&#125;</code></pre><h3 id="Job状态与并发"><a href="#Job状态与并发" class="headerlink" title="Job状态与并发"></a>Job状态与并发</h3><p><strong>@DisallowConcurrentExecution</strong>:将该注解加到job类上，告诉Quartz不要并发地执行同一个job定义（这里指特定的job类）的多个实例 <strong>@PersistJobDataAfterExecution</strong>：将该注解加在job类上，告诉Quartz在成功执行了job类的execute方法后（没有发生任何异常），更新JobDetail中JobDataMap的数据，使得该job（即JobDetail）在下一次执行的时候，JobDataMap中是更新后的数据，而不是更新前的旧数据 如果使用了@PersistJobDataAfterExecution建议也加上@DisallowConcurrentExecution，因为当同一个job（JobDetail）的两个实例被并发执行时，由于竞争，JobDataMap中存储的数据很可能是不确定的。</p>
-
+/**
+     * 创建邮件发送对象及主体
+     * @param session 邮件回话
+     * @param mailBody 邮件主体
+     * @param type 发送内容类型，text或html
+     * @return
+     * @throws Exception
+     */
+    public static MimeMessage createSimpleMail(Session session,MailBody mailBody,String type) throws Exception &#123;
+        // 创建邮件对象
+        MimeMessage message = new MimeMessage(session);
+        // 指明邮件的发件人
+        message.setFrom(new InternetAddress(mailBody.getFromAddress()));
+        // 指明邮件的收件人，现在发件人和收件人是一样的，那就是自己给自己发
+        message.setRecipient(Message.RecipientType.TO, new InternetAddress(mailBody.getToAddress()));
+        // 邮件的标题
+        message.setSubject(mailBody.getSubject());
+        // 邮件的文本内容
+        if(type.equals(&quot;html&quot;)) &#123;
+            message.setContent(mailBody.getContent(), &quot;text/html;charset=UTF-8&quot;);
+        &#125;else if(type.equals(&quot;text&quot;)) &#123;
+            message.setText(mailBody.getContent());
+        &#125;
+        // 返回创建好的邮件对象
+        return message;
+    &#125;</code></pre>
       
       <!-- reward -->
       
@@ -457,7 +339,7 @@ public static void main(String[] args) &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/quartz/" rel="tag">quartz</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mail/" rel="tag">mail</a></li></ul>
 
 
     </footer>
@@ -474,7 +356,7 @@ public static void main(String[] args) &#123;
 
 </article>
     
-    <article id="post-Javascript/使用Editor.md插件作为markdown编辑器" class="article article-type-post" itemscope
+    <article id="post-Activiti/ArcGIS for Javascript搭建及HelloWorld" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -482,8 +364,8 @@ public static void main(String[] args) &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/09/25/Javascript/%E4%BD%BF%E7%94%A8Editor.md%E6%8F%92%E4%BB%B6%E4%BD%9C%E4%B8%BAmarkdown%E7%BC%96%E8%BE%91%E5%99%A8/"
-    >使用Editor.md插件作为markdown编辑器</a
+  <a class="article-title" href="/2018/09/29/Activiti/ArcGIS%20for%20Javascript%E6%90%AD%E5%BB%BA%E5%8F%8AHelloWorld/"
+    >ArcGIS for Javascript搭建及HelloWorld</a
   >
 </h2>
   
@@ -493,12 +375,12 @@ public static void main(String[] args) &#123;
 
     
     <div class="article-meta">
-      <a href="/2018/09/25/Javascript/%E4%BD%BF%E7%94%A8Editor.md%E6%8F%92%E4%BB%B6%E4%BD%9C%E4%B8%BAmarkdown%E7%BC%96%E8%BE%91%E5%99%A8/" class="article-date">
-  <time datetime="2018-09-25T10:58:39.000Z" itemprop="datePublished">2018-09-25</time>
+      <a href="/2018/09/29/Activiti/ArcGIS%20for%20Javascript%E6%90%AD%E5%BB%BA%E5%8F%8AHelloWorld/" class="article-date">
+  <time datetime="2018-09-29T09:23:30.000Z" itemprop="datePublished">2018-09-29</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
+    <a class="article-category-link" href="/categories/arcgis/">arcgis</a>
   </div>
 
       
@@ -515,354 +397,46 @@ public static void main(String[] args) &#123;
       
 
       
-      <h1 id="使用Editor-md插件作为markdown编辑器"><a href="#使用Editor-md插件作为markdown编辑器" class="headerlink" title="使用Editor.md插件作为markdown编辑器"></a>使用Editor.md插件作为markdown编辑器</h1><p><a target="_blank" rel="noopener" href="http://pandao.github.io/editor.md/examples/index.html">官网示例地址</a></p>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-
-&lt;head&gt;
-  &lt;meta charset=&quot;UTF-8&quot;&gt;
-  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-  &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
-  &lt;title&gt;simple测试&lt;/title&gt;
-  &lt;link rel=&quot;stylesheet&quot; href=&quot;editor.md/css/style.css&quot; /&gt;
-  &lt;link rel=&quot;stylesheet&quot; href=&quot;editor.md/css/editormd.css&quot; /&gt;
-  &lt;link rel=&quot;shortcut icon&quot; href=&quot;https://pandao.github.io/editor.md/favicon.ico&quot; type=&quot;image/x-icon&quot; /&gt;
-&lt;/head&gt;
-
-&lt;body&gt;
-  &lt;div id=&quot;layout&quot;&gt;
-    &lt;header&gt;
-      &lt;h1&gt;Simple example&lt;/h1&gt;
-    &lt;/header&gt;
-    &lt;div id=&quot;test-editormd&quot;&gt;
-      &lt;textarea style=&quot;display:none;&quot;&gt;&lt;/textarea&gt;
-    &lt;/div&gt;
-  &lt;/div&gt;
-  &lt;script src=&quot;https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js&quot;&gt;&lt;/script&gt;
-  &lt;script src=&quot;editor.md/src/editormd.js&quot;&gt;&lt;/script&gt;
-  &lt;script type=&quot;text/javascript&quot;&gt;
-    var testEditor;
-
-    $(function () &#123;
-      testEditor = editormd(&quot;test-editormd&quot;, &#123;
-        width: &quot;90%&quot;,
-        height: 640,
-        syncScrolling: &quot;single&quot;,
-        path: &quot;editor.md/lib/&quot;
-      &#125;);
-
-      /*
-      // or
-      testEditor = editormd(&#123;
-          id      : &quot;test-editormd&quot;,
-          width   : &quot;90%&quot;,
-          height  : 640,
-          path    : &quot;../lib/&quot;
-      &#125;);
-      */
-    &#125;);
-  &lt;/script&gt;
-&lt;/body&gt;
-
-&lt;/html&gt;</code></pre><h1 id="插件部分解析"><a href="#插件部分解析" class="headerlink" title="插件部分解析"></a>插件部分解析</h1><h2 id="settings属性"><a href="#settings属性" class="headerlink" title="settings属性"></a>settings属性</h2><ol>
-<li><p>务必更改settings设置的path属性，否则lib下的资源无法找到</p>
-</li>
-<li><p>saveHTMLToTextarea属性设置为true才能使用getHTML()方法获得markdown的HTML字符串</p>
-</li>
-<li><p>placeholder:编辑器无文本时，默认文字</p>
-</li>
-<li><p>syncScrolling:同步滚动</p>
-</li>
-<li><p>autoHeight:高度自动增长，跟随行数增长</p>
-</li>
-<li><p>toolbarAutoFixed,boolean,工具栏自动固定定位的开启与禁用</p>
-</li>
-<li><p>appendMarkdown:追加markdown，将此值设置为markdown内容,markdown属性是初始时设置</p>
-</li>
-<li><p>delay:延迟解析预览,值越大解析越慢，越小解析越快</p>
-</li>
-<li><p>searchReplace:内容搜索替换</p>
-</li>
-<li><p>readonly:只读模式</p>
-</li>
-<li><p>codeFold:代码折叠，如js代码</p>
-</li>
-<li><p>syncScrolling:同步滚动，true为左右双向同时滚动，false为非同时滚动，single为单向滚动</p>
-</li>
-</ol>
-<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><p>方法</p>
-<p>说明</p>
-<p>getHTML()</p>
-<p>获得html</p>
-<p>getMarkdown()</p>
-<p>获得markdown</p>
-<p>show()</p>
-<p>显示编辑器</p>
-<p>hide()</p>
-<p>隐藏编辑器</p>
-<p>watch()</p>
-<p>显示实时预览</p>
-<p>unwatch()</p>
-<p>关闭实时预览</p>
-<p>previewing()</p>
-<p>完全预览显示</p>
-<p>fullscreen()</p>
-<p>全屏</p>
-<p>setToolbarAutoFixed(boolean)</p>
-<p>工具栏自动固定定位的开启与禁用</p>
-<p>getCursor()</p>
-<p>获得光标位置</p>
-<p>setCursor({line:1,ch:2})</p>
-<p>设置光标位置</p>
-<p>focus()</p>
-<p>获得焦点</p>
-<p>setSelection({line:1, ch:0}, {line:5, ch:100})</p>
-<p>选中区域内容</p>
-<p>getSelection()</p>
-<p>获得区域内容</p>
-<p>replaceSelection(str)</p>
-<p>选中替换</p>
-<p>insertValue(str)</p>
-<p>插入</p>
-<h2 id="动态创建Editor-md"><a href="#动态创建Editor-md" class="headerlink" title="动态创建Editor.md"></a>动态创建Editor.md</h2><pre><code>$(function () &#123;
-      $(&quot;#create-btn&quot;).click(function () &#123;
-        $.getScript(&quot;editor.md/editormd.js&quot;, function () &#123;
-          $(&quot;#layout&quot;).append(&quot;&lt;div id=\&quot;test-editormd\&quot;&gt;&lt;/div&gt;&quot;);
-
-          testEditormd = editormd(&quot;test-editormd&quot;, &#123;
-            width: &quot;90%&quot;,
-            height: 640,
-            markdown: &quot;### 动态创建 Editor.md\r\n\r\nDynamic create Editor.md&quot;,
-            path: &apos;editor.md/lib/&apos;
-          &#125;);
-        &#125;);
-      &#125;);
-
-      $(&quot;#remove-btn&quot;).click(function () &#123;
-        testEditormd.editor.remove();
-      &#125;);
-    &#125;);</code></pre><h2 id="自定义工具栏"><a href="#自定义工具栏" class="headerlink" title="自定义工具栏"></a>自定义工具栏</h2><p>参考自定义工具栏html toolbarIcons方法用于定义工具栏的图标，该方法返回值为数组，数组内<strong>每个字符都为图标名称</strong>，“|”符号表示分割 toolbarIconsClass属性用于定义每个图标的class类，通过图标名:class名设置 toolbarIconTexts属性定义没有图标时显示的文本 toolbarCustomIcons属性用于自定义图标，key为图标名，值为html，可以显示一个按钮，图标等。 toolbarHandlers属性定义工具栏按钮事件处理,为每个图标定义方法都含有4个参数</p>
-<ul>
-<li>cm:分别表示CodeMirror对象</li>
-<li>icon:图标按钮jQuery元素对象</li>
-<li>cursor:CodeMirror的光标对象</li>
-<li>selection:可获取光标所在行和位置，编辑器选中的文本</li>
-</ul>
-<p>toolbarIcons定义的是图标名称，toolbarIconsClass定义图标class,toolbarIconTexts定义无图标时文本,toolbarCustomIcons自定义图标名对应html,toolbarHandlers定义工具栏按钮事件处理。</p>
-<h2 id="将md文件内容载入editor编辑器中"><a href="#将md文件内容载入editor编辑器中" class="headerlink" title="将md文件内容载入editor编辑器中"></a>将md文件内容载入editor编辑器中</h2><p>通过ajax获得内容，设置settings.appendMarkdown属性为ajax返回的数据。</p>
-<h2 id="多editor编辑器"><a href="#多editor编辑器" class="headerlink" title="多editor编辑器"></a>多editor编辑器</h2><p>定义不同id即可</p>
-<h2 id="自定义编辑器样式主题"><a href="#自定义编辑器样式主题" class="headerlink" title="自定义编辑器样式主题"></a>自定义编辑器样式主题</h2><p>theme: 工具栏主题,default|dark previewTheme: 预览主题,default|dark editorTheme: 编辑器主题,editormd.editorThemes[‘theme-name’],可取主题在最后 function:</p>
-<pre><code>editor.setTheme(&apos;theme-name&apos;);
-editor.setEditorTheme(&apos;theme-name&apos;);
-editor.setPreviewTheme(&apos;theme-name&apos;);</code></pre><h3 id="推荐主题"><a href="#推荐主题" class="headerlink" title="推荐主题"></a>推荐主题</h3><ul>
-<li>ambiance</li>
-<li>eclipse</li>
-<li>mdn-like</li>
-<li>mbo</li>
-<li>monokai</li>
-<li>neat</li>
-<li>pastel-on-dark</li>
-</ul>
-<h3 id="Editor-area-themes"><a href="#Editor-area-themes" class="headerlink" title="Editor area themes"></a>Editor area themes</h3><ul>
-<li>default</li>
-<li>3024-day</li>
-<li>3024-night</li>
-<li>ambiance</li>
-<li>ambiance-mobile</li>
-<li>base16-dark</li>
-<li>base16-light</li>
-<li>blackboard</li>
-<li>cobalt</li>
-<li>eclipse</li>
-<li>elegant</li>
-<li>erlang-dark</li>
-<li>lesser-dark</li>
-<li>mbo</li>
-<li>mdn-like</li>
-<li>midnight</li>
-<li>monokai</li>
-<li>neat</li>
-<li>neo</li>
-<li>night</li>
-<li>paraiso-dark</li>
-<li>paraiso-light</li>
-<li>pastel-on-dark</li>
-<li>rubyblue</li>
-<li>solarized</li>
-<li>the-matrix</li>
-<li>tomorrow-night-eighties</li>
-<li>twilight</li>
-<li>vibrant-ink</li>
-<li>xq-dark</li>
-<li>xq-light</li>
-</ul>
-<h2 id="光标位置，文本获取，文本插入替换"><a href="#光标位置，文本获取，文本插入替换" class="headerlink" title="光标位置，文本获取，文本插入替换"></a>光标位置，文本获取，文本插入替换</h2><pre><code>testEditormd.setCursor(&#123;line:1,ch:2&#125;);//设置光标line:行,ch:字符数
-testEditormd.focus();//获得焦点
-
-
-testEditormd.setSelection(&#123;line:1, ch:0&#125;, &#123;line:5, ch:100&#125;);//选中区域内容
-testEditormd.focus();//获得焦点
-
-
-testEditormd.replaceSelection(&quot;$$$$$$$$$&quot;);
-testEditormd.focus();
-
-
-testEditormd.insertValue(&quot;????&quot;);
-testEditormd.focus();</code></pre><h2 id="mode模型更改"><a href="#mode模型更改" class="headerlink" title="mode模型更改"></a>mode模型更改</h2><p>设置toolbar为false,mode为text/html,php,java等，具体操作需要看示例</p>
-<h2 id="识别和解析HTML标签"><a href="#识别和解析HTML标签" class="headerlink" title="识别和解析HTML标签"></a>识别和解析HTML标签</h2><p>使用一般html都可以不被过滤而直接解析。 style样式，可直接使用style标签，且内部可包含样式 event事件，也可直接通过标签设置。</p>
-<h3 id="可直接插入Flash和视频"><a href="#可直接插入Flash和视频" class="headerlink" title="可直接插入Flash和视频"></a>可直接插入Flash和视频</h3><p>如Flash和</p>
-<h4 id="插入Flash"><a href="#插入Flash" class="headerlink" title="插入Flash"></a>插入Flash</h4><pre><code>&lt;embed src=&quot;http://player.youku.com/player.php/sid/XMzA0MzIwMDgw/v.swf&quot; allowFullScreen=&quot;true&quot; quality=&quot;high&quot; width=&quot;480&quot; height=&quot;400&quot; align=&quot;middle&quot; allowScriptAccess=&quot;always&quot; type=&quot;application/x-shockwave-flash&quot;&gt;&lt;/embed&gt;</code></pre><h5 id="插入视频"><a href="#插入视频" class="headerlink" title="插入视频"></a>插入视频</h5><p>李健《最好不相见》</p>
-<pre><code>&lt;iframe height=498 width=510 src=&quot;http://player.youku.com/embed/XMzA0MzIwMDgw&quot; frameborder=0 allowfullscreen&gt;&lt;/iframe&gt;</code></pre><h2 id="图片上传"><a href="#图片上传" class="headerlink" title="图片上传"></a>图片上传</h2><p>settings需设置 imageUpload:是否图片上传 imageFormats:接受图片格式 imageUploadURL:图片上传路径 后台需返回数据: success:0|1 message:提示信息 url:图片地址，上传成功时才返回</p>
-<h2 id="弹出层对话框"><a href="#弹出层对话框" class="headerlink" title="弹出层对话框"></a>弹出层对话框</h2><pre><code>dialogLockScreen : false,   // 设置弹出层对话框不锁屏，全局通用，默认为 true
-dialogShowMask : false,     // 设置弹出层对话框显示透明遮罩层，全局通用，默认为 true
-dialogDraggable : false,    // 设置弹出层对话框不可拖动，全局通用，默认为 true
-dialogMaskOpacity : 0.4,    // 设置透明遮罩层的透明度，全局通用，默认值为 0.1
-dialogMaskBgColor : &quot;#000&quot;, // 设置透明遮罩层的背景颜色，全局通用，默认为 #fff</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8F%92%E4%BB%B6/" rel="tag">插件</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Hadoop/yarn运行mapreduce examples示例" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/23/Hadoop/yarn%E8%BF%90%E8%A1%8Cmapreduce%20examples%E7%A4%BA%E4%BE%8B/"
-    >yarn运行mapreduce examples示例</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/23/Hadoop/yarn%E8%BF%90%E8%A1%8Cmapreduce%20examples%E7%A4%BA%E4%BE%8B/" class="article-date">
-  <time datetime="2018-09-23T04:46:08.000Z" itemprop="datePublished">2018-09-23</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="yarn运行mapreduce-examples示例"><a href="#yarn运行mapreduce-examples示例" class="headerlink" title="yarn运行mapreduce examples示例"></a>yarn运行mapreduce examples示例</h2><h3 id="为yarn-env-sh和mapreduce-env-sh配置javahome"><a href="#为yarn-env-sh和mapreduce-env-sh配置javahome" class="headerlink" title="为yarn-env.sh和mapreduce-env.sh配置javahome"></a>为yarn-env.sh和mapreduce-env.sh配置javahome</h3><p>将JAVA_HOME注释解开，并设置路径,yarn-env.sh和mapred-env.sh都需要配置</p>
-<h3 id="配置yarn-site-xml"><a href="#配置yarn-site-xml" class="headerlink" title="配置yarn-site.xml"></a>配置yarn-site.xml</h3><pre><code>&lt;property&gt;
-        &lt;name&gt;yarn.resourcemanager.hostname&lt;/name&gt;
-        &lt;value&gt;**master**&lt;/value&gt;
-&lt;/property&gt;
-&lt;property&gt;
-        &lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;
-        &lt;value&gt;mapreduce_shuffle&lt;/value&gt;
-&lt;/property&gt;
-//以下，将IP需改为你自己的master的ip
-&lt;property&gt;
-        &lt;name&gt;yarn.resourcemanager.address&lt;/name&gt;
-        &lt;value&gt;192.168.135.100:8032&lt;/value&gt;
-    &lt;/property&gt;
-
-    &lt;property&gt;
-        &lt;name&gt;yarn.resourcemanager.scheduler.address&lt;/name&gt;
-        &lt;value&gt;192.168.135.100:8030&lt;/value&gt;
-    &lt;/property&gt;
-
-    &lt;property&gt;
-        &lt;name&gt;yarn.resourcemanager.resource-tracker.address&lt;/name&gt;
-        &lt;value&gt;192.168.135.100:8031&lt;/value&gt;
-    &lt;/property&gt;
-
-    &lt;property&gt;
-        &lt;name&gt;yarn.resourcemanager.admin.address&lt;/name&gt;
-        &lt;value&gt;192.168.135.100:8033&lt;/value&gt;
-    &lt;/property&gt;
-
-    &lt;property&gt;
-        &lt;name&gt;yarn.resourcemanager.webapp.address&lt;/name&gt;
-        &lt;value&gt;192.168.135.100:8088&lt;/value&gt;
-    &lt;/property&gt;</code></pre><p>master为你的主机名，因为当前是伪分布式，就一台机子，就填的主机名</p>
-<h3 id="配置mapred-site-xml-将mapred-site-xml-template重命名为mapred-site-xml"><a href="#配置mapred-site-xml-将mapred-site-xml-template重命名为mapred-site-xml" class="headerlink" title="配置mapred-site.xml,将mapred-site.xml.template重命名为mapred-site.xml"></a>配置mapred-site.xml,将mapred-site.xml.template重命名为mapred-site.xml</h3><pre><code>&lt;property&gt;
-        &lt;name&gt;mapreduce.framework.name&lt;/name&gt;
-        &lt;value&gt;yarn&lt;/value&gt;
-&lt;/property&gt;
-&lt;!--配置历史job--&gt;
-&lt;property&gt;
-        &lt;name&gt;mapreduce.jobhistory.address&lt;/name&gt;
-        &lt;value&gt;master:10020&lt;/value&gt;
-&lt;/property&gt;
-&lt;!--配置地址--&gt;
-&lt;property&gt;
-        &lt;name&gt;mapreduce.jobhistory.webapp.address&lt;/name&gt;
-        &lt;value&gt;master:19888&lt;/value&gt;
-&lt;/property&gt;</code></pre><h3 id="目前配置已经完成，开始启动"><a href="#目前配置已经完成，开始启动" class="headerlink" title="目前配置已经完成，开始启动"></a>目前配置已经完成，开始启动</h3><p>命令都在hadoop_home/sbin目录下</p>
-<pre><code>start-hdfs.sh
-//以上命令也可以通过如下方式
-hadoop-daemon.sh start namenode
-hadoop-daemon.sh start datanode
-
-start-yarn.sh
-//以上命令也可以通过如下方式
-yarn-daemon.sh start resourcemanager
-yarn-daemon.sh start nodemanager
-//jobhistory的守护进程
-mr-jobhistory-daemon.sh start historyserver
-
-最后通过jps查看是否少了守护进程
-10449 DataNode
-11351 Jps
-10585 ResourceManager
-10842 NodeManager
-10362 NameNode
-//DataNode有hdfs启动，resourcemanager和nodemanager由yarn启动，一定注意不能缺少datanode，非则无法打开web</code></pre><p>没问题后,访问master:8088。 <strong>如果访问不成功</strong></p>
+      <h1 id="ArcGIS-for-Javascript搭建及HelloWorld"><a href="#ArcGIS-for-Javascript搭建及HelloWorld" class="headerlink" title="ArcGIS for Javascript搭建及HelloWorld"></a>ArcGIS for Javascript搭建及HelloWorld</h1><p>首先去官网下载ArcGIS for Javascript SDK,下载前必须要登录的。 <a target="_blank" rel="noopener" href="https://developers.arcgis.com/downloads/apis-and-sdks?product=javascript">下载地址</a>,下载3.x版本。因为3.x版本和4.x版本结构会不太一样。</p>
 <ol>
-<li>查看logs中是否有报错</li>
-<li>查看jps是否少了某个守护进程</li>
-<li>查看8088是否被监听, ls0f -i:8088,如果有listener则可以。</li>
-<li>ipv6的问题，如果以上不行,则看lsof -i:8088,中显示v6,则是以ipv6的，要改成ipv4端口，网上搜索禁用ipv6</li>
+<li>下载完成后解压，将此文件夹放入tomcat webapps下</li>
 </ol>
-<p>注意yarn-site.xml除了前两个property设置，后半部分必须要加，否则可能就算监听成功了也无法访问，最后一定要看jps是否有守护进程。</p>
-<h3 id="运行示例"><a href="#运行示例" class="headerlink" title="运行示例"></a>运行示例</h3><pre><code>hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar wordcount /input /output</code></pre><h3 id="查看示例"><a href="#查看示例" class="headerlink" title="查看示例"></a>查看示例</h3><p>期间可以在master:8088的<a target="_blank" rel="noopener" href="http://master:8088/cluster/apps下，查看你的应用程序，就是刚执行的，后面的进入条显示进度。">http://master:8088/cluster/apps下，查看你的应用程序，就是刚执行的，后面的进入条显示进度。</a></p>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929170547.png?x-oss-process=style/600" alt=""></p>
+<ol start="2">
+<li>修改build，构建配置选项</li>
+</ol>
+<p>打开arcgis_js_api/library/3.26/下的install_api_windows.html文件，进行谷歌翻译,然后找到此处 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929170936.png?x-oss-process=style/600" alt=""> 然后进行修改，将arcgis_js_api/library/3.26/3.26/下的init.js进行修改，打开文本编辑器，搜索[HOSTNAME_AND_PATH_TO_JSAPI],并将其替换为localhost:8080/arcgis_js_api/library/3.26/3.26/dojo,注意前面的https改成http。 同样将arcgis_js_api/library/3.26/3.26/dojo/下的dojo.js进行修改，一样搜索[HOSTNAME_AND_PATH_TO_JSAPI]，并进行替换。 注意这两个路径一定要和此arcgis_js_api放在tomcat中的路径一致，否则404。</p>
+<h2 id="HelloWorld示例"><a href="#HelloWorld示例" class="headerlink" title="HelloWorld示例"></a>HelloWorld示例</h2><p>首先废话不多说，在webapps下创建一个文件夹test，并创建文件index.html,贴上示例代码</p>
+<pre><code>&lt;html&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+  &lt;title&gt;Page Title&lt;/title&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/esri/css/esri.css&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/dijit/themes/tundra/tundra.css&quot;&gt;
+  &lt;style&gt;
+    html, body, #mapDiv&#123;
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    &#125;
+  &lt;/style&gt;
+  &lt;script src=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/init.js&quot;&gt;&lt;/script&gt;
+  &lt;script&gt;
+    require([&quot;esri/map&quot;,&quot;dojo/domReady!&quot;],
+        function(Map)&#123;
+            var myMap = new Map(&quot;mapDiv&quot;,&#123;
+                basemap:&quot;topo&quot;
+            &#125;);
+        &#125;)
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body class=tundra&gt;
+  &lt;div id=&quot;mapDiv&quot;&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre><p>这个，你仍需要注意的时，就是你的script引用地址是否正确。 通过localhost:8080/test访问即可，或者不需要tomcat，直接任意创建html文件也可以。 如果打开后出现4个框或空白，则表示可能script引入错误，F12控制台查看一下。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929172144.png?x-oss-process=style/600" alt=""></p>
 
       
       <!-- reward -->
@@ -875,7 +449,7 @@ mr-jobhistory-daemon.sh start historyserver
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/yarn/" rel="tag">yarn</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/arcgis/" rel="tag">arcgis</a></li></ul>
 
 
     </footer>
@@ -892,7 +466,7 @@ mr-jobhistory-daemon.sh start historyserver
 
 </article>
     
-    <article id="post-Linux/Ubuntu18.04虚拟机互通之后该做的配置" class="article article-type-post" itemscope
+    <article id="post-帆软/帆软快速入门与报表设计" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -900,8 +474,8 @@ mr-jobhistory-daemon.sh start historyserver
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/"
-    >Ubuntu18.04虚拟机互通之后该做的配置</a
+  <a class="article-title" href="/2018/09/28/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E4%B8%8E%E6%8A%A5%E8%A1%A8%E8%AE%BE%E8%AE%A1/"
+    >帆软快速入门与报表设计</a
   >
 </h2>
   
@@ -911,12 +485,12 @@ mr-jobhistory-daemon.sh start historyserver
 
     
     <div class="article-meta">
-      <a href="/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2018-09-22T15:21:47.000Z" itemprop="datePublished">2018-09-22</time>
+      <a href="/2018/09/28/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E5%BF%AB%E9%80%9F%E5%85%A5%E9%97%A8%E4%B8%8E%E6%8A%A5%E8%A1%A8%E8%AE%BE%E8%AE%A1/" class="article-date">
+  <time datetime="2018-09-28T06:03:42.000Z" itemprop="datePublished">2018-09-28</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+    <a class="article-category-link" href="/categories/%E6%8A%A5%E8%A1%A8/">报表</a>
   </div>
 
       
@@ -933,179 +507,60 @@ mr-jobhistory-daemon.sh start historyserver
       
 
       
-      <h2 id="安装ssh-openssh-server-vsftpd"><a href="#安装ssh-openssh-server-vsftpd" class="headerlink" title="安装ssh,openssh-server,vsftpd"></a>安装ssh,openssh-server,vsftpd</h2><ol>
-<li><p>设置root密码</p>
-<p>sudo passwd root<br>提示输入当前主机密码<br>输入root新密码<br>再次输入root新密码</p>
-</li>
-</ol>
-<p>一共输入3次密码。</p>
-<ol start="2">
-<li>关于apt锁怎么怎么，无法获得锁，无法对状态列表目录加锁 问题?</li>
-</ol>
-<p>首先看是否说让root用户执行，然后如果行不通，则使用命令把锁删掉</p>
-<pre><code>如/var/lib/dpkg/lock     //这个lock就是一个锁文件
-
-rm -r /var/lib/dpkg/lock        //把它删了
-
-如果还有类似 /var/cache/apt/archive/lock  //同样把lock文件删了</code></pre><ol start="3">
-<li><p>安装ssh</p>
-<p>sudo apt install ssh</p>
-</li>
-</ol>
-<ol start="4">
-<li><p>安装openssh-server</p>
-<p>sudo apt install openssh-server</p>
-</li>
-</ol>
-<p>如果安装之后连接xshell时，总是说密码不对,则设置</p>
-<pre><code>sudo vi /etc/ssh/sshd_config
-
-找到第32行左右的PermitRootLogin ，把它后面的字符串删了，改成yes，然后去掉前面的#符号
-
-/etc/init.d/ssh restart //重启服务</code></pre><ol start="5">
-<li><p>安装vsftpd</p>
-<p>sudo apt install vsftpd</p>
-</li>
-</ol>
-<p>修改配置文件</p>
-<pre><code>sudo vi /etc/vsftpd.conf
-
-把write_enable=YES前的#符号去掉</code></pre><p>修改ftpusers文件</p>
-<pre><code>sudo vi /etc/ftpusers
-
-再root前添加#//注释root
-
-service vsftpd restart  //最后修改完成过后重启服务</code></pre><h2 id="修改hosts文件"><a href="#修改hosts文件" class="headerlink" title="修改hosts文件"></a>修改hosts文件</h2><pre><code>sudo vi /etc/hosts
-
-在ip     主机名对应行下添加当前主机的静态ip和主机名，以及从主机slave的静态ip和主机名
-
-192.168.135.100     master
-192.168.135.101     slave1</code></pre><p>尝试master中ping slave1,slave1中ping master</p>
-<h2 id="实现ssh免密登陆"><a href="#实现ssh免密登陆" class="headerlink" title="实现ssh免密登陆"></a>实现ssh免密登陆</h2><ol>
-<li><p>master安装ssh</p>
-<p>apt install ssh</p>
-</li>
-</ol>
-<p>2.实现免密命令</p>
-<pre><code>root@master:/home/master# **ssh-keygen -t rsa**
-Generating public/private rsa key pair.
-Enter file in which to save the key (/root/.ssh/id_rsa):    //enter
-Created directory &apos;/root/.ssh&apos;.
-Enter passphrase (empty for no passphrase):                 //enter
-Enter same passphrase again:                                //enter
-Your identification has been saved in /root/.ssh/id_rsa.
-Your public key has been saved in /root/.ssh/id_rsa.pub.
-The key fingerprint is:
-SHA256:7SXnZWtdsmdD5bze0HGjuN80zBV8jw0mvKosdqEphWU root@master
-The key&apos;s randomart image is:
-+---[RSA 2048]----+
-|                 |
-|           .  .  |
-|            o ooo|
-|      E  .   + *=|
-|     +  S o + =+O|
-|    . . .. *.o=*B|
-|     . o .o...=B=|
-|    . =...  ..+++|
-|     o oo  ... o.|
-+----[SHA256]-----+</code></pre><p>输入3次回车。随后.ssh文件夹中生成两个文件id_rsa id_rsa.pub</p>
-<ol start="3">
-<li><p>拷贝公钥</p>
-<p>cat id_rsa.pub &gt;&gt; authorized_keys   //拷贝文件<br>chmod 600 authorized_keys    —-修改文件权限可读写,必需要设置</p>
-</li>
-</ol>
-<ol start="4">
-<li><p>slave中ssh localhost测试，如果成功会在home下出现.ssh文件夹</p>
-</li>
-<li><p>将master的公钥传输到所有的slave上，实现无密码登录</p>
-</li>
-</ol>
-<pre><code>scp authorized_keys root@slave1:~/.ssh/</code></pre><p>完成后master尝试连接slave，ssh slave直接登录。</p>
-<h2 id="jdk和hadoop环境安装"><a href="#jdk和hadoop环境安装" class="headerlink" title="jdk和hadoop环境安装"></a>jdk和hadoop环境安装</h2><ol>
-<li><p>jdk安装</p>
-<p>tar -zxf jdkxxxxxxxxx.tar.gz    //解压包</p>
-<p>vim etc/profile     /编辑配置环境变量</p>
-<p>export JAVA_HOME=你的jdk路径<br>export PATH=$JAVA_HOME/bin:$PATH</p>
-<p>source /etc/profile     //编辑完成后，执行命令，刷新文件环境变量<br>java -version   //jdk安装测试</p>
-</li>
-</ol>
-<ol start="2">
-<li><p>hadoop安装</p>
-<p>tar -zxf hadoop包        //解压包</p>
-<p>cd hadoop/etc/hadoop        //进入hadoop配置目录</p>
-<p>vi hadoop-env.sh            //编辑文件</p>
-<p>export JAVA_HOME=/root/app/jdk      //设置你的jdk目录</p>
-<p>export HADOOP_CONF_DIR=/root/app/hadoop/etc/hadoop  //设置你的hadoop的配置文件目录，就在hadoop安装目录的etc下的hadoop下</p>
-</li>
-</ol>
-<p>环境变量</p>
-<pre><code>vi /etc/profile
-
-export HADOOP_HOME=/root/app/hadoop
-export PATH=$HADOOP_HOME/bin:$PATH
-
-source /etc/profile</code></pre><h2 id="伪分布式搭建"><a href="#伪分布式搭建" class="headerlink" title="伪分布式搭建"></a>伪分布式搭建</h2><ol>
-<li><p>配置etc/hadoop下的core-site.xml</p>
-<property>
-    <name>fs.defaultFS</name>
-    <value>hdfs://master:9000</value>   //hdfs必须配置的
-</property>
-<property>
-    <name>hadoop.tmp.dir</name>
-    <value>/root/app/hadoop/tmp</value>     //临时文件存储目录，默认在/tmp/hadoop-${user.name}
-</property>
-
-
-</li>
-</ol>
-<p>注意路径不要写错</p>
-<ol start="2">
-<li><p>hdfs-site.xml</p>
-<property>
-    <name>dfs.replication</name>
-    <value>1</value>    //设置副本的个数，该案例为为分布式只有一台机器
-</property>
-
-
-</li>
-</ol>
-<ol start="3">
-<li>启动hdfs</li>
-</ol>
-<p>hdfs命令，前提是你已经在环境变量配置了hadoop/bin，可能你还需要配置一下sbin</p>
-<pre><code>hdfs namenode -format   //首次启动格式化，仅第一次，将会格式化hdfs
-
-sbin/start-dfs.sh       //启动NameNode守护程序和DataNode守护程序
-或
-sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
-sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
-
-
-jsp     //查看守护进程</code></pre><p>hadoop守护程序日志输出将写入$ HADOOP_LOG_DIR目录（默认为$ HADOOP_HOME / logs）。 不报错后，访问http://{hostname|静态ip}:<strong>50070</strong>/ ,此处localhost改成自己的ip或hostname 如果启动后访问不成功，或出现信息，stop什么之类的，则擦好看logs下的日志${hadoop_home}/logs/hadoop-{username}-namenode-master.log</p>
-<ol start="3">
-<li><p>常用的日志查看</p>
-<p>hadoop-{username}-datanode-{hostname}.log<br>hadoop-{username}-datanode-{hostname}.out<br>hadoop-{username}-namenode-{hostname}.log<br>hadoop-{username}-namenode-{hostname}.out</p>
-</li>
-</ol>
-<ol start="4">
-<li><p>hdfs操作</p>
-<p>hdfs dfs -mkdir /input      //创建一个文件夹，在/目录下名称为input,多级目录加-p参数</p>
-<p>hdfs dfs -put ~/testhello.txt /input    //上传一个testhello.txt到input文件夹下,前提是有这个文件,并且此文件有数据，用于计算每个单词的数量</p>
-<p>hdfs dfs -ls /input //查看目录</p>
-<p>hdfs dfs -cat /input/testhello.txt  //查看文件</p>
-</li>
-</ol>
-<ol start="5">
-<li><p>运行mapreduce的wordcount</p>
-<p>hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar wordcount /input /output<br>//  /input为输入的目录，下面有一个testhello.txt,/output为输出目录，为执行结果，此文件不能先创建。随后/output下生成两个文件，一个是_SUCCESS和part-r-00000</p>
-<p>dhfs dfs -cat /output/part-r-00000  //查看结果，可能每个生成的part都不一样</p>
-</li>
-</ol>
-<ol start="6">
-<li><p>常用命令</p>
-<p>-mkdir  hdfs dfs -mkdir /input<br>-put    hdfs dfs -put ~/testhello.txt /input<br>-ls     hdfs dfs -ls /output                    //  -lsr表示递归<br>-cat    hdfs dfs -cat /output/part-r-00000<br>-get    hdfs dfs -get /output/part-r-00000 ./       //将dfs中的文件下载到本地文件夹下<br>-rm     hdfs dfs -rm /input/testhello.txt       //  -rmr表示递归删除</p>
-</li>
-</ol>
+      <h1 id="填报报表"><a href="#填报报表" class="headerlink" title="填报报表"></a>填报报表</h1><h2 id="1-创建模板-报表设计"><a href="#1-创建模板-报表设计" class="headerlink" title="1. 创建模板(报表设计)"></a>1. 创建模板(报表设计)</h2><p>就以Oracle最简单的emp和dept为例把。 模板设计如下 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927173659.png?x-oss-process=style/400" alt="模板示例"></p>
+<h2 id="2-添加控件"><a href="#2-添加控件" class="headerlink" title="2. 添加控件"></a>2. 添加控件</h2><p>右击单元格，选择控件设置 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927175318.png?x-oss-process=style/400" alt="控件设置"> 选择对应的属性</p>
+<h2 id="3-设置填报属性"><a href="#3-设置填报属性" class="headerlink" title="3. 设置填报属性"></a>3. 设置填报属性</h2><p>菜单栏选择模板=》填表填报属性 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927175449.png?x-oss-process=style/400" alt="填表填报"> 打开后按顺序设置 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927175708.png?x-oss-process=style/400" alt="设置"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927175903.png?x-oss-process=style/400" alt="智能添加字段"> 点击智能添加单元格，随后根据字段进行点击 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927180008.png?x-oss-process=style/400" alt="智能添加单元格"> 再复选框中，设置勾选主键</p>
+<h2 id="4-填报录取"><a href="#4-填报录取" class="headerlink" title="4. 填报录取"></a>4. 填报录取</h2><p>点击填报预览 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927180912.png?x-oss-process=style/400" alt="点击填报预览"> 点击后就如图所示，填写完成后，点击提交 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927180747.png?x-oss-process=style/400" alt="提交"></p>
+<h2 id="在其中关于下拉设置和单选以及外键字段设置"><a href="#在其中关于下拉设置和单选以及外键字段设置" class="headerlink" title="在其中关于下拉设置和单选以及外键字段设置"></a>在其中关于下拉设置和单选以及外键字段设置</h2><h3 id="下拉控件设置"><a href="#下拉控件设置" class="headerlink" title="下拉控件设置"></a>下拉控件设置</h3><p>我们以上级姓名为范例。上级姓名，既然是上级自然也是员工，再emp表中，所以对于页面显示值和存储实际值而言一个是ename，一个是empno。 所以设置数据字典如下所展示 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927182529.png?x-oss-process=style/400" alt="数据字典"></p>
+<h3 id="外键字段设置"><a href="#外键字段设置" class="headerlink" title="外键字段设置"></a>外键字段设置</h3><p>对于<strong>外键字段</strong>设置，在填报属性中不能设置为Dept表的Name，而应该是Emp表的deptno。如果你设置了Dept表，那么它将会把它作为一个下拉值保存到dept表中，可能会导致数据表数据重复。因此它的<strong>填报属性需要设置为emp表的deptno</strong>，而<strong>控件属性的数据字典设置为Dept表</strong>，因为他就是一个全部的数据集。 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180927184410.png?x-oss-process=style/400" alt="外键字段的设置"></p>
+<h3 id="单选按钮设置"><a href="#单选按钮设置" class="headerlink" title="单选按钮设置"></a>单选按钮设置</h3><p>对于单选而言,看一下示例。这里的emp没有sex字段的，那么先在表中为emp添加一个sex字段，就设置男和女把，那么<strong>控件设置中实际值和显示值都是sex字段</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928084122.png?x-oss-process=style/400" alt="单选控件设置"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928084542.png?x-oss-process=style/400" alt="设置单选填报属性"> 最后就是这样子 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928084726.png?x-oss-process=style/400" alt="预览"> 那么如果单选按钮，男女是一个数据字典，在数据字典表里，那么就可以跟外键字段一样设置。 然而还可以通过类型设置的自定义设置，如果数据比较少的话，就如男女，就这样，根据你的显示值和实际值设置 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928085059.png?x-oss-process=style/400" alt="自定义下拉"> 在实际过程中，最常用的就是填报报表，对于合同，资料来说用于填写，很方便，直接点提交就自动提交到数据库。而有时候也会需要到数据展示，比如季度报表，财务报表，工资条，等等各种需要展示数据的时候。</p>
+<h1 id="分页预览"><a href="#分页预览" class="headerlink" title="分页预览"></a>分页预览</h1><h2 id="报表设计"><a href="#报表设计" class="headerlink" title="报表设计"></a>报表设计</h2><h3 id="单元格拓展"><a href="#单元格拓展" class="headerlink" title="单元格拓展"></a>单元格拓展</h3><p>单元格拓展就是模板中只有一个单元格，在显示时显示一列数据，拓展出多个单元格，当然拓展是由方向的而且只能是一个方向 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/2018092809100001.png?x-oss-process=style/400" alt="示例"> 查看一下这个示例 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928091339.png?x-oss-process=style/400" alt="range"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928091355.png?x-oss-process=style/400" alt="纵向拓展"> 该示例中，使用了=range(1,5)这个函数，边框，居中，设置了纵向拓展。 如果设置不拓展，则点击左边的禁止按钮即可。那么输出的1，2，3，4，5就显示在一个单元格内。</p>
+<h3 id="父子格设置"><a href="#父子格设置" class="headerlink" title="父子格设置"></a>父子格设置</h3><h4 id="什么是父子格"><a href="#什么是父子格" class="headerlink" title="什么是父子格"></a>什么是父子格</h4><p>既然是父子格，两单元格必存在某种关系，使单元格存在数据过滤关系，并且跟随拓展。如图所示，前面的使父格，后面的是子格，子格会根据父格的数据进行过滤显示，并随父格拓展方向拓展。 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928092702.png?x-oss-process=style/400" alt="父子格示例"></p>
+<h4 id="父子格关系"><a href="#父子格关系" class="headerlink" title="父子格关系"></a>父子格关系</h4><p>父子格之间有两种关系，一个是过滤，一个是跟随。父格就是相邻的左，上单元格，但也可能是自定义的任意单元格。</p>
+<h5 id="1-过滤关系是指子格会默认将父格数据作为过滤条件进行过滤，使父子格之间的数据能对应的显示"><a href="#1-过滤关系是指子格会默认将父格数据作为过滤条件进行过滤，使父子格之间的数据能对应的显示" class="headerlink" title="1. 过滤关系是指子格会默认将父格数据作为过滤条件进行过滤，使父子格之间的数据能对应的显示"></a>1. 过滤关系是指子格会默认将父格数据作为过滤条件进行过滤，使父子格之间的数据能对应的显示</h5><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928093510.png?x-oss-process=style/400" alt="过滤关系"> 在这里需注意，父子格来自不同数据集，则不存在过滤关系，子格随父格重复显示，只有当在同一数据集中才存在过滤。</p>
+<h5 id="2-跟随关系是指子格会默认跟随父格的拓展方向进行分组，即父格纵向，子格也会随父格纵向，当然子格仍然可以改变自己的拓展方向"><a href="#2-跟随关系是指子格会默认跟随父格的拓展方向进行分组，即父格纵向，子格也会随父格纵向，当然子格仍然可以改变自己的拓展方向" class="headerlink" title="2. 跟随关系是指子格会默认跟随父格的拓展方向进行分组，即父格纵向，子格也会随父格纵向，当然子格仍然可以改变自己的拓展方向"></a>2. 跟随关系是指子格会默认跟随父格的拓展方向进行分组，即父格纵向，子格也会随父格纵向，当然子格仍然可以改变自己的拓展方向</h5><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928094001.png?x-oss-process=style/400" alt="跟随关系"></p>
+<h4 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h4><p>那么我们根据emp和dept看一下示例</p>
+<h5 id="1-非相同数据集，无过滤关系，显示所有"><a href="#1-非相同数据集，无过滤关系，显示所有" class="headerlink" title="1. 非相同数据集，无过滤关系，显示所有"></a>1. 非相同数据集，无过滤关系，显示所有</h5><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928094519.png?x-oss-process=style/400" alt="示例模板"> 我们设置了两个数据集，一个是emp的select *,一个是dept的select *。而且B4是C4的左父格，并且B4左侧有一个向下的蓝箭头，说明是也有跟随关系，而且是跟随向下。因为不存在过滤关系，所以每个部门都显示所有的员工。</p>
+<h5 id="2-相同数据集，过滤关系，显示各部门对应员工"><a href="#2-相同数据集，过滤关系，显示各部门对应员工" class="headerlink" title="2. 相同数据集，过滤关系，显示各部门对应员工"></a>2. 相同数据集，过滤关系，显示各部门对应员工</h5><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928095125.png?x-oss-process=style/400" alt="示例模板"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928095138.png?x-oss-process=style/400" alt="示例结果"> 看，都是从emp数据集中出来的，所以，进行的过滤。</p>
+<h5 id="3-跟随关系，子格默认随父格拓展方向进行分组"><a href="#3-跟随关系，子格默认随父格拓展方向进行分组" class="headerlink" title="3. 跟随关系，子格默认随父格拓展方向进行分组"></a>3. 跟随关系，子格默认随父格拓展方向进行分组</h5><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928095415.png?x-oss-process=style/400" alt="示例模板"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928095448.png?x-oss-process=style/400" alt="示例结果"> 来看示例，B4是B5的上父格，父子格都是来自同一数据集，所以是存在过滤关系的，父格横向拓展，子格纵向拓展，那么子格会依据父格进行分组过滤。因此出现了这个结果。</p>
+<h5 id="4-自定义父格"><a href="#4-自定义父格" class="headerlink" title="4. 自定义父格"></a>4. 自定义父格</h5><p>在右边的单元格属性列表中有左父格，上父格选项，那默认就是当前单元格相邻的上边，左边的单元格，而无就表示没有父格，就不存在跟随和过滤两种关系。然当，你可以选择自定义，根据你自己的情况。 那么我们就依据官网的样式，进行自定义单元格 首先设计模板，ename和deptno在对斜角的方向，所以两者不存在父子格关系。那么我们就可以选中ename单元格，点击右边的左父格，选择自定义，可以填写单元格位置，也可以点右边的套索选中单元格。然后，你选中ename的时候，deptno就出现了蓝色的箭头。 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928100616.png" alt="示例模板"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928100749.png?x-oss-process=style/400" alt="示例结果"> 当然对于这些简单的而言，还有更复杂点的，需要对每个单元格检查父子格及拓展方向，以便不会扰乱模板显示。</p>
+<h5 id="5-拓展后，顺序的显示"><a href="#5-拓展后，顺序的显示" class="headerlink" title="5. 拓展后，顺序的显示"></a>5. 拓展后，顺序的显示</h5><p>在右侧单元格属性中，最下边就有那个设置，叫拓展后，可以选择正序还是倒序</p>
+<h3 id="交叉报表"><a href="#交叉报表" class="headerlink" title="交叉报表"></a>交叉报表</h3><p>交叉表是最常见的基本报表类型，交叉表中包含数据的横向拓展和数据的纵向拓展。为了描述数据的复杂性，我们就先以emp为例 <a target="_blank" rel="noopener" href="http://help.finereport.com/doc-view-2107.html">官网操作步骤在这里</a> emp中并没有交叉横纵向的，所以只有纵向，和进行求和。那么我们的示例就是显示每个部门的员工的薪资以及和部门的合计以及所有合计 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928112408.png?x-oss-process=style/400" alt="示例"></p>
+<h4 id="emp示例"><a href="#emp示例" class="headerlink" title="emp示例"></a>emp示例</h4><p>对于像这种稍微复杂的，就是要捋清部门与员工，员工与薪资，合计之间的关系，以及左上父格的而设置，最后就是合计所对应的上左父格。</p>
+<h5 id="1-设置表头，设置部门，员工姓名，薪资，提成。后跟一个合计，指为公式，计算C2和D2，-sum-C2-D2-。其余父格默认"><a href="#1-设置表头，设置部门，员工姓名，薪资，提成。后跟一个合计，指为公式，计算C2和D2，-sum-C2-D2-。其余父格默认" class="headerlink" title="1. 设置表头，设置部门，员工姓名，薪资，提成。后跟一个合计，指为公式，计算C2和D2，=sum(C2,D2)。其余父格默认"></a>1. 设置表头，设置部门，员工姓名，薪资，提成。后跟一个合计，指为公式，计算C2和D2，=sum(C2,D2)。其余父格默认</h5><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928113301.png?x-oss-process=style/400" alt="示例"></p>
+<h5 id="2-添加总合计"><a href="#2-添加总合计" class="headerlink" title="2. 添加总合计"></a>2. 添加总合计</h5><ul>
+<li>A3,B3合并单元格命名总合计，C3设置为=sum(C2),D3设置为=sum(D2),E3设置为=sum(E2)</li>
+<li>其余默认</li>
+</ul>
+<p>对于为何这么做，第一行为标题，死文字，不会变，第二行均为纵向拓展，第三行也是死文字，只不过和合计是通过第二行得来的，所以要合计第二行对应的数值，第二行拓展，第三行依然在最后一行。 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928113935.png?x-oss-process=style/400" alt="示例"></p>
+<h5 id="3-为每个部门添加部门合计"><a href="#3-为每个部门添加部门合计" class="headerlink" title="3. 为每个部门添加部门合计"></a>3. 为每个部门添加部门合计</h5><ul>
+<li>我们在第三行，右击插入一行，该行变为第四行，空出一个第三行。</li>
+<li>依旧是A3，B3合并命名为部门合计,C3,D3,E3均设置为对应的=sum(C2),=sum(D2),=sum(E2)</li>
+<li>我们将部门合计的左父格设置为A2，也就是部门那个单元格，这就有了过滤的性质了，每个部门进行合计，后面三个小合计也是左父格设置为它</li>
+</ul>
+<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928115401.png?x-oss-process=style/400" alt="示例"> 这就完成了，我们来看这个图，发现，它与开始展示的是有一点区别的，就是标题头，首次展示的是每个部门一个标题头，这个展示的是只有一个标题头。</p>
+<ul>
+<li>然后你要取消总合计行中后三单元格的上父格为无，以免总合计行跑到第一部门合计后面</li>
+<li>最后你的第一行表头都要把上父格设置为A2部门单元格,这就使每个部门都有一个标题</li>
+</ul>
+<p>看起来如果使一个标题还是比较见到的，而且更容易看啊。 文件地址:<a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/file/emp%E6%8C%89%E9%83%A8%E9%97%A8%E5%91%98%E5%B7%A5%E5%90%88%E8%AE%A1%E7%A4%BA%E4%BE%8B.cpt">emp示例文件地址</a> 因为这些都是父子格和拓展方向的问题，以及单元格关系，只要看怎么设置了。那么就不讲官网的案例的。</p>
+<h3 id="行式报表"><a href="#行式报表" class="headerlink" title="行式报表"></a>行式报表</h3><h4 id="1-行式报表也就是最常用最简单的表格，都是以列表的形式向下显示的。图例我就不再演示了。"><a href="#1-行式报表也就是最常用最简单的表格，都是以列表的形式向下显示的。图例我就不再演示了。" class="headerlink" title="1. 行式报表也就是最常用最简单的表格，都是以列表的形式向下显示的。图例我就不再演示了。"></a>1. 行式报表也就是最常用最简单的表格，都是以列表的形式向下显示的。图例我就不再演示了。</h4><p>因为父子格的关系，默认如果是同一数据集，会出现过滤分组情况，在右上角，数据设置，默认是分组的。所以会依据部门进行分组合并单元格。 把该单元格设置为列表形式，那么就会不合并单元格，每条数据一一对应，以列表的形式显示下来。</p>
+<h4 id="2-另外就是单元格样式的设置"><a href="#2-另外就是单元格样式的设置" class="headerlink" title="2. 另外就是单元格样式的设置"></a>2. 另外就是单元格样式的设置</h4><p>对于单元格样式，就犹如Excel表格一样的单元格设置，不过帆软的是在右下角的单元格设置的第二个选项卡，格式中，默认是常规，可以选择数字，货币，百分数，日期，时间等格式。另外还有对齐、字体、边框、背景设置，不过这几个在工具栏里有就更方便了。</p>
+<h3 id="分组报表"><a href="#分组报表" class="headerlink" title="分组报表"></a>分组报表</h3><p>也就是普通的依据父子格进行分组，不过通常都会遇到数据设置，也就是刚才说的，除了<strong>分组</strong>默认的，还有上面讲的行式报表的<strong>列表</strong>格式,最后一个就是统计了。我们看下官方的例子就很明白 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928134855.png?x-oss-process=style/400" alt="示例"> 安顺放置，什么都不设置，没有什么不正常的，那么结果就如下，再正常不过了 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928135102.png?x-oss-process=style/400" alt="示例"> 那么把销量改成汇总求和，右上角的<strong>数据设置</strong>中设置汇总，于是求和就变成了这样 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180928135302.png?x-oss-process=style/400" alt="示例"> 为什么成这样，大家应该很明白，如果是默认分组，将显示每个产品对应的销量，而设置为汇总，就是求一个值。为什么这样说，因为如果你把产品这个字段也放上去，你就发现出来了，这个销量就是把每个员工的所有产品销量做一个汇总。 不光可以求和，还有其他的选项，如平均值，最值之类的。</p>
+<h3 id="自由报表"><a href="#自由报表" class="headerlink" title="自由报表"></a>自由报表</h3><p>自由报表可以说就是填报报表,因为填报是自由的，对于列表的情况，我不想多写了，看一下文档吧<a target="_blank" rel="noopener" href="http://help.finereport.com/finereport8.0/doc-view-147.html">自由报表</a> 还有其他的纵向的我也不多说了，还是那句话，无非就单元格字段本身关系和父子格关系<a target="_blank" rel="noopener" href="http://help.finereport.com/finereport8.0/doc-view-149.html">分组汇总</a></p>
+<h3 id="最后一点就是，还是单元格属性设置，右下角的，第三个选项，形态，这里面可以设置数据字典，也就是显示值和实际值。"><a href="#最后一点就是，还是单元格属性设置，右下角的，第三个选项，形态，这里面可以设置数据字典，也就是显示值和实际值。" class="headerlink" title="最后一点就是，还是单元格属性设置，右下角的，第三个选项，形态，这里面可以设置数据字典，也就是显示值和实际值。"></a>最后一点就是，还是单元格属性设置，右下角的，第三个选项，形态，这里面可以设置数据字典，也就是显示值和实际值。</h3><h1 id="参数入门"><a href="#参数入门" class="headerlink" title="参数入门"></a>参数入门</h1><p>FineReport报表中的参数按照其使用范围可以分为：模板参数和全局参数；按照其使用方式不同可以分为：模板参数和数据集参数。</p>
+<h2 id="模板参数"><a href="#模板参数" class="headerlink" title="模板参数"></a>模板参数</h2><p>模板参数，在模板–》模板参数中定义，只有当前报表可以使用，且必须与过滤结合才能筛选数据。</p>
+<h3 id="模板参数示例"><a href="#模板参数示例" class="headerlink" title="模板参数示例"></a>模板参数示例</h3><h4 id="1-首先放置emp数据集"><a href="#1-首先放置emp数据集" class="headerlink" title="1. 首先放置emp数据集"></a>1. 首先放置emp数据集</h4><h4 id="2-点击菜单栏【模板】，【模板参数】，设置一个参数"><a href="#2-点击菜单栏【模板】，【模板参数】，设置一个参数" class="headerlink" title="2. 点击菜单栏【模板】，【模板参数】，设置一个参数"></a>2. 点击菜单栏【模板】，【模板参数】，设置一个参数</h4><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929112202.png?x-oss-process=style/600" alt="示例"></p>
+<h4 id="3-选中过滤的单元格emp-deptno-点击右上角的过滤-注意可选列设置正确，然后是操作符后面的下拉框，一定要点击下拉框前的小下拉框，选择参数，然后默认就显示出来你刚设置的参数，然后确定。"><a href="#3-选中过滤的单元格emp-deptno-点击右上角的过滤-注意可选列设置正确，然后是操作符后面的下拉框，一定要点击下拉框前的小下拉框，选择参数，然后默认就显示出来你刚设置的参数，然后确定。" class="headerlink" title="3. 选中过滤的单元格emp.deptno,点击右上角的过滤;注意可选列设置正确，然后是操作符后面的下拉框，一定要点击下拉框前的小下拉框，选择参数，然后默认就显示出来你刚设置的参数，然后确定。"></a>3. 选中过滤的单元格emp.deptno,点击右上角的过滤;注意可选列设置正确，然后是操作符后面的下拉框，一定要点击下拉框前的小下拉框，选择参数，然后默认就显示出来你刚设置的参数，然后确定。</h4><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929112228.png?x-oss-process=style/600" alt="示例"></p>
+<h4 id="4-设置控件，点击上面灰色的笔，然后双击右下角的参数，就是你刚设置的参数；然后带你那个扳手选择下拉，或者在上面点击下拉拖过去"><a href="#4-设置控件，点击上面灰色的笔，然后双击右下角的参数，就是你刚设置的参数；然后带你那个扳手选择下拉，或者在上面点击下拉拖过去" class="headerlink" title="4. 设置控件，点击上面灰色的笔，然后双击右下角的参数，就是你刚设置的参数；然后带你那个扳手选择下拉，或者在上面点击下拉拖过去"></a>4. 设置控件，点击上面灰色的笔，然后双击右下角的参数，就是你刚设置的参数；然后带你那个扳手选择下拉，或者在上面点击下拉拖过去</h4><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929112646.png?x-oss-process=style/600" alt="示例"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929112703.png?x-oss-process=style/600" alt="示例"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929112907.png?x-oss-process=style/600" alt="示例"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929112922.png?x-oss-process=style/600" alt="示例"></p>
+<h4 id="5-设置下拉框数据字典-选中下拉控件，查看右边属性中的数据字典属性，点击进行设置字典值，这与单元格属性-形态是一样的"><a href="#5-设置下拉框数据字典-选中下拉控件，查看右边属性中的数据字典属性，点击进行设置字典值，这与单元格属性-形态是一样的" class="headerlink" title="5. 设置下拉框数据字典,选中下拉控件，查看右边属性中的数据字典属性，点击进行设置字典值，这与单元格属性-形态是一样的"></a>5. 设置下拉框数据字典,选中下拉控件，查看右边属性中的数据字典属性，点击进行设置字典值，这与单元格属性-形态是一样的</h4><p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929113119.png?x-oss-process=style/600" alt="示例"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929113143.png?x-oss-process=style/600" alt="示例"></p>
+<h3 id="数据集参数"><a href="#数据集参数" class="headerlink" title="数据集参数"></a>数据集参数</h3><p>如果使用模板参数，需要先去出所有数据，然后再进行过滤，取数+过滤，将消耗大量时间。 所以你可以在定义数据集时直接<strong>使用where条件进行过滤需要的数据</strong>，而这个条件就作为一个数据集参数，而后面的操作与模板参数操作一模一样。 还可以在${}中使用带公式的。</p>
+<pre><code>SELECT * FROM 订单 where 1=1 $&#123;if(len(area) == 0,&quot;&quot;,&quot;and 货主地区 = &apos;&quot; + area + &quot;&apos;&quot;)&#125; $&#123;if(len(province) == 0,&quot;&quot;,&quot;and 货主省份 = &apos;&quot; + province + &quot;&apos;&quot;)&#125;</code></pre><p>那我们就简单一点 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929142840.png?x-oss-process=style/600" alt="示例"> 剩下的，只需要跟模板参数操作一样，对字段进行过滤一下，然后设置控件即可。</p>
+<h3 id="全局参数"><a href="#全局参数" class="headerlink" title="全局参数"></a>全局参数</h3><p>顾名思义，就是作用于全局的参数，使用方式仍然是一模一样的。 全局参数的设置需要在【服务器】=》【全局参数】中设置，其他的就和模板参数一样了。</p>
+<h3 id="参数过滤"><a href="#参数过滤" class="headerlink" title="参数过滤"></a>参数过滤</h3><p>用户在参数查询界面的控件中输入参数值，点击查询按钮，就将相应的数据查询出来了，这就是参数的过滤。 参数过滤就是在参数上做手脚，原原本本的参数，然后为参数做一些事情。 参数过滤也是分模板和数据集的。对于模板，在点击过滤按钮弹出过滤窗口时，将等号右表的值改为公式，也就是从之前的参数改为公式，那么就可以拿着$deptno参数，对这个参数做事情，比如减10，公式就是”=$deptno-10”。其他的就不用更改。 而数据集参数志记载${}中进行操作，也就是加减乘除都可以，或者放帆软函数，这与数据集参数是一样的。</p>
+<h3 id="参数界面设置"><a href="#参数界面设置" class="headerlink" title="参数界面设置"></a>参数界面设置</h3><p>在点击控件后，右上角的属性设置，有一系列的属性值，进行设置</p>
+<h3 id="动态表和动态条件"><a href="#动态表和动态条件" class="headerlink" title="动态表和动态条件"></a>动态表和动态条件</h3><p><a target="_blank" rel="noopener" href="http://help.finereport.com/finereport8.0/doc-view-165.html"><strong>官网</strong></a> 也就是说对数据过滤的条件时不固定的，有时候用A列，有时候B列。这么做的话就要把where条件作为一个模板参数了。 数据集定义语句 SELECT * FROM TableName ${Condition} 而你添加控件时，设置文本控件，填写where colName=xxx就可以进行过滤。</p>
+<h3 id="参数引用"><a href="#参数引用" class="headerlink" title="参数引用"></a>参数引用</h3><p>参数不光可以用来过滤，前面也说了，也可以通过函数操作，那当让，公式也是在所难免的，你可以对一个标题进行修改，点击哪个下拉值，列表就显示哪个标题 你只需要在单元格中通过公式的方式，在公式中例如: =$地区+“销售额”,这样值就会通过参数，自动改变了</p>
 
       
       <!-- reward -->
@@ -1118,7 +573,181 @@ jsp     //查看守护进程</code></pre><p>hadoop守护程序日志输出将写
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%86%E8%BD%AF/" rel="tag">帆软</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8/" rel="tag">报表</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Javascript/easypoi操作excel导入导出" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/27/Javascript/easypoi%E6%93%8D%E4%BD%9Cexcel%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/"
+    >easypoi操作excel导入导出</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/27/Javascript/easypoi%E6%93%8D%E4%BD%9Cexcel%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/" class="article-date">
+  <time datetime="2018-09-27T09:17:59.000Z" itemprop="datePublished">2018-09-27</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Excel/">Excel</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="easypoi"><a href="#easypoi" class="headerlink" title="easypoi"></a>easypoi</h1><p>easypoi是简易的excel导入导出等多项操作，MIT开源。封装了POI，使用注解方式更简洁的操作。 <a target="_blank" rel="noopener" href="https://http://www.afterturn.cn/doc/easypoi.html">文档</a> Excel自适应xls和xlsx两种格式,word只支持docx模式。</p>
+<h2 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h2><ol>
+<li>@Excel:简单的注解，用于简单基本属性，其内容设置包括基础，图片处理，事件处理，合并处理。</li>
+<li>@ExcelTarget:限定实体,3.3.0里好像没啥意思，但在集合的导出时需要设置到实体类上并设置name值，与类名相同就好</li>
+<li>@ExcelEntity:该注解标注在属性对象上，如果对象内属性设置了导出，则依次每属性导出。</li>
+<li>@ExcelCollection:该注解标注在属性集合上，常为list集合,设置name值表示对该集合的标题</li>
+</ol>
+<h2 id="导出示例"><a href="#导出示例" class="headerlink" title="导出示例"></a>导出示例</h2><h3 id="简单对象示例"><a href="#简单对象示例" class="headerlink" title="简单对象示例"></a>简单对象示例</h3><pre><code>//这是Student类的属性，这里我不复制getter/setter和构造
+private String id;
+@Excel(name = &quot;学生姓名&quot;,height = 10,width = 20,isImportField = &quot;true&quot;)
+private String name;
+@Excel(name = &quot;性别&quot;,height = 10,width = 20,isImportField = &quot;true&quot;)
+private String sex;
+@Excel(name = &quot;出生日期&quot;,height = 10,width = 20,format = &quot;yyyy-MM-dd&quot;)
+private Date date;
+
+
+Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;学生列表&quot;,&quot;学生&quot;),
+        Teacher.class, list);
+OutputStream outputStream = new FileOutputStream(new File(&quot;D:/a.xls&quot;));
+workbook.write(outputStream);</code></pre><p>只需要在Main测试中，设置list，然后指定一个地址，即可输出 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926181440.png" alt="图示"> 简单的导出，只不过标题和列名没有类似加粗和背景色以及宽高并非自适应，而需要在注解中设置。</p>
+<h3 id="集合定义"><a href="#集合定义" class="headerlink" title="集合定义"></a>集合定义</h3><pre><code>//teacher，我们把teacher的属性设置的和student一样，同样是id，name，sex，date
+//并且为stuent类和teacher类上添加@ExcelTarget(&quot;teacher&quot;)，@ExcelTarget(&quot;student&quot;)注解,并且实现Serializable
+
+//Course中,也要添加@ExcelTarget(&quot;course&quot;)注解
+private String id;
+@Excel(name = &quot;课程名称&quot;,orderNum = &quot;1&quot;,width = 15)
+private String courseName;
+@ExcelEntity private Teacher teacher;
+@ExcelCollection(name=&quot;学生&quot;,orderNum = &quot;4&quot;)
+private List&lt;Student&gt; student;
+
+
+List stuList = new ArrayList();
+stuList.add(new Student(&quot;1&quot;,&quot;学生1&quot;,&quot;男&quot;,new Date()));
+stuList.add(new Student(&quot;2&quot;,&quot;学生2&quot;,&quot;女&quot;,new Date()));
+stuList.add(new Student(&quot;3&quot;,&quot;学生3&quot;,&quot;女&quot;,new Date()));
+stuList.add(new Student(&quot;4&quot;,&quot;学生4&quot;,&quot;男&quot;,new Date()));
+List list = new ArrayList();
+list.add(new Course(&quot;1&quot;,&quot;生物&quot;,new Teacher(&quot;1&quot;,&quot;老师1&quot;,&quot;男&quot;,new Date()),stuList));
+
+Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;课程表&quot;,  &quot;课程表&quot;),
+        Course.class, list);
+OutputStream outputStream = new FileOutputStream(new File(&quot;D:/a.xls&quot;));
+workbook.write(outputStream);</code></pre><p>同样，以同种方式导出，在ExportParams类中设置导出参数，如标题之类的，而个参数的构造表示标题和sheet名称，三个参数表示标题，副标题，sheet名称。 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926181629.png" alt="图示"> 这样看来，对于老师与学生并不能合并对应，可以添加needMessage为ture设置合并单元格,但是他的坏处是，并不能在@ExcelEntity上设置属性，而只能在@Excel上设置。那么我们为教师类的每个属性设置,以及courseName上 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926182009.png" alt="图示"></p>
+<h3 id="图片导出"><a href="#图片导出" class="headerlink" title="图片导出"></a>图片导出</h3><ol>
+<li><p>图片的导出，需要设置@Excel的两个参数,type和imageType。</p>
+</li>
+<li><p>type表示导出类型，设置为2是图片。imageType表示图片类型，是通过1:file还是2:数据库流读取，如果是1则String类型设置地址，2则设置类型为byte数组。</p>
+</li>
+<li><p>要设置width和height，图片会依据设置的宽高来百分之百缩放，并不会理会图片自身的分辨率大小。</p>
+<p>@Excel(name = “照片”,type = 2,width = 40,height = 40,imageType = 1)<br>private String photo;</p>
+<p>list.add(new Teacher(“1”,”你”,”男”,new Date(),”IMG_20171209_091639.jpg”));</p>
+</li>
+</ol>
+<p><strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926183615.png" alt="图示"> 图片较大，可能加载缓慢</p>
+<h2 id="导入示例"><a href="#导入示例" class="headerlink" title="导入示例"></a>导入示例</h2><h3 id="导入excel"><a href="#导入excel" class="headerlink" title="导入excel"></a>导入excel</h3><pre><code>ImportParams importParams = new ImportParams();
+importParams.setTitleRows(1);
+importParams.setHeadRows(1);
+List&lt;Teacher&gt; list = ExcelImportUtil.importExcel(new File(&quot;a.xlsx&quot;),Teacher.class,importParams);
+for (Teacher t:list) &#123;
+    System.out.println(t.toString());
+&#125;</code></pre><p>注意模板中列名一定要和属性值段上设置的name值相同，否则报模板错误</p>
+<ol>
+<li>@Excel的isImportField属性表示检测这个字段在导入时模板中是否有，目前3.3.0版本是false。一些取值具体还是需要看源码的，因为文档可能更新并不及时。那么为false的话就不检测模板中是否有没有，即使没有也不会报错，而有的话会自动导入到对象中。</li>
+<li>ImportParams导入参数对象的设置</li>
+</ol>
+<ul>
+<li>titleRows:表格标题的行数，标题为跨列的，几行就是几行</li>
+<li>headRows：表头行数，就是列名，默认为1</li>
+<li>startRows：字段真正值和列标题之间的距离 默认0</li>
+<li>startSheetIndex：开始sheet索引，默认0</li>
+<li>sheetNum：导入时，默认导入的数量，1，也就是只有第一个</li>
+<li>readRows：手动控制读取行数，默认0,以0开始</li>
+<li>lastOfInvalidRow：最后无效的行数，不读的行数</li>
+<li>importFields:检验合法模板，字符串数组，为每个属性名,至少包含的字段</li>
+<li>needSave：是否需要保存导入的excel，默认false,默认保存的路径为upload/excelUpload/Test/yyyyMMddHHmss_***** 保存名称上传时间_五位随机数。所以你需要设置SaveUrl属性，表示保存的位置。</li>
+</ul>
+<p>其他的看文档或源码。</p>
+<h3 id="图片导入"><a href="#图片导入" class="headerlink" title="图片导入"></a>图片导入</h3><p>图片导入需要在excel中，图片与单元格绑定，否则无法获取到该单元格。 在ImportParam对象设置属性</p>
+<ul>
+<li>saveUrl属性设置上传excel文件保存位置</li>
+<li>needSave表示是否保存</li>
+<li>图片保存，3.3.0默认在/excel/upload/img，可以在@Excel中的savePath中设置保存路径</li>
+</ul>
+<p>其他的就没什么设置，只要图片和单元格绑定，就能成功读取。否则是读不到的。一定要选中单元格，但后再点插入图片，然后设置大小。 如果项目不是web项目的话，/excel/upload/img这种路径无法获取到，如果测试使用junit，则将地址改为某个盘符的固定目录。 如果你的图片属性是字节数组，则读出后直接是字节数组。</p>
+<h2 id="使用ExcelExportEntity自由导出"><a href="#使用ExcelExportEntity自由导出" class="headerlink" title="使用ExcelExportEntity自由导出"></a>使用ExcelExportEntity自由导出</h2><p>该类表示对某Cell的设置，如名称，是否合并，等等,一个对象表示一个列，而一个列对应一个属性。</p>
+<pre><code>List&lt;ExcelExportEntity&gt; list = new ArrayList&lt;ExcelExportEntity&gt;();
+
+list.add(new ExcelExportEntity(&quot;教师姓名&quot;,&quot;name&quot;));//如需设置Cell的其他属性，必须使用该对象.属性 
+list.add(new ExcelExportEntity(&quot;性别&quot;, &quot;sex&quot;));
+list.add(new ExcelExportEntity(&quot;出生日期&quot;, &quot;date&quot;));
+
+List&lt;Teacher&gt; dataList = new ArrayList&lt;Teacher&gt;();
+dataList.add(new Teacher(&quot;1&quot;,&quot;你&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;2&quot;,&quot;我&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;3&quot;,&quot;它&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;4&quot;,&quot;他&quot;,&quot;男&quot;,new Date()));
+dataList.add(new Teacher(&quot;5&quot;,&quot;她&quot;,&quot;女&quot;,new Date()));
+
+Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;教师列表&quot;, &quot;教师列表&quot;), list,dataList);
+FileOutputStream fos = new FileOutputStream(&quot;D:/a.xls&quot;);
+workbook.write(fos);
+fos.close();</code></pre><p>该案例可能有问题，官方文档中，示例没有数据，是空的，而插入了数据则导致失败,报错具体位置在ExportCommonService类的getCellValue方法中，entity.getMethod()获取为空,导致失败。这个以后再说把，先不使用。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/poi/" rel="tag">poi</a></li></ul>
 
 
     </footer>
@@ -1141,7 +770,7 @@ jsp     //查看守护进程</code></pre><p>hadoop守护程序日志输出将写
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/31/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="page-number" href="/page/31/">31</a><span class="page-number current">32</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="space">&hellip;</span><a class="page-number" href="/page/44/">44</a><a class="extend next" rel="next" href="/page/33/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/31/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="page-number" href="/page/31/">31</a><span class="page-number current">32</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="space">&hellip;</span><a class="page-number" href="/page/45/">45</a><a class="extend next" rel="next" href="/page/33/">下一页</a>
   </nav>
   
 </section>
