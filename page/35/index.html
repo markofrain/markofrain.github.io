@@ -6,7 +6,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-     Notes
+     雪里
   </title>
   <meta name="generator" content="hexo-theme-yilia-plus">
   
@@ -51,7 +51,7 @@
       <img src="/images/cover4.jpg" alt="image frame" />
     </div>
     <div class="cover-inner text-center text-white">
-      <h1><a href="/">Notes</a></h1>
+      <h1><a href="/">雪里</a></h1>
       <div id="subtitle-box">
         
         <span id="subtitle"></span>
@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Oracle/闪回技术-闪回表,闪回删表,闪回查询" class="article article-type-post" itemscope
+    <article id="post-中间件/任务调度Quartz的简单使用以及JobDataMap的数据" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/09/20/Oracle/%E9%97%AA%E5%9B%9E%E6%8A%80%E6%9C%AF-%E9%97%AA%E5%9B%9E%E8%A1%A8,%E9%97%AA%E5%9B%9E%E5%88%A0%E8%A1%A8,%E9%97%AA%E5%9B%9E%E6%9F%A5%E8%AF%A2/"
-    >闪回技术:闪回表,闪回删表,闪回查询</a
+  <a class="article-title" href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Quartz%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E4%BB%A5%E5%8F%8AJobDataMap%E7%9A%84%E6%95%B0%E6%8D%AE/"
+    >任务调度Quartz的简单使用以及JobDataMap的数据</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2018/09/20/Oracle/%E9%97%AA%E5%9B%9E%E6%8A%80%E6%9C%AF-%E9%97%AA%E5%9B%9E%E8%A1%A8,%E9%97%AA%E5%9B%9E%E5%88%A0%E8%A1%A8,%E9%97%AA%E5%9B%9E%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-09-20T08:43:42.000Z" itemprop="datePublished">2018-09-20</time>
+      <a href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Quartz%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E4%BB%A5%E5%8F%8AJobDataMap%E7%9A%84%E6%95%B0%E6%8D%AE/" class="article-date">
+  <time datetime="2018-09-26T06:08:14.000Z" itemprop="datePublished">2018-09-26</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
   </div>
 
       
@@ -119,94 +119,113 @@
       
 
       
-      <h1 id="闪回技术"><a href="#闪回技术" class="headerlink" title="闪回技术"></a>闪回技术</h1><h2 id="闪回表-Flashback-Table"><a href="#闪回表-Flashback-Table" class="headerlink" title="闪回表(Flashback Table)"></a>闪回表(Flashback Table)</h2><p>闪回表是利用UNDO表空间的撤销数据，所以能把表闪回到多久之前 受到<strong>undo_retention</strong>，<strong>UNDO表空间的数据文件是否启动自动增长功能</strong>，<strong>是否设置guarantee</strong>等三种因素的影响。 被闪回的表必须启动行移动功能，且该表必须存在</p>
-<pre><code>alter table dept enable row movement;</code></pre><p><strong>1. 闪回到具体时间</strong></p>
-<pre><code>flashback table scott.emp to timestamp to_timestamp(&apos;2018-09-10 09:00:00&apos;,&apos;yyyy-mm-dd hh24:mi:ss&apos;)</code></pre><ol start="2">
-<li><p>闪回到10分钟之前</p>
-<p>flashback table scott.emp to timestamp(systimestamp-interval ‘10’ minute)</p>
+      <h1 id="quartz任务调度框架"><a href="#quartz任务调度框架" class="headerlink" title="quartz任务调度框架"></a>quartz任务调度框架</h1><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
+<li>Quartz 是一个完全由 Java 编写的开源作业调度框架，为在 Java 应用程序中进行作业调度提供了简单却强大的机制。</li>
+<li>Quartz 可以与J2EE与 J2SE 应用程序相结合也可以单独使用。</li>
+<li>Quartz 允许程序开发人员根据时间的间隔来调度作业。</li>
+<li>Quartz 实现了作业和触发器的多对多的关系，还能把多个作业与不同的触发器关联。</li>
+</ol>
+<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><ol>
+<li><p>Job:Job表示一个工作，要执行的具体内容，该接口只有一个方法</p>
+<p>void execute(JobExecutionContext context)</p>
+</li>
+<li><p>JobDetail:表示一个具体可执行的调度程序，Job是这个可执行调度程序所需要执行的内容，另外JobDetail还包括任务调度的方案和策略</p>
+</li>
+<li><p>Trigger代表一个调度参数的配置，什么时候去调度，多长时间。</p>
+</li>
+<li><p>Scheduler代表一个调度容器，一个容器中可以注册多个JobDetail和Trigger，当JobDetail与Trigger组合，就可以被Scheduler容器调度了。</p>
 </li>
 </ol>
-<ol start="3">
-<li><p>将scott.emp闪回到SCN为10086000的时候</p>
-<p>flashback table scott.emp to scn 1086000;</p>
-<p>select dbms_flashback.get_system_change_number scn from dual;—查看当前SCN值</p>
-</li>
+<h2 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h2><ol>
+<li>Quartz 可以运行嵌入在另一个独立式应用程序。</li>
+<li>Quartz 可以在应用程序服务器(或 servlet 容器)内被实例化，并且参与 XA 事务。</li>
+<li>Quartz 可以作为一个独立的程序运行(其自己的 Java 虚拟机内)，可以通过 RMI 使用</li>
+<li>Quartz 可以被实例化，作为独立的项目集群(负载平衡和故障转移功能)，用于作业的执行</li>
 </ol>
-<p><strong>使用闪回表注意事项:</strong></p>
-<ul>
-<li>被闪回的表必须启动行移动功能,alter table dept enable row movement;</li>
-<li>“FLASHBACK TABLE”命令的执行者必须有“FLASHBACK ANY TABLE”系统权限或者在被闪回的表上具有“FLASHBACK”对象权限。</li>
-<li>“FLASHBACK TABLE”属于DDL命令，隐式提交。</li>
-<li>SYS用户的任何表无法使用此功能。</li>
-</ul>
-<h2 id="闪回删表-Flashback-Drop"><a href="#闪回删表-Flashback-Drop" class="headerlink" title="闪回删表(Flashback Drop)"></a>闪回删表(Flashback Drop)</h2><p>闪回删表指的是撤销“DROP TABLE”的效果。 <strong>1. 闪回被删掉的表scott.emp</strong></p>
-<pre><code>flashback table scott.emp to before drop;</code></pre><p>当表被删掉后，由新建了一个同名表，如果视图使用上面的闪回原表，则会报ORA-38312: original name is used by an existing object错误，可重新命名。 <strong>2. 闪回是可指被恢复的回收站对象</strong></p>
-<pre><code>flashback table &quot;BIN$AyId7ZbBjWngUKjADQIIuA==$0&quot; to before drop;</code></pre><p><strong>闪回删表的工作原理</strong>是:当“DROP TABLE”命令执行时，表和索引并没有真正意义的删除，其所占空间只是分配给了<strong>回收站对象</strong> 注意：表空间在自动增长的压力下会按照先入先出的规则将回收站对象的空间分配给需要空间的段，在将回收站对象耗尽之前数据文件是不会自动增长的。 <strong>3. 禁用回收站功能</strong></p>
-<pre><code>alter system set recyclebin=&apos;OFF&apos; scope=spfile;</code></pre><p><strong>4. 删除当前用户回收站的所有对象</strong></p>
-<pre><code>pruge recyclebin;</code></pre><h2 id="闪回查询"><a href="#闪回查询" class="headerlink" title="闪回查询"></a>闪回查询</h2><p>以表为单位查询过去的数据称为闪回查询，主要有两种方式：</p>
-<ul>
-<li>闪回时间点查询:利用select 命令的“as of”子句PL/SQL包dbms_flashback在过去的时间点上的查询。</li>
-<li>闪回版本查询:利用select命令的“version between”子句在过去的一段时间范围内的查询。</li>
-</ul>
-<h3 id="闪回时间点查询"><a href="#闪回时间点查询" class="headerlink" title="闪回时间点查询"></a>闪回时间点查询</h3><p><strong>利用as of语句</strong></p>
-<ol>
-<li><p>查询7900号员工在具体时间的工资</p>
-<p>select sal from emp as of timestamp to_timestamp(‘2018-09-13 10:02:30’,’yyyy-mm-dd,hh24:mi:ss’) where empno=7900;</p>
-</li>
-</ol>
-<ol start="2">
-<li><p>查询7900号员工在5分钟之前的工资</p>
-<p>select sal from emp as  of timestamp(systimestamp-interval ‘5’ minute) where empno=7900;</p>
-</li>
-</ol>
-<p><strong>利用dbms_flashback包</strong> 利用dbms_flashback包的<strong>enable_at_time或enable_at_scn</strong>存储过程锁定一个会话级别的闪回时间目标，即进入闪回模式，随后的查询命令可以省略“as of”，直到调用dbms_flashback_disable存储过程将其关闭为止。 比如：将闪回模式回话定格在15分钟之前:</p>
-<pre><code>exec dbms_flashback.enable_at_time(systimestamp - interval &apos;15&apos; minute);</code></pre><p>现在进行查询，注意，此时查询的是15分钟之前的表。</p>
-<pre><code>select sal from emp where empno=7900;   --忽略了“as of”子句</code></pre><p>此时若访问SYSDATE、SYSTIMESTAMP等日期函数，它们的返回值仍是当前值，而不是15分钟之前的值。 处于闪回会话模式时，执行dml和ddl将报错</p>
-<pre><code>SQL&gt; update emp set sal=2000 where empno=7900;
-update emp set sal=2000 where empno=7900
-       *
-第 1 行出现错误:
-ORA-08182: 在闪回模式下操作不受支持</code></pre><p>如果查询完毕，可调用disable存储过程关闭闪回会话模式。</p>
-<pre><code>exec dbms_flashback.disable;</code></pre><p><strong>闪回版本查询</strong> 闪回版本查询可以贯穿一定长度的时间窗口，通过只使用一条查询命令就能<strong>返回该时间窗口内不同时间点上的数据。</strong> 比如，首先通过3个事务将7900号员工的工资进行修改。</p>
-<pre><code>SQL&gt; update emp set sal=3000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。
-SQL&gt; update emp set sal=4000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。
-SQL&gt; update emp set sal=5000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。
-SQL&gt; update emp set sal=6000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。</code></pre><p><strong>执行闪回版本查询</strong></p>
-<pre><code>SQL&gt; select empno,sal from emp versions between timestamp(systimestamp -interval &apos;15&apos; minute) and maxvalue where empno=7900;
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="配置maven和properties"><a href="#配置maven和properties" class="headerlink" title="配置maven和properties"></a>配置maven和properties</h3><p>maven:</p>
+<pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
+  &lt;artifactId&gt;quartz&lt;/artifactId&gt;
+  &lt;version&gt;2.3.0&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
+  &lt;artifactId&gt;quartz-jobs&lt;/artifactId&gt;
+  &lt;version&gt;2.3.0&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>properties: 以quartz为文件名的properties文件是quartz的配置文件</p>
+<pre><code># 此调度程序的名称将为“MyScheduler”
+org.quartz.scheduler.instanceName = MyScheduler
+# 线程池中有3个线程，这意味着最多可以同时运行3个job。
+org.quartz.threadPool.threadCount = 3
+# quartz的所有数据，包括job和trigger的配置，都会存储在内存中（而不是数据库里）
+org.quartz.jobStore.class = org.quartz.simpl.RAMJobStore</code></pre><h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><p>QuartzTest.java文件如下：</p>
+<pre><code>import static org.quartz.DateBuilder.*;
+import static org.quartz.JobBuilder.*;
+import static org.quartz.SimpleScheduleBuilder.*;
+import static org.quartz.TriggerBuilder.*;
 
-     EMPNO        SAL
----------- ----------
-      7900       6000
-      7900       5000
-      7900       4000
-      7900       3000
-      7900        950</code></pre><p>通过“versions between”，我们可以看到在15分钟之内，7900号员工的工资用5个值，说明共有4个事务对其进行过修改。 为了能看清这些事务的先后顺序，可以在查询列表中使用伪字段。</p>
-<pre><code>SQL&gt; select versions_xid,versions_startscn,versions_endscn,empno,sal from emp versions between timestamp(systimestamp - interval &apos;15&apos; minute) and maxvalue where empno=7900 order by 2 nulls first;
+public static void main(String[] args) &#123;
+    try &#123;
+        Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
+        scheduler.start();
 
-VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
----------------- ----------------- --------------- ---------- ----------
-                                           5482877       7900        950
-0E00180005020000           5482877         5482880       7900       3000
-17000D00E7010000           5482880         5482882       7900       4000
-0F00140002020000           5482882         5482885       7900       5000
-16000700C2020000           5482885                       7900       6000</code></pre><ul>
-<li>versions_xid为事物号</li>
-<li>versions_startscn是事物开始时的SCN</li>
-<li>version_endscn时修改该行的下一个事物开始时的SCN</li>
+        JobDetail job = newJob(HelloJob.class).withIdentity(&quot;job1&quot;,&quot;group1&quot;).build();
+        Trigger trigger = newTrigger().withIdentity(&quot;trigger1&quot;, &quot;group1&quot;).startNow().
+                withSchedule(simpleSchedule().withIntervalInSeconds(2).repeatForever()).build();
+        scheduler.scheduleJob(job, trigger);
+        Thread.sleep(10000);
+        scheduler.shutdown();
+    &#125; catch (SchedulerException e) &#123;
+        e.printStackTrace();
+    &#125; catch (InterruptedException e) &#123;
+        e.printStackTrace();
+    &#125;
+&#125;</code></pre><p>注意其导入的静态方法，导入了Builder类的所有静态方法。 HelloJob.java文件如下</p>
+<pre><code>public class HelloJob implements Job &#123;
+    @Override
+  public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException &#123;
+        System.out.println(&quot;--------This is Job&quot;);
+    &#125;
+&#125;</code></pre><h2 id="Quartz-API"><a href="#Quartz-API" class="headerlink" title="Quartz API"></a>Quartz API</h2><p>关键接口</p>
+<ul>
+<li>Scheduler:与调度程序交互的主要API</li>
+<li>Job:由调度组件执行的组件实现的接口</li>
+<li>JobDetail:用于定义作业的实例</li>
+<li>Trigger:定义执行给定作业的计划的组件</li>
+<li>JobBuilder:构建JobDetail实例</li>
+<li>TriggerBuilder:构建Trigger实例</li>
 </ul>
-<p>首尾衔接这两个字段的SCN号很容易得出真实的修改顺序。</p>
+<h2 id="JobDetail的JobDataMap与JobExecutionContext类"><a href="#JobDetail的JobDataMap与JobExecutionContext类" class="headerlink" title="JobDetail的JobDataMap与JobExecutionContext类"></a>JobDetail的JobDataMap与JobExecutionContext类</h2><p><strong>问题描述?</strong> 我们每次传给scheduler一个JobDetail实例，都会将要执行Job类名传递给JobDetail，scheduler就知道要执行何种类型的job，每当scheduler执行job时，在调用execute方法之前会创建该类的新实例，执行完毕后对该实例的引用被丢弃，实例会垃圾回收。 <strong>结果:</strong> 这样的后果是，job必须有一个无参的构造函数(别说你没有定义，其实是默认的构造)；另一个后果是在job类中，不应该定义有状态的数据属性，因为在job的多次执行中，这些属性的值不会保留。 <strong>解决</strong> 那么如果给Job添加实例属性，需要用到JobDetail类的属性JobDataMap对象,这个对象封装了对数据的存储，且间接实现Map接口。只需要使用usingJobData方法即可调用对象设置属性值。</p>
+<pre><code>JobDetail job = newJob(DumbJob.class)
+      .withIdentity(&quot;myJob&quot;, &quot;group1&quot;) // name &quot;myJob&quot;, group &quot;group1&quot;
+      .usingJobData(&quot;jobSays&quot;, &quot;Hello World!&quot;)
+      .usingJobData(&quot;myFloatValue&quot;, 3.141f)
+      .build();</code></pre><p>那么提取数据就可以通过execute方法中JobExecutionContext参数获得JobDetail实例，再获得JobDataMap对象即可获得值。 <strong>另一种方法</strong> JobExecutionContext类也可以获得JobDataMap对象，此类是JobDetail中的JobDataMap和Trigger中的JobDataMap的并集，但是如果存在相同的数据，则后者会覆盖前者的值。</p>
+<pre><code>public void execute(JobExecutionContext context)throws JobExecutionException&#123;
+    JobKey key = context.getJobDetail().getKey();
+
+    JobDataMap dataMap = context.getMergedJobDataMap();  // Note the difference from the previous example
+
+    String jobSays = dataMap.getString(&quot;jobSays&quot;);
+    float myFloatValue = dataMap.getFloat(&quot;myFloatValue&quot;);
+    ArrayList state = (ArrayList)dataMap.get(&quot;myStateData&quot;);
+    state.add(new Date());
+
+    System.err.println(&quot;Instance &quot; + key + &quot; of DumbJob says: &quot; + jobSays + &quot;, and val is: &quot; + myFloatValue);
+&#125;</code></pre><p>当然还可以通过为属性定义set方法，实现自动注入。Quartz的默认JobFactory实现在job被实例化的时候会自动调用这些set方法，这样你就不需要在execute()方法中显式地从map中取数据了。不需要获得JobDataMap，直接打印属性。</p>
+<pre><code>public class HelloJob implements Job &#123;
+    String name;
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+    @Override
+    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException &#123;
+        /*JobDataMap jobDataMap = jobExecutionContext.getJobDetail().getJobDataMap();
+        String name = jobDataMap.getString(&quot;name&quot;);*/
+        //JobDataMap jobDataMap = jobExecutionContext.getMergedJobDataMap();
+        System.out.println(&quot;--------This is Job name:&quot; + name);
+    &#125;
+&#125;</code></pre><h3 id="Job状态与并发"><a href="#Job状态与并发" class="headerlink" title="Job状态与并发"></a>Job状态与并发</h3><p><strong>@DisallowConcurrentExecution</strong>:将该注解加到job类上，告诉Quartz不要并发地执行同一个job定义（这里指特定的job类）的多个实例 <strong>@PersistJobDataAfterExecution</strong>：将该注解加在job类上，告诉Quartz在成功执行了job类的execute方法后（没有发生任何异常），更新JobDetail中JobDataMap的数据，使得该job（即JobDetail）在下一次执行的时候，JobDataMap中是更新后的数据，而不是更新前的旧数据 如果使用了@PersistJobDataAfterExecution建议也加上@DisallowConcurrentExecution，因为当同一个job（JobDetail）的两个实例被并发执行时，由于竞争，JobDataMap中存储的数据很可能是不确定的。</p>
 
       
       <!-- reward -->
@@ -219,7 +238,7 @@ VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%97%AA%E5%9B%9E/" rel="tag">闪回</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/quartz/" rel="tag">quartz</a></li></ul>
 
 
     </footer>
@@ -236,7 +255,7 @@ VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
 
 </article>
     
-    <article id="post-Linux/使用Ubuntu18.04和VirtualBox虚拟软件使虚拟机之间互通和与宿主互通" class="article article-type-post" itemscope
+    <article id="post-Javascript/使用Editor.md插件作为markdown编辑器" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -244,8 +263,8 @@ VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/09/18/Linux/%E4%BD%BF%E7%94%A8Ubuntu18.04%E5%92%8CVirtualBox%E8%99%9A%E6%8B%9F%E8%BD%AF%E4%BB%B6%E4%BD%BF%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B9%8B%E9%97%B4%E4%BA%92%E9%80%9A%E5%92%8C%E4%B8%8E%E5%AE%BF%E4%B8%BB%E4%BA%92%E9%80%9A/"
-    >使用Ubuntu18.04和VirtualBox虚拟软件使虚拟机之间互通和与宿主互通</a
+  <a class="article-title" href="/2018/09/25/Javascript/%E4%BD%BF%E7%94%A8Editor.md%E6%8F%92%E4%BB%B6%E4%BD%9C%E4%B8%BAmarkdown%E7%BC%96%E8%BE%91%E5%99%A8/"
+    >使用Editor.md插件作为markdown编辑器</a
   >
 </h2>
   
@@ -255,99 +274,8 @@ VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
 
     
     <div class="article-meta">
-      <a href="/2018/09/18/Linux/%E4%BD%BF%E7%94%A8Ubuntu18.04%E5%92%8CVirtualBox%E8%99%9A%E6%8B%9F%E8%BD%AF%E4%BB%B6%E4%BD%BF%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B9%8B%E9%97%B4%E4%BA%92%E9%80%9A%E5%92%8C%E4%B8%8E%E5%AE%BF%E4%B8%BB%E4%BA%92%E9%80%9A/" class="article-date">
-  <time datetime="2018-09-18T08:09:44.000Z" itemprop="datePublished">2018-09-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="使用Ubuntu18-04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问"><a href="#使用Ubuntu18-04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问" class="headerlink" title="使用Ubuntu18.04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问"></a>使用Ubuntu18.04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问</h1><p>直接切入操作，不讲废话，毕竟也是参考别人并尝试出来的。 1. 新建适配器网卡 首先你需要配置一个【虚拟适配器】，再【设置】，【主机网络管理器】，新建一个网络，下面【网卡选项】选择手动配置，好像创建完之后，文本框里就已经有值了，【取消启用HDCP服务器】。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918152356.png" alt=""> 每个机子的网段IP可能是不一样的，我的是192.168.135.1,你的135这个网段会变，另外第四位设置为1就好。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918152611.png" alt=""> 此时你的网络中会多出一个适配器。</p>
-<ol start="2">
-<li>配置网络网卡</li>
-</ol>
-<p>点击你已经虚拟好的机子，点击设置，配置【网络】，【网卡1】配置【网络地址转换NAT】 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918153019.png" alt=""> 【网卡2】配置，点击【启用连接】复选框，设置连接方式为【仅主机Host-Only网络】，【界面名称就是刚才创建的网络适配器，选中】 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918153046.png" alt=""> 你有两个虚拟机，你的两个虚拟机都要这样设置。如果之后你连接不上，一定要确认你的虚拟机这两个网卡的网络设置是否正确。 可以还在这个设置中看，还可以在虚拟机启动后，右下角的工具栏中显示的网络配置。</p>
-<ol start="3">
-<li>简单说一下这么配置的原因，也是引用源博主的文章。</li>
-</ol>
-<p>首先引一下图片 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/201809181536120.png" alt=""> 随后，看他说的，两个网卡分别有什么作用。 【网卡1，网络地址转换NAT】的目的是用上<strong>虚拟机与主机之间通讯</strong>，并且可以上外网。由于VirtualBox 的 NAT方式，只允许<strong>虚拟机与主机之间单向通讯</strong>（因为VirtualBox只虚拟了一个网卡，所以主机是ping不通虚拟机的。 而按图例中，虚拟机之间可以通过Host-Only和桥接方式，所以你要设置一个Host-Only，它不是刚设置的嘛，有ip4，所以它用来<strong>给两台虚拟机设置静态IP</strong>,而网卡1就是连接宿主的，可以访问网络，IP4和HDCP都是自动获取的，而且IP地址是类似10.10.x.x的。 这样的话，又能访问宿主网络，ping宿主(宿主不能ping虚拟机)，又能虚拟机之间访问，而且是静态的IP。</p>
-<ol start="4">
-<li>进入Ubuntu18.4中设置网络</li>
-</ol>
-<p>到linux里，这两个配置的网卡就变名字了，enp0s3和enp0s8，当然每个机子可能都是不一样的，也可能一样。但是有一点就是再做这个操作之前，我也分不清哪个用来虚拟机互通的，那个是用来连接虚拟机自动获取网络的。 所以先拿一台虚拟机尝试,配置 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/T20180918155055.png" alt=""> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/T20180918155233.png" alt=""></p>
-<ol>
-<li>0s3我配置的是自动连接，就是自动获取ip，DHCP，用于连接宿主，访问网络的。【身份选项】，mac地址就选择当前配置的enp0s3,ip4和ip6中都是自动，这间完成自动获取宿主连接了。</li>
-</ol>
-<p>对于enp0s8是虚拟机之间的通信，设置静态ip,【身份选项】mac选择当前对应网卡的地址enp0s8,ip4设置如下，ip6自动(文章中说NAT是无法设置IP6的) <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918155503.png" alt=""></p>
-<ol start="2">
-<li>这个IP4的配置，ip4选手动单选，地址:192.168.x.x,第三位是创建适配器时的默认给你的，第四位就是当前机子的ip号，这个号肯定是当前ip端唯一的。子网掩码:255.255.255.0这个是不用更改的，【网关】就是创建时默认的192.168.x.1。</li>
-</ol>
-<p>好，这样一台虚拟机就配置完成了，你可以ping一下百度网址<a target="_blank" rel="noopener" href="http://www.baidu.com或者宿主ip地址，如果响应没问题就说明OK了。如果有问题，那么你就得把两个网卡的配置反过来试试吧。。。。。。。">www.baidu.com或者宿主ip地址，如果响应没问题就说明OK了。如果有问题，那么你就得把两个网卡的配置反过来试试吧。。。。。。。</a> 对于虚拟机之间的ping，就得把另一个虚拟机也配置了之后，在相互ping，如果通了，那就完成了。 该案例也是秩序配置，不需要修改什么配置文件，上午改了配置文件，改yaml文件，始终编译不成功。 参考的博客: <a target="_blank" rel="noopener" href="https://blog.csdn.net/techsupporter/article/details/51810649">https://blog.csdn.net/techsupporter/article/details/51810649</a> <a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/149551">https://yq.aliyun.com/articles/149551</a> 那么我这么做，虚拟机互相ping时干什么，恩，大数据搭建环境，额虽然大数据已经很火爆很完善了现在，但是我还在开始学啊。看后面大数据环境的配置把。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="tag">虚拟机</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/"
-    >在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2018-09-16T11:24:23.000Z" itemprop="datePublished">2018-09-16</time>
+      <a href="/2018/09/25/Javascript/%E4%BD%BF%E7%94%A8Editor.md%E6%8F%92%E4%BB%B6%E4%BD%9C%E4%B8%BAmarkdown%E7%BC%96%E8%BE%91%E5%99%A8/" class="article-date">
+  <time datetime="2018-09-25T10:58:39.000Z" itemprop="datePublished">2018-09-25</time>
 </a>
       
   <div class="article-category">
@@ -368,600 +296,597 @@ VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
       
 
       
-      <h2 id="关于js-ajax方法的success函数执行问题"><a href="#关于js-ajax方法的success函数执行问题" class="headerlink" title="关于js ajax方法的success函数执行问题"></a>关于js ajax方法的success函数执行问题</h2><p>首先对于ajax的success和post，get的回调函数都是同一中，都是成功后要执行的函数，这时肯定的。 那问题是什么？ 在执行ajax的success回调函数时，可能你会由返回值，由外部去获得这个值，但是外部却无法获得这个值，也不是说无法获得，只是时间点不对。当调用包含ajax方法时得到的返回值是undefined,随后执行后面的代码，当所有代码执行完成后它才返回你需要的那个返回值。 你可以写个简单的示例：</p>
-<ul>
-<li>定义一个普通方法来调用带有ajax的方法</li>
-<li>然后在该普通方法调用ajax方法之后输出这个返回值</li>
-<li>然后在ajax的方法中，在回调方法success里输出你ajax请求操作成功后返回的result值。</li>
-</ul>
-<p>通过执行你会发现，先弹出你的 返回值，而且返回值是undefined的，随后再弹出你的result值，有值。 那为什么会这样，通过js调试发现，当你执行到$.post(…),$.get(…),$.ajax({…})这行之后，它会直接跳到ajax末尾的”}”去，也就是说回掉函数没有执行，随后返回到上一级输出你的返回值，导致是未定义的变量，随后当代码执行完之后，代码又进入jquery.min.js中，弹出了回掉函数中的result的弹框。 就是这样一种情况，如果你想要获得ajax回调的返回结果，并对结果进行判断或其他操作，它是得不到值的。 那么么为什么会这样，一篇博客中说出了道理，起始也是一个ajax底层的问题，也不是多困难。 答:ajax默认是异步传递的。<strong>它不会暂停它之后代码的执行。在后面代码执行时，ajax肯定还没有返回数据</strong>。如果不理解异步传递。请记住，ajax()之后不要写需要用到ajax返回数据的代码。<strong>所有需要用到ajax返回数据的代码都要放到success回调函数中</strong>。 将后面需要用到的都放在success中，这个确实是一个方法，但可能可用性不太好。但是如果你把async设置为false，好像仍然能解决问题。 这样就引出了后面的第二个问题，因为当你在同一页面或同一层窗口中不太需要success的返回值或其他返回值，因为既然在同一页面你可以再success中判断并直接调用其他方法。所以没不要获得返回值。而另一种情况就是通过对话框做form表单操作，也就是把form的增该不单独放页面中，而是放在弹出框里，这样就相当于是一个iframe，多个一层框架，有一个父子窗口的关系。</p>
-<h2 id="父窗口与子窗口函数的互相调用"><a href="#父窗口与子窗口函数的互相调用" class="headerlink" title="父窗口与子窗口函数的互相调用"></a>父窗口与子窗口函数的互相调用</h2><p>对于这个问题，也就是刚才引出的话题。只需要调用就好。 <strong>对于子窗口调用父窗口的方法:</strong></p>
-<pre><code>window.parent.xxx;//xxx就是父窗口的的方法</code></pre><p>我为什么会用到这个，因为我需要再父窗口弹出一个右下角的提示小窗，所以如果再子窗口里，窗口大小太小，也不好看，所以操作完成后再父窗口中显示。 <strong>对于父窗口调用子窗口的方法</strong></p>
-<pre><code>document.getElementById(&quot;#iframe&quot;).contentWindow.xxx;</code></pre><p>document.getElementById(“#iframe”)就是获得子窗口的iframe Document对象，然后通过contentWindow来调用方法。 <strong>对于兄弟级别的窗口</strong> 需要先获得父级dom，再获得子窗口的dom。也相当于子窗口转到父窗口再转到另一个子窗口。</p>
-<pre><code>window.parent.$(&quot;#childFrm&quot;)[0].contentWindow.xxx;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
+      <h1 id="使用Editor-md插件作为markdown编辑器"><a href="#使用Editor-md插件作为markdown编辑器" class="headerlink" title="使用Editor.md插件作为markdown编辑器"></a>使用Editor.md插件作为markdown编辑器</h1><p><a target="_blank" rel="noopener" href="http://pandao.github.io/editor.md/examples/index.html">官网示例地址</a></p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><pre><code>&lt;!DOCTYPE html&gt;
+&lt;html lang=&quot;en&quot;&gt;
 
+&lt;head&gt;
+  &lt;meta charset=&quot;UTF-8&quot;&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
+  &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
+  &lt;title&gt;simple测试&lt;/title&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;editor.md/css/style.css&quot; /&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;editor.md/css/editormd.css&quot; /&gt;
+  &lt;link rel=&quot;shortcut icon&quot; href=&quot;https://pandao.github.io/editor.md/favicon.ico&quot; type=&quot;image/x-icon&quot; /&gt;
+&lt;/head&gt;
 
-    </footer>
+&lt;body&gt;
+  &lt;div id=&quot;layout&quot;&gt;
+    &lt;header&gt;
+      &lt;h1&gt;Simple example&lt;/h1&gt;
+    &lt;/header&gt;
+    &lt;div id=&quot;test-editormd&quot;&gt;
+      &lt;textarea style=&quot;display:none;&quot;&gt;&lt;/textarea&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+  &lt;script src=&quot;https://cdn.bootcss.com/jquery/3.3.1/jquery.min.js&quot;&gt;&lt;/script&gt;
+  &lt;script src=&quot;editor.md/src/editormd.js&quot;&gt;&lt;/script&gt;
+  &lt;script type=&quot;text/javascript&quot;&gt;
+    var testEditor;
 
-  </div>
+    $(function () &#123;
+      testEditor = editormd(&quot;test-editormd&quot;, &#123;
+        width: &quot;90%&quot;,
+        height: 640,
+        syncScrolling: &quot;single&quot;,
+        path: &quot;editor.md/lib/&quot;
+      &#125;);
 
-  
+      /*
+      // or
+      testEditor = editormd(&#123;
+          id      : &quot;test-editormd&quot;,
+          width   : &quot;90%&quot;,
+          height  : 640,
+          path    : &quot;../lib/&quot;
+      &#125;);
+      */
+    &#125;);
+  &lt;/script&gt;
+&lt;/body&gt;
 
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-XML/XML XSTL技术笔记 XML样式表" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/14/XML/XML%20XSTL%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0%20XML%E6%A0%B7%E5%BC%8F%E8%A1%A8/"
-    >XML XSTL技术笔记 XML样式表</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/14/XML/XML%20XSTL%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0%20XML%E6%A0%B7%E5%BC%8F%E8%A1%A8/" class="article-date">
-  <time datetime="2018-09-14T09:09:15.000Z" itemprop="datePublished">2018-09-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/XML/">XML</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="XML-XSLT"><a href="#XML-XSLT" class="headerlink" title="XML XSLT"></a>XML XSLT</h1><p>XSLT 是一种用于将 XML 文档转换为 XHTML 文档或其他 XML 文档的语言。 XPath 是一种用于在 XML 文档中进行导航的语言。 在学习XSTL之前要了解XPath。</p>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>one.xsl文件</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt; &lt;xsl:stylesheet version=&quot;1.0&quot; xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;&gt;
-    &lt;xsl:template match=&quot;/&quot;&gt;
-        &lt;html&gt;
-            &lt;body&gt;
-                &lt;h2&gt;My CD Collection&lt;/h2&gt;
-                &lt;table border=&quot;1&quot;&gt;
-                    &lt;tr bgcolor=&quot;#9acd32&quot;&gt;
-                        &lt;th&gt;Title&lt;/th&gt;
-                        &lt;th&gt;Artist&lt;/th&gt;
-                    &lt;/tr&gt;
-                    &lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
-                        &lt;tr&gt;
-                            &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
-                            &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
-                        &lt;/tr&gt;
-                    &lt;/xsl:for-each&gt;
-                &lt;/table&gt;
-            &lt;/body&gt;
-        &lt;/html&gt;
-    &lt;/xsl:template&gt;
-&lt;/xsl:stylesheet&gt;</code></pre><p>a.xml文件</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;?xml-stylesheet  type=&quot;text/xsl&quot;  href=&quot;one.xsl&quot;?&gt; &lt;catalog&gt;
-    &lt;cd&gt;
-        &lt;title&gt;Empire Burlesque&lt;/title&gt;
-        &lt;artist&gt;Bob Dylan&lt;/artist&gt;
-        &lt;country&gt;USA&lt;/country&gt;
-        &lt;company&gt;Columbia&lt;/company&gt;
-        &lt;price&gt;10.90&lt;/price&gt;
-        &lt;year&gt;1985&lt;/year&gt;
-    &lt;/cd&gt;
-&lt;/catalog&gt;</code></pre><p>使用浏览器预览a.xml文件。</p>
-<h3 id="xsl-template元素"><a href="#xsl-template元素" class="headerlink" title="xsl:template元素"></a>xsl:template元素</h3><p>XSL 样式表由一个或多套被称为模板（template）的规则组成。 每个模板含有当某个指定的节点被匹配时所应用的规则。 xls:templdate元素用于构建模板，match属性用于关联XML元素和模板。match元素也可以用于为整个XML文档定义模板。match属性的值是XPath表达式。 先来简单介绍一下这个模板的示例</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;xsl:stylesheet version=&quot;1.0&quot; xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;&gt;
-&lt;xsl:template match=&quot;/&quot;&gt;
-  &lt;html&gt;
-  &lt;body&gt;
-  &lt;h2&gt;My CD Collection&lt;/h2&gt;
-  &lt;table border=&quot;1&quot;&gt;
-    &lt;tr bgcolor=&quot;#9acd32&quot;&gt;
-      &lt;th&gt;Title&lt;/th&gt;
-      &lt;th&gt;Artist&lt;/th&gt;
-    &lt;/tr&gt;
-    &lt;tr&gt;
-      &lt;td&gt;.&lt;/td&gt;
-      &lt;td&gt;.&lt;/td&gt;
-    &lt;/tr&gt;
-  &lt;/table&gt;
-  &lt;/body&gt;
-  &lt;/html&gt;
-&lt;/xsl:template&gt;
-&lt;/xsl:stylesheet&gt;</code></pre><p>第一行为XML声明，第二行xml:stylesheet元素定义此文档是XSTL样式表文档(连同版本号和命名空间)。 xsl:template元素表示定义一个模板，而match属性值为“/”表示将此模板与整个XML源文档的根关联。 而模板内部内容定义了html代码。</p>
-<h3 id="xls-value-of"><a href="#xls-value-of" class="headerlink" title="xls:value-of"></a>xls:value-of</h3><p>xls:value-of元素元用于提取某个 XML 元素的值，并把值添加到转换的输出流中：</p>
-<pre><code>&lt;tr&gt;
-    &lt;td&gt;&lt;xsl:value-of select=&quot;catalog/cd/title&quot;/&gt;&lt;/td&gt;
-    &lt;td&gt;&lt;xsl:value-of select=&quot;catalog/cd/artist&quot;/&gt;&lt;/td&gt;
-&lt;/tr&gt;</code></pre><p>select元素中的值为XPath表达式，该示例中的值表示，获取catalog下的cd下的所有title元素，其中“/”代表一个子目录级。 此元素将获取title元素包含的文本值转换输出到此处。</p>
-<h3 id="xls-for-each元素"><a href="#xls-for-each元素" class="headerlink" title="xls:for-each元素"></a>xls:for-each元素</h3><p>由名字可见，此标签元素用于循环</p>
-<pre><code>&lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
-    &lt;tr&gt;
-        &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
-        &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
-    &lt;/tr&gt;
-&lt;/xsl:for-each&gt;</code></pre><p>该元素和Java jstl表达式的for-each一个意思。select属性也是XPath值，表示获得catalog下的所有cd元素。 此示例将对所有的cd元素进行循环,而每次循环，value-of都可以从中得到cd的子元素。 当然，还可以对select进行过滤筛选</p>
-<pre><code>&lt;xsl:for-each select=&quot;catalog/cd[artist=&apos;Xiao Duo&apos;]&quot;&gt;
-&lt;/xsl:for-each&gt;</code></pre><p>过滤运算符:</p>
-<ul>
-<li>等于：=</li>
-<li>不等于：!=</li>
-<li>小于：&lt;</li>
-<li>大于：&gt;</li>
-</ul>
-<p>该示例表明，将筛选出artist元素值等于“Xiao Duo”的cd元素。</p>
-<h3 id="xsl-sort"><a href="#xsl-sort" class="headerlink" title="xsl:sort"></a>xsl:sort</h3><p>用于对输出结果进行排序。 只需要简单的在xsl:for-each元素中放入此元素即可，select的值为要排序的元素名称。</p>
-<pre><code>&lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
-    &lt;xsl:sort select=&quot;artist&quot;/&gt;
-    &lt;tr&gt;
-        &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
-        &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
-    &lt;/tr&gt;
-&lt;/xsl:for-each&gt;</code></pre><h3 id="xsl-if"><a href="#xsl-if" class="headerlink" title="xsl:if"></a>xsl:if</h3><p>用于对数据进行条件筛选。</p>
-<pre><code>&lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
-    &lt;xsl:if test=&quot;price &gt; 10&quot;&gt;
-        &lt;tr&gt;
-            &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
-            &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
-            &lt;td&gt;&lt;xsl:value-of select=&quot;price&quot;/&gt;&lt;/td&gt;
-        &lt;/tr&gt;
-    &lt;/xsl:if&gt;
-&lt;/xsl:for-each&gt;</code></pre><p>该示例表示价格大于10的数据进行显示。</p>
-<h3 id="xls-choose-xls-when-xls-otherwise"><a href="#xls-choose-xls-when-xls-otherwise" class="headerlink" title="xls:choose xls:when xls:otherwise"></a>xls:choose xls:when xls:otherwise</h3><p>语法：</p>
-<pre><code>&lt;xsl:choose&gt;
-&lt;xsl:when test=&quot;_expression_&quot;&gt;
-... some output ...
-&lt;/xsl:when&gt;
-&lt;xsl:otherwise&gt;
-... some output ....
-&lt;/xsl:otherwise&gt;
-&lt;/xsl:choose&gt;</code></pre><h3 id="xls-attribute"><a href="#xls-attribute" class="headerlink" title="xls:attribute"></a>xls:attribute</h3><p>该元素放置在html元素内部，表示为当前父级html节点元素设置一个属性，其name属性值(非XPath)为html的属性名，而xls:attribute文本值则为html元素的对应属性值。</p>
-<pre><code>&lt;td&gt;
-    &lt;xsl:attribute name=&quot;price&quot;&gt;
-      &lt;xsl:value-of select=&quot;price&quot;/&gt;
-    &lt;/xsl:attribute&gt;
-    &lt;xsl:value-of select=&quot;title&quot;/&gt;
-&lt;/td&gt;</code></pre><p>该示例表示，为td标签元素设置一个属性，名称为price,值为value-of获得的值，选取了price的xml节点元素值。显示如下:</p>
-<pre><code>&lt;td price=&quot;10.90&quot;&gt;Empire Burlesque&lt;/td&gt;</code></pre><h3 id="xls-element"><a href="#xls-element" class="headerlink" title="xls:element"></a>xls:element</h3><p>表示自定义一个元素，name属性值为自定义的元素名称。</p>
-<pre><code>&lt;xsl:element name=&quot;singer&quot;&gt;
-    &lt;xsl:attribute name=&quot;a&quot;&gt;a&lt;/xsl:attribute&gt;
-    &lt;xsl:attribute name=&quot;b&quot;&gt;b&lt;/xsl:attribute&gt;
-    &lt;xsl:value-of select=&quot;artist&quot; /&gt;
-&lt;/xsl:element&gt;
-展示:
-&lt;singer a=&quot;a&quot; b=&quot;b&quot;&gt;Bob Dylan&lt;/singer&gt;</code></pre><h3 id="xls-import-xls-include"><a href="#xls-import-xls-include" class="headerlink" title="xls:import,xls:include"></a>xls:import,xls:include</h3><p>xls:import表示把一个样式表中的内容<strong>导入</strong>到另一个样式表中。被导入的样式表的优先级低于当前的样式表。 xls:include表示把一个样式表的内容包含到另一个样式表中。被包含的样式表用于与包含的样式表优先级相同。 href属性指定被导入或被包含的样式表路径，相对路径。</p>
-<h3 id="xls-text"><a href="#xls-text" class="headerlink" title="xls:text"></a>xls:text</h3><p>用于向输出写文本，即通过样式表生成文本节点。</p>
-<pre><code>&lt;xsl:template match=&quot;/&quot;&gt;
-    &lt;xls:text&gt;你好&lt;/xls:text&gt;
-&lt;/xsl:template&gt;</code></pre><p>可直接在标签内写值或value-of元素,属性disable-output-escaping表示是否对文本不进行转义，默认no，也就是转义。</p>
-<h3 id="xsl-comment"><a href="#xsl-comment" class="headerlink" title="xsl:comment"></a>xsl:comment</h3><p>在结果树中创建注释节点</p>
-<pre><code>&lt;xsl:comment&gt;This is a comment!&lt;/xsl:comment&gt;
-&lt;xsl:comment&gt;&lt;xsl:value-of select=&quot;name&quot;/&gt;&lt;/xsl:comment&gt;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-XML/XML Schema技术笔记" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/14/XML/XML%20Schema%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"
-    >XML Schema技术笔记</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/14/XML/XML%20Schema%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/" class="article-date">
-  <time datetime="2018-09-14T03:12:32.000Z" itemprop="datePublished">2018-09-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/XML/">XML</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Schemas教程"><a href="#Schemas教程" class="headerlink" title="Schemas教程"></a>Schemas教程</h1><p>XML Schema 是基于 XML 的 DTD 替代者。 XML Schema 可描述 XML 文档的结构。 XML Schema 语言也可作为 XSD（XML Schema Definition）来引用。</p>
-<h3 id="schema元素"><a href="#schema元素" class="headerlink" title="schema元素"></a>schema元素</h3><pre><code>&lt;?xml version=&quot;1.0&quot;?&gt;
-
-&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;
-targetNamespace=&quot;http://www.runoob.com&quot;
-xmlns=&quot;http://www.runoob.com&quot;
-elementFormDefault=&quot;qualified&quot;&gt;
-...
-...
-&lt;/xs:schema&gt;</code></pre><ul>
-<li>xmlns:xs:显示schema中用到的元素和数据类型来自此命名空间，同时规定应该使用xs前缀</li>
-<li>targetNamespace:显示被此schema定义的元素来自命名空间</li>
-<li>xmlns:默认命名空间</li>
-<li>elementFormDefault=“qualified“:指出任何XML实例必须被命名空间限定</li>
-</ul>
-<p>在XML中引用schema</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot;?&gt;
-
-&lt;note xmlns=&quot;http://www.runoob.com&quot;
-xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-xsi:schemaLocation=&quot;http://www.runoob.com note.xsd&quot;&gt;
-
-&lt;to&gt;Tove&lt;/to&gt;
-&lt;from&gt;Jani&lt;/from&gt;
-&lt;heading&gt;Reminder&lt;/heading&gt;
-&lt;body&gt;Don&apos;t forget me this weekend!&lt;/body&gt;
-&lt;/note&gt;</code></pre><h2 id="元素"><a href="#元素" class="headerlink" title="元素"></a>元素</h2><h3 id="简易元素"><a href="#简易元素" class="headerlink" title="简易元素"></a>简易元素</h3><p>仅包含文本的元素，不包含任何其他元素或属性。</p>
-<ol>
-<li><p><strong>语法:</strong></p>
-<p>&lt;xs:element name=”xxx” type=”yyy”/&gt;</p>
+&lt;/html&gt;</code></pre><h1 id="插件部分解析"><a href="#插件部分解析" class="headerlink" title="插件部分解析"></a>插件部分解析</h1><h2 id="settings属性"><a href="#settings属性" class="headerlink" title="settings属性"></a>settings属性</h2><ol>
+<li><p>务必更改settings设置的path属性，否则lib下的资源无法找到</p>
+</li>
+<li><p>saveHTMLToTextarea属性设置为true才能使用getHTML()方法获得markdown的HTML字符串</p>
+</li>
+<li><p>placeholder:编辑器无文本时，默认文字</p>
+</li>
+<li><p>syncScrolling:同步滚动</p>
+</li>
+<li><p>autoHeight:高度自动增长，跟随行数增长</p>
+</li>
+<li><p>toolbarAutoFixed,boolean,工具栏自动固定定位的开启与禁用</p>
+</li>
+<li><p>appendMarkdown:追加markdown，将此值设置为markdown内容,markdown属性是初始时设置</p>
+</li>
+<li><p>delay:延迟解析预览,值越大解析越慢，越小解析越快</p>
+</li>
+<li><p>searchReplace:内容搜索替换</p>
+</li>
+<li><p>readonly:只读模式</p>
+</li>
+<li><p>codeFold:代码折叠，如js代码</p>
+</li>
+<li><p>syncScrolling:同步滚动，true为左右双向同时滚动，false为非同时滚动，single为单向滚动</p>
 </li>
 </ol>
-<p>name定义元素的名称，type定义元素的数据类型</p>
-<ol start="2">
-<li><strong>常用的类型:</strong></li>
-</ol>
+<h2 id="方法"><a href="#方法" class="headerlink" title="方法"></a>方法</h2><p>方法</p>
+<p>说明</p>
+<p>getHTML()</p>
+<p>获得html</p>
+<p>getMarkdown()</p>
+<p>获得markdown</p>
+<p>show()</p>
+<p>显示编辑器</p>
+<p>hide()</p>
+<p>隐藏编辑器</p>
+<p>watch()</p>
+<p>显示实时预览</p>
+<p>unwatch()</p>
+<p>关闭实时预览</p>
+<p>previewing()</p>
+<p>完全预览显示</p>
+<p>fullscreen()</p>
+<p>全屏</p>
+<p>setToolbarAutoFixed(boolean)</p>
+<p>工具栏自动固定定位的开启与禁用</p>
+<p>getCursor()</p>
+<p>获得光标位置</p>
+<p>setCursor({line:1,ch:2})</p>
+<p>设置光标位置</p>
+<p>focus()</p>
+<p>获得焦点</p>
+<p>setSelection({line:1, ch:0}, {line:5, ch:100})</p>
+<p>选中区域内容</p>
+<p>getSelection()</p>
+<p>获得区域内容</p>
+<p>replaceSelection(str)</p>
+<p>选中替换</p>
+<p>insertValue(str)</p>
+<p>插入</p>
+<h2 id="动态创建Editor-md"><a href="#动态创建Editor-md" class="headerlink" title="动态创建Editor.md"></a>动态创建Editor.md</h2><pre><code>$(function () &#123;
+      $(&quot;#create-btn&quot;).click(function () &#123;
+        $.getScript(&quot;editor.md/editormd.js&quot;, function () &#123;
+          $(&quot;#layout&quot;).append(&quot;&lt;div id=\&quot;test-editormd\&quot;&gt;&lt;/div&gt;&quot;);
+
+          testEditormd = editormd(&quot;test-editormd&quot;, &#123;
+            width: &quot;90%&quot;,
+            height: 640,
+            markdown: &quot;### 动态创建 Editor.md\r\n\r\nDynamic create Editor.md&quot;,
+            path: &apos;editor.md/lib/&apos;
+          &#125;);
+        &#125;);
+      &#125;);
+
+      $(&quot;#remove-btn&quot;).click(function () &#123;
+        testEditormd.editor.remove();
+      &#125;);
+    &#125;);</code></pre><h2 id="自定义工具栏"><a href="#自定义工具栏" class="headerlink" title="自定义工具栏"></a>自定义工具栏</h2><p>参考自定义工具栏html toolbarIcons方法用于定义工具栏的图标，该方法返回值为数组，数组内<strong>每个字符都为图标名称</strong>，“|”符号表示分割 toolbarIconsClass属性用于定义每个图标的class类，通过图标名:class名设置 toolbarIconTexts属性定义没有图标时显示的文本 toolbarCustomIcons属性用于自定义图标，key为图标名，值为html，可以显示一个按钮，图标等。 toolbarHandlers属性定义工具栏按钮事件处理,为每个图标定义方法都含有4个参数</p>
 <ul>
-<li>xs:string</li>
-<li>xs:decimal</li>
-<li>xs:integer</li>
-<li>xs:boolean</li>
-<li>xs:date</li>
-<li>xs:time</li>
+<li>cm:分别表示CodeMirror对象</li>
+<li>icon:图标按钮jQuery元素对象</li>
+<li>cursor:CodeMirror的光标对象</li>
+<li>selection:可获取光标所在行和位置，编辑器选中的文本</li>
 </ul>
-<ol start="3">
-<li><p><strong>示例:</strong></p>
-<p>&lt;xs:element name=”lastname” type=”xs:string”/&gt;<br>&lt;xs:element name=”age” type=”xs:integer”/&gt;<br>&lt;xs:element name=”dateborn” type=”xs:date”/&gt;<br>对应实例<br><lastname>Refsnes</lastname><br><age>36</age><br><dateborn>1970-03-27</dateborn></p>
+<p>toolbarIcons定义的是图标名称，toolbarIconsClass定义图标class,toolbarIconTexts定义无图标时文本,toolbarCustomIcons自定义图标名对应html,toolbarHandlers定义工具栏按钮事件处理。</p>
+<h2 id="将md文件内容载入editor编辑器中"><a href="#将md文件内容载入editor编辑器中" class="headerlink" title="将md文件内容载入editor编辑器中"></a>将md文件内容载入editor编辑器中</h2><p>通过ajax获得内容，设置settings.appendMarkdown属性为ajax返回的数据。</p>
+<h2 id="多editor编辑器"><a href="#多editor编辑器" class="headerlink" title="多editor编辑器"></a>多editor编辑器</h2><p>定义不同id即可</p>
+<h2 id="自定义编辑器样式主题"><a href="#自定义编辑器样式主题" class="headerlink" title="自定义编辑器样式主题"></a>自定义编辑器样式主题</h2><p>theme: 工具栏主题,default|dark previewTheme: 预览主题,default|dark editorTheme: 编辑器主题,editormd.editorThemes[‘theme-name’],可取主题在最后 function:</p>
+<pre><code>editor.setTheme(&apos;theme-name&apos;);
+editor.setEditorTheme(&apos;theme-name&apos;);
+editor.setPreviewTheme(&apos;theme-name&apos;);</code></pre><h3 id="推荐主题"><a href="#推荐主题" class="headerlink" title="推荐主题"></a>推荐主题</h3><ul>
+<li>ambiance</li>
+<li>eclipse</li>
+<li>mdn-like</li>
+<li>mbo</li>
+<li>monokai</li>
+<li>neat</li>
+<li>pastel-on-dark</li>
+</ul>
+<h3 id="Editor-area-themes"><a href="#Editor-area-themes" class="headerlink" title="Editor area themes"></a>Editor area themes</h3><ul>
+<li>default</li>
+<li>3024-day</li>
+<li>3024-night</li>
+<li>ambiance</li>
+<li>ambiance-mobile</li>
+<li>base16-dark</li>
+<li>base16-light</li>
+<li>blackboard</li>
+<li>cobalt</li>
+<li>eclipse</li>
+<li>elegant</li>
+<li>erlang-dark</li>
+<li>lesser-dark</li>
+<li>mbo</li>
+<li>mdn-like</li>
+<li>midnight</li>
+<li>monokai</li>
+<li>neat</li>
+<li>neo</li>
+<li>night</li>
+<li>paraiso-dark</li>
+<li>paraiso-light</li>
+<li>pastel-on-dark</li>
+<li>rubyblue</li>
+<li>solarized</li>
+<li>the-matrix</li>
+<li>tomorrow-night-eighties</li>
+<li>twilight</li>
+<li>vibrant-ink</li>
+<li>xq-dark</li>
+<li>xq-light</li>
+</ul>
+<h2 id="光标位置，文本获取，文本插入替换"><a href="#光标位置，文本获取，文本插入替换" class="headerlink" title="光标位置，文本获取，文本插入替换"></a>光标位置，文本获取，文本插入替换</h2><pre><code>testEditormd.setCursor(&#123;line:1,ch:2&#125;);//设置光标line:行,ch:字符数
+testEditormd.focus();//获得焦点
+
+
+testEditormd.setSelection(&#123;line:1, ch:0&#125;, &#123;line:5, ch:100&#125;);//选中区域内容
+testEditormd.focus();//获得焦点
+
+
+testEditormd.replaceSelection(&quot;$$$$$$$$$&quot;);
+testEditormd.focus();
+
+
+testEditormd.insertValue(&quot;????&quot;);
+testEditormd.focus();</code></pre><h2 id="mode模型更改"><a href="#mode模型更改" class="headerlink" title="mode模型更改"></a>mode模型更改</h2><p>设置toolbar为false,mode为text/html,php,java等，具体操作需要看示例</p>
+<h2 id="识别和解析HTML标签"><a href="#识别和解析HTML标签" class="headerlink" title="识别和解析HTML标签"></a>识别和解析HTML标签</h2><p>使用一般html都可以不被过滤而直接解析。 style样式，可直接使用style标签，且内部可包含样式 event事件，也可直接通过标签设置。</p>
+<h3 id="可直接插入Flash和视频"><a href="#可直接插入Flash和视频" class="headerlink" title="可直接插入Flash和视频"></a>可直接插入Flash和视频</h3><p>如Flash和</p>
+<h4 id="插入Flash"><a href="#插入Flash" class="headerlink" title="插入Flash"></a>插入Flash</h4><pre><code>&lt;embed src=&quot;http://player.youku.com/player.php/sid/XMzA0MzIwMDgw/v.swf&quot; allowFullScreen=&quot;true&quot; quality=&quot;high&quot; width=&quot;480&quot; height=&quot;400&quot; align=&quot;middle&quot; allowScriptAccess=&quot;always&quot; type=&quot;application/x-shockwave-flash&quot;&gt;&lt;/embed&gt;</code></pre><h5 id="插入视频"><a href="#插入视频" class="headerlink" title="插入视频"></a>插入视频</h5><p>李健《最好不相见》</p>
+<pre><code>&lt;iframe height=498 width=510 src=&quot;http://player.youku.com/embed/XMzA0MzIwMDgw&quot; frameborder=0 allowfullscreen&gt;&lt;/iframe&gt;</code></pre><h2 id="图片上传"><a href="#图片上传" class="headerlink" title="图片上传"></a>图片上传</h2><p>settings需设置 imageUpload:是否图片上传 imageFormats:接受图片格式 imageUploadURL:图片上传路径 后台需返回数据: success:0|1 message:提示信息 url:图片地址，上传成功时才返回</p>
+<h2 id="弹出层对话框"><a href="#弹出层对话框" class="headerlink" title="弹出层对话框"></a>弹出层对话框</h2><pre><code>dialogLockScreen : false,   // 设置弹出层对话框不锁屏，全局通用，默认为 true
+dialogShowMask : false,     // 设置弹出层对话框显示透明遮罩层，全局通用，默认为 true
+dialogDraggable : false,    // 设置弹出层对话框不可拖动，全局通用，默认为 true
+dialogMaskOpacity : 0.4,    // 设置透明遮罩层的透明度，全局通用，默认值为 0.1
+dialogMaskBgColor : &quot;#000&quot;, // 设置透明遮罩层的背景颜色，全局通用，默认为 #fff</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8F%92%E4%BB%B6/" rel="tag">插件</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Hadoop/yarn运行mapreduce examples示例" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/23/Hadoop/yarn%E8%BF%90%E8%A1%8Cmapreduce%20examples%E7%A4%BA%E4%BE%8B/"
+    >yarn运行mapreduce examples示例</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/23/Hadoop/yarn%E8%BF%90%E8%A1%8Cmapreduce%20examples%E7%A4%BA%E4%BE%8B/" class="article-date">
+  <time datetime="2018-09-23T04:46:08.000Z" itemprop="datePublished">2018-09-23</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="yarn运行mapreduce-examples示例"><a href="#yarn运行mapreduce-examples示例" class="headerlink" title="yarn运行mapreduce examples示例"></a>yarn运行mapreduce examples示例</h2><h3 id="为yarn-env-sh和mapreduce-env-sh配置javahome"><a href="#为yarn-env-sh和mapreduce-env-sh配置javahome" class="headerlink" title="为yarn-env.sh和mapreduce-env.sh配置javahome"></a>为yarn-env.sh和mapreduce-env.sh配置javahome</h3><p>将JAVA_HOME注释解开，并设置路径,yarn-env.sh和mapred-env.sh都需要配置</p>
+<h3 id="配置yarn-site-xml"><a href="#配置yarn-site-xml" class="headerlink" title="配置yarn-site.xml"></a>配置yarn-site.xml</h3><pre><code>&lt;property&gt;
+        &lt;name&gt;yarn.resourcemanager.hostname&lt;/name&gt;
+        &lt;value&gt;**master**&lt;/value&gt;
+&lt;/property&gt;
+&lt;property&gt;
+        &lt;name&gt;yarn.nodemanager.aux-services&lt;/name&gt;
+        &lt;value&gt;mapreduce_shuffle&lt;/value&gt;
+&lt;/property&gt;
+//以下，将IP需改为你自己的master的ip
+&lt;property&gt;
+        &lt;name&gt;yarn.resourcemanager.address&lt;/name&gt;
+        &lt;value&gt;192.168.135.100:8032&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+        &lt;name&gt;yarn.resourcemanager.scheduler.address&lt;/name&gt;
+        &lt;value&gt;192.168.135.100:8030&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+        &lt;name&gt;yarn.resourcemanager.resource-tracker.address&lt;/name&gt;
+        &lt;value&gt;192.168.135.100:8031&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+        &lt;name&gt;yarn.resourcemanager.admin.address&lt;/name&gt;
+        &lt;value&gt;192.168.135.100:8033&lt;/value&gt;
+    &lt;/property&gt;
+
+    &lt;property&gt;
+        &lt;name&gt;yarn.resourcemanager.webapp.address&lt;/name&gt;
+        &lt;value&gt;192.168.135.100:8088&lt;/value&gt;
+    &lt;/property&gt;</code></pre><p>master为你的主机名，因为当前是伪分布式，就一台机子，就填的主机名</p>
+<h3 id="配置mapred-site-xml-将mapred-site-xml-template重命名为mapred-site-xml"><a href="#配置mapred-site-xml-将mapred-site-xml-template重命名为mapred-site-xml" class="headerlink" title="配置mapred-site.xml,将mapred-site.xml.template重命名为mapred-site.xml"></a>配置mapred-site.xml,将mapred-site.xml.template重命名为mapred-site.xml</h3><pre><code>&lt;property&gt;
+        &lt;name&gt;mapreduce.framework.name&lt;/name&gt;
+        &lt;value&gt;yarn&lt;/value&gt;
+&lt;/property&gt;
+&lt;!--配置历史job--&gt;
+&lt;property&gt;
+        &lt;name&gt;mapreduce.jobhistory.address&lt;/name&gt;
+        &lt;value&gt;master:10020&lt;/value&gt;
+&lt;/property&gt;
+&lt;!--配置地址--&gt;
+&lt;property&gt;
+        &lt;name&gt;mapreduce.jobhistory.webapp.address&lt;/name&gt;
+        &lt;value&gt;master:19888&lt;/value&gt;
+&lt;/property&gt;</code></pre><h3 id="目前配置已经完成，开始启动"><a href="#目前配置已经完成，开始启动" class="headerlink" title="目前配置已经完成，开始启动"></a>目前配置已经完成，开始启动</h3><p>命令都在hadoop_home/sbin目录下</p>
+<pre><code>start-hdfs.sh
+//以上命令也可以通过如下方式
+hadoop-daemon.sh start namenode
+hadoop-daemon.sh start datanode
+
+start-yarn.sh
+//以上命令也可以通过如下方式
+yarn-daemon.sh start resourcemanager
+yarn-daemon.sh start nodemanager
+//jobhistory的守护进程
+mr-jobhistory-daemon.sh start historyserver
+
+最后通过jps查看是否少了守护进程
+10449 DataNode
+11351 Jps
+10585 ResourceManager
+10842 NodeManager
+10362 NameNode
+//DataNode有hdfs启动，resourcemanager和nodemanager由yarn启动，一定注意不能缺少datanode，非则无法打开web</code></pre><p>没问题后,访问master:8088。 <strong>如果访问不成功</strong></p>
+<ol>
+<li>查看logs中是否有报错</li>
+<li>查看jps是否少了某个守护进程</li>
+<li>查看8088是否被监听, ls0f -i:8088,如果有listener则可以。</li>
+<li>ipv6的问题，如果以上不行,则看lsof -i:8088,中显示v6,则是以ipv6的，要改成ipv4端口，网上搜索禁用ipv6</li>
+</ol>
+<p>注意yarn-site.xml除了前两个property设置，后半部分必须要加，否则可能就算监听成功了也无法访问，最后一定要看jps是否有守护进程。</p>
+<h3 id="运行示例"><a href="#运行示例" class="headerlink" title="运行示例"></a>运行示例</h3><pre><code>hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar wordcount /input /output</code></pre><h3 id="查看示例"><a href="#查看示例" class="headerlink" title="查看示例"></a>查看示例</h3><p>期间可以在master:8088的<a target="_blank" rel="noopener" href="http://master:8088/cluster/apps下，查看你的应用程序，就是刚执行的，后面的进入条显示进度。">http://master:8088/cluster/apps下，查看你的应用程序，就是刚执行的，后面的进入条显示进度。</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/yarn/" rel="tag">yarn</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Linux/Ubuntu18.04虚拟机互通之后该做的配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/"
+    >Ubuntu18.04虚拟机互通之后该做的配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2018-09-22T15:21:47.000Z" itemprop="datePublished">2018-09-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="安装ssh-openssh-server-vsftpd"><a href="#安装ssh-openssh-server-vsftpd" class="headerlink" title="安装ssh,openssh-server,vsftpd"></a>安装ssh,openssh-server,vsftpd</h2><ol>
+<li><p>设置root密码</p>
+<p>sudo passwd root<br>提示输入当前主机密码<br>输入root新密码<br>再次输入root新密码</p>
+</li>
+</ol>
+<p>一共输入3次密码。</p>
+<ol start="2">
+<li>关于apt锁怎么怎么，无法获得锁，无法对状态列表目录加锁 问题?</li>
+</ol>
+<p>首先看是否说让root用户执行，然后如果行不通，则使用命令把锁删掉</p>
+<pre><code>如/var/lib/dpkg/lock     //这个lock就是一个锁文件
+
+rm -r /var/lib/dpkg/lock        //把它删了
+
+如果还有类似 /var/cache/apt/archive/lock  //同样把lock文件删了</code></pre><ol start="3">
+<li><p>安装ssh</p>
+<p>sudo apt install ssh</p>
 </li>
 </ol>
 <ol start="4">
-<li><strong>定义默认值和固定值</strong></li>
+<li><p>安装openssh-server</p>
+<p>sudo apt install openssh-server</p>
+</li>
 </ol>
-<p>当没有其他值被规定时，默认值就会自动分配给元素</p>
-<pre><code>&lt;xs:element name=&quot;color&quot; type=&quot;xs:string&quot; default=&quot;red&quot;/&gt;</code></pre><p>如果name值未定义，省缺值为red。 固定值同样会自动分配给元素，并且无法定义另外的值</p>
-<pre><code>&lt;xs:element name=&quot;color&quot; type=&quot;xs:string&quot; fixed=&quot;red&quot;/&gt;</code></pre><h4 id="元素属性定义"><a href="#元素属性定义" class="headerlink" title="元素属性定义"></a>元素属性定义</h4><p>简易元素无法拥有属性。假如某个元素拥有属性，它就会被当作某种复合类型。但是属性本身总是作为简易类型被声明的。</p>
-<ol>
-<li><p><strong>语法:</strong></p>
-<p>&lt;xs:attribute name=”xxx” type=”yyy”/&gt;</p>
+<p>如果安装之后连接xshell时，总是说密码不对,则设置</p>
+<pre><code>sudo vi /etc/ssh/sshd_config
+
+找到第32行左右的PermitRootLogin ，把它后面的字符串删了，改成yes，然后去掉前面的#符号
+
+/etc/init.d/ssh restart //重启服务</code></pre><ol start="5">
+<li><p>安装vsftpd</p>
+<p>sudo apt install vsftpd</p>
+</li>
+</ol>
+<p>修改配置文件</p>
+<pre><code>sudo vi /etc/vsftpd.conf
+
+把write_enable=YES前的#符号去掉</code></pre><p>修改ftpusers文件</p>
+<pre><code>sudo vi /etc/ftpusers
+
+再root前添加#//注释root
+
+service vsftpd restart  //最后修改完成过后重启服务</code></pre><h2 id="修改hosts文件"><a href="#修改hosts文件" class="headerlink" title="修改hosts文件"></a>修改hosts文件</h2><pre><code>sudo vi /etc/hosts
+
+在ip     主机名对应行下添加当前主机的静态ip和主机名，以及从主机slave的静态ip和主机名
+
+192.168.135.100     master
+192.168.135.101     slave1</code></pre><p>尝试master中ping slave1,slave1中ping master</p>
+<h2 id="实现ssh免密登陆"><a href="#实现ssh免密登陆" class="headerlink" title="实现ssh免密登陆"></a>实现ssh免密登陆</h2><ol>
+<li><p>master安装ssh</p>
+<p>apt install ssh</p>
+</li>
+</ol>
+<p>2.实现免密命令</p>
+<pre><code>root@master:/home/master# **ssh-keygen -t rsa**
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):    //enter
+Created directory &apos;/root/.ssh&apos;.
+Enter passphrase (empty for no passphrase):                 //enter
+Enter same passphrase again:                                //enter
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:7SXnZWtdsmdD5bze0HGjuN80zBV8jw0mvKosdqEphWU root@master
+The key&apos;s randomart image is:
++---[RSA 2048]----+
+|                 |
+|           .  .  |
+|            o ooo|
+|      E  .   + *=|
+|     +  S o + =+O|
+|    . . .. *.o=*B|
+|     . o .o...=B=|
+|    . =...  ..+++|
+|     o oo  ... o.|
++----[SHA256]-----+</code></pre><p>输入3次回车。随后.ssh文件夹中生成两个文件id_rsa id_rsa.pub</p>
+<ol start="3">
+<li><p>拷贝公钥</p>
+<p>cat id_rsa.pub &gt;&gt; authorized_keys   //拷贝文件<br>chmod 600 authorized_keys    —-修改文件权限可读写,必需要设置</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>slave中ssh localhost测试，如果成功会在home下出现.ssh文件夹</p>
+</li>
+<li><p>将master的公钥传输到所有的slave上，实现无密码登录</p>
+</li>
+</ol>
+<pre><code>scp authorized_keys root@slave1:~/.ssh/</code></pre><p>完成后master尝试连接slave，ssh slave直接登录。</p>
+<h2 id="jdk和hadoop环境安装"><a href="#jdk和hadoop环境安装" class="headerlink" title="jdk和hadoop环境安装"></a>jdk和hadoop环境安装</h2><ol>
+<li><p>jdk安装</p>
+<p>tar -zxf jdkxxxxxxxxx.tar.gz    //解压包</p>
+<p>vim etc/profile     /编辑配置环境变量</p>
+<p>export JAVA_HOME=你的jdk路径<br>export PATH=$JAVA_HOME/bin:$PATH</p>
+<p>source /etc/profile     //编辑完成后，执行命令，刷新文件环境变量<br>java -version   //jdk安装测试</p>
 </li>
 </ol>
 <ol start="2">
-<li><p>示例</p>
-<p>&lt;xs:attribute name=”lang” type=”xs:string”/&gt;<br>实例<br><lastname lang="EN">Smith</lastname></p>
+<li><p>hadoop安装</p>
+<p>tar -zxf hadoop包        //解压包</p>
+<p>cd hadoop/etc/hadoop        //进入hadoop配置目录</p>
+<p>vi hadoop-env.sh            //编辑文件</p>
+<p>export JAVA_HOME=/root/app/jdk      //设置你的jdk目录</p>
+<p>export HADOOP_CONF_DIR=/root/app/hadoop/etc/hadoop  //设置你的hadoop的配置文件目录，就在hadoop安装目录的etc下的hadoop下</p>
+</li>
+</ol>
+<p>环境变量</p>
+<pre><code>vi /etc/profile
+
+export HADOOP_HOME=/root/app/hadoop
+export PATH=$HADOOP_HOME/bin:$PATH
+
+source /etc/profile</code></pre><h2 id="伪分布式搭建"><a href="#伪分布式搭建" class="headerlink" title="伪分布式搭建"></a>伪分布式搭建</h2><ol>
+<li><p>配置etc/hadoop下的core-site.xml</p>
+<property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://master:9000</value>   //hdfs必须配置的
+</property>
+<property>
+    <name>hadoop.tmp.dir</name>
+    <value>/root/app/hadoop/tmp</value>     //临时文件存储目录，默认在/tmp/hadoop-${user.name}
+</property>
+
+
+</li>
+</ol>
+<p>注意路径不要写错</p>
+<ol start="2">
+<li><p>hdfs-site.xml</p>
+<property>
+    <name>dfs.replication</name>
+    <value>1</value>    //设置副本的个数，该案例为为分布式只有一台机器
+</property>
+
+
 </li>
 </ol>
 <ol start="3">
-<li>默认值固定值和必须属性</li>
+<li>启动hdfs</li>
 </ol>
-<p>同样可以使用default设置默认值，fixed设置固定值。 如需规定必须属性,使用use</p>
-<pre><code>&lt;xs:attribute name=&quot;lang&quot; type=&quot;xs:string&quot; use=&quot;required&quot;/&gt;</code></pre><h4 id="对值的限定-Facets"><a href="#对值的限定-Facets" class="headerlink" title="对值的限定/Facets"></a>对值的限定/Facets</h4><p>为xml元素或者属性定义可接受的值。 也就是说可以定义男和女，数字大于多少小于多少，相当于一个校验。 在xs:element元素中使用<strong>xs:simpleType元素</strong>，然后在<strong>xs:restriction元素</strong>下定义每一类的限定。 而元素的type值类型将不在element中定义，而是在限定元素标签中定义，通过base来定义类型。如果你在element中定义了，那就会编译不通过。 <strong>1. 特定值的限定</strong> 限定元素的值，如男|女,使用元素<strong>xs:enumeration</strong>,前面有个enum，也就类似java的枚举类型。 该示例中，car的值仅接受Audi，Golf和BMW。否则编译不通过</p>
-<pre><code>&lt;xs:element name=&quot;car&quot;&gt;
-  &lt;xs:simpleType&gt;
-    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
-      &lt;xs:enumeration value=&quot;Audi&quot;/&gt;
-      &lt;xs:enumeration value=&quot;Golf&quot;/&gt;
-      &lt;xs:enumeration value=&quot;BMW&quot;/&gt;
-    &lt;/xs:restriction&gt;
-  &lt;/xs:simpleType&gt;
-&lt;/xs:element&gt;</code></pre><p><strong>2. 对区间范围限定</strong> 对数字进行限定，如限定身高最大多少最小多少，使用<strong>xs:minInclusive和xs:maxInclusive</strong>元素。 该示例中age元素只接受值为0到120</p>
-<pre><code>&lt;xs:element name=&quot;age&quot;&gt;
-  &lt;xs:simpleType&gt;
-    &lt;xs:restriction base=&quot;xs:integer&quot;&gt;
-      &lt;xs:minInclusive value=&quot;0&quot;/&gt;
-      &lt;xs:maxInclusive value=&quot;120&quot;/&gt;
-    &lt;/xs:restriction&gt;
-  &lt;/xs:simpleType&gt;
-&lt;/xs:element&gt;</code></pre><p><strong>3. 正则限定</strong> 使用正则表达式来限定取值。 使用<strong>xs:pattern</strong>元素来定义。该正则表达式与其他一样，包括[],{0,1},|,+等等，但不需要前符号和后符号。 该示例中letter值允许值为a-z</p>
-<pre><code>&lt;xs:element name=&quot;letter&quot;&gt;
-  &lt;xs:simpleType&gt;
-    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
-      &lt;xs:pattern value=&quot;[a-z]&quot;/&gt;
-    &lt;/xs:restriction&gt;
-  &lt;/xs:simpleType&gt;
-&lt;/xs:element&gt;</code></pre><p><strong>4. 对空白字符的限定</strong> 使用<strong>xs:whiteSpace</strong>元素指定 该值有3个，preserve，replace，collapse。标志着XML处理器对空白字符的处理</p>
-<ul>
-<li><p>preserve:不会移除任何空白字符</p>
-</li>
-<li><p>replace:移除所有空白字符（换行、回车、空格以及制表符）</p>
-</li>
-<li><p>collapse:移除所有空白字符（换行、回车、空格以及制表符会被替换为空格，开头和结尾的空格会被移除，而多个连续的空格会被缩减为一个单一的空格）</p>
-<p>&lt;xs:element name=”address”&gt;<br>  <a href="xs:simpleType">xs:simpleType</a></p>
-<pre><code>&lt;xs:restriction base=&quot;xs:string&quot;&gt;
-  &lt;xs:whiteSpace value=&quot;preserve&quot;/&gt;
-&lt;/xs:restriction&gt;</code></pre><p>  </xs:simpleType><br></xs:element></p>
-</li>
-</ul>
-<p><strong>5. 对长度的限定</strong> 使用<strong>xs:length,xs:minLength,xs:maxLength</strong>这三个元素定义</p>
-<pre><code>&lt;xs:element name=&quot;password&quot;&gt;
-  &lt;xs:simpleType&gt;
-    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
-      &lt;xs:length value=&quot;8&quot;/&gt;
-    &lt;/xs:restriction&gt;
-  &lt;/xs:simpleType&gt;
-&lt;/xs:element&gt;
+<p>hdfs命令，前提是你已经在环境变量配置了hadoop/bin，可能你还需要配置一下sbin</p>
+<pre><code>hdfs namenode -format   //首次启动格式化，仅第一次，将会格式化hdfs
 
-&lt;xs:element name=&quot;password&quot;&gt;
-  &lt;xs:simpleType&gt;
-    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
-      &lt;xs:minLength value=&quot;5&quot;/&gt;
-      &lt;xs:maxLength value=&quot;8&quot;/&gt;
-    &lt;/xs:restriction&gt;
-  &lt;/xs:simpleType&gt;
-&lt;/xs:element&gt;</code></pre><p><strong>6. 其他限定</strong></p>
-<ul>
-<li>xs:maxExclusive:定义数值的上限，所有允许的值都必须小于此值</li>
-<li>xs:maxInclusive:定义数值的上限，所有允许的值都必须小于或等于此值</li>
-<li>xs:minExclusive:定义数值的下限，所有允许的值都必须大于此值</li>
-<li>xs:minInclusive:定义数值的下限，所有允许的值都必须大约或等于此值</li>
-<li>xs:totalDigits:定义所允许的阿拉伯数字的精确位数，必须大于0</li>
-</ul>
-<p><strong>7. 对于多个元素都想使用这个限定获取后面的元素的定义</strong> 可以定义一个type，并让element来引用它</p>
-<pre><code>&lt;xs:element name=&quot;password&quot; type=&quot;tsinfo&quot;&gt;
-&lt;xs:element name=&quot;username&quot; type=&quot;tsinfo&quot;&gt;
-
-&lt;xs:simpleType name=&quot;tsinfo&quot;&gt;
-    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
-      &lt;xs:minLength value=&quot;6&quot;/&gt;
-      &lt;xs:maxLength value=&quot;10&quot;/&gt;
-    &lt;/xs:restriction&gt;
-  &lt;/xs:simpleType&gt;</code></pre><p>定义了之后，可以通过type来引用name属性的值，两个element都使用同一个限定，当然后面的符合元素等等都可以这样做，只需要把element后的那个标签元素拿出来即可。</p>
-<h4 id="复合元素"><a href="#复合元素" class="headerlink" title="复合元素"></a>复合元素</h4><p>只有单个元素，它是简易元素，而如果有子元素，那么它就是复合元素。</p>
-<ul>
-<li>xs:complexType用于定义复杂类型</li>
-<li>xs:simpleType用于定义简易类型</li>
-<li>xs:extension拓展已有的simpleType和complexType元素</li>
-<li>element中使用type属性引用一个complexType</li>
-<li>attribute中使用type属性来引用一个simpleType</li>
-<li>simpleType用于定义限定，注解等，属性base表示引用一个类型</li>
-<li>complexType用于各种，name表示当前名称，用于被type引用</li>
-</ul>
-<p><strong>1. 示例:仅包含元素</strong></p>
-<pre><code>&lt;xs:element name=&quot;employee&quot;&gt;
-  &lt;xs:complexType&gt;
-    &lt;xs:sequence&gt;
-      &lt;xs:element name=&quot;firstname&quot; type=&quot;xs:string&quot;/&gt;
-      &lt;xs:element name=&quot;lastname&quot; type=&quot;xs:string&quot;/&gt;
-    &lt;/xs:sequence&gt;
-  &lt;/xs:complexType&gt;
-&lt;/xs:element&gt;</code></pre><p>对employee元素进行声明，包含两个子元素，并且顺序是按照声明的先后顺序。 <strong>2. 在已有的复合元素之上以某个复合元素为基础</strong></p>
-<pre><code>&lt;xs:element name=&quot;employee&quot; type=&quot;fullpersoninfo&quot;/&gt;
-
-&lt;xs:complexType name=&quot;personinfo&quot;&gt;
-  &lt;xs:sequence&gt;
-    &lt;xs:element name=&quot;firstname&quot; type=&quot;xs:string&quot;/&gt;
-    &lt;xs:element name=&quot;lastname&quot; type=&quot;xs:string&quot;/&gt;
-  &lt;/xs:sequence&gt;
-&lt;/xs:complexType&gt;
-
-&lt;xs:complexType name=&quot;fullpersoninfo&quot;&gt;
-  &lt;xs:complexContent&gt;
-    &lt;xs:extension base=&quot;personinfo&quot;&gt;
-      &lt;xs:sequence&gt;
-        &lt;xs:element name=&quot;address&quot; type=&quot;xs:string&quot;/&gt;
-        &lt;xs:element name=&quot;city&quot; type=&quot;xs:string&quot;/&gt;
-        &lt;xs:element name=&quot;country&quot; type=&quot;xs:string&quot;/&gt;
-      &lt;/xs:sequence&gt;
-    &lt;/xs:extension&gt;
-  &lt;/xs:complexContent&gt;
-&lt;/xs:complexType&gt;</code></pre><p>该示例首先是employee引用了类型为fullpersoninfo的xs:complexType ，而fullpersoninfo内部又延伸引用了personinfo。</p>
-<ol start="3">
-<li>带有混合内容的复合类型</li>
-</ol>
-<p>为了使字符数据可以出现在 “letter” 的子元素之间，<strong>mixed 属性必须被设置为 “true”</strong></p>
-<pre><code>&lt;xs:element name=&quot;letter&quot;&gt;
-  &lt;xs:complexType mixed=&quot;true&quot;&gt;
-    &lt;xs:sequence&gt;
-      &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
-      &lt;xs:element name=&quot;orderid&quot; type=&quot;xs:positiveInteger&quot;/&gt;
-      &lt;xs:element name=&quot;shipdate&quot; type=&quot;xs:date&quot;/&gt;
-    &lt;/xs:sequence&gt;
-  &lt;/xs:complexType&gt;
-&lt;/xs:element&gt;</code></pre><h4 id="指示器"><a href="#指示器" class="headerlink" title="指示器"></a>指示器</h4><p>通过指示器，我们可以控制在文档中使用元素的方式。 <strong>Order指示器:定义元素的顺序。</strong></p>
-<ul>
-<li>All:规定子元素可以按照任意顺序出现,且每个子元素必须只出现一次</li>
-<li>Chioce:规定可出现任意一个元素</li>
-<li>Sequence:子元素必须按照特定的顺序出现</li>
-</ul>
-<p><strong>Occurrence 指示器：用于定义某个元素出现的频率。(作为element属性)</strong></p>
-<ul>
-<li><p>maxOccurs 以及 minOccurs 的默认值均为 1。</p>
-</li>
-<li><p>maxOccurs:可规定某个元素可出现的最大次数</p>
-</li>
-<li><p>minOccurs：某个元素能够出现的最小次数：</p>
-<p>&lt;xs:element name=”person”&gt;<br>  <a href="xs:complexType">xs:complexType</a></p>
-<pre><code>&lt;xs:sequence&gt;
-  &lt;xs:element name=&quot;full_name&quot; type=&quot;xs:string&quot;/&gt;
-  &lt;xs:element name=&quot;child_name&quot; type=&quot;xs:string&quot;
-  maxOccurs=&quot;10&quot; minOccurs=&quot;0&quot;/&gt;
-&lt;/xs:sequence&gt;</code></pre><p>  </xs:complexType><br></xs:element></p>
-</li>
-</ul>
-<p><strong>Group 指示器：定义相关的组，可以引用</strong></p>
-<ul>
-<li><p>Group name:定义一组元素，在内部声明 all、choice 或者 sequence 元素，和一个name属性，则可通过group元素的ref属性调用这个group</p>
-<p>&lt;xs:group name=”persongroup”&gt;<br>  <a href="xs:sequence">xs:sequence</a></p>
-<pre><code>&lt;xs:element name=&quot;firstname&quot; type=&quot;xs:string&quot;/&gt;
-&lt;xs:element name=&quot;lastname&quot; type=&quot;xs:string&quot;/&gt;
-&lt;xs:element name=&quot;birthday&quot; type=&quot;xs:date&quot;/&gt;</code></pre><p>  </xs:sequence><br></xs:group></p>
-<p>&lt;xs:element name=”person” type=”personinfo”/&gt;</p>
-<p>&lt;xs:complexType name=”personinfo”&gt;<br>  <a href="xs:sequence">xs:sequence</a></p>
-<pre><code>&lt;xs:group ref=&quot;persongroup&quot;/&gt;
-&lt;xs:element name=&quot;country&quot; type=&quot;xs:string&quot;/&gt;</code></pre><p>  </xs:sequence><br></xs:complexType></p>
-</li>
-</ul>
-<ul>
-<li><p>attributeGroup name:定义一组属性</p>
-<p>&lt;xs:attributeGroup name=”personattrgroup”&gt;<br>  &lt;xs:attribute name=”firstname” type=”xs:string”/&gt;<br>  &lt;xs:attribute name=”lastname” type=”xs:string”/&gt;<br>  &lt;xs:attribute name=”birthday” type=”xs:date”/&gt;<br></xs:attributeGroup></p>
-<p>&lt;xs:element name=”person”&gt;<br>  <a href="xs:complexType">xs:complexType</a></p>
-<pre><code>&lt;xs:attributeGroup ref=&quot;personattrgroup&quot;/&gt;</code></pre><p>  </xs:complexType><br></xs:element></p>
-</li>
-</ul>
-<h4 id="元素替换"><a href="#元素替换" class="headerlink" title="元素替换"></a>元素替换</h4><p>举例说明：我们的用户来自英国和挪威。我们希望有能力让用户选择在 XML 文档中使用挪威语的元素名称还是英语的元素名称。 可以在element中定义<strong>substitutionGroup属性</strong>此属性声明当前元素为次元素，而值为需要被替换主元素的name属性的值。</p>
-<pre><code>&lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
-&lt;xs:element name=&quot;navn&quot; substitutionGroup=&quot;name&quot;/&gt;
-
-&lt;xs:complexType name=&quot;custinfo&quot;&gt;
-  &lt;xs:sequence&gt;
-    &lt;xs:element ref=&quot;name&quot;/&gt;
-  &lt;/xs:sequence&gt;
-&lt;/xs:complexType&gt;
-
-&lt;xs:element name=&quot;customer&quot; type=&quot;custinfo&quot;/&gt;
-&lt;xs:element name=&quot;kunde&quot; substitutionGroup=&quot;customer&quot;/&gt;</code></pre><p>在示例中，complexType元素被引用的是customer元素，所以customer是根元素，子元素序列中element引用了name，所以子元素为name元素。 而name属性为navn的element中，定义了substitutionGroup为name，所以此次元素可以替代name子元素。 name属性为kunde的element中，定义了substitutionGroup为customer，所以此次元素可以替代customer元素。 所以可以有的值为</p>
-<pre><code>&lt;customer&gt;
-  &lt;name&gt;John Smith&lt;/name&gt;
-&lt;/customer&gt;
+sbin/start-dfs.sh       //启动NameNode守护程序和DataNode守护程序
 或
-&lt;kunde&gt;
-  &lt;navn&gt;John Smith&lt;/navn&gt;
-&lt;/kunde&gt;</code></pre><p>其实这种方式也可以使用Chioce指示器，可以任选一个。</p>
-<h4 id="混合内容"><a href="#混合内容" class="headerlink" title="混合内容"></a>混合内容</h4><p>复合类型中，子元素前后带有其他文本 可在xs:complexType元素设置属性mixed=”true”</p>
-<pre><code>&lt;xs:element name=&quot;letter&quot;&gt;
-  &lt;xs:complexType mixed=&quot;true&quot;&gt;
-    &lt;xs:sequence&gt;
-      &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
-      &lt;xs:element name=&quot;orderid&quot; type=&quot;xs:positiveInteger&quot;/&gt;
-      &lt;xs:element name=&quot;shipdate&quot; type=&quot;xs:date&quot;/&gt;
-    &lt;/xs:sequence&gt;
-  &lt;/xs:complexType&gt;
-&lt;/xs:element&gt;
-xml中
-&lt;letter&gt;
-  Dear Mr.&lt;name&gt;John Smith&lt;/name&gt;.
-  Your order &lt;orderid&gt;1032&lt;/orderid&gt;
-  will be shipped on &lt;shipdate&gt;2001-07-13&lt;/shipdate&gt;.
-&lt;/letter&gt;</code></pre><h4 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h4><ol>
-<li>字符型</li>
-</ol>
-<ul>
-<li>string:包含字符串</li>
-<li>token:不包含换行符、回车或制表符、开头或结尾空格或者多个连续空格的字符串</li>
-<li>normalizedString:不包含换行符、回车或制表符的字符串</li>
-</ul>
-<ol start="2">
-<li>日期类型</li>
-</ol>
-<ul>
-<li>date:日期,可在日期后加上Z，使用世界调整时间UTC</li>
-<li>time:时间</li>
-<li>dateTime:日期时间</li>
-</ul>
+sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
+sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
+
+
+jsp     //查看守护进程</code></pre><p>hadoop守护程序日志输出将写入$ HADOOP_LOG_DIR目录（默认为$ HADOOP_HOME / logs）。 不报错后，访问http://{hostname|静态ip}:<strong>50070</strong>/ ,此处localhost改成自己的ip或hostname 如果启动后访问不成功，或出现信息，stop什么之类的，则擦好看logs下的日志${hadoop_home}/logs/hadoop-{username}-namenode-master.log</p>
 <ol start="3">
-<li>数值型</li>
+<li><p>常用的日志查看</p>
+<p>hadoop-{username}-datanode-{hostname}.log<br>hadoop-{username}-datanode-{hostname}.out<br>hadoop-{username}-namenode-{hostname}.log<br>hadoop-{username}-namenode-{hostname}.out</p>
+</li>
 </ol>
-<ul>
-<li>decimal：十进制数</li>
-<li>int:有正负的32位整数</li>
-<li>integer:整数值</li>
-<li>long:有正负的64位整数</li>
-<li>nonNegativeInteger：仅包含非负值</li>
-<li>nonPositiveInteger:仅包含非正值</li>
-<li>negativeInteger：仅包含负值</li>
-</ul>
 <ol start="4">
-<li>其他数据类型</li>
+<li><p>hdfs操作</p>
+<p>hdfs dfs -mkdir /input      //创建一个文件夹，在/目录下名称为input,多级目录加-p参数</p>
+<p>hdfs dfs -put ~/testhello.txt /input    //上传一个testhello.txt到input文件夹下,前提是有这个文件,并且此文件有数据，用于计算每个单词的数量</p>
+<p>hdfs dfs -ls /input //查看目录</p>
+<p>hdfs dfs -cat /input/testhello.txt  //查看文件</p>
+</li>
 </ol>
-<ul>
-<li>boolean:可用值位true,false,1,0</li>
-<li>hexBinary:二进制数据</li>
-<li>anyURI:规定的UIR，如果有空格使用%20替换</li>
-</ul>
-<h4 id="其他XSD元素"><a href="#其他XSD元素" class="headerlink" title="其他XSD元素"></a>其他XSD元素</h4><ul>
-<li><p>list元素:定义单个 simpleType 定义的集合。</p>
-<p>&lt;xs:element name=”person” type=”valuelist”/&gt;</p>
-<p>&lt;xs:simpleType name=”valuelist”&gt;</p>
-<pre><code>&lt;xs:list itemType=&quot;xs:integer&quot;/&gt;</code></pre><p></xs:simpleType><br>xml</p>
-<person>
-  -1  <!-- 或 -234 234一起(中间需要空格分割) -->
-</person>
-
-
+<ol start="5">
+<li><p>运行mapreduce的wordcount</p>
+<p>hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar wordcount /input /output<br>//  /input为输入的目录，下面有一个testhello.txt,/output为输出目录，为执行结果，此文件不能先创建。随后/output下生成两个文件，一个是_SUCCESS和part-r-00000</p>
+<p>dhfs dfs -cat /output/part-r-00000  //查看结果，可能每个生成的part都不一样</p>
 </li>
-</ul>
-<p>该元素定义simpleType，其中list元素中itemType类型位integer，那么person中的值将只接受integer类型的数据,可以为1，-123，等整数。</p>
-<ul>
-<li><p>include:向一个文档添加带有相同目标命名空间的多个 schema。</p>
+</ol>
+<ol start="6">
+<li><p>常用命令</p>
+<p>-mkdir  hdfs dfs -mkdir /input<br>-put    hdfs dfs -put ~/testhello.txt /input<br>-ls     hdfs dfs -ls /output                    //  -lsr表示递归<br>-cat    hdfs dfs -cat /output/part-r-00000<br>-get    hdfs dfs -get /output/part-r-00000 ./       //将dfs中的文件下载到本地文件夹下<br>-rm     hdfs dfs -rm /input/testhello.txt       //  -rmr表示递归删除</p>
 </li>
-<li><p>import :向一个文档添加带有不同目标命名空间的多个 schema。</p>
-<p>&lt;xs:include schemaLocation=”<a target="_blank" rel="noopener" href="http://www.w3cschool.cc/schema/customer.xsd&quot;/&gt;">http://www.w3cschool.cc/schema/customer.xsd&quot;/&gt;</a><br>&lt;xs:include schemaLocation=”<a target="_blank" rel="noopener" href="http://www.w3cschool.cc/schema/company.xsd&quot;/&gt;">http://www.w3cschool.cc/schema/company.xsd&quot;/&gt;</a></p>
-<p>&lt;xs:import namespace=”<a target="_blank" rel="noopener" href="http://www.w3cschool.cc/schema&quot;/&gt;">http://www.w3cschool.cc/schema&quot;/&gt;</a></p>
-</li>
-</ul>
+</ol>
 
       
       <!-- reward -->
@@ -974,7 +899,170 @@ xml中
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0项目结构与模块" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/21/Vue/Vue2.0%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A8%A1%E5%9D%97/"
+    >Vue2.0项目结构与模块</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/21/Vue/Vue2.0%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A8%A1%E5%9D%97/" class="article-date">
+  <time datetime="2018-09-21T05:06:31.000Z" itemprop="datePublished">2018-09-21</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="项目结构与模块"><a href="#项目结构与模块" class="headerlink" title="项目结构与模块"></a>项目结构与模块</h2><p>Vuex并不限制代码结构，但如果你的store文件太大，getters和mutations这些对象里的东西太多，就搞得特别复杂，就像是多个业务模块冗余在一起。于是就有了模块。而它规定了一些规则。</p>
+<ol>
+<li><p>应用层级的状态应该集中到单个 store 对象中。也就是说像是全局的数据之类的可以放在一个根store里，最后所有的module模块放在store里导出。</p>
+</li>
+<li><p>提交mutation是更改状态的唯一方法，并且这个过程是同步的。就是说你的数据更改必须要提交到mutation里修改，这样能保持过程同步，且更容易监视这个流程。</p>
+</li>
+<li><p>异步逻辑都应该封装到 action 里面。就如ajax或其他事件方法等需要放在action里。</p>
+</li>
+</ol>
+<p>那么官方的结构</p>
+<pre><code>├── index.html
+├── main.js
+├── api
+│   └── ... # 抽取出API请求
+├── components
+│   ├── App.vue
+│   └── ...
+└── store
+    ├── index.js          # 我们组装模块并导出 store 的地方
+    ├── actions.js        # 根级别的 action
+    ├── mutations.js      # 根级别的 mutation
+    └── modules
+        ├── cart.js       # 购物车模块
+        └── products.js   # 产品模块</code></pre><p>store文件夹下，action.js,mutations.js,actions.js就是用来放共用的或应用级的东西，最后在index.js中组装，而modules中都是些模块，cart.js和products.js里，都有action,mutations,actions，他们组成了单个模块。那么么他们也需要在index.js中组装并导出，所以就提供了一个modules的选项。</p>
+<pre><code>const moduleA = &#123;
+  state: &#123; ... &#125;,
+  mutations: &#123; ... &#125;,
+  actions: &#123; ... &#125;,
+  getters: &#123; ... &#125;
+&#125;
+
+const store = new Vuex.Store(&#123;
+  modules: &#123;
+    a: moduleA,
+    b: moduleB
+  &#125;
+&#125;)</code></pre><p>modules选项中a,b代表模块名,moduleA和moduleB代表模块引用。 ** 导出js代码**</p>
+<pre><code>//模块里的导出
+export default &#123;
+  state,
+  getters,
+  actions,
+  mutations
+&#125;
+
+
+//index.js
+import Vue from &apos;vue&apos;
+import Vuex from &apos;vuex&apos;
+import action from &apos;./actions&apos;
+import getters from &apos;./getters&apos;
+import mutations from &apos;./mutations&apos;
+import user from &apos;./modules/user&apos;
+
+Vue.use(Vuex)
+
+export default new Vuex.Store(&#123;
+  action,
+  getters,
+  mutations,
+  modules: &#123;
+    user
+  &#125;
+&#125;)
+
+
+//main.js,一定不要忘记设置store到Vue实例里
+import store from &apos;./store/index&apos;</code></pre><p>你可以参考官网指出来的例子:<a target="_blank" rel="noopener" href="https://github.com/vuejs/vuex/tree/dev/examples/shopping-cart">购物车示例</a></p>
+<h3 id="模块的局部状态"><a href="#模块的局部状态" class="headerlink" title="模块的局部状态"></a>模块的局部状态</h3><ol>
+<li><p>对于模块内部的 mutation 和 getter，接收的第一个参数是模块的局部状态对象。也就是说在模块里js文件中,你获取的状态，参数都是局部的，也就是当前模块里的参数数据。</p>
+</li>
+<li><p>而对于模块里的actions,获取根节点状态则通过context.rootState</p>
+</li>
+<li><p>对于getters,根节点状态会作为第三个参数暴露出来</p>
+</li>
+</ol>
+<pre><code>getters: &#123;
+    sumWithRootCount (state, getters, rootState) &#123;
+      return state.count + rootState.count
+    &#125;
+  &#125;</code></pre><h3 id="表单处理，双向绑定的计算属性"><a href="#表单处理，双向绑定的计算属性" class="headerlink" title="表单处理，双向绑定的计算属性"></a>表单处理，双向绑定的计算属性</h3><pre><code>&lt;input v-model=&quot;message&quot;&gt;
+
+
+// ...
+computed: &#123;
+  message: &#123;
+    get () &#123;
+      return this.$store.state.obj.message
+    &#125;,
+    set (value) &#123;
+      this.$store.commit(&apos;updateMessage&apos;, value)
+    &#125;
+  &#125;
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
 
 
     </footer>
@@ -997,7 +1085,7 @@ xml中
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/34/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="page-number current">35</span><a class="page-number" href="/page/36/">36</a><a class="page-number" href="/page/37/">37</a><span class="space">&hellip;</span><a class="page-number" href="/page/45/">45</a><a class="extend next" rel="next" href="/page/36/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/34/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="page-number current">35</span><a class="page-number" href="/page/36/">36</a><a class="page-number" href="/page/37/">37</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/">47</a><a class="extend next" rel="next" href="/page/36/">下一页</a>
   </nav>
   
 </section>
@@ -1047,7 +1135,7 @@ xml中
 <nav class="navbar">
   
   <div class="logo">
-    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
   </div>
   
   <ul class="nav nav-main">

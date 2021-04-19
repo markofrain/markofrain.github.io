@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    MyBatis初始化解析Mybatis-Config.xml文件 |  雪里
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-MyBatis/MyBatis初始化解析Mybatis-Config.xml文件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  MyBatis初始化解析Mybatis-Config.xml文件
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/18/MyBatis/MyBatis%E5%88%9D%E5%A7%8B%E5%8C%96%E8%A7%A3%E6%9E%90Mybatis-Config.xml%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2021-04-18T04:00:00.000Z" itemprop="datePublished">2021-04-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/MyBatis/">MyBatis</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">1.9k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">9分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>在解析mybatis-config.xml配置文件中，使用了XMLConfigBuilder类来处理解析配置文件。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    SqlSessionFactoryBuilder builder = <span class="keyword">new</span> SqlSessionFactoryBuilder();</span><br><span class="line">    SqlSessionFactory sessionFactory = builder.build(Resources.getResourceAsReader(<span class="string">&quot;mybatis-config.xml&quot;</span>));</span><br><span class="line">    SqlSession sqlSession = sessionFactory.openSession();</span><br><span class="line">    BlogMapper mapper = sqlSession.getMapper(BlogMapper.class);</span><br><span class="line">    <span class="keyword">int</span> count = mapper.count();</span><br><span class="line">    System.out.println(count);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">BlogMapper</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">int</span> <span class="title">count</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">mapper</span> <span class="meta-keyword">PUBLIC</span> <span class="meta-string">&quot;-//mybatis.org//DTD Mapper 3.0//EN&quot;</span> <span class="meta-string">&quot;http://mybatis.org/dtd/mybatis-3-mapper.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">mapper</span> <span class="attr">namespace</span>=<span class="string">&quot;com.cgq.mapper.BlogMapper&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">select</span> <span class="attr">id</span>=<span class="string">&quot;count&quot;</span> <span class="attr">resultType</span>=<span class="string">&quot;int&quot;</span>&gt;</span></span><br><span class="line">        select count(*) from time_zone_name</span><br><span class="line">    <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mapper</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">configuration</span> <span class="meta-keyword">PUBLIC</span> <span class="meta-string">&quot;-//mybatis.org//DTD Config 3.0//EN&quot;</span> <span class="meta-string">&quot;http://mybatis.org/dtd/mybatis-3-config.dtd&quot;</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">environments</span> <span class="attr">default</span>=<span class="string">&quot;dev&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">environment</span> <span class="attr">id</span>=<span class="string">&quot;dev&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">transactionManager</span> <span class="attr">type</span>=<span class="string">&quot;JDBC&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dataSource</span> <span class="attr">type</span>=<span class="string">&quot;POOLED&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;driver&quot;</span> <span class="attr">value</span>=<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;url&quot;</span> <span class="attr">value</span>=<span class="string">&quot;jdbc:mysql://localhost:3306/mysql?serverTimezone=Asia/Shanghai&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;username&quot;</span> <span class="attr">value</span>=<span class="string">&quot;root&quot;</span>/&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;password&quot;</span> <span class="attr">value</span>=<span class="string">&quot;root&quot;</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dataSource</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">environment</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">environments</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mappers</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--&lt;mapper resource=&quot;com/cgq/mapper/BlogMapper.xml&quot;/&gt;--&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--&lt;mapper class=&quot;com.cgq.mapper.BlogMapper&quot;/&gt;--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">mapper</span> <span class="attr">url</span>=<span class="string">&quot;http://localhost/BlogMapper.xml&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">mappers</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>以上代码表示一个示例。我们可以一步步来分析是怎么处理的。</p>
+<p>首先代码是通过实例化SqlSessionFactoryBuilder类，来构建一个SqlSessionFactory。</p>
+<p>我们需要了解这个SqlSessionFactory是怎么构建出来？</p>
+<p>是如何解析mybatis-config.xml配置文件的？</p>
+<h3 id="SqlSessionFactoryBuilder"><a href="#SqlSessionFactoryBuilder" class="headerlink" title="SqlSessionFactoryBuilder"></a>SqlSessionFactoryBuilder</h3><p>首先我们进入SqlSessionFactoryBuilder类，该类只提供了build方法，并进行不同方式的重载。其最终是以不同方式获取到配置文件的信息。</p>
+<p>build方法的代码只有两行，主要的解析都在XMLConfigBuilder类中，他是处理整个配置文件的核心类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 实例化一个XmlConfigBuilder</span></span><br><span class="line">XMLConfigBuilder parser = <span class="keyword">new</span> XMLConfigBuilder(reader, environment, properties);</span><br><span class="line"><span class="comment">// 解析配置文件得到的Configuration对象，创建defaultSqlSessionFactory对象</span></span><br><span class="line"><span class="keyword">return</span> build(parser.parse());</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="XMLConfigBuilder"><a href="#XMLConfigBuilder" class="headerlink" title="XMLConfigBuilder"></a>XMLConfigBuilder</h3><p>该类继承自BaseBuilder抽象类，并且可以知道，它使用了建造者模式，他有多个实现类，后面会讲到。</p>
+<p>我们首先要知道它从父类那里继承了Configuration、TypeAliasRegistry、TypeHandlerRegistry这三个属性。</p>
+<p>它们分别表示</p>
+<ul>
+<li>Configuration: mybatis初始化时的核心对象，保存几乎所有配置。在初始化时创建且全局只有一个。</li>
+<li>TypeAliasRegistry：类型别名注册器，它存储了所有Class与其对应的别名。类中使用一个HashMap来存储</li>
+<li>TypeHandlerRegistry：类型处理注册器，主要处理java类型与jdbc类型的映射关系信息</li>
+</ul>
+<p>除了从父类继承的属性，还包含自身的属性，</p>
+<ul>
+<li>parsed：是否已经解析过mybatis-config.xml文件</li>
+<li>parser：由ibatis封装的XpathParser类型的XML解析器</li>
+<li>enviroment：当前读取的enviroments节点中的default属性的值，表示默认环境名称</li>
+<li>localReflectorFactory：反射器工厂，反射器是ibatis的反射模块的基础，每个Reflector对象对应一个类，存储了反射所需要的类的元信息等。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="title">XMLConfigBuilder</span><span class="params">(XPathParser parser, String environment, Properties props)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(<span class="keyword">new</span> Configuration());</span><br><span class="line">    ErrorContext.instance().resource(<span class="string">&quot;SQL Mapper Configuration&quot;</span>);</span><br><span class="line">    <span class="keyword">this</span>.configuration.setVariables(props);</span><br><span class="line">    <span class="keyword">this</span>.parsed = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">this</span>.environment = environment;</span><br><span class="line">    <span class="keyword">this</span>.parser = parser;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">BaseBuilder</span><span class="params">(Configuration configuration)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.configuration = configuration;</span><br><span class="line">    <span class="keyword">this</span>.typeAliasRegistry = <span class="keyword">this</span>.configuration.getTypeAliasRegistry();</span><br><span class="line">    <span class="keyword">this</span>.typeHandlerRegistry = <span class="keyword">this</span>.configuration.getTypeHandlerRegistry();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>这个是XmlConfigBuilder的构造函数，super(new Configuration());初始化了Configuration对象，父类将调用configuration属性的getTypeAliasRegistry()和getTypeHandlerRegistry()；</p>
+<p>其中TypeAliasRegistry中的数据Configuration初始化的时候就将已知默认的别名注册到注册器中；TypeHandlerRegistry则在创建自身的时候在构造函数里注册已知默认的类型处理器。</p>
+<p>最后是调用parse方法，这里面调用了parseConfiguration()方法来解析整个配置文件。</p>
+<h3 id="parseConfiguration"><a href="#parseConfiguration" class="headerlink" title="parseConfiguration"></a>parseConfiguration</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解析Configuration配置文件</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> root</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">parseConfiguration</span><span class="params">(XNode root)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">try</span> &#123;</span><br><span class="line">    <span class="comment">// 解析properties节点</span></span><br><span class="line">    <span class="comment">// issue #117 read properties first</span></span><br><span class="line">    propertiesElement(root.evalNode(<span class="string">&quot;properties&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析setting节点</span></span><br><span class="line">    Properties settings = settingsAsProperties(root.evalNode(<span class="string">&quot;settings&quot;</span>));</span><br><span class="line">    <span class="comment">// 设置vfsImpl字段</span></span><br><span class="line">    loadCustomVfs(settings);</span><br><span class="line">    <span class="comment">//设置logImpl</span></span><br><span class="line">    loadCustomLogImpl(settings);</span><br><span class="line">    <span class="comment">// 解析typeAliases节点</span></span><br><span class="line">    typeAliasesElement(root.evalNode(<span class="string">&quot;typeAliases&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析plugins节点</span></span><br><span class="line">    pluginElement(root.evalNode(<span class="string">&quot;plugins&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析objectFactory节点</span></span><br><span class="line">    objectFactoryElement(root.evalNode(<span class="string">&quot;objectFactory&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析 objectWrapperFactory节点</span></span><br><span class="line">    objectWrapperFactoryElement(root.evalNode(<span class="string">&quot;objectWrapperFactory&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析reflectorFactory节点</span></span><br><span class="line">    reflectorFactoryElement(root.evalNode(<span class="string">&quot;reflectorFactory&quot;</span>));</span><br><span class="line">    <span class="comment">// 将settings设置到configuration</span></span><br><span class="line">    settingsElement(settings);</span><br><span class="line">    <span class="comment">// 解析environments节点</span></span><br><span class="line">    <span class="comment">// read it after objectFactory and objectWrapperFactory issue #631</span></span><br><span class="line">    environmentsElement(root.evalNode(<span class="string">&quot;environments&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析databaseIdProvider节点</span></span><br><span class="line">    databaseIdProviderElement(root.evalNode(<span class="string">&quot;databaseIdProvider&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析typeHandlers节点</span></span><br><span class="line">    typeHandlerElement(root.evalNode(<span class="string">&quot;typeHandlers&quot;</span>));</span><br><span class="line">    <span class="comment">// 解析mappers节点</span></span><br><span class="line">    mapperElement(root.evalNode(<span class="string">&quot;mappers&quot;</span>));</span><br><span class="line">  &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">    <span class="keyword">throw</span> <span class="keyword">new</span> BuilderException(<span class="string">&quot;Error parsing SQL Mapper Configuration. Cause: &quot;</span> + e, e);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法中通过多个对应的方法分别对各个节点进行解析。</p>
+<p>XNode也是ibatis解析模块中重要的类，它有众多的xml解析方法，是作为ibatis基础模块。</p>
+<h3 id="Properties"><a href="#Properties" class="headerlink" title="Properties"></a>Properties</h3><p>解析该节点的是propertiesElement方法</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解析properties节点</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> context</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">propertiesElement</span><span class="params">(XNode context)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (context != <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="comment">// 获取properties节点下子节点信息并组成Properties对象</span></span><br><span class="line">    Properties defaults = context.getChildrenAsProperties();</span><br><span class="line">    <span class="comment">// 获取resource属性</span></span><br><span class="line">    String resource = context.getStringAttribute(<span class="string">&quot;resource&quot;</span>);</span><br><span class="line">    <span class="comment">// 获取url属性</span></span><br><span class="line">    String url = context.getStringAttribute(<span class="string">&quot;url&quot;</span>);</span><br><span class="line">    <span class="comment">// 根据不同类型使用不用的解析方式，一个在类路径下载，一个是url的方式</span></span><br><span class="line">    <span class="keyword">if</span> (resource != <span class="keyword">null</span> &amp;&amp; url != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> BuilderException(<span class="string">&quot;The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span> (resource != <span class="keyword">null</span>) &#123;</span><br><span class="line">      defaults.putAll(Resources.getResourceAsProperties(resource));</span><br><span class="line">    &#125; <span class="keyword">else</span> <span class="keyword">if</span> (url != <span class="keyword">null</span>) &#123;</span><br><span class="line">      defaults.putAll(Resources.getUrlAsProperties(url));</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// configuration的variables是否有值</span></span><br><span class="line">    Properties vars = configuration.getVariables();</span><br><span class="line">    <span class="keyword">if</span> (vars != <span class="keyword">null</span>) &#123;</span><br><span class="line">      defaults.putAll(vars);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 将属性设置XNodeParser</span></span><br><span class="line">    parser.setVariables(defaults);</span><br><span class="line">    <span class="comment">// 将解析的properties重新设置到configuration中</span></span><br><span class="line">    configuration.setVariables(defaults);</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法即获取properties解析下子节点property的信息封装成Properties对象，再解析节点属性resource或url，将其合并。将结果设置给Configuration对象。</p>
+<h3 id="settings"><a href="#settings" class="headerlink" title="settings"></a>settings</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * settings节点属性检查</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> context</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> Properties <span class="title">settingsAsProperties</span><span class="params">(XNode context)</span> </span>&#123;</span><br><span class="line">  <span class="keyword">if</span> (context == <span class="keyword">null</span>) &#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> Properties();</span><br><span class="line">  &#125;</span><br><span class="line">  Properties props = context.getChildrenAsProperties();</span><br><span class="line">  <span class="comment">// Check that all settings are known to the configuration class</span></span><br><span class="line">  MetaClass metaConfig = MetaClass.forClass(Configuration.class, localReflectorFactory);</span><br><span class="line">  <span class="keyword">for</span> (Object key : props.keySet()) &#123;</span><br><span class="line">    <span class="keyword">if</span> (!metaConfig.hasSetter(String.valueOf(key))) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> BuilderException(<span class="string">&quot;The setting &quot;</span> + key + <span class="string">&quot; is not known.  Make sure you spelled it correctly (case sensitive).&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">  &#125;</span><br><span class="line">  <span class="keyword">return</span> props;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该方法检查settings的属性是否合规，在settings里的全部的key属性都在configuration的属性中存储。MetaClass.forClass检查Configuration的元信息，并检查是否有key的这个setter方法，如果没有则会报错，无法进行下去。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">settingsElement</span><span class="params">(Properties props)</span> </span>&#123;</span><br><span class="line">  configuration.setAutoMappingBehavior(AutoMappingBehavior.valueOf(props.getProperty(<span class="string">&quot;autoMappingBehavior&quot;</span>, <span class="string">&quot;PARTIAL&quot;</span>)));</span><br><span class="line">  configuration.setAutoMappingUnknownColumnBehavior(AutoMappingUnknownColumnBehavior.valueOf(props.getProperty(<span class="string">&quot;autoMappingUnknownColumnBehavior&quot;</span>, <span class="string">&quot;NONE&quot;</span>)));</span><br><span class="line">  configuration.setCacheEnabled(booleanValueOf(props.getProperty(<span class="string">&quot;cacheEnabled&quot;</span>), <span class="keyword">true</span>));</span><br><span class="line">  configuration.setProxyFactory((ProxyFactory) createInstance(props.getProperty(<span class="string">&quot;proxyFactory&quot;</span>)));</span><br><span class="line">  configuration.setLazyLoadingEnabled(booleanValueOf(props.getProperty(<span class="string">&quot;lazyLoadingEnabled&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setAggressiveLazyLoading(booleanValueOf(props.getProperty(<span class="string">&quot;aggressiveLazyLoading&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setMultipleResultSetsEnabled(booleanValueOf(props.getProperty(<span class="string">&quot;multipleResultSetsEnabled&quot;</span>), <span class="keyword">true</span>));</span><br><span class="line">  configuration.setUseColumnLabel(booleanValueOf(props.getProperty(<span class="string">&quot;useColumnLabel&quot;</span>), <span class="keyword">true</span>));</span><br><span class="line">  configuration.setUseGeneratedKeys(booleanValueOf(props.getProperty(<span class="string">&quot;useGeneratedKeys&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setDefaultExecutorType(ExecutorType.valueOf(props.getProperty(<span class="string">&quot;defaultExecutorType&quot;</span>, <span class="string">&quot;SIMPLE&quot;</span>)));</span><br><span class="line">  configuration.setDefaultStatementTimeout(integerValueOf(props.getProperty(<span class="string">&quot;defaultStatementTimeout&quot;</span>), <span class="keyword">null</span>));</span><br><span class="line">  configuration.setDefaultFetchSize(integerValueOf(props.getProperty(<span class="string">&quot;defaultFetchSize&quot;</span>), <span class="keyword">null</span>));</span><br><span class="line">  configuration.setDefaultResultSetType(resolveResultSetType(props.getProperty(<span class="string">&quot;defaultResultSetType&quot;</span>)));</span><br><span class="line">  configuration.setMapUnderscoreToCamelCase(booleanValueOf(props.getProperty(<span class="string">&quot;mapUnderscoreToCamelCase&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setSafeRowBoundsEnabled(booleanValueOf(props.getProperty(<span class="string">&quot;safeRowBoundsEnabled&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setLocalCacheScope(LocalCacheScope.valueOf(props.getProperty(<span class="string">&quot;localCacheScope&quot;</span>, <span class="string">&quot;SESSION&quot;</span>)));</span><br><span class="line">  configuration.setJdbcTypeForNull(JdbcType.valueOf(props.getProperty(<span class="string">&quot;jdbcTypeForNull&quot;</span>, <span class="string">&quot;OTHER&quot;</span>)));</span><br><span class="line">  configuration.setLazyLoadTriggerMethods(stringSetValueOf(props.getProperty(<span class="string">&quot;lazyLoadTriggerMethods&quot;</span>), <span class="string">&quot;equals,clone,hashCode,toString&quot;</span>));</span><br><span class="line">  configuration.setSafeResultHandlerEnabled(booleanValueOf(props.getProperty(<span class="string">&quot;safeResultHandlerEnabled&quot;</span>), <span class="keyword">true</span>));</span><br><span class="line">  configuration.setDefaultScriptingLanguage(resolveClass(props.getProperty(<span class="string">&quot;defaultScriptingLanguage&quot;</span>)));</span><br><span class="line">  configuration.setDefaultEnumTypeHandler(resolveClass(props.getProperty(<span class="string">&quot;defaultEnumTypeHandler&quot;</span>)));</span><br><span class="line">  configuration.setCallSettersOnNulls(booleanValueOf(props.getProperty(<span class="string">&quot;callSettersOnNulls&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setUseActualParamName(booleanValueOf(props.getProperty(<span class="string">&quot;useActualParamName&quot;</span>), <span class="keyword">true</span>));</span><br><span class="line">  configuration.setReturnInstanceForEmptyRow(booleanValueOf(props.getProperty(<span class="string">&quot;returnInstanceForEmptyRow&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setLogPrefix(props.getProperty(<span class="string">&quot;logPrefix&quot;</span>));</span><br><span class="line">  configuration.setConfigurationFactory(resolveClass(props.getProperty(<span class="string">&quot;configurationFactory&quot;</span>)));</span><br><span class="line">  configuration.setShrinkWhitespacesInSql(booleanValueOf(props.getProperty(<span class="string">&quot;shrinkWhitespacesInSql&quot;</span>), <span class="keyword">false</span>));</span><br><span class="line">  configuration.setDefaultSqlProviderType(resolveClass(props.getProperty(<span class="string">&quot;defaultSqlProviderType&quot;</span>)));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>这个是真正的设置方法，直接使用setter方法设置，并设置默认值</p>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2021/04/18/MyBatis/MyBatis%E5%88%9D%E5%A7%8B%E5%8C%96%E8%A7%A3%E6%9E%90Mybatis-Config.xml%E6%96%87%E4%BB%B6/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/04/18/MyBatis/IDEA%E6%90%AD%E5%BB%BA%E5%8F%8A%E6%9E%84%E5%BB%BAmybatis%E6%BA%90%E7%A0%81/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            IDEA搭建及构建mybatis源码
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/04/16/Java/2021-04-16-Java%E9%9B%86%E5%90%88/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Java集合</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

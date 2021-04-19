@@ -6,7 +6,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-     Notes
+     雪里
   </title>
   <meta name="generator" content="hexo-theme-yilia-plus">
   
@@ -51,7 +51,7 @@
       <img src="/images/cover4.jpg" alt="image frame" />
     </div>
     <div class="cover-inner text-center text-white">
-      <h1><a href="/">Notes</a></h1>
+      <h1><a href="/">雪里</a></h1>
       <div id="subtitle-box">
         
         <span id="subtitle"></span>
@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Hadoop/hadoop搭建本机模式和伪分布式并执行案例" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/SpringBoot多模块无法扫描到问题及Spring Data JPA多数据源配置" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/"
-    >hadoop搭建本机模式和伪分布式并执行案例</a
+  <a class="article-title" href="/2019/04/07/SpringBoot/SpringBoot%E5%A4%9A%E6%A8%A1%E5%9D%97%E6%97%A0%E6%B3%95%E6%89%AB%E6%8F%8F%E5%88%B0%E9%97%AE%E9%A2%98%E5%8F%8ASpring%20Data%20JPA%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/"
+    >SpringBoot多模块无法扫描到问题及Spring Data JPA多数据源配置</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/" class="article-date">
-  <time datetime="2018-12-31T11:10:22.000Z" itemprop="datePublished">2018-12-31</time>
+      <a href="/2019/04/07/SpringBoot/SpringBoot%E5%A4%9A%E6%A8%A1%E5%9D%97%E6%97%A0%E6%B3%95%E6%89%AB%E6%8F%8F%E5%88%B0%E9%97%AE%E9%A2%98%E5%8F%8ASpring%20Data%20JPA%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2019-04-07T12:26:55.000Z" itemprop="datePublished">2019-04-07</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
   </div>
 
       
@@ -119,476 +119,162 @@
       
 
       
-      <h2 id="单节点Hadoop运行-本地模式"><a href="#单节点Hadoop运行-本地模式" class="headerlink" title="单节点Hadoop运行(本地模式)"></a>单节点Hadoop运行(本地模式)</h2><p><a target="_blank" rel="noopener" href="http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SingleCluster.html">官网步骤地址</a> 必备条件:安装java及配置java环境变量，安装hadoop及配置hadoop环境变量</p>
-<pre><code>export JAVA_HOME=/home/ubuntu1/jdk1.8
-export PATH=$JAVA_HOME/bin:$PATH
-
-export HADOOP_HOME=/home/ubuntu1/hadoop-2.7.7
-export PATH=$PATH:$HADOOP_HOME/bin
-export PATH=$PATH:$HADOOP_HOME/sbin</code></pre><p>配置hadoop根目录下etc下hadoop下的hadoop-env.sh文件中的JAVA_HOME地址</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd etc/hadoop/
-ubuntu1@ubuntu1:~/hadoop-2.7.7/etc/hadoop$ vim hadoop-env.sh
-export JAVA_HOME=/home/ubuntu1/jdk1.8</code></pre><p>当前本地local模式只有当前一台机器，可以不安装ssh，而分布式需要ssh。那么配置完成之后，bin目录下的hadoop命令可以执行。 <strong>非分布式模式运行:grep程序</strong> grep程序用来检索intpu目录下所有符合指定参数的文件。</p>
-<pre><code>$ mkdir input
-$ cp etc/hadoop/*.xml input
-$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar grep input output &apos;dfs[a-z.]+&apos;
-$ cat output/*</code></pre><p>表示在hadoop根目录下创建input文件夹，将etc/hadoop下所有xml文件拷贝到input目录下，执行hadoop命令。执行完成后，进入output目录，这个output目录是程序运行后自动生成的，不能直接创建。目录下有两个文件：</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd output/
-ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ ls
-part-r-00000  _SUCCESS</code></pre><p>一个是执行结果存放，一个是成功标识。 <strong>非分布式模式运行:wordcount程序</strong> wordcount程序用来查询文件下单词每个重复的次数。</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ rm -rf output/
-ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ rm -rf *
-ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ vim testhello.txt
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount input output</code></pre><p>​    </p>
-<p>删除output目录，删除input目录下所有文件，并创建testhello.txt文件，在文件内填多个单词，每个单词用空格分开，保存。然后执行命令。</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ cat part-r-00000 
-and 2
-cehn    1
-chen    2
-name    1
-where   1
-with    1
-xiaoxing    1</code></pre><h2 id="伪分布式配置"><a href="#伪分布式配置" class="headerlink" title="伪分布式配置"></a>伪分布式配置</h2><p>即单节点配置HDFS和YARN,可正常使用功能。</p>
-<ol>
-<li><p>配置core-site.xml</p>
-<pre><code>&lt;!-- 指定HDFS中的NameNode地址 --&gt;
-&lt;property&gt;
-     &lt;name&gt;fs.defaultFS&lt;/name&gt;
-     &lt;value&gt;hdfs://ubuntu1:9000&lt;/value&gt;
-&lt;/property&gt;
-&lt;!-- 指定hadoop运行时产生的临时文件 --&gt;
-&lt;property&gt;
-     &lt;name&gt;hadoop.temp.dir&lt;/name&gt;
-     &lt;value&gt;/home/ubuntu1/hadoop-2.7.7/data/tmp&lt;/value&gt;
-&lt;/property&gt;</code></pre></li>
-<li><p>配置hdfs-site.xml</p>
-<pre><code> &lt;!-- 指定HDFS副本数量 --&gt;
-&lt;proerpty&gt;
-    &lt;name&gt;dfs.replication&lt;/name&gt;
-    &lt;value&gt;1&lt;/value&gt;
-&lt;/proerpty&gt;</code></pre></li>
-<li><p>配置完成后一定要将hdfs进行首次格式化</p>
-<pre><code>hdfs namenode -format</code></pre></li>
-<li><p>启动守护进程</p>
-<pre><code>sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
-sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
-jps  //查看进程
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ jps
-6889 Jps
-6683 NameNode
-6813 DataNode</code></pre></li>
-<li><p>WEB浏览器访问 配置服务IP:50070进入HDFS文件系统。界面显示 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181231184929.png" alt=""> 其中Utilities菜单栏下的Browse the file system可以查看HDFS结构。</p>
-</li>
-<li><p>使用HDFS并运行wordcount</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -mkdir -p /user/ubuntu1/input
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -put input/testhello.txt  /user/ubuntu1/input/
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount /user/ubuntu1/input /user/ubuntu1/output</code></pre></li>
+      <h2 id="SpringBoot多模块，为何其他模块无法被扫描到"><a href="#SpringBoot多模块，为何其他模块无法被扫描到" class="headerlink" title="SpringBoot多模块，为何其他模块无法被扫描到"></a>SpringBoot多模块，为何其他模块无法被扫描到</h2><ol>
+<li>在项目时，通常是创建一个maven项目，然后有src啊，pom文件啊，src里的main，test，resource等，这些都创建出来了，然后用maven添加模块，然后子模块添加parent标签依赖父模块，最后DemoApplication扫描的时候就没扫到其他模块的注解类。</li>
+<li>以上是通过maven创建的，想想用IDEA 的spring initializr创建时，，只有POM文件和一个iml文件，或者还有一个src。而在之前我也是按第一种方式，以为创建的就是父模块，DemoApplication就放那。但对，他确实是父模块。而Maven对父模块的定义是只是父模块的容器，不作任何操作。因此，他只需要一个POM文件，别的都不需要，而且该POM文件里的packing一定是POM，因为他是父模块，而里面的子模块都是jar。那DemoApplication放哪，放一个单独的模块，在学Timo项目的时候发现，分模块嘛，就把DemoApplication和yml放在一个单独的模块里。</li>
+<li>都知道DemoApplication会扫描当前所在包的所有子包，而SpringBootApplication注解的指定扫描的包，但这不是重点，重点是，模块与模块之间的关系，一般除了各个子模块之间的业务关系，不需要进行依赖。而这个启动类的boot模块，<strong>需要依赖所有的子模块才能把其他的模块里的类被扫描到，并且必须要写上version值</strong>。</li>
 </ol>
-<pre><code>以上命令分别表示创建一个多级目录到hdfs，并将本地input/testhello.txt上传到hdfs的intpu目录下。然后执行wordcount案例，指定hdfs中的文件和目录。执行完毕后，无错误则进入web查看结果，或使用如下命令:
+<p>总归两点，1.启动类为单独模块，2.启动类模块依赖其他子模块</p>
+<h2 id="SpringBoot多数据源配置"><a href="#SpringBoot多数据源配置" class="headerlink" title="SpringBoot多数据源配置"></a>SpringBoot多数据源配置</h2><p>我们使用Oracle和Mysql配置 yml配置如下</p>
+<pre><code>spring:
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate.dialect: com.linln.core.mysql.MySQLDialectUTF8
+      hibernate.format_sql: true
+      hibernate.enable_lazy_load_no_trans: true
+  datasource:
+    primary:
+      driver-class-name: oracle.jdbc.driver.OracleDriver
+      jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:orcl
+      username: sjbdc
+      password: sjbdc
+    secondary:
+      driver-class-name: com.mysql.jdbc.Driver
+      jdbcUrl: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;characterEncoding=utf-8
+      username: root
+      password: root</code></pre><p>我们需要一个配置数据源的配置类:</p>
+<pre><code>@Configuration
+public class DataSourceConfig &#123;
 
-    ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -cat /user/ubuntu1/output/par*
-    and  2
-    cehn 1
-    chen 2
-    name 1
-    where    1
-    with 1
-    xiaoxing 1</code></pre><ol start="7">
-<li><p>查看HDFS,及命令</p>
-<ol>
-<li><p>查看文件系统</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /
-Found 1 items
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
-
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls -R /
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input
--rw-r--r--   1 ubuntu1 supergroup         50 2018-12-31 18:47 /user/ubuntu1/input/testhello.txt
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output
--rw-r--r--   1 ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output/_SUCCESS
--rw-r--r--   1 ubuntu1 supergroup         53 2018-12-31 18:53 /user/ubuntu1/output/part-r-00000</code></pre></li>
-<li><p>下载文件到本地</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -get /user/ubuntu1/output/par* ./
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ cat ./part-r-00000 
-and   2
-cehn  1
-chen  2
-name  1
-where 1
-with  1
-xiaoxing  1</code></pre></li>
-<li><p>删除HDFS中文件或文件夹</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -rm -r /user/ubuntu1/output
-18/12/31 19:04:14 INFO fs.TrashPolicyDefault: Namenode trash configuration: Deletion interval = 0 minutes, Emptier interval = 0 minutes.
-Deleted /user/ubuntu1/output
-
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /user/ubuntu1
-Found 1 items
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input</code></pre></li>
-</ol>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Zoopeeker/Zookeeper集群服务器注册动态上下线" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/"
-    >Zookeeper集群服务器注册动态上下线</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/" class="article-date">
-  <time datetime="2018-12-30T13:32:43.000Z" itemprop="datePublished">2018-12-30</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>服务器上下线，就是服务器在集群化环境下，服务器出现的断开集群连接，或服务器宕机，关机，停止工作等问题。而服务器动态上下线感知就是客户端可以监听服务器的上线或下线，知道哪个服务器正在运行，哪个服务器停止了，若某台机器退出集群了，表示该服务器节点下线了。那么客户端就不会请求这台服务器了。并且客户端通过监听就可以知道那些机器在运行中。 首先Zookeepr能做什么，主要是作为分布式命名服务，通过调用zNode api 能够很容易的创建一个全局的path，一个path就是一个名称，且具有层级结构。当然还有其他作用。 而Zookeeper具有监听watch的功能，监听节点值和子节点。那么将服务器作为每个节点，由zookeeper统一管理，每个节点都会有stat信息，存储这相关内容及配置。那么节点又分为临时和持久，以及四个节点目录类型。只要将服务器节点设置为临时顺序节点，即可监听节点的数量。只要服务器节点断开。那个临时节点就会删除。这句话也就是说，将服务器通过Zookeeper管理，两者的关系就是，服务器就是Client，同真正的Client客户端类似。也就是说，服务器需要到Zookeeper值注册节点，那么Server服务器也就理应成了Client的角色。 <strong>简而言之:</strong></p>
-<ul>
-<li>n个服务器到Zookeeper中注册节点，注册到同一个节点下，那么他们都是同级的子节点。</li>
-<li>而客户端会通过ls path [watch]，来监听这个节点的变化，也就是路径的变化。在java操作客户端时getChildren可以使用Watcher来监听某个节点。那么被监听的这个节点就是众多服务器节点的父节点。</li>
-</ul>
-<p>需要注意的是，服务器都通过zookeeper来管理，要到Zookeeper中注册节点。而客户端专门监听Zookeeper的节点列表。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181230202802.png" alt=""> java代码的具体方式就是，先服务器注册，在客户端监听。 看一下服务器代码:</p>
-<pre><code>public class ZkServer &#123;
-
-    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
-    private int sessionTimeout=20000;
-    private ZooKeeper zkServer = null;
-
-    public static void main(String[] args) &#123;
-        ZkServer server = new ZkServer();
-        server.connect();//连接Zookeeper
-        server.register(args[0]);//注册服务器节点
-        server.message(args[0]);
+    @Qualifier(&quot;primaryDataSource&quot;)
+    @Primary
+    @Bean(name = &quot;primaryDataSource&quot;)
+    @ConfigurationProperties(prefix = &quot;spring.datasource.primary&quot;)
+    public DataSource primaryDataSource()&#123;
+        return DataSourceBuilder.create().build();
     &#125;
 
-    /**
-     * 服务器注册完毕提示
-     * @param string
-     */
-    private void message(String hostName) &#123;
-        System.out.println(hostName + &quot;启动完毕!!!&quot;);
+    @Bean(name = &quot;secondaryDataSource&quot;)
+    @Qualifier(&quot;secondaryDataSource&quot;)
+    @ConfigurationProperties(prefix = &quot;spring.datasource.secondary&quot;)
+    public DataSource secondaryDataSource() &#123;
+        return DataSourceBuilder.create().build();
     &#125;
 
-    /**
-     * 服务器节点注册
-     */
-    private void register(String hostName) &#123;
-        try &#123;
-            zkServer.create(&quot;/servers/server&quot;, hostName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
-        &#125; catch (KeeperException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125; catch (InterruptedException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-        System.out.println(&quot;注册服务器节点&quot; + hostName);
-        try &#123;
-            Thread.sleep(Long.MAX_VALUE);
-        &#125; catch (InterruptedException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
+&#125;</code></pre><p>你需要使用spring data jap，还需要为每个数据源配置jpa properties,所以各需要一个jpa属性配置类</p>
+<pre><code>/**
+ * 主数据源配置
+ */
+@Configuration
+@EnableTransactionManagement
+@EnableJpaRepositories(
+        entityManagerFactoryRef = &quot;entityManagerFactoryPrimary&quot;,
+        transactionManagerRef = &quot;transactionManagerPrimary&quot;,
+        basePackages = &quot;com.fsats.dbanalysis.oracle&quot; //dao扫描位置
+)
+public class PrimaryConfig &#123;
+
+    @Autowired
+    @Qualifier(&quot;primaryDataSource&quot;)
+    private DataSource primaryDataSource;
+
+    @Primary
+    @Bean(name = &quot;transactionManagerPrimary&quot;)
+    public EntityManager entityManager(EntityManagerFactoryBuilder builder) &#123;
+        return entityManagerFactoryPrimary(builder).getObject().createEntityManager();
     &#125;
 
-    /**
-     * 服务器作为客户端连接Zookeeper
-     */
-    private void connect() &#123;
-        try &#123;
-            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
-
-                public void process(WatchedEvent event) &#123;
-
-                &#125;
-            &#125;);
-        &#125; catch (IOException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-    &#125;
-&#125;</code></pre><p>客户端代码:</p>
-<pre><code>public class ZkClient &#123;
-
-    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
-    private int sessionTimeout=20000;
-    private ZooKeeper zkServer = null;
-
-    public static void main(String[] args) &#123;
-        ZkClient client = new ZkClient();
-        client.connect();//连接Zookeeper
-
+    @Primary
+    @Bean(name = &quot;entityManagerFactoryPrimary&quot;)
+    public LocalContainerEntityManagerFactoryBean entityManagerFactoryPrimary(EntityManagerFactoryBuilder builder) &#123;
+        return builder
+                .dataSource(primaryDataSource)
+                .properties(getVendorProperties())
+                .packages(&quot;com.fsats.dbanalysis.oracle.domain&quot;)         //设置实体类所在位置
+                .persistenceUnit(&quot;primaryPersistenceUnit&quot;)
+                .build();
     &#125;
 
-    /**
-     * 服务器作为客户端连接Zookeeper
-     */
-    private void connect() &#123;
-        try &#123;
-            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
-                public void process(WatchedEvent event) &#123;
-                    try &#123;
-                        List&lt;String&gt; list = zkServer.getChildren(&quot;/servers&quot;, true);
-                        System.out.println(list.toString());
-                    &#125; catch (KeeperException e) &#123;
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    &#125; catch (InterruptedException e) &#123;
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    &#125;
-                &#125;
-            &#125;);
-        &#125; catch (IOException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-        try &#123;
-            Thread.sleep(Long.MAX_VALUE);
-        &#125; catch (InterruptedException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
+    private Map getVendorProperties() &#123;
+        HashMap&lt;String, Object&gt; properties = new HashMap&lt;&gt;();
+        properties.put(&quot;hibernate.dialect&quot;,
+                env.getProperty(&quot;hibernate.dialect&quot;));
+        properties.put(&quot;hibernate.ddl-auto&quot;,
+                &quot;update&quot;);
+        properties.put(&quot;hibernate.physical_naming_strategy&quot;,
+                &quot;org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&quot;);
+        properties.put(&quot;hibernate.implicit_naming_strategy&quot;,
+                &quot;org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy&quot;);
+        return properties;
     &#125;
 
-&#125;</code></pre><p>其实总体来说，只有客户端代码有用，它负责监听，并把子节点打印出来。我们可以直接启动客户端代码。而对于服务器注册而言，无非是命令行创建变成了通过java代码创建。所以，只需要把客户端启动起来，在命令行上创建临时顺序节点即可。下面是命令行注册服务器，以及对应的客户端打印输出。</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 34] ls /servers
-[]
-[zk: localhost:2181(CONNECTED) 35] create -s -e /servers/server server1
-Created /servers/server0000000001
-[zk: localhost:2181(CONNECTED) 36] create -s -e /servers/server server2
-Created /servers/server0000000002
-[zk: localhost:2181(CONNECTED) 37] create -s -e /servers/server server3
-Created /servers/server0000000003
-[zk: localhost:2181(CONNECTED) 38] delete /servers/server0000000001
+    @Autowired
+    private Environment env;
 
-
-[]
-[server0000000001]
-[server0000000002, server0000000001]
-[server0000000003, server0000000002, server0000000001]
-[server0000000003, server0000000002]</code></pre><p>为什么我不用java启动服务注册，因为，你需要开线程，或者打个包才能执行三次。没有命令行快速方便。然后，没了。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Zoopeeker/Zookeeper客户端java操作说明" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/30/Zoopeeker/Zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AFjava%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E/"
-    >Zookeeper客户端java操作说明</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/30/Zoopeeker/Zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AFjava%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E/" class="article-date">
-  <time datetime="2018-12-30T11:23:59.000Z" itemprop="datePublished">2018-12-30</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>创建Maven项目，添加对应zookeeper版本依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;
-    &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;
-    &lt;version&gt;3.4.13&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>再拷贝zookeeper.tar.gz包下的conf下的log4j.properties日志。到maven的resource目录下</p>
-<pre><code>public class App &#123;
-
-    //连接字符串
-    private static String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
-    //会话超时时间
-    private static int sessionTimeout = 20000;
-    //Zookeeper对象
-    ZooKeeper zkCli = null;
-
-    @Before
-    public void initCli() throws IOException &#123;
-
-        zkCli = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
-
-            public void process(WatchedEvent event) &#123;
-                // TODO Auto-generated method stub
-                System.out.println(&quot;事件类型&quot; + event.getType());
-            &#125;
-        &#125;);
-    &#125;
-
-    @Test
-    public void createNode() throws KeeperException, InterruptedException &#123;
-        String path = zkCli.create(&quot;/chen&quot;, &quot;chenguangqi&quot;.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        System.out.println(path);
-    &#125;
-
-&#125;</code></pre><p>代码中initCli方法用于创建客户端，通过Zokkepper构造方法构造客户端对象。</p>
-<ul>
-<li>第一个参数为连接字符串,多个连接使用逗号分开，可以写一个或多个，将随机连接。</li>
-<li>第二个参数为会话超时时间，这个尽量不要低于5秒吧，否则可能导致超时报错。</li>
-<li>第三个参数为监听Watcher,也就是监听器原理中的那个，获得到监听响应后会执行process方法。</li>
-</ul>
-<p>客户端创建节点，返回创建节点的路径</p>
-<ul>
-<li>第一个参数为创建的节点路径</li>
-<li>第二个参数为节点数据值</li>
-<li>第三个参数为ACL访问控制权限，Ids中获得其他节点权限，当前为开放权限不安全。</li>
-<li>第四个参数为节点类型，暂时，暂时顺序，持久，持久顺序</li>
-</ul>
-<p>java客户端在连接服务器执行完操作后，就会断开连接。且<strong>每次连接客户端的Watcher都会执行</strong>。也就是首次连接服务器必会执行process方法。</p>
-<h3 id="获得子节点"><a href="#获得子节点" class="headerlink" title="获得子节点"></a>获得子节点</h3><pre><code>@Test
-public void getNode() throws KeeperException, InterruptedException &#123;
-    List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, false);
-    for (String string : list) &#123;
-        System.out.println(string);
+    @Primary
+    @Bean(name = &quot;transactionManagerPrimary&quot;)
+    public PlatformTransactionManager transactionManagerPrimary(EntityManagerFactoryBuilder builder) &#123;
+        return new JpaTransactionManager(entityManagerFactoryPrimary(builder).getObject());
     &#125;
 &#125;
 
 
-@Test
-public void getNode() throws KeeperException, InterruptedException &#123;
-    //List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, false);
-    List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, new Watcher() &#123;
-        public void process(WatchedEvent event) &#123;
-            // TODO Auto-generated method stub
-            System.out.println(&quot;监听路径&quot; + event.getPath());
-        &#125;
-    &#125;);
-    for (String string : list) &#123;
-        System.out.println(string);
+/**
+ * 次数据源配置
+ */
+@Configuration
+@EnableTransactionManagement
+@EnableJpaRepositories(
+        entityManagerFactoryRef = &quot;entityManagerFactorySecondary&quot;,
+        transactionManagerRef = &quot;transactionManagerSecondary&quot;,
+        basePackages = &#123;&quot;com.fsats.dbanalysis.mysql&quot;&#125;) //设置DAO接口层所在包位置
+public class SecondaryConfig &#123;
+
+    @Autowired
+    @Qualifier(&quot;secondaryDataSource&quot;)
+    private DataSource secondaryDataSource;
+
+    @Bean(name = &quot;entityManagerSecondary&quot;)
+    public EntityManager entityManager(EntityManagerFactoryBuilder builder) &#123;
+        return entityManagerFactorySecondary(builder).getObject().createEntityManager();
     &#125;
 
-    Thread.sleep(Long.MAX_VALUE);//因为客户端连接服务器执行操作后就会关闭连接，所以需要睡眠才能够看到监听结果的输出
-&#125;</code></pre><p>通过getChildren方法获得子节点集合，第二个参数为是否监听，如果设置为true，则监听当前节点，并在创建客户端时的Watcher捕获的。 当getChildren方法的监听参数为true时，则连接服务器的Watcher会依据当前getChildren监听的节点的反应来执行process方法。同命令行监听一样，只会监听一次。 当getChildren方法的监听参数为false时，连接服务器的Watcher仅会在连接服务器时执行第一次process，而不会监听当前getChildren的节点。 当getChilredn方法的监听参数为Watcher监听对象，那么连接服务器的监听只有第一次连接服务器执行process，而更改/子节点时只有getChidren的监听才会执行。也只监听一次执行一次。 要想连续监听，需要在连接服务器的监听的process方法里，再次来一次getChildren(“/“,true);这样才能再次监听。</p>
-<h3 id="查看节点是否存在"><a href="#查看节点是否存在" class="headerlink" title="查看节点是否存在"></a>查看节点是否存在</h3><p>依然可以监听当前节点，是否存在，同样可以设置true，false，Watcher</p>
-<pre><code>@Test
-public void exist() throws KeeperException, InterruptedException &#123;
-    Stat stat = zkCli.exists(&quot;/chen&quot;,false);
-    if(stat!=null) &#123;
-        System.out.println(stat.getVersion());
-        System.out.println(stat.getDataLength());
-    &#125;else &#123;
-        System.out.println(&quot;不存在&quot;);
+    @Bean(name = &quot;entityManagerFactorySecondary&quot;)
+    public LocalContainerEntityManagerFactoryBean entityManagerFactorySecondary(EntityManagerFactoryBuilder builder) &#123;
+        return builder
+                .dataSource(secondaryDataSource)
+                .properties(getVendorProperties())
+                .packages(&quot;com.fsats.dbanalysis.mysql.domain&quot;)        //设置实体类所在包的位置
+                .persistenceUnit(&quot;primaryPersistenceUnit&quot;)
+                .build();
     &#125;
-    Thread.sleep(Long.MAX_VALUE);
-&#125;</code></pre><p>监听与getChildren都是一样的。</p>
-<h3 id="修改节点值"><a href="#修改节点值" class="headerlink" title="修改节点值"></a>修改节点值</h3><pre><code>@Test
-public void setData() throws KeeperException, InterruptedException &#123;
-    Stat stat = zkCli.setData(&quot;/chen&quot;, &quot;what is your name&quot;.getBytes(), 0);
-    System.out.println(&quot;版本&quot; + stat.getVersion());
-    System.out.println(&quot;修改时间&quot; + stat.getMtime());
-&#125;</code></pre><ul>
-<li>第一个参数为要修改的节点</li>
-<li>第二个参数为要修改的节点值</li>
-<li>第三个参数为被修改节点的版本</li>
-</ul>
+
+    private Map getVendorProperties() &#123;
+        HashMap&lt;String, Object&gt; properties = new HashMap&lt;&gt;();
+        properties.put(&quot;hibernate.hbm2ddl.auto&quot;,
+                env.getProperty(&quot;hibernate.hbm2ddl.auto&quot;));
+        properties.put(&quot;hibernate.ddl-auto&quot;,
+                env.getProperty(&quot;update&quot;));
+        properties.put(&quot;hibernate.dialect&quot;,
+                env.getProperty(&quot;hibernate.dialect&quot;));
+        properties.put(&quot;hibernate.physical_naming_strategy&quot;,
+                &quot;org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&quot;);
+        properties.put(&quot;hibernate.implicit_naming_strategy&quot;,
+                &quot;org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy&quot;);
+        return properties;
+    &#125;
+
+    @Autowired
+    private Environment env;
+
+    @Bean(name = &quot;transactionManagerSecondary&quot;)
+    PlatformTransactionManager transactionManagerSecondary(EntityManagerFactoryBuilder builder) &#123;
+        return new JpaTransactionManager(entityManagerFactorySecondary(builder).getObject());
+    &#125;</code></pre><p>​<br>    }</p>
+<p>这俩配置类，这三个类要关联，不要写错bean依赖名称，要改的就是注解上的dao扫描包，也就是repository位置，和entityManagerFactorySecondary方法里的实体类名称。这两个类都要更改。 因为当但数据源配置是，是默认自动配置的。默认是””,整个项目扫描，或者指定扫描路径。而多数据源需要各自配置Jpa properties，所以需要手动配置jpa扫描的dao位置和实体类位置。否则会报错Repository没有找到。</p>
 
       
       <!-- reward -->
@@ -601,7 +287,7 @@ public void setData() throws KeeperException, InterruptedException &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
 
 
     </footer>
@@ -618,7 +304,7 @@ public void setData() throws KeeperException, InterruptedException &#123;
 
 </article>
     
-    <article id="post-Zoopeeker/zookeeper的监听器原理和客户端写数据流程" class="article article-type-post" itemscope
+    <article id="post-Java/linux上部署tomcat7及JDK1.6项目导致的某些问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -626,8 +312,8 @@ public void setData() throws KeeperException, InterruptedException &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/"
-    >zookeeper的监听器原理和客户端写数据流程</a
+  <a class="article-title" href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/"
+    >linux上部署tomcat7及JDK1.6项目导致的某些问题</a
   >
 </h2>
   
@@ -637,12 +323,12 @@ public void setData() throws KeeperException, InterruptedException &#123;
 
     
     <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/" class="article-date">
-  <time datetime="2018-12-29T15:35:39.000Z" itemprop="datePublished">2018-12-29</time>
+      <a href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2019-03-13T07:35:11.000Z" itemprop="datePublished">2019-03-13</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>
   </div>
 
       
@@ -659,21 +345,342 @@ public void setData() throws KeeperException, InterruptedException &#123;
       
 
       
-      <h2 id="监听器原理"><a href="#监听器原理" class="headerlink" title="监听器原理"></a>监听器原理</h2><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229231357.png" alt="监听器原理"> 如图所示: 首先要有一个main线程，这个main线程创建zookeeper客户端，zkClient会分发两个子线程，一个用来监听，一个用来连接服务器。 通过connect线程将注册的监听事件发送给Zookeeper，Zookeeper的注册监听器列表将注册的监听事件添加到列表中。 Zookeeper监听到有数据变化或路径变化，就会将消息发送到listener线程。 而listener线程内部则调用process()方法。 通常有这两种监听，分别是监听节点值和子节点</p>
-<ul>
-<li>get path [watch]:监听节点数据变化</li>
-<li>ls path [watch]:监听子节点增减的变化</li>
-</ul>
-<h2 id="客户端写数据到服务器流程"><a href="#客户端写数据到服务器流程" class="headerlink" title="客户端写数据到服务器流程"></a>客户端写数据到服务器流程</h2><p>下图为客户端请求写数据到服务器流程 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229232711.png" alt=""></p>
+      <h1 id="linux上部署tomcat7及JDK1-6项目导致的某些问题"><a href="#linux上部署tomcat7及JDK1-6项目导致的某些问题" class="headerlink" title="linux上部署tomcat7及JDK1.6项目导致的某些问题"></a>linux上部署tomcat7及JDK1.6项目导致的某些问题</h1><p>在linux的tomcat启动项目时，使用wsdl上报的原因，由于客户端出现并发情况，而服务端tomcat，仅有一个，且没有负载均衡。 事故的开始是，每次测试都会成功，正常返回信息，但每次测试只是一条一条的测试，每次测试间隔很大，每次测都能成功，等客户端实际调用请求了，出现并发。第一个好的，后面就客户端超时，超时。 后来看了好几次日志发现，每次的并发请求，都堆到了一个线程里exec-1，好多都等着他一个处理。默认tomcat线程池中是10个线程的，这个在java的bin下有jvisualvm.exe，可以查看jvm，比如tomcat和java进程的资源，CPU，内存，堆栈，等等。 之后发现很奇怪，windows自己电脑上的就好好地，几个请求，几个线程，若同时并发50个，则tomcat会多拿出40个线程到线程池里，这是50的请求处理线程。 <strong>这个是单次循环，非并发的。不报错，ok</strong></p>
+<pre><code>2019-03-06 19:16:58.337  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:192.168.0.98
+2019-03-06 19:16:58.799  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-08 15:52:00.625  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-08 15:52:00.995  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-10 14:45:44.918  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-10 14:45:45.273  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 11:50:27.746  INFO 873 --- [http-bio-8080-exec-2] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null</code></pre><p><strong>然后，一次的连续请求，导致出现问题</strong></p>
+<pre><code>2019-03-11 20:22:27.381  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:22:27.729  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 20:22:28.076  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:22:28.464  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 20:22:28.586  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:22:58.602  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url
+
+org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.executeMethod(HTTPSenderImpl.java:872) ~[axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.sendViaPost(HTTPSenderImpl.java:212) ~[axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.HTTPSender.send(HTTPSender.java:121) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.writeMessageWithCommons(CommonsHTTPTransportSender.java:403) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.invoke(CommonsHTTPTransportSender.java:234) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.engine.AxisEngine.send(AxisEngine.java:431) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.OutInAxisOperationClient.send(OutInAxisOperation.java:399) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.OutInAxisOperationClient.executeImpl(OutInAxisOperation.java:225) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.client.OperationClient.execute(OperationClient.java:150) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:533) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:509) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.rpc.client.RPCServiceClient.invokeBlocking(RPCServiceClient.java:101) [axis2-adb-1.7.9.jar:1.7.9]
+    at com.xxha.logservice.util.ServiceClient.dataExange(ServiceClient.java:36) [classes/:na]
+    at com.xxha.logservice.services.LogWebService.exchangeInfo(LogWebService.java:24) [classes/:na]
+    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.6.0_45]
+    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39) ~[na:1.6.0_45]
+    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25) ~[na:1.6.0_45]
+    at java.lang.reflect.Method.invoke(Method.java:597) ~[na:1.6.0_45]
+    at org.apache.axis2.rpc.receivers.RPCUtil.invokeServiceClass(RPCUtil.java:256) [axis2-adb-1.7.9.jar:1.7.9]
+    at org.apache.axis2.rpc.receivers.RPCMessageReceiver.invokeBusinessLogic(RPCMessageReceiver.java:121) [axis2-adb-1.7.9.jar:1.7.9]
+    at org.apache.axis2.receivers.AbstractInOutMessageReceiver.invokeBusinessLogic(AbstractInOutMessageReceiver.java:40) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.receivers.AbstractMessageReceiver.receive(AbstractMessageReceiver.java:106) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.engine.AxisEngine.receive(AxisEngine.java:169) [axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.HTTPTransportUtils.processHTTPPostRequest(HTTPTransportUtils.java:178) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at org.apache.axis2.transport.http.AxisServlet.doPost(AxisServlet.java:164) [axis2-transport-http-1.7.9.jar:1.7.9]
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:650) [servlet-api.jar:na]
+    at javax.servlet.http.HttpServlet.service(HttpServlet.java:731) [servlet-api.jar:na]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:303) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:120) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.springframework.boot.context.web.ErrorPageFilter.access$000(ErrorPageFilter.java:61) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.springframework.boot.context.web.ErrorPageFilter$1.doFilterInternal(ErrorPageFilter.java:95) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
+    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:113) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
+    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:219) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:110) [catalina.jar:7.0.92]
+    at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:494) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:169) [catalina.jar:7.0.92]
+    at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:104) [catalina.jar:7.0.92]
+    at org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:1025) [catalina.jar:7.0.92]
+    at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:116) [catalina.jar:7.0.92]
+    at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:445) [catalina.jar:7.0.92]
+    at org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1137) [tomcat-coyote.jar:7.0.92]
+    at org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:637) [tomcat-coyote.jar:7.0.92]
+    at org.apache.tomcat.util.net.JIoEndpoint$SocketProcessor.run(JIoEndpoint.java:318) [tomcat-coyote.jar:7.0.92]
+    at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895) [na:1.6.0_45]
+    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918) [na:1.6.0_45]
+    at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) [tomcat-coyote.jar:7.0.92]
+    at java.lang.Thread.run(Thread.java:662) [na:1.6.0_45]
+
+2019-03-11 20:22:58.605  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
+2019-03-11 20:22:58.744  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
+2019-03-11 20:23:28.747  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url[http://10.255.5.123:8081/uaccess/services/registrationLog.dataExchange?wsdl]
+
+org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
+    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]</code></pre><p>最后，找了之后才发现,tomcat有bio，nio，apr的方式，再看看windows上的，都是nio。这才发现问题，根据博客上说的， bio是阻塞式I/O nio是非阻塞式I/O 这也是最后的问题，最后说改个地方就可以了，把tomcat中server.xml的Connector配置8080端口的哪里， 把protocol的值改成org.apache.coyote.http11.Http11NioProtocol</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/使用JDK1.6构建SpringBoot发布jar和war" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/"
+    >使用JDK1.6构建SpringBoot发布jar和war</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/" class="article-date">
+  <time datetime="2019-02-28T16:05:10.000Z" itemprop="datePublished">2019-03-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="使用jdk1-6和springboot部署程序"><a href="#使用jdk1-6和springboot部署程序" class="headerlink" title="使用jdk1.6和springboot部署程序"></a>使用jdk1.6和springboot部署程序</h3><h4 id="jar包部署程序及没有主清单属性的问题"><a href="#jar包部署程序及没有主清单属性的问题" class="headerlink" title="jar包部署程序及没有主清单属性的问题"></a>jar包部署程序及没有主清单属性的问题</h4><ol>
+<li><p>在使用JDK1.6时，网上普遍的搭配是，JDK1.6+tomcat7.0.59+springboot1.3.5。我用的也是这个。关于springboot和JDK的版本匹配，可以到网上查看一下，搜一下是有的。一般SpringBoot建议是JDK8及以上版本，对应的应该是1.5以上的2.x以上的SpringBoot版本。</p>
+</li>
+<li><p>在·pom.xml文件中，properties标签内指定tomcat-version版本为7.0.59,java版本为1.6</p>
+<pre><code>&lt;properties&gt;
+   &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
+   &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
+   &lt;maven.compiler.source&gt;1.6&lt;/maven.compiler.source&gt;
+   &lt;maven.compiler.target&gt;1.6&lt;/maven.compiler.target&gt;
+   &lt;tomcat.version&gt;7.0.59&lt;/tomcat.version&gt;
+   &lt;java.version&gt;1.6&lt;/java.version&gt;
+   &lt;axis.version&gt;1.7.9&lt;/axis.version&gt;
+   &lt;commons-lang3.version&gt;3.2.1&lt;/commons-lang3.version&gt;
+   &lt;lombok.version&gt;1.16.18&lt;/lombok.version&gt;
+&lt;/properties&gt;</code></pre></li>
+</ol>
+<pre><code>在以上jar包版本中，所有的依赖尽量都不是最新的。因为服务器上报jdk师1.6低版本的，而如果依赖的jar包是1.8编译打包的，很可能在使用的时候出现版本不兼容问题，因为1.6和1.8的编译方式可能有些差异，所以将1.8编译的版本放在1.6上运行，在使用某些类时就会报把本不兼容错误，报错信息中的49,，50，51分别为1.6，1.7，1.8版本，所以若出现版本情况，就降低版本依赖。</code></pre><ol start="3">
+<li><p>随后是IDE的编译版本设置，以IDEA为例，需要设置Project Structure的project的选项中选择java sdk为1.6，language level为6，在settings中搜索java compiler，设置当前项目Traget bytecode version为1.6。</p>
+</li>
+<li><p>另外关于打包jar后，使用java -jar命令运行显示没有主清单属性。这种情况，都说是加spring-boot-maven-plugin，没错，就是加他，但是一定要加正确。</p>
+<pre><code>&lt;build&gt;
+   &lt;plugins&gt;
+       &lt;plugin&gt;
+           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+           &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
+       &lt;/plugin&gt;
+   &lt;/plugins&gt;
+   &lt;defaultGoal&gt;compile&lt;/defaultGoal&gt;
+&lt;/build&gt;</code></pre></li>
+</ol>
+<pre><code>这种情况下才是正确的。但有时创建项目的时候，或其他时候会在plugins外面包裹一个pluginManagement标签，这时，可要注意了。当外面有pluginManagement标签时，插件时无法加载进来的，这个可以在右侧的Maven管理器的Plugins中看到，名称为spring-boot的插件，如果没有，则说明，插件没有下载并引用依赖。 另外出现没有主清单属性的问题，不要修改MANIFEST.MF文件，正常编译通过的情况，里面有很多配置，时没办法写全的，况且也可能不准确。</code></pre><h4 id="发布war包程序"><a href="#发布war包程序" class="headerlink" title="发布war包程序"></a>发布war包程序</h4><ol>
+<li><p>修改pom.xml文件的打包方式为war</p>
+<pre><code>&lt;groupId&gt;com.xxha&lt;/groupId&gt;
+&lt;artifactId&gt;logservice&lt;/artifactId&gt;
+&lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
+&lt;packaging&gt;war&lt;/packaging&gt;</code></pre></li>
+<li><p>去除spring-boot-starter-web依赖包的tomcat依赖</p>
+<pre><code>&lt;dependency&gt;
+   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+   &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+   &lt;!-- 移除嵌入式tomcat插件 --&gt;
+   &lt;exclusions&gt;
+       &lt;exclusion&gt;
+           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+           &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
+       &lt;/exclusion&gt;
+   &lt;/exclusions&gt;
+&lt;/dependency&gt;
+&lt;!-- 若要使用servlet api则引入 --&gt;
+&lt;dependency&gt;
+   &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+   &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+   &lt;version&gt;3.1.0&lt;/version&gt;
+   &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;</code></pre></li>
+</ol>
+<pre><code>如果，项目中需要用到tomcat中关于servlet或http相关的类，需要手动依赖servlet-api包</code></pre><ol start="3">
+<li><p>修改启动类，使用控制启动类变为Web启动类，继承SpringBootServletInitializer类，并重写configure方法</p>
+<pre><code>/**
+* 修改启动类，继承 SpringBootServletInitializer 并重写 configure 方法
+*/
+public class SpringBootStartApplication extends SpringBootServletInitializer &#123;
+
+   @Override
+   protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) &#123;
+       // 注意这里要指向原先用main方法执行的Application启动类
+       return builder.sources(Application.class);
+   &#125;
+&#125;</code></pre></li>
+<li><p>随后使用Maven命令，clean package，打成war包，直接放到tomcat webapps下就好。若要修改内容，需要先停止tomcat，然后修改对应文件，然后需要移除webapps里的war，否则重新启动tomcat会重新解压覆盖。</p>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/SpringBoot异步任务定时任务邮件任务" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/"
+    >SpringBoot异步任务定时任务邮件任务</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/" class="article-date">
+  <time datetime="2019-01-20T16:48:41.000Z" itemprop="datePublished">2019-01-21</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="异步任务"><a href="#异步任务" class="headerlink" title="异步任务"></a>异步任务</h3><p>SpringBoot简单集成的异步，可<strong>使用@EnableAsync和@Async注解</strong>来开启和标注异步任务,<strong>将@EnableAysnc标注在启动类上</strong>，@Async标注在要执行的方法上，则该方法在被调用是不阻塞线程，以异步方式执行。 关于再2.0中，仅仅这个俩个注解是不行的,需要额外注入bean</p>
+<pre><code>@Bean(name = &quot;threadPoolTaskExecutor&quot;)
+public Executor threadPoolTaskExecutor() &#123;
+    return new ThreadPoolTaskExecutor();
+&#125;</code></pre><h3 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h3><p>SpringBoot也简单的继承了定时任务，可以在方法上<strong>标注@Scheduled注解</strong>，指定cron表达式，这个表达式和quartz任务调度的cron都是一样的，quartz是完整的，可继承SpringBoot并持久化到数据库，并可使用是API进行相关增改，暂停等。 而SpringBoot内置的比较简单，使用@Scheduled，并且需要在启动类上<strong>标注@EnableScheduling注解</strong>。则只要将该类注入到容器，即可默认根据cron表达式进行执行。关于quartz的可以看官网或quartz标签归档及Spring的整合quartz。</p>
+<h3 id="邮件任务"><a href="#邮件任务" class="headerlink" title="邮件任务"></a>邮件任务</h3><p>SpringBoot开发了与邮件相关的依赖。引入依赖包，再进行配置即可进行使用。之前Spring使用javax的mail的话，需要依赖mail的jar包，然后依据邮件服务商的配置等进行开发。 这里SpringBoot依赖的mail可自动配置。自动引入了javax的mail并自动配置。虽然需要邮箱服务器账号的授权码，但仍然省去了很多的麻烦。</p>
 <ol>
-<li>首先Client会请求到某台服务器</li>
-<li>如果请求的服务器不是Leader，则刚服务器将吧请求转发给Leader服务器</li>
-<li>Leader会发通知各个服务器进行数据写入操作。</li>
-<li>各个服务器写入完成后会再通知给Leader。</li>
-<li>当Leader收到大多数服务器写成功后，就认为写成功了</li>
-<li>Leader会将写入成功的通知发给请求的服务器</li>
-<li>由服务器再把结果返回给客户端</li>
+<li><p>添加依赖</p>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+</li>
+<li><p>yml配置</p>
+<p>spring:<br>  mail:</p>
+<pre><code>host: stmp.163.com
+username: cgq_rain@163.com
+##此为客户端授权码
+password: xxxxxxx
+properties:
+  mail.smtp.enable: true</code></pre></li>
+<li><p>注入JavaMailSenderimpl，用户发送,并编写简单邮件和带附件的邮件</p>
+</li>
 </ol>
+<p>此为带附件的消息，不带附件的可以使用SimpleMailMessage</p>
+<pre><code>@Autowired
+private JavaMailSenderImpl javaMailSender;</code></pre><p>​<br>​    MimeMessage mailMessage = javaMailSender.createMimeMessage();<br>​    try {<br>​        MimeMessageHelper messageHelper = new MimeMessageHelper(mailMessage,true);<br>​        messageHelper.setFrom(mail.getSender());<br>​        messageHelper.setTo(mail.getAccepter());<br>​        messageHelper.setSubject(mail.getSubject());<br>​        messageHelper.setText(mail.getText(),true);<br>​        for (Object key:hashMap.keySet()) {<br>​            String o = hashMap.get(key).toString();<br>​            byte[] bytes = new BASE64Decoder().decodeBuffer(o);<br>​            messageHelper.addAttachment(key.toString(),new ByteArrayResource(bytes));<br>​        }<br>​        javaMailSender.send(mailMessage);<br>​        log.info(“发送成功”);<br>​    } catch (MessagingException e) {<br>​        e.printStackTrace();<br>​    } catch (IOException e) {<br>​        e.printStackTrace();<br>​    }</p>
 
       
       <!-- reward -->
@@ -686,7 +693,7 @@ public void setData() throws KeeperException, InterruptedException &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
 
 
     </footer>
@@ -703,7 +710,7 @@ public void setData() throws KeeperException, InterruptedException &#123;
 
 </article>
     
-    <article id="post-Zoopeeker/zookeeper客户端的使用" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/SpringBoot中遇到的的某些问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -711,8 +718,8 @@ public void setData() throws KeeperException, InterruptedException &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/"
-    >zookeeper客户端的使用</a
+  <a class="article-title" href="/2019/01/19/SpringBoot/SpringBoot%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/"
+    >SpringBoot中遇到的的某些问题</a
   >
 </h2>
   
@@ -722,12 +729,12 @@ public void setData() throws KeeperException, InterruptedException &#123;
 
     
     <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
-  <time datetime="2018-12-29T13:58:49.000Z" itemprop="datePublished">2018-12-29</time>
+      <a href="/2019/01/19/SpringBoot/SpringBoot%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2019-01-19T14:28:28.000Z" itemprop="datePublished">2019-01-19</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
   </div>
 
       
@@ -744,153 +751,20 @@ public void setData() throws KeeperException, InterruptedException &#123;
       
 
       
-      <p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
-<pre><code>bin/zkCli.sh</code></pre><ol>
-<li><p>查看帮助命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] help</code></pre></li>
+      <ol>
+<li>关于Spring Data JPA使用懒加载，no session的情况？</li>
 </ol>
+<p>很多情况都说要再被调用的方法添加@Transactional注解，可是尝试了一下没有解决。再实体类中，你的User类中的Dept是添加的懒加载注解，并关联了外键字段，yml中，默认的hibernate就是open-in-view就是true。依旧没有解决，最后找了好久，可以这样配置hibernate 配置<strong>spring.jpa.properties.hibernate.enable_lazy_load_no_trans: true</strong>,表示再不适用事务注解是也进行懒加载。但是这跟只加@Transactional注解有什么区别呢。</p>
 <ol start="2">
-<li><p>查看znode节点,ls命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 3] ls /
-[chen, zookeeper]
-[zk: localhost:2181(CONNECTED) 4] ls /chen
-[]</code></pre></li>
-</ol>
-<ol start="3">
-<li><p>查看节点详细信息ls2</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 6] ls2 /chen
-[]
-cZxid = 0x100000002
-ctime = Thu Dec 27 00:58:04 CST 2018
-mZxid = 0x100000002
-mtime = Thu Dec 27 00:58:04 CST 2018
-pZxid = 0x100000002
-cversion = 0
-dataVersion = 0
-aclVersion = 0
-ephemeralOwner = 0x0
-dataLength = 7
-numChildren = 0</code></pre></li>
-</ol>
-<pre><code>**后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。**</code></pre><ol start="4">
-<li><p>创建普通节点create</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 7] create /name &quot;this is name&quot;
-Created /name
-[zk: localhost:2181(CONNECTED) 8] ls /
-[chen, name, zookeeper]</code></pre></li>
-</ol>
-<ol start="5">
-<li><p>获得节点值get</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] get /name
-this is name
-xxxxxx</code></pre></li>
-</ol>
-<ol start="6">
-<li><p>创建暂时节点,然后推出客户端重新登陆查看</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 0] create -e /temp &quot;temp&quot;
-Created /temp
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, temp, zookeeper]</code></pre></li>
-</ol>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] quit
-Quitting...
-2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002
-2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed
-ubuntu1@ubuntu1:~/zookeeper/bin$ ./zkCli.sh
-Connecting to localhost:2181
-
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, zookeeper]</code></pre><ol start="7">
-<li><p>创建带序号节点</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] create /app &quot;app&quot;
-Created /app
-[zk: localhost:2181(CONNECTED) 10] create -s /app/sun &quot;sun&quot;
-Created /app/sun0000000000
-[zk: localhost:2181(CONNECTED) 11] ls /app
-[sun0000000000]
-
-[zk: localhost:2181(CONNECTED) 12] create -s /app/sun &quot;sun2&quot;
-Created /app/sun0000000001
-[zk: localhost:2181(CONNECTED) 13] ls /app
-[sun0000000000, sun0000000001]</code></pre></li>
-</ol>
-<pre><code>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.
-
-    [zk: localhost:2181(CONNECTED) 14] ls /
-    [chen, name, app, zookeeper]
-    [zk: localhost:2181(CONNECTED) 15] create /sum &quot;sum&quot;
-    Created /sum
-    [zk: localhost:2181(CONNECTED) 16] create /sum/test &quot;sumtest1&quot;
-    Created /sum/test
-    [zk: localhost:2181(CONNECTED) 17] create -s /sum/test &quot;sumtest1&quot;
-    Created /sum/test0000000001
-    [zk: localhost:2181(CONNECTED) 18] ls /sum
-    [test0000000001, test]
-
-
-尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</code></pre><ol start="8">
-<li><p>修改节点数据值set</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 19] ls /
-[chen, name, app, sum, zookeeper]
-[zk: localhost:2181(CONNECTED) 20] get /chen
-guangqi
-xxxxxx
-[zk: localhost:2181(CONNECTED) 21] set /chen &quot;chenguangqi&quot;
-xxxxxx
-[zk: localhost:2181(CONNECTED) 22] get /chen
-chenguangqi
-xxxxx</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>节点值的变化监听get path watch</p>
-<pre><code>--1号机器
-[zk: localhost:2181(CONNECTED) 24] get /chen watch
-chenguangqi
-xxxx
-
--- 2号机器
-[zk: localhost:2181(CONNECTED) 0] set /chen &quot;chen&quot;
-xxxx
-
-[zk: localhost:2181(CONNECTED) 25]
-WATCHER::
---1号机器
-WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></li>
-</ol>
-<pre><code>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</code></pre><ol start="10">
-<li><p>节点的子节点监听(路径变化)ls path watch</p>
-<p>   [zk: localhost:2181(CONNECTED) 25] ls / watch<br>   [chen, name, app, sum, zookeeper]</p>
-<p>   [zk: localhost:2181(CONNECTED) 1] create /test “testwatch”<br>   Created /test</p>
-<p>   [zk: localhost:2181(CONNECTED) 26]<br>   WATCHER::<br>   WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/</p>
+<li><p>关于在整合elasticsearch之后再整合redis出现的错误?</p>
+<p>Failed to instantiate [org.elasticsearch.client.transport.TransportClient]: Factory method ‘esTransportClientInit’ threw exception; nested exception is java.lang.IllegalStateException: availableProcessors is already set to [8], rejecting [8]</p>
 </li>
 </ol>
-<pre><code>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</code></pre><ol start="11">
-<li><p>删除节点与递归删除节点delete/rmr</p>
-<p>   [zk: localhost:2181(CONNECTED) 26] ls /<br>   [chen, name, app, sum, zookeeper, test]<br>   [zk: localhost:2181(CONNECTED) 27] delete /test<br>   [zk: localhost:2181(CONNECTED) 29] ls /<br>   [chen, name, app, sum, zookeeper]<br>   [zk: localhost:2181(CONNECTED) 34] delete /sum<br>   Node not empty: /sum<br>   [zk: localhost:2181(CONNECTED) 35] rmr /sum<br>   [zk: localhost:2181(CONNECTED) 36] ls /<br>   [chen, name, app, zookeeper]</p>
-</li>
-</ol>
-<ol start="12">
-<li><p>查看节点状态信息stat</p>
-<p>   [zk: localhost:2181(CONNECTED) 39] stat /chen<br>   cZxid = 0x200000021<br>   ctime = Sat Dec 29 21:53:30 CST 2018<br>   mZxid = 0x200000021<br>   mtime = Sat Dec 29 21:53:30 CST 2018<br>   pZxid = 0x200000021<br>   cversion = 0<br>   dataVersion = 0<br>   aclVersion = 0<br>   ephemeralOwner = 0x0<br>   dataLength = 4<br>   numChildren = 0</p>
-</li>
-</ol>
-<pre><code>对于stat的信息分别如下:
-*   cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。
-*   ctime:节点被创建的时间
-*   mZxid:节点最后更新zxid
-*   mtime:节点最后更新的时间
-*   pZxid:最后更新的子节点zxid
-*   cversion:子节点变化号，子节点修改次数
-*   dataVersion:节点数据变化号
-*   aclVersion:节点访问控制列表的变化号
-*   ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
-*   dataLength:节点值的长度。(重要)
-*   numChildren:子节点数目。(重要)</code></pre><ol start="13">
-<li><p>历史命令history,查看之前使用过的命令</p>
-<p>   [zk: localhost:2181(CONNECTED) 42] history<br>   32 - rmr /chen<br>   33 - ls /<br>   34 - delete /sum<br>   35 - rmr /sum<br>   36 - ls /<br>   37 - ls /<br>   38 - create /chen “chen”<br>   39 - stat /chen<br>   40 - help<br>   41 - histor<br>   42 - history</p>
-</li>
-</ol>
-<p>还有其他的命令请查看Zookeeper文档。</p>
+<p>这个错误，这个错再网上也有，说是netty尝试初始化实例处理器。因为，再控制台打印上可以看到，elasticsearch使用了Netty4Plugin，而redis可能也使用到了，所以需要在启动时配置一下</p>
+<pre><code>public static void main(String[] args) &#123;
+    System.setProperty(&quot;es.set.netty.runtime.available.processors&quot;, &quot;false&quot;);
+    SpringApplication.run(BootApplication.class, args);
+&#125;</code></pre><p>添加第一行代码就好。</p>
 
       
       <!-- reward -->
@@ -903,7 +777,7 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
 
 
     </footer>
@@ -926,7 +800,7 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/25/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><span class="space">&hellip;</span><a class="page-number" href="/page/45/">45</a><a class="extend next" rel="next" href="/page/27/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/25/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/">47</a><a class="extend next" rel="next" href="/page/27/">下一页</a>
   </nav>
   
 </section>
@@ -976,7 +850,7 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
 <nav class="navbar">
   
   <div class="logo">
-    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
   </div>
   
   <ul class="nav nav-main">

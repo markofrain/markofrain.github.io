@@ -6,7 +6,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-     Notes
+     雪里
   </title>
   <meta name="generator" content="hexo-theme-yilia-plus">
   
@@ -51,7 +51,7 @@
       <img src="/images/cover4.jpg" alt="image frame" />
     </div>
     <div class="cover-inner text-center text-white">
-      <h1><a href="/">Notes</a></h1>
+      <h1><a href="/">雪里</a></h1>
       <div id="subtitle-box">
         
         <span id="subtitle"></span>
@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-SpringBoot/Springboot2.x打jar包本地部署https访问" class="article article-type-post" itemscope
+    <article id="post-Java/依据word模板使用freemarker生成docx文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/"
-    >Springboot2.x打jar包本地部署https访问</a
+  <a class="article-title" href="/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/"
+    >依据word模板使用freemarker生成docx文件</a
   >
 </h2>
   
@@ -97,409 +97,8 @@
 
     
     <div class="article-meta">
-      <a href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/" class="article-date">
-  <time datetime="2019-09-15T08:03:27.000Z" itemprop="datePublished">2019-09-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>首先我的环境是springboot2.x的，可能配置不一样，这个可以去网上找一下。这个是我真实搭建使用的。</p>
-<p>首先具备条件：有一个域名是必须的。</p>
-<p>去域名的注册商，比如阿里或腾讯，去控制台找SSL证书配置，此处以阿里云为例，注册SSL</p>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/09/image.png?x-oss-process=image/resize,m_fill,h_392,w_1024" alt=""></p>
-<p>点击购买证书，选择最后一项，选择DV免费证书，提交订单。订单完成后，操作刚才的证书，填写绑定域名，免费证书只能绑定一个域名，所以填写你需要访问的一级或二级域名。填写信息等。然后会让你将txt记录解析到域名，点击验证按钮自动配置域名解析。然后等待审核给你发送邮箱消息。</p>
-<p>审核完成后，SSL已经成功了。点击下载，下载tomcat版本的就可以。解压会有一个pfx文件，和txt密码文件。将pfx拷贝到项目resources下。</p>
-<p>配置application.yml</p>
-<pre><code>server:
-  port: 443
-  ssl:
-    key-store: classpath:2812584_xxx.xxx.cn.pfx
-    key-store-password: 
-    key-store-type: PKCS12
-    enabled: true</code></pre><p>填写你的pfx路径，填写密码，密码就是txt文件里面的。</p>
-<p>然后创建配置类:</p>
-<pre><code>@Configuration
-public class HttpsConfig &#123;
-
-    @Bean
-    public TomcatServletWebServerFactory servletContainer() &#123;
-        TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() &#123;
-            @Override
-            protected void postProcessContext(Context context) &#123;
-                SecurityConstraint securityConstraint = new SecurityConstraint();
-                securityConstraint.setUserConstraint(&quot;CONFIDENTIAL&quot;);
-                SecurityCollection collection = new SecurityCollection();
-                collection.addPattern(&quot;/*&quot;);
-                securityConstraint.addCollection(collection);
-                context.addConstraint(securityConstraint);
-            &#125;
-        &#125;;
-        tomcat.addAdditionalTomcatConnectors(getHttpConnector());
-        return tomcat;
-    &#125;
-
-    private Connector getHttpConnector() &#123;
-        Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
-        connector.setScheme(&quot;http&quot;);
-        connector.setPort(8080);
-        connector.setSecure(false);
-        connector.setRedirectPort(443);
-        return connector;
-    &#125;
-
-&#125;</code></pre><p>以上就完成了。如果你在本地，直接使用localhost访问，不加http前缀的话是直接https访问8080不管用，默认https访问80端口然后转发到443端口中。</p>
-<p>首先我说一下上面的问题：首先我是内网映射，映射本地8080，所以如果本地localhost访问8080的话是有问题的，必须是80，因为你输入地址后直接是以https形式访问了。那么使用域名的话，内网穿透8080，访问443使用https。</p>
-<p>但是如果使用的直接是云产品，将服务部署在云服务器上，则域名绑定服务器后，域名可直接使用服务的端口访问，然后转发到443端口上,如果服务端口是80，那么么直接可访问。</p>
-<p>我的系统使用了内网映射natapp。只要在配置中开启https即可。花生壳等也是如此。云服务器使用的话，在阿里云文档有说明，也可以使用这种方式直接配置。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-开源/JFinal搭建后jar的部署" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/"
-    >JFinal搭建后jar的部署</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/" class="article-date">
-  <time datetime="2019-09-04T06:32:44.000Z" itemprop="datePublished">2019-09-04</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>使用jfinal开发确实是非常非常的便利，虽然我才接触了两天，看点文档和社区才把一些资源常用操作等给弄完。唯一一个不怎么舒服的就是打包了。</p>
-<p>正常springmvc或springboot打包，要么是war，要么是jar，不用做什么操作，只有有默认创建maven项目的插件，就能正常的打好包。</p>
-<p>打包里，我遇到算是最困难的就是该博客里提到的，springboot+jdk6,打的war包，要是再有个axis2的使用。就会更麻烦。</p>
-<p>虽然jfinal官方提供的打包方式很好，可以使zip，tar.gz等打包。但是关于package.xml文件配置和插件的配置始终没搞懂怎么运行。最后才在社区里找到打jar包的方法。这里我先打一个地址，行不行还得根据项目来定</p>
-<p><a target="_blank" rel="noopener" href="http://www.jfinal.com/share/422">http://www.jfinal.com/share/422</a></p>
-<p>首先按照社区的说法是要把webapp的东西放到resource中再打包。这里呢，根据上一篇的环境搭建，已经把所有的东西都放到resources了，不必大费周折。</p>
-<p>依据上一篇搭建的之后，还需要做的如下。</p>
-<ul>
-<li><p>添加jfinal的jetty依赖</p>
-<dependency>
-    <groupId>com.jfinal</groupId>
-    <artifactId>jetty-server</artifactId>
-    <version>2019.3</version>
-</dependency>
-</li>
-<li><p>配置社区里截图得maven插件</p>
-<plugins>
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-            <encoding>UTF-8</encoding>
-        </configuration>
-    </plugin>
-
-<pre><code>&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
-    &lt;configuration&gt;
-        &lt;skip&gt;true&lt;/skip&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;
-&lt;plugin&gt;&lt;!--核心打成jar包插件--&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
-    &lt;version&gt;2.6&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;archive&gt;
-            &lt;manifest&gt;
-                &lt;addClasspath&gt;true&lt;/addClasspath&gt;
-                &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;
-                &lt;mainClass&gt;com.fsats.demo.DemoConfig&lt;/mainClass&gt;
-            &lt;/manifest&gt;
-        &lt;/archive&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;
-&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
-    &lt;version&gt;2.10&lt;/version&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;id&gt;copy-dependencies&lt;/id&gt;
-            &lt;phase&gt;package&lt;/phase&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;copy-dependencies&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;configuration&gt;
-                &lt;outputDirectory&gt;$&#123;project.build.directory&#125;/lib&lt;/outputDirectory&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-&lt;/plugin&gt;</code></pre></plugins>
-</li>
-<li><p>配置主启动类，就是manifest的设置。</p>
-<p>public class DemoConfig{</p>
-<pre><code>public static void main(String[] args) &#123;
-    //打包时使用
-    String baseBath = String.valueOf(DemoConfig.class.getProtectionDomain().getCodeSource().getLocation());
-    String classPath, webRootPath, jarPath;
-    if (StrKit.notBlank(baseBath) &amp;&amp; baseBath.contains(&quot;file:/&quot;)) &#123;
-        // 获取运行操作系统的运行方式  window和linux的细微区别
-        boolean windows = System.getProperties().getProperty(&quot;os.name&quot;).contains(&quot;Windows&quot;);
-        System.out.println(System.getProperties().getProperty(&quot;os.name&quot;));
-        jarPath = (windows ? &quot;&quot; : &quot;/&quot;) + baseBath.substring(&quot;file:/&quot;.length());
-        classPath = (windows ? &quot;&quot; : &quot;/&quot;) + jarPath.substring(0, jarPath.lastIndexOf(&quot;/&quot;)) + &quot;/classes&quot;;
-        System.out.println(&quot;jarPath:&quot; + jarPath);
-        System.out.println(&quot;classPath:&quot; + classPath);
-        webRootPath = classPath;
-        ZipUtil.unzip(jarPath, classPath);
-    &#125;
-    UndertowServer.start(DemoConfig.class, 80, true);
-&#125;</code></pre><p>}</p>
-</li>
-</ul>
-<p>上面的代码和社区给的有些不同</p>
-<p>PathKit似乎并没有什么用，而且社区中解压目录为class-path，这个可以再上面改，这里我改成了classes。</p>
-<p>社区里值提供了maven和启动类main方法的代码。没有继承JFinalConfig类中配置的方法出来。以目前的项目若是访问页面，可能不可行，访问的路径就有问题，访问模板路径访问不到classes，查看报错，这里被webapp替换。这是他默认的模板存放位置，就像undertow.txt中配置的resource的src/main/resources一样。但是好像读不到，所以只能修改configEngine方法，添加基础模板路径，值就是设置的最后一级目录名称。</p>
-<pre><code>public void configEngine(Engine engine) &#123;
-    engine.setBaseTemplatePath(&quot;classes&quot;);
-&#125;</code></pre><p>根据社区打包完成后，会生成一个jar包和一个lib文件夹到taraget下。你可以直接运行java -jar jar包，此时jar包里的东西就会被解压到classes目录下。</p>
-<p>其实依据之前的springboot的问题，好像可以不必要解压，而且直接将lib放在jar里，运行jar</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-开源/JFinal基础搭建" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/"
-    >JFinal基础搭建</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/" class="article-date">
-  <time datetime="2019-09-04T02:40:26.000Z" itemprop="datePublished">2019-09-04</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>创建Maven普通项目，添加依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
-    &lt;artifactId&gt;jfinal&lt;/artifactId&gt;
-    &lt;version&gt;4.5&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
-    &lt;artifactId&gt;jfinal-undertow&lt;/artifactId&gt;
-    &lt;version&gt;1.9&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>创建DemoConfig集成JFinalConfig类，实现所有方法</p>
-<p>创建main方法启动</p>
-<pre><code>public static void main(String[] args) &#123;
-    UndertowServer.start(DemoConfig.class, 80, true);
-&#125;</code></pre><p>在resources下创建undertow.txt文件，文件名可通过程序修改。</p>
-<pre><code># 配置 undertow
-
-undertow.devMode=true
-undertow.host=localhost
-undertow.port=80
-
-# 打成 fatjar 部署的项目开启下面的配置。。。。。第一个是模板资源存放位置，第二个是静态文件存放位置(暂时可以这么认为)
-undertow.resourcePath=src/main/resources, classpath:static</code></pre><p>这个文件会被自动加载装配，以上分别表示热部署，主机地址，端口号。</p>
-<p>undertow.resourcePath表示资源文件存放位置，目前也不具体清楚，只是测试了一下项目跑起来。src/amin/resources表示模板资源存放的位置，后面的是静态资源存放的位置。</p>
-<p>在DemoConfig里实现的方法configConstant</p>
-<pre><code>private static Prop prop;
-public void configConstant(Constants constants) &#123;
-    if (prop==null)&#123;
-        prop = PropKit.use(&quot;undertow.txt&quot;);
-    &#125;
-    constants.setDevMode(prop.getBoolean(&quot;undertow.devMode&quot;));
-    constants.setViewType(ViewType.JFINAL_TEMPLATE);
-&#125;</code></pre><p>上面的代码表示，获取文件并设置属性</p>
-<p>配置configRoute方法</p>
-<pre><code>public void configRoute(Routes routes) &#123;
-    routes.setBaseViewPath(&quot;/template&quot;);//设置视图基础路径
-    routes.add(&quot;/&quot;,DemoController.class);
-&#125;</code></pre><p>需要创建DemoController类</p>
-<pre><code>@Log4j
-public class DemoController extends Controller &#123;
-
-    public void index()&#123;
-        set(&quot;name&quot;,&quot;chen&quot;);
-        log.info(&quot;inf&quot;);
-        log.error(&quot;error&quot;);
-        render(&quot;index.html&quot;);
-    &#125;
-&#125;</code></pre><p>render方法可传入视图名称，可直接返回到视图中。</p>
-<p>那么模板和静态文件的存储位置为</p>
-<ul>
-<li>模板位置:resources/template/index.html(因为上面设置了BaseViewPath所以有template目录，然后因为路由直接设置的是/所以没有目录，直接index.html)</li>
-<li>静态资源位置:resources/static/index.js</li>
-</ul>
-<p>如何在页面中访问静态资源。通过以上的配置之后，在index.html可直接通过/static/index.js获取script文件</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-other/IDEA打断点也无法debug问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/"
-    >IDEA打断点也无法debug问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2019-08-07T02:26:40.000Z" itemprop="datePublished">2019-08-07</time>
+      <a href="/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:37:28.000Z" itemprop="datePublished">2020-01-02</time>
 </a>
       
   <div class="article-category">
@@ -520,14 +119,763 @@ public class DemoController extends Controller &#123;
       
 
       
-      <p>首先，出现这个问题肯定是莫名其妙的。其他项目就可以，刚导入这个项目就不可以。</p>
-<p>去google搜索，搜索到低级问题，是点击了左边的禁用断点。</p>
-<p>然后还有的就是springboot-devtool的问题</p>
-<p>我的问题是catalina.bat设置的java_opts问题,因为设置了这个，导致的无法启动断点。但是之前的项目也是使用的这个设置就没问题。莫名其妙了。</p>
-<p>检查一下catalina.bat里的SET JAVA_OPTS配置吧。</p>
-<p>原因是idea里的环境变量java_opts也有配置，导致catalina.bat里的覆盖了debug的这个配置，导致无法debug。因此在IDEA的start/connection里的配置不用改。只需要将cataina.bat的SET JAVA_OPTS = xxxxxx修改为</p>
-<p>SET JAVA_OPTS = %JAVA_OPTS% -xxxxxxx即可，这样就可以继承环境变量。</p>
-<p>但是，这个问题也会导致，你的项目启动会多启动一两次，也就是说你点了一下启动，然后控制台上走了两遍三遍项目启动。</p>
+      <p>使用freemarker方式生成docx，有两种方法，一种是转成word xml方式，但是这种文件在程序中使用流预览文件是有问题的，它是xml字符串，这种方式杜宇docx和doc都可以。原理就是将模板docx和doc另存为word xml文件，使用文本工具打开，就是一个xml，你只需要把要替换的地方使用${}方式改了就可以了，然后使用freemarker程序替换即可。</p>
+<p>虽然转换成功后可以再桌面上正常打开，但是输出流就是xml格式，你要想可以有流就必须手动进行另存为word格式。</p>
+<p>因此我们只能使用docx文件来操作，docx文件是有多个文件夹和文件组成，它可以通过winrar打开。只需要将后缀改为zip，但是，这个文件必须编辑过，就是打开并输入任意字符，得有东西。这样docx才能通过压缩包打开。</p>
+<p>里面的word/document.xml就是文档内容。此处我们只使用模板生成简单的文字模板即可。</p>
+<h3 id="已经完成的模板文件"><a href="#已经完成的模板文件" class="headerlink" title="已经完成的模板文件"></a>已经完成的模板文件</h3><p>将模板文件打开，修改需要更改的地方为 { 变量 },然后更改后缀为zip并通过压缩工具打开。然后把word/document.xml文件从压缩包里解压出来。这个文件存储的就是所有的文字。打开后需要查看变量，因为在文档中每个字符都有渲染标签包含着，可能 $ 与{之间就被某个渲染标签给分隔了，所以需要把中间的标签删掉，让变量连成一块。</p>
+<p>此时已经有两个文件，一个zip，一个document.xml模板文件。然后freemarker的任务就是将document.xml模板替换变量为真正的值，然后把docuemnt.xml替换到zip中并输出成docx文件即可。</p>
+<h3 id="freemarker操作"><a href="#freemarker操作" class="headerlink" title="freemarker操作"></a>freemarker操作</h3><p>首先需要将xml和zip放到resource中，此处获取文件我们通过class类路径的方式获取模板。方法共分两个，一个是替换模板文件，一个是转换zip。</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.freemarker&lt;/groupId&gt;
+    &lt;artifactId&gt;freemarker&lt;/artifactId&gt;
+    &lt;version&gt;2.3.28&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h3 id="替换模板文件"><a href="#替换模板文件" class="headerlink" title="替换模板文件"></a>替换模板文件</h3><ol>
+<li><p>配置map替换变量</p>
+<p>   Map&lt;String, String&gt; paramMap = assemblyQualityResultParam(planResult);</p>
+</li>
+<li><p>传递原文件名和模板文件名</p>
+<p>   String filePath = fileDir + Constant.SEPARATOR + qualityName.replace(“.docx”,””) + “.xml”;//拼接为质检报告XML文件路径<br>   XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml<br>   //调用<br>   freemarkerWithSimple(paramMap, filePath, “XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml”);</p>
+</li>
+<li><p>configuration设置编码格式和模板类路径</p>
+<p>public void freemarkerWithSimple(Map&lt;String, String&gt; paramMap, String saveFilePath, String templeteName) {</p>
+<pre><code>    try &#123;
+        String basePath = Constant.USER_FILE_BASE_DIR;//Global.getConfig(&quot;userfiles.basedir&quot;).replace(&quot;\\&quot;,&quot;/&quot;).replace(&quot;//&quot;,&quot;/&quot;);
+        Configuration configuration = new Configuration(new Version(&quot;2.3.28&quot;));
+        configuration.setDefaultEncoding(&quot;utf-8&quot;);
+        configuration.setClassForTemplateLoading(this.getClass(), &quot;/freemarker&quot;);
+        //指定模板路径的第二种方式,我的路径是D:/      还有其他方式
+        //configuration.setDirectoryForTemplateLoading(new File(&quot;C:/Users/cgq_r/Desktop&quot;));
+        String filePath = basePath + saveFilePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;);//fileDir + File.separator + name;
+        FileUtils.createDirectory(filePath.substring(0, filePath.lastIndexOf(&quot;/&quot;)));
+        // 输出文档路径及名称
+        File outFile = new File(filePath);
+        //以utf-8的编码读取ftl文件
+        Template t = configuration.getTemplate(templeteName, &quot;utf-8&quot;);
+        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), &quot;utf-8&quot;), 10240);
+        t.process(paramMap, out);
+        out.close();
+        logger.info(&quot;生成质检报告XML文件完成-&gt;&quot; + filePath);
+    &#125; catch (IOException e) &#123;
+        logger.error(e.getMessage());
+        e.printStackTrace();
+    &#125; catch (Exception e) &#123;
+        e.printStackTrace();
+    &#125;
+&#125;</code></pre></li>
+</ol>
+<p>以上代码，首先设置编码格式和模板加载类路径，此模板我放在resource下的freemarker文件夹下，因此编译后就在项目根/freemarker下。</p>
+<p>设置模板输出和写文件。因为已经配置模板加载路径，所以tepleteName直接就是模板文件名不需要绝对相对路径。</p>
+<p>outputFile就是文件输出的位置，此处便只是创建了一下目录。虽然生成到了指定位置，但是整个过程都转换完了会后要删除这个document.xml的。</p>
+<h3 id="转换zip为docx"><a href="#转换zip为docx" class="headerlink" title="转换zip为docx"></a>转换zip为docx</h3><pre><code>filePath = generateDocxByZipAndXml(
+                        filePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;),
+                        &quot;XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）.zip&quot;,
+                        qualityName);</code></pre><p>此时，第一个参数为已经转换的xml路径,第二个是模板zip，第三个要生成的docx的文件名称。</p>
+<pre><code>private String generateDocxByZipAndXml(String filePath, String templeteZip, String qualityFileName) &#123;
+        String pathDir = Utils.getFileDir(filePath);
+        String qualityResultAllPath = Constant.USER_FILE_BASE_DIR + pathDir + Constant.SEPARATOR + qualityFileName; //质检报告docx全路径
+        try &#123;
+            //获取模板目录
+            String freemarkerDir = Servlets.getRequest().getServletContext().getRealPath(&quot;/WEB-INF/classes/freemarker&quot;);
+            String freemarkerZip = freemarkerDir + Constant.SEPARATOR + templeteZip;//模板zip路径
+            System.out.println(&quot;模板zip文件路径--&gt;&quot; + freemarkerZip);
+
+            //zip模板替换xml并输出docx文档
+            ZipInputStream zipInputStream = ZipUtils.wrapZipInputStream(new FileInputStream(new File(freemarkerZip)));
+            ZipOutputStream zipOutputStream = ZipUtils.wrapZipOutputStream(new FileOutputStream(new File(qualityResultAllPath)));
+            String itemname = &quot;word/document.xml&quot;;
+            ZipUtils.replaceItem(zipInputStream, zipOutputStream, itemname, new FileInputStream(new File(Constant.USER_FILE_BASE_DIR+filePath)));
+            logger.info(&quot;生成质检报告--&gt;&quot; + qualityResultAllPath);
+
+            //word生成-&gt;pdf
+            converterUtils.WordToPDF(qualityResultAllPath,qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
+            logger.info(&quot;生成质检报告PDF版--&gt;&quot; + qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
+
+            //删除生成的data数据
+            File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+            if (tempData.exists()) &#123;
+                tempData.delete();
+            &#125;
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
+        &#125;
+        return qualityResultAllPath.replace(Constant.USER_FILE_BASE_DIR,&quot;&quot;);
+    &#125;</code></pre><p>以上代码首先获取zip的路径，只有获取绝对路径才能进行文件操作，</p>
+<p>定义了两个ZipInputStream，其调用的方法仅仅只是inputStream和outputSteam包装一下zip输入输出流而已。</p>
+<p>ZipUtils.replaceItem是重点，就是替换文件到压缩包中。</p>
+<pre><code>/**
+     * 替换某个 item,
+     *
+     * @param zipInputStream  zip文件的zip输入流
+     * @param zipOutputStream 输出的zip输出流
+     * @param itemName        要替换的 item 名称
+     * @param itemInputStream 要替换的 item 的内容输入流
+     */
+    public static void replaceItem(ZipInputStream zipInputStream,
+                                   ZipOutputStream zipOutputStream,
+                                   String itemName,
+                                   InputStream itemInputStream
+    ) &#123;
+        //
+        if (null == zipInputStream) &#123;
+            return;
+        &#125;
+        if (null == zipOutputStream) &#123;
+            return;
+        &#125;
+        if (null == itemName) &#123;
+            return;
+        &#125;
+        if (null == itemInputStream) &#123;
+            return;
+        &#125;
+        //
+        ZipEntry entryIn;
+        try &#123;
+            while ((entryIn = zipInputStream.getNextEntry()) != null) &#123;
+                String entryName = entryIn.getName();
+                ZipEntry entryOut = new ZipEntry(entryName);
+                // 只使用 name
+                zipOutputStream.putNextEntry(entryOut);
+                // 缓冲区
+                byte[] buf = new byte[8 * 1024];
+                int len;
+
+                if (entryName.equals(itemName)) &#123;
+                    // 使用替换流
+                    while ((len = (itemInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
+                    &#125;
+                &#125; else &#123;
+                    // 输出普通Zip流
+                    while ((len = (zipInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
+                    &#125;
+                &#125;
+                // 关闭此 entry
+                zipOutputStream.closeEntry();
+
+            &#125;
+        &#125; catch (IOException e) &#123;
+            e.printStackTrace();
+        &#125; finally &#123;
+            //e.printStackTrace();
+            close(itemInputStream);
+            close(zipInputStream);
+            close(zipOutputStream);
+        &#125;
+    &#125;</code></pre><ul>
+<li>第一个参数是zip文件输入流</li>
+<li>第二个参数是最后docx文件输出流</li>
+<li>第三个参数是要替换的位置</li>
+<li>第四个是已经转换模板完成的docuemnt.xml文件</li>
+</ul>
+<p>此方法就是重新循环一下zip，并把流输出到另一个文件中，找到匹配的就使用docuemnt.xml流写进去。</p>
+<h3 id="多余docuemnt-xml删除"><a href="#多余docuemnt-xml删除" class="headerlink" title="多余docuemnt.xml删除"></a>多余docuemnt.xml删除</h3><pre><code>File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+if (tempData.exists()) &#123;
+    tempData.delete();
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/freemarker/" rel="tag">freemarker</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Java/openOffce和jacob方式转换office为pdf文件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/"
+    >openOffce和jacob方式转换office为pdf文件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:34:05.000Z" itemprop="datePublished">2020-01-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="OpenOffice-转换"><a href="#OpenOffice-转换" class="headerlink" title="OpenOffice 转换"></a>OpenOffice 转换</h2><p>首先需要到apache openoffice下载包并安装<a target="_blank" rel="noopener" href="http://www.openoffice.org/download/index.html">http://www.openoffice.org/download/index.html</a></p>
+<p>windows默认会安装到c盘program file(x86)中的openoffice4中，可以把这个文件文件夹拷贝到任意位置。</p>
+<p>要想使用转换首先需要jar包,他需要jodconverter的jar包，这包可能在maven中央仓库没有。详细的转换代码如下</p>
+<pre><code>@Component
+public class OfficeConverterUtils &#123;
+
+    private Logger logger = LoggerFactory.getLogger(OfficeConverterUtils.class);
+
+    @Value(&quot;$&#123;openoffice.path&#125;&quot;)
+    private  String openOfficePath;
+
+    public void WordToPDF(String startFile, String overFile) &#123;
+        if (StringUtils.isBlank(openOfficePath))&#123;
+            return;
+        &#125;
+
+        // 源文件目录
+        File inputFile = new File(startFile);
+        if (!inputFile.exists()) &#123;
+            System.out.println(&quot;源文件不存在！&quot;);
+            return;
+        &#125;
+
+        // 输出文件目录
+        File outputFile = new File(overFile);
+        if (!outputFile.getParentFile().exists()) &#123;
+            outputFile.getParentFile().exists();
+        &#125;
+        OpenOfficeConnection connection = null;
+        Process p = null;
+        try &#123;
+
+            // 调用openoffice服务线程
+            /** 我把openOffice下载到了 C:/Program Files (x86)/下  ,下面的写法自己修改编辑就可以**/
+            String command = openOfficePath + &quot; -headless -accept=\&quot;socket,host=127.0.0.1,port=8100;urp;\&quot;&quot;;
+            try &#123;
+                p = Runtime.getRuntime().exec(command);
+            &#125;catch (Exception e)&#123;
+                logger.error(&quot;服务无法启动或已经启动,请确认文件是否转换成功&quot;);
+            &#125;
+            // 连接openoffice服务
+            connection = new SocketOpenOfficeConnection(&quot;127.0.0.1&quot;, 8100);
+            connection.connect();
+
+            // 转换
+            DocumentConverter converter = new OpenOfficeDocumentConverter(connection);
+            converter.convert(inputFile, outputFile);
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
+            logger.error(&quot;转换PDF出现异常&quot;);
+            logger.error(&quot;切换使用jocob方式转换&quot;);
+            if (startFile.lastIndexOf(&quot;.docx&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.doc&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xlsx&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xls&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;
+        &#125; finally &#123;
+            // 关闭连接
+            if (connection != null &amp;&amp; connection.isConnected()) &#123;
+                connection.disconnect();
+            &#125;
+            // 关闭进程
+            if (p != null &amp;&amp; p.isAlive()) &#123;
+                p.destroy();
+            &#125;
+        &#125;
+
+    &#125;
+
+    public static void main(String[] args) &#123;
+        //openOfficePath = &quot;D:/soft/OpenOffice4/program/soffice.exe&quot;;
+        String start = &quot;C:\\Users\\lics\\Desktop\\abc.docx&quot;;
+        String over = &quot;C:\\Users\\lics\\Desktop\\abc.pdf&quot;;
+
+            new OfficeConverterUtils().WordToPDF(start, over);
+    &#125;
+
+
+&#125;</code></pre><p>以上是通过代码的方式启动服务，操作完成后会关闭服务。</p>
+<p>还有通过cmd直接启动服务的。</p>
+<pre><code>soffice -headless -accept=&quot;socket,host=127.0.0.1,port=8100;urp;&quot; -nofirststartwizard</code></pre><p>以上中，在C:\Program Files (x86)\OpenOffice 4\program目录下执行此命令，因此soffice不需要写全，否则需要写绝对路径。执行后cmd不会有等待占用窗口，会在后台启动服务。</p>
+<p>有时候，可能莫名其妙的在服务器上有时候可以连接成功有时候就连接不上服务。所以可以试用jacob方式补充，但是经过测验，jacob比openOffice慢点，而且是越大越慢，但是转换ppt的时候openOffice却比较慢，无论怎么大jacob都比openOffice快。</p>
+<h2 id="Jacob转换"><a href="#Jacob转换" class="headerlink" title="Jacob转换"></a>Jacob转换</h2><p>jacob转换时dll方式操作，需要将dll放到jdk/bin中。首先需要jacob.jar包。然后有一个dll。</p>
+<p>有了这两个东西便可以进行转换了。</p>
+<pre><code>public class JacobUtil &#123;
+    private static Logger logger = Logger.getLogger(JocobUtil.class.getName());
+
+    public static void main(String[] args) &#123;
+        long b = System.currentTimeMillis();
+        //ppt2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;);
+        word2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\abc.doc&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\abc.pdf&quot;);
+        long c = System.currentTimeMillis();
+        System.out.println(c-b);
+    &#125;
+
+    public static void ppt2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;PowerPoint.Application&quot;);
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Presentations&quot;).toDispatch();
+            doc = Dispatch.call(
+                    docs,
+                    &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.TRUE, Boolean.TRUE,
+                            Boolean.FALSE &#125;).toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(32) &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+    public static void word2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Word.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Documents&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(17) &#125;);
+        &#125; catch (Throwable t) &#123;
+            logger.log(Level.SEVERE, t.getMessage(), t);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;, new Variant[] &#123;new Variant(false)&#125;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+
+        &#125;
+    &#125;
+
+    public static void excel2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Excel.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Workbooks&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;ExportAsFixedFormat&quot;,
+                    new Object[] &#123; Integer.valueOf(0), tar &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Java/使用java gdal将shp文件转为geojson" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/01/02/Java/%E4%BD%BF%E7%94%A8java%20gdal%E5%B0%86shp%E6%96%87%E4%BB%B6%E8%BD%AC%E4%B8%BAgeojson/"
+    >使用java gdal将shp文件转为geojson</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/02/Java/%E4%BD%BF%E7%94%A8java%20gdal%E5%B0%86shp%E6%96%87%E4%BB%B6%E8%BD%AC%E4%B8%BAgeojson/" class="article-date">
+  <time datetime="2020-01-02T06:33:16.000Z" itemprop="datePublished">2020-01-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>原因描述:因为要使用乡镇级别的地图进行显示，但是网上都没有对应的geojosn格式的文件，最低到区县级别。网上说是可以手绘的，在geojson开源网站上绘制自动生成json。 <a target="_blank" rel="noopener" href="http://geojson.io/">http://geojson.io/</a></p>
+<p>于是找了又找发现可将shp转为geojson格式，于是使用java gdal来转换shp为geojson文件。你只需要找shp文件即可了，如果没有找到，看看公司有没有arcgis相关的开发人员，问他们要。</p>
+<p>首先需要下载包，从<a target="_blank" rel="noopener" href="http://download.gisinternals.com/sdk.php">http://download.gisinternals.com/sdk.php</a>中去下载，解压后进入release-版本好-x64/bin中,将当前目录下所有dll文件放到java 的jdk/bin下,然后进入./gdal/java目录,将下面的所有dll也放到jdk/bin下面，然后再把这些放到java功能根目录下,jar供程序使用。</p>
+<p>1900版本gdal/java下只有gdal.jar和gdalalljni.dll,因此将dll分别分别放在jdk/bin下和项目根目录下即可。</p>
+<pre><code>public class Application &#123;
+    //http://download.gisinternals.com/sdk.php
+    public static void main(String[] args) &#123;
+        // 注册所有的驱动
+        ogr.RegisterAll();
+        // 为了支持中文路径，请添加下面这句代码
+        gdal.SetConfigOption(&quot;GDAL_FILENAME_IS_UTF8&quot;,&quot;YES&quot;);
+        // 为了使属性表字段支持中文，请添加下面这句
+        gdal.SetConfigOption(&quot;SHAPE_ENCODING&quot;,&quot;&quot;);
+
+        String strVectorFile = &quot;J:\\行政区\\XZQ.shp&quot;;
+        //打开数据
+        DataSource ds = ogr.Open(strVectorFile,0);
+        if (ds == null)
+        &#123;
+            System.out.println(&quot;打开文件失败！&quot; );
+            return;
+        &#125;
+        System.out.println(&quot;打开文件成功！&quot; );
+        Driver dv = ogr.GetDriverByName(&quot;GeoJSON&quot;);
+        if (dv == null)
+        &#123;
+            System.out.println(&quot;打开驱动失败！&quot; );
+            return;
+        &#125;
+        System.out.println(&quot;打开驱动成功！&quot; );
+        dv.CopyDataSource(ds, &quot;J:\\行政区\\fibercable.geojson&quot;);
+        System.out.println(&quot;转换成功！&quot; );
+    &#125;
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Hadoop/超简单基础搭建分布式hadoop" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/12/07/Hadoop/%E8%B6%85%E7%AE%80%E5%8D%95%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8Fhadoop/"
+    >超简单基础搭建分布式hadoop</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/12/07/Hadoop/%E8%B6%85%E7%AE%80%E5%8D%95%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8Fhadoop/" class="article-date">
+  <time datetime="2019-12-06T16:59:47.000Z" itemprop="datePublished">2019-12-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>新文章，之前的hadoop部署文章教程均可能出现问题，仅作为参考。以本文为准</p>
+<h1 id="第一章-虚拟机配置"><a href="#第一章-虚拟机配置" class="headerlink" title="第一章 虚拟机配置"></a>第一章 虚拟机配置</h1><p>创建centos7.x虚拟机不再描述,网卡连接方式使用NAT方式</p>
+<p><strong>网络问题,创建NAT虚拟网络</strong><br>可在VMware的编辑，虚拟网络编辑器中，添加网络，点击右下角的管理员操作权限，点击添加网络按钮，随意选一个VMnet，选择VMnet为NAT模式。<br>勾选将主机虚拟适配器连接到此网络和勾选使用本地DHCP服务将IP地址分配给虚拟机。然后可以修改HDCP设置，默认可以不更改。</p>
+<h2 id="创建完虚拟机后，无法使用sudo问题"><a href="#创建完虚拟机后，无法使用sudo问题" class="headerlink" title="创建完虚拟机后，无法使用sudo问题"></a>创建完虚拟机后，无法使用sudo问题</h2><p>使用命令<code>su root</code>进入root用户,执行<code>visudo</code>命令打开sudoer文件,找到</p>
+<pre><code>root    ALL=(ALL)       ALL</code></pre><p>在其下面添加与其一样的一行，并把root改为自己的用户名,然后保存退出,如:</p>
+<pre><code>centos    ALL=(ALL)       ALL</code></pre><h2 id="安装jdk和hadoop"><a href="#安装jdk和hadoop" class="headerlink" title="安装jdk和hadoop"></a>安装jdk和hadoop</h2><p>jdk选JDK8的,hadoop建议选择3.x版本的，这里，我使用JDK8和hadoop3.1.3。目前JDK11与hadoop3.x版本的匹配问题还没有找到解决办法，使用jdk会导致在启动时出现java.lang.ClassNotFoundException: javax.activation.DataSource的异常。</p>
+<pre><code>[centos@centos3 ~]$ java -version
+java version &quot;1.8.0_231&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_231-b11)
+Java HotSpot(TM) 64-Bit Server VM (build 25.231-b11, mixed mode)
+[centos@localhost ~]$ hadoop version
+Hadoop 3.1.3
+Source code repository https://gitbox.apache.org/repos/asf/hadoop.git -r ba631c436b806728f8ec2f54ab1e289526c90579
+Compiled by ztang on 2019-09-12T02:47Z
+Compiled with protoc 2.5.0
+From source with checksum ec785077c385118ac91aadde5ec9799
+This command was run using /home/centos/hadoop/share/hadoop/common/hadoop-common-3.1.3.jar</code></pre><p>将jdk8和hadoop解压，放置在~/下,在/etc/profile中配置环境变量,<code>sudo vim /etc/profile</code>命令，打开后在结尾追加</p>
+<pre><code>export JAVA_HOME=/home/centos/jdk8
+export PATH=$JAVA_HOME/bin:$PATH
+export HADOOP_HOME=/home/centos/hadoop
+export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH</code></pre><p>然后使用<code>source /etc/profile</code>编译文件。然后可以输入上面的版本命令，看看信息。</p>
+<h2 id="暂时关闭防火墙"><a href="#暂时关闭防火墙" class="headerlink" title="暂时关闭防火墙"></a>暂时关闭防火墙</h2><pre><code>systemctl stop firewalld.service</code></pre><h2 id="规定三台服务器的IP-这个ip地址是随意的。"><a href="#规定三台服务器的IP-这个ip地址是随意的。" class="headerlink" title="规定三台服务器的IP,这个ip地址是随意的。"></a>规定三台服务器的IP,这个ip地址是随意的。</h2><pre><code>192.168.181.129 centos1
+192.168.181.130 centos2
+192.168.181.131 centos3</code></pre><p>修改/etc/host文件，配置映射文件,将上面的配置放在该文件中。</p>
+<h2 id="克隆虚拟机"><a href="#克隆虚拟机" class="headerlink" title="克隆虚拟机"></a>克隆虚拟机</h2><p>关闭虚拟机，点击菜单栏的虚拟机，选择管理，选择克隆，选择完全克隆，选择存储位置，然后进行克隆。如果你的当前磁盘是固态，那么是非常非常快的，不超过1分钟。</p>
+<h2 id="配置网络"><a href="#配置网络" class="headerlink" title="配置网络"></a>配置网络</h2><p>打开全部虚拟机，其实完全克隆后，主机名已经变了，从centos1到centos3，hostname是直接改过了的。你可以到设置-详细信息-用户里改一下用户名称为主机名名称。<br>然后配置一下另外两个的网络,这里配ip，上面好像没说。可以直接到设置-网络，点有线连接下的那个网卡点IPV4，设为手动，分别填写，你在虚拟网络配置里配置的网络ip，或者可以不用这用，因为是hdcp的，所以直接ifconfig查看ip结构，把之前预先设计好的ip填进去，并把地址和子网掩码放进去，网关为.1，DNS设为114.114.114.114。然后ipv6这点击禁用。<br>然后尝试互相ping并ping一下<a target="_blank" rel="noopener" href="http://www.baidu.com看是否外网可以通。">www.baidu.com看是否外网可以通。</a><br>如果找不到地方，看不到英文的话，可以设置成中文，点设置-region-language，看上部分，选择语言，汉语中文，然后根据他的提示重启一下就好了，让修改home下的文件名称的话，<strong>选不修改且不再提示</strong>。</p>
+<h2 id="虚拟机免密登录"><a href="#虚拟机免密登录" class="headerlink" title="虚拟机免密登录"></a>虚拟机免密登录</h2><p>在三台机器都执行以下指令</p>
+<pre><code>ssh-keygen -t rsa ；
+ssh-copy-id IP (自身)
+ssh-copy-id IP (其他节点)</code></pre><p>执行第一条指令时，回车三次，第二条和第三条是一样的，输入yes，然后输入ip的密码。<br>这三条指令，每台机器都执行一遍。<br>执行完毕后，从129开始，ssh centos1,ssh centos2,ssh centos3,三台机器都执行一遍这三个命令，表示要ssh连接一次，记住ip。</p>
+<h1 id="第二章-集群配置"><a href="#第二章-集群配置" class="headerlink" title="第二章 集群配置"></a>第二章 集群配置</h1><h2 id="集群规划"><a href="#集群规划" class="headerlink" title="集群规划"></a>集群规划</h2><p>centos1</p>
+<p>centos2</p>
+<p>centos3</p>
+<p>HDFS</p>
+<p>NameNode<br>DataNode</p>
+<p>DataNode</p>
+<p>SecondaryNameNode<br>DataNode</p>
+<p>YARN</p>
+<p>NodeManager</p>
+<p>NodeManager<br>ResourceManager</p>
+<p>NodeManager</p>
+<p>每个DataNode一定是有个NodeManager的。NameNode是比较重要的，管理所有的节点，所以一般是单独占一个服务器，但是只有三台机器又要做三个机器的数据存储。</p>
+<h2 id="集群配置"><a href="#集群配置" class="headerlink" title="集群配置"></a>集群配置</h2><p>进入hadoop的etc/hadoop</p>
+<ol>
+<li><p>配置hadoop-env.sh，找到被注释的JAVA_HOME与HADOOP_HOME，解开注释，修改为对应位置。</p>
+</li>
+<li><p>修改core-site.xml,添加如下</p>
+<!-- 指定HDFS中的NameNode地址 -->
+<property>
+<name>fs.defaultFS</name>
+   <value>hdfs://centos1:9000</value>
+</property>
+<!-- 指定hadoop运行时产生的临时文件 -->
+<property>
+<name>hadoop.tmp.dir</name>
+   <value>/home/centos/hadoop/data/hadoopdata</value>
+</property>
+</li>
+<li><p>修改hdfs-site.xml，添加如下</p>
+<property>
+    <name>dfs.namenode.secondary.http-address</name>
+        <value>centos3:50090</value>
+    <description>secondarynamenode运行节点的信息,和namenode不同节点</description>
+</property>
+<property>
+        <name>dfs.replication</name>
+        <value>3</value>
+    <description>HDFS的数据块副本存储个数</description>
+</property>
+<property>
+    <name>dfs.namenode.http-address</name>
+    <value>centos1:50070</value>
+</property>
+<property>
+        <name>dfs.namenode.name.dir</name>
+        <value>/home/centos/hadoop/data/name</value>
+    <description>namenode的数据存储目录</description>
+</property>
+<property>
+        <name>dfs.datanode.data.dir</name>
+        <value>/home/centos/hadoop/data/data</value>
+    <description>datanode的数据存储目录</description>
+</property>
+</li>
+<li><p>修改yarn-site.xml，添加如下</p>
+<property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>centos2</value>
+</property>
+<property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+        <description>yarn集群为mapreduce程序提供的shuffle服务</description>
+</property>
+
+</li>
+</ol>
+<p>有时候，有的yarn还是什么日志报错，具体问题忘了，是需要配置<code>yarn.application.classpath</code>的属性，它的值通过<code>hadoop classpath</code>命令打出来</p>
+<pre><code>&lt;property&gt;
+&lt;name&gt;yarn.application.classpath&lt;/name&gt;
+&lt;value&gt;/home/hadoop/install/hadoop/etc/hadoop:/home/hadoop/install/hadoop/share/hadoop/common/lib/*:/home/hadoop/install/hadoop/share/hadoop/common/*:/home/hadoop/install/hadoop/share/hadoop/hdfs:/home/hadoop/install/hadoop/share/hadoop/hdfs/lib/*:/home/hadoop/install/hadoop/share/hadoop/hdfs/*:/home/hadoop/install/hadoop/share/hadoop/mapreduce/lib/*:/home/hadoop/install/hadoop/share/hadoop/mapreduce/*:/home/hadoop/install/hadoop/share/hadoop/yarn:/home/hadoop/install/hadoop/share/hadoop/yarn/lib/*:/home/hadoop/install/hadoop/share/hadoop/yarn/*&lt;/value&gt;
+&lt;/property&gt;</code></pre><ol>
+<li><p>修改mapred-site.xml，添加如下</p>
+<property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+</property>
+<property>
+        <name>mapreduce.jobhistory.address</name>
+        <value>centos1:10020</value>
+</property>
+<property>
+        <name>mapreduce.jobhistory.webapp.address</name>
+        <value>centos1:19888</value>
+</property>
+
+</li>
+</ol>
+<h2 id="hadoop拷贝到centos2和centos3"><a href="#hadoop拷贝到centos2和centos3" class="headerlink" title="hadoop拷贝到centos2和centos3"></a>hadoop拷贝到centos2和centos3</h2><p>之前的克隆的时候的从centos1中克隆来的，但没有配置，在这里，先把centos2和centos3的hadoop目录删了，通过命令吧刚配置的centos1的hadoop拷贝过去。当前，如果读到这，你还没有克隆的话，先把这里的配置配了再克隆吧</p>
+<pre><code>scp -r ./hadoop centos@centos2:~/
+scp -r ./hadoop centos@centos3:~/</code></pre><h2 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h2><ol>
+<li><p>首先执行一次格式化hdf,centos1中(namenode)<br>这是必须的，但下此再要重启服务的话就不需要了。</p>
+<p>[centos@centos1 hadoop]$ hdfs namenode -format<br>2019-12-06 08:00:49,798 INFO namenode.NameNode: STARTUP_MSG:<br>/<strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong>****</strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong><br>STARTUP_MSG: Starting NameNode<br>STARTUP_MSG:   host = centos1/192.168.181.129<br>STARTUP_MSG:   args = [-format]<br>STARTUP_MSG:   version = 3.1.3<br>STARTUP_MSG:   classpath = /home/centos/hadoop/etc/hadoop:/home/ce<br>….省略</p>
+</li>
+<li><p>启动start-dfs,start-yarn</p>
+</li>
+</ol>
+<p>在centos1中，也就是namenode中启动<code>start-dfs.sh</code>,必须在namenode中启动<br>然后去centos2,也就是resourceManager，<code>start-yarn.sh</code>,必须在resourceManager上启动<br>以上的启动位置，是强制的，否则出现服务启动缺失等其他异常情况。</p>
+<pre><code>[centos@centos1 hadoop]$ start-dfs.sh 
+Starting namenodes on [centos1]
+Starting datanodes
+Starting secondary namenodes [centos3]
+[centos@centos2 hadoop]$ start-yarn.sh 
+Starting resourcemanager
+Starting nodemanagers
+[centos@centos1 hadoop]$ jps
+15426 NameNode
+15938 Jps
+15561 DataNode
+15868 NodeManager
+[centos@centos2 hadoop]$ jps
+15028 ResourceManager
+15428 Jps
+14872 DataNode
+15161 NodeManager
+[centos@centos3 hadoop]$ jps
+14214 SecondaryNameNode
+14104 DataNode
+14317 NodeManager
+14414 Jps</code></pre><p>这里，因为测试的时候忘记执行<code>hdfs namenode -format</code>命令了，所以出现了错误，所以日志目录没有删除，这里如果第一次启动的话会提示WARN没有logs文件，会自动创建。不必在意。</p>
+<p>以上服务，一个都不能少。如果少了哪个，则查看nameNode机器的日志或其他节点的日志。<br>如果集群启动失败，则必须把服务先关停，然后删除每个节点的data 和logs目录，然后再hdfs namenode -format。</p>
+<p>记得关闭防火墙，避免无法访问web服务，如果不想关闭，那么去开放端口吧。每次重启需要执行关闭命令，也可以永久关闭。</p>
+<pre><code># 查看状态
+systemctl status firewalld.service
+# 临时关闭
+systemctl stop firewalld.service</code></pre><p>然后可以再宿主机上，通过访问centos1的ip地址:50070端口即可访问web页面。这里的地址是192.168.181.129:50070.<br>进入后选择最后一项Utilities，选择呢Brower the file system即可看到HDFS文件系统。</p>
+<h2 id="HDFS文件测试"><a href="#HDFS文件测试" class="headerlink" title="HDFS文件测试"></a>HDFS文件测试</h2><pre><code>hdfs dfs -mkdir -p /user/input
+hdfs dfs -put abc.txt /user/input
+
+hdfs dfs -mkdir -p /user/package
+hdfs dfs -put ~/jdk-8u231-linux-x64.tar.gzip /user/package</code></pre><p>上传了一个小文件，一个大文件。查看centos1:50070,发现是有的。以128M为一个block，abc.txt占用一个块，jdk为俩个块。</p>
+<p>如何在本地查找,进入到data目录中找<br><code>/home/centos/hadoop/data/data/current/BP-2112740988-192.168.181.129-1562738006972/current/finalized/subdir0/subdir0</code></p>
 
       
       <!-- reward -->
@@ -555,7 +903,7 @@ public class DemoController extends Controller &#123;
 
 </article>
     
-    <article id="post-Javascript/jExcel web交互式电子表格" class="article article-type-post" itemscope
+    <article id="post-SpringCloud/SpringCloud项目基础搭建2" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -563,8 +911,8 @@ public class DemoController extends Controller &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/"
-    >jExcel web交互式电子表格</a
+  <a class="article-title" href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/"
+    >SpringCloud项目基础搭建2</a
   >
 </h2>
   
@@ -574,12 +922,12 @@ public class DemoController extends Controller &#123;
 
     
     <div class="article-meta">
-      <a href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/" class="article-date">
-  <time datetime="2019-08-05T08:28:12.000Z" itemprop="datePublished">2019-08-05</time>
+      <a href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/" class="article-date">
+  <time datetime="2019-11-03T09:01:49.000Z" itemprop="datePublished">2019-11-03</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
   </div>
 
       
@@ -596,86 +944,318 @@ public class DemoController extends Controller &#123;
       
 
       
-      <p><a target="_blank" rel="noopener" href="https://bossanova.uk/jexcel/v3/"><strong>jExcel</strong></a>是一个轻量级的vanilla javascript插件，用于创建与Excel或任何其他电子表格软件兼容的基于Web的交互式表格和电子表格。可以从JS数组，JSON，CSV或XSLX文件创建在线电子表格表 。 可以从excel复制并直接粘贴到jExcel电子表格，反之亦然 。 可以创建自己的自定义列，自定义编辑器，并在应用程序中自定义任何功能 。</p>
-<p>以上官方介绍的话。并且也真的可以实现。而且仅需要进入两个js和两个css即可。</p>
-<p>可以访问gihub的地址<a target="_blank" rel="noopener" href="https://github.com/paulhodel/jexcel">https://github.com/paulhodel/jexcel</a></p>
-<p>或码云的镜像地址:<a target="_blank" rel="noopener" href="https://gitee.com/mirrors/jExcel/tree/master">https://gitee.com/mirrors/jExcel/tree/master</a></p>
-<h3 id="basic"><a href="#basic" class="headerlink" title="basic"></a>basic</h3><p>首先可以看一下官方基础的实例</p>
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-&lt;head&gt;
-    &lt;meta charset=&quot;UTF-8&quot;&gt;
-    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
-    &lt;script src=&quot;https://bossanova.uk/jexcel/v3/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;title&gt;Document&lt;/title&gt;
-&lt;/head&gt;
-
-&lt;body&gt;
-    &lt;div id=&quot;mytable&quot;&gt;&lt;/div&gt;
-    &lt;script&gt;
-        data = [
-            [&apos;Google&apos;, 1998, 807.80],
-            [&apos;Apple&apos;, 1976, 116.52],
-            [&apos;Yahoo&apos;, 1994, 38.66],
-        ];
-
-        jexcel(document.getElementById(&apos;mytable&apos;), &#123;
-            data: data,
-            colWidths: [300, 80, 100]
-        &#125;);
-    &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre><p>访问这个页面，会出现一个web表格。</p>
+      <p>基本结构已经搭起来了,使用的是feign进行访问的。<br>接下来我们继续完善这个项目，做到更加的适用可靠。<br>项目均使用的yml配置文件，但是文章中使用properties的.符号来代替文章格式显示的问题。</p>
+<p>以下项目的配置，如果说出现报错的问题，也就是说最开始没问题，改了哪个不影响的地方却突然出问题。任何问题首先clean，重新package，在重新启动一下。看看有没有解决，如果开没有解决，就检查一下当前报错应用的配置文件，最后再去百度上搜。</p>
+<h2 id="配置服务的info信息"><a href="#配置服务的info信息" class="headerlink" title="配置服务的info信息"></a>配置服务的info信息</h2><p>服务的info信息可以再注册中心查看，可以描述说明当前服务主要是干什么的。访问服务即可进入一个json打开的页面。<br>我们来注册服务者的info信息,项目结构在上一篇已经有了。下面的依赖actuator可以直接放在cloudservice这个模块中就可以</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>然后再build元素里添加如下内容</p>
+<pre><code>&lt;build&gt;
+    &lt;finalName&gt;USER-SERVICE&lt;/finalName&gt;
+    &lt;resources&gt;
+        &lt;resource&gt;
+            &lt;directory&gt;src/main/resources&lt;/directory&gt;
+            &lt;filtering&gt;true&lt;/filtering&gt;
+        &lt;/resource&gt;
+    &lt;/resources&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;
+            &lt;configuration&gt;
+                &lt;delimiters&gt;
+                    &lt;delimit&gt;$&lt;/delimit&gt;
+                &lt;/delimiters&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></pre><p>最后,服务的info信息在application.yml里配置。</p>
+<pre><code>info:
+  app.name: USER-SERVICE-9001
+  company.name: www.fsats.com
+  build.artifactId: @project.artifactId@
+  build.version: @project.version@</code></pre><p>这里呢，其实应该是$符号不该是@,因为已经在pom中定义过了，但是总是个别问题出现，网上也有情况，这里也不描述为什么出现这总情况，不深究这些。</p>
+<p>默认呢,actuator会给我们两个接口,info和health分别表示应用信息和健康指标,还有一个单独的根节点访问。另外还有其他的访问节点，但是并没有默认对外暴露，在官方文档上都有，可以进行开启。</p>
 <ul>
-<li>选中列，右击可以进行一些列操作，导出，新增行，删除行，修改列名等</li>
-<li>选中列拷贝，可拷贝到当前表格和office excel表格中。</li>
-<li>双击列排序</li>
-<li>选中表格，右击save as可保存为cvs文件</li>
-<li>选中表格，右下角的点可以和office一样拉伸填充</li>
-<li>列宽度可以直接拉伸</li>
-<li>双击单元格可直接修改值</li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/info">http://192.168.88.1:9001/actuator/info</a></li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/health">http://192.168.88.1:9001/actuator/health</a></li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator">http://192.168.88.1:9001/actuator</a></li>
 </ul>
-<h3 id="列类型"><a href="#列类型" class="headerlink" title="列类型"></a>列类型</h3><p>在此web电子表格中，首先与office excel不同的一点是，office的类型为单元格设置类型，而jexcel中为更简易，设置为每列为一类型，称之为列类型。作用相类似于前端table数据展示的那种，每列都是同一个属性或同一个列类型。</p>
-<pre><code>&lt;html&gt;
-    &lt;script src=&quot;jexcel-master/dist/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-
-    &lt;div id=&quot;spreadsheet&quot;&gt;&lt;/div&gt;
-
-    &lt;script&gt;
-        var data = [
-            [&apos;Jazz&apos;, &apos;Honda&apos;, &apos;2019-02-12&apos;, &apos;&apos;, true, &apos;$ 2.000,00&apos;, &apos;#777700&apos;],
-            [&apos;Civic&apos;, &apos;Honda&apos;, &apos;2018-07-11&apos;, &apos;&apos;, true, &apos;$ 4.000,01&apos;, &apos;#007777&apos;],
-        ];
-
-        jexcel(document.getElementById(&apos;spreadsheet&apos;), &#123;
-            data:data,
-            columns: [
-                &#123; type: &apos;text&apos;, title:&apos;Car&apos;, width:120 &#125;,
-                &#123; type: &apos;dropdown&apos;, title:&apos;Make&apos;, width:200, source:[ &quot;Alfa Romeo&quot;, &quot;Audi&quot;, &quot;Bmw&quot;,&apos;Honda&apos; ] &#125;,
-                &#123; type: &apos;calendar&apos;, title:&apos;Available&apos;, width:200 &#125;,
-                &#123; type: &apos;image&apos;, title:&apos;Photo&apos;, width:120 &#125;,
-                &#123; type: &apos;checkbox&apos;, title:&apos;Stock&apos;, width:80 &#125;,
-                &#123; type: &apos;numeric&apos;, title:&apos;Price&apos;, width:100, mask:&apos;$ #.##,00&apos;, decimal:&apos;,&apos; &#125;,
-                &#123; type: &apos;color&apos;, width:100, render:&apos;circle&apos;, &#125;
-                ]
-        &#125;);
-    &lt;/script&gt;
-&lt;/html&gt;</code></pre><p>以上官方示例，表示配置columns类型，按顺序进行配置，包括</p>
+<p>文档<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。">https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。</a><br>我们在application.yml中输入management.endpoints.web就可以自动提示叫base-path的，他的路径默认值是/actuator，也就是访问的名称，是可以改的，然后引入端点的话是management.endpoints.web.exposure.include，它是一个数组，默认值就是info和health,我们可以依据文档上新增,如果要引入全部的话可以吧值写成 “*” ，注意包含双引号。然后访问actuator就可以显示了。</p>
+<p>如果想修改访问名称，也就是映射，可以设置path-mapping属性，他是一个map形式。</p>
+<p>哦对了，这个东西页面可以直接在eureka页面中点服务的名称就可以跳转到actuator页面了。其他的可以看官网和其他博客看。</p>
+<h2 id="注册实例名称的修改和左下角ip更改"><a href="#注册实例名称的修改和左下角ip更改" class="headerlink" title="注册实例名称的修改和左下角ip更改"></a>注册实例名称的修改和左下角ip更改</h2><p>注册实例id是唯一的通过eureka.instance.instance-id设置一个值。这样页面上就会变。然后你碰status后，左下角不是ip路径而是服务名称，要改成ip的话只需要配置eureka.instance.prefer-ip-address: true即可。</p>
+<h2 id="eureka服务实例的自我保护机制-了解"><a href="#eureka服务实例的自我保护机制-了解" class="headerlink" title="eureka服务实例的自我保护机制(了解)"></a>eureka服务实例的自我保护机制(了解)</h2><p>自我保护机制是应对注册进注册中心的服务的，当服务注册进后，服务会向注册中心发送特定消息(心跳)，eureka server会接收到,在一定时间内(默认90秒，可以修改)没有收到某个微服务的心跳，eureka server便会移除这个注册服务实例，而某些情况可能只是网络通信的原因导致心跳消息无法及时发送到，导致实例被移除，因此引入了自我保护机制，该微服务实例并不会移除。</p>
+<p>那自我保护机制是怎么个机制，如果接受的心跳在15分钟内低于应收总量的85%，那么这个实例就会处于保护状态，那么这个实例就不会过期。而如果收到的请求回到那个阙值，就会关闭保护机制。</p>
+<p>但如果开启了保护机制，万一请求到这个实例，那么就处于非正常的请求，可能是空的或者是错误请求。我们可以取消保护机制，那么在一定时间内该实例就会被下线，不会再注册中心中出现。</p>
+<p>eureka server关闭自我保护:eureka.server.enable-self-preservation: false<br>微服务注册客户端设置心跳:</p>
 <ul>
-<li>text:表示文本类型</li>
-<li>dropdown:表示下拉类型，需要设置source属性，列表</li>
-<li>calendar:表示日期类型，该日期格式可在js的323行处修改日期格式</li>
-<li>image:为图片，点击列，双击弹出的框，可选择图片，选择后，点击表格可关闭弹框并填充图片</li>
-<li>numberic:为数字类型，mask为数字格式，decimal为分隔符</li>
-<li>color:表示为颜色框，width为绘制宽度，render为为形状</li>
+<li>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态</li>
+<li>lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</li>
 </ul>
+<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>首先eureka是注册中心，所有服务都注册于此，但难免某个服务所在的服务器出现问题或网络出现问题，这样，当某用户在请求时，刚好将请求分配到这个服务实例去响应，然而却无法通信，可能就会出现无响应或者请求阻塞等问题。<br>这也是，如果eureka server的自我保护机制中如果出现了这种问题，那么请求不也有问题了么。</p>
+<p>因此就有负载均衡来解决这个问题，通常的单机应用程序，可以使用nginx，多台服务器启动多个程序，并使用nginx来进行负载均衡，属于集中式的。<br>而我们现在要说的Netflix Ribbon是进程式的，可以嵌入到消费者服务中，从注册中心中获取哪个服务地址有用，在选择适合的服务器请求</p>
+<p>因为Ribbon是嵌入到服务消费者中的，因此在eureka-consumer中配置<br>添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-ribbon&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>然后第二步时创建数据库,分别再创建cloud2和cloud3，用来表示另外两个userservice服务的各自的库，并把user表给建上。</p>
+<p>然后第三步是,新建模块userservice2和userservice3,将java下的包和resources下的mapper及application.yml拷贝一份。然后修改，端口号为9002和9002，修改instance-id的命名，修改数据库分别为cloud2和cloud3,修改info.app.name的名字。<br><strong>除了更改配置文件，其他的是完全一模一样的</strong>。</p>
+<p>然后就可以测试了，之前在单个服务的时候已经测试过了，cloud1里面也已经有数据了，然后当我们执行<a target="_blank" rel="noopener" href="http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。">http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。</a><br>我们看一下现在包的结构:</p>
+<p><img src="https://i.loli.net/2019/11/02/l4De82QVfRWxihN.png" alt="title"></p>
+<p>然后我们说一下负载均衡的策略，默认的轮询模式已经知道是怎么个形式了。拿一个表，列出其他的模式</p>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RoundRobinRule</td>
+<td>轮询,按照定义顺序一次循环访问</td>
+</tr>
+<tr>
+<td>RandomRule</td>
+<td>随机进行访问</td>
+</tr>
+<tr>
+<td>AvailabilityFilteringRule</td>
+<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问</td>
+</tr>
+<tr>
+<td>WeightedResponseTimeRule</td>
+<td>根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule</td>
+</tr>
+<tr>
+<td>RetryRule</td>
+<td>先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务</td>
+</tr>
+<tr>
+<td>BestAvailableRule</td>
+<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务</td>
+</tr>
+<tr>
+<td>ZoneAvoidanceRule</td>
+<td>复合判断server所在区域的性能和server的可用性选择服务器</td>
+</tr>
+</tbody></table>
+<p>如果要修改默认的策略，只需要注入对应的Bean就好了。处于cfg包里</p>
+<pre><code>@Configuration
+public class MyConfiguration &#123;
+
+    @Bean
+    public IRule myRule()&#123;
+        return new RandomRule();
+    &#125;
+&#125;</code></pre><p>当然这是对当前应用所有请求都是用这个规则，如果你的这个消费者模块想要处理两个模块的请求，可以分开处理请求规则。你可以在启动类上标注注解</p>
+<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
+@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+&#125;</code></pre><p>这个注解使用的是应对单个模块SPRING-PROD，configuration属性就是规则类。如果因为业务需要这个应用程序处理两个模块的业务，那么么可以使用@RibbonClients注解。另外，在注解上标注的和通用配置的不能重复。否则会报错说找到两个匹配的规则。</p>
+<p><strong>自定义规则</strong><br>自定义规则也是在configuration中配置，可以继承AbstractLoadBalancerRule类来配置规则。<br>我们在cfg包里创建MyRule类</p>
+<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
+
+    @Override
+    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
+
+    &#125;
+
+    private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次
+    private int currentIndex = 0;    // 当前提供服务的机器号
+
+    public Server choose(ILoadBalancer lb, Object key) &#123;
+        if (lb == null) &#123;
+            return null;
+        &#125;
+        Server server = null;
+
+        while (server == null) &#123;
+            if (Thread.interrupted()) &#123;
+                return null;
+            &#125;
+            List&lt;Server&gt; upList = lb.getReachableServers();
+            List&lt;Server&gt; allList = lb.getAllServers();
+
+            int serverCount = allList.size();
+            if (serverCount == 0) &#123;
+                return null;
+            &#125;
+            if (total &lt; 5) &#123;
+                server = upList.get(currentIndex);
+                total++;
+            &#125; else &#123;
+                total = 0;
+                currentIndex++;
+                if (currentIndex &gt;= upList.size()) &#123;
+                    currentIndex = 0;
+                &#125;
+            &#125;
+            if (server == null) &#123;
+                Thread.yield();
+                continue;
+            &#125;
+            if (server.isAlive()) &#123;
+                return (server);
+            &#125;
+            server = null;
+            Thread.yield();
+        &#125;
+
+        return server;
+
+    &#125;
+
+    @Override
+    public Server choose(Object o) &#123;
+        return choose(getLoadBalancer(),o);
+    &#125;
+&#125;</code></pre><p>该类定义规则是每个服务都请求5次后再请求下一个服务。然后更改MyConfiguration的注入的规则Bean，注入MyRule。然后修改注解上的配置类MyConfiguration.class,或者直接把MyRule.class写在configuration属性上。</p>
+<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>服务器负载均衡的策略已经说好了，那如果程序出现异常错误，请求超时等等其他问题该怎么办，如果特殊原因把某个服务停了，而刚好请求到这里该怎么办。<br>断路器，字面意思就如电路保险丝一样。<br>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</p>
+<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>如果执行一个方法报错了，怎么办，我们来模拟一下:<br>在consumer添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>在UserController中添加方法,请求路径get改为getn,然后添加注解，配置fallbackMethod为某个方法名称</p>
+<pre><code>@HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
+@GetMapping(&quot;/consumer/user/getn/&#123;id&#125;&quot;)
+public User getWithNull(@PathVariable(&quot;id&quot;) Long id)&#123;
+    User user = iUserClient.get(id);
+    if (user==null)&#123;
+        throw new RuntimeException();
+    &#125;
+    return user;
+&#125;
+
+public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
+    return new User().setId((long) 0).setName(&quot;没有找到记录&quot;).setAge((long) 21);
+&#125;</code></pre><p>然后给consumer启动类添加@EnableCircuitBreaker注解。即可测试，发现如果数据入库请求请求到cloud2或cloud3，就会获取null，然后抛出异常，就执行requestErrorGet方法了。</p>
+<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。<br>所以服务降级的配置在api模块上，api模块要请求服务提供者，但服务提供者挂了。那么这个就会被触发。但是如果同时配置服务熔断，那么会先执行服务熔断@HystrixCommand注解上的fallbackMethod。因此这里我们先把这个注解注释掉。</p>
+<p>配置api模块,在feign包同级创建fallback包，创建类</p>
+<pre><code>@Component
+public class UserClientFallbackFactory implements FallbackFactory&lt;IUserClient&gt; &#123;
+    @Override
+    public IUserClient create(Throwable throwable) &#123;
+        return new IUserClient() &#123;
+            @Override
+            public boolean add(User user) &#123;
+                return false;
+            &#125;
+
+            @Override
+            public User get(Long id) &#123;
+                return new User().setId((long) 0).setName(&quot;服务降级&quot;).setAge((long) 0);
+            &#125;
+
+            @Override
+            public List&lt;User&gt; list() &#123;
+                return new ArrayList&lt;&gt;();
+            &#125;
+        &#125;;
+    &#125;
+&#125;</code></pre><p>然后再feign中IUserClient接口类上的@FeighClient注解上新增属性fallbackFactory,然后现在是这样的@FeignClient(value = “SPRING-PROD”,fallbackFactory = UserClientFallbackFactory.class)<br>最后在consumer上加上配置，开启feign和Hystrix，feign.hystrix.enabled:true</p>
+<p>接下来测试，首先把consumer的@HystrixCommand注解注释掉，这个会在服务降级之前处理。/consumer/user/getn/1<br>我们只启动ecurekaServer和consumer来测试，服务提供者均不启动，当我们请求get的时候，因为api那请求服务提供者不了啊，所以就进入那个类的方法里，打印了服务降级的信息。<br>那我们此时再启动三个服务提供者，会发现有时候有结果，有时候报错，因为cloud1有数据，而且服务熔断的注释被注掉了，所以请求到另两个的时候会报错。<br>现在，再停止consumer，把@HystrixCommand服务熔断注释解开，在重新启动，再请求发现，有的是返回正确信息，有的返回没有记录(cloud2，cloud3)。</p>
+<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
+<p>我们为三个userservice添加依赖，可以放在父pom里</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>然后为各自启动类添加@EnableHystrixDashboard注解<br>因2.0版本情况原因，还需要在userservice中配置一段代码,才能访问</p>
+<pre><code>@Configuration
+public class MyConfiguration &#123;
+
+    @Bean
+    public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
+        ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
+        registration.addUrlMappings(&quot;/hystrix.stream&quot;);
+        return registration;
+    &#125;
+&#125;</code></pre><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
+<p>不过奇怪的是，一直loding中，没有图像显示,因为他必须要在经过请求的方法上添加@HystrixCommand注解来监控，因此需要在userservice的UserController的方法上添加此注解。然后再多次请求就有结果了。</p>
+<p>不过更奇怪的是，再服务熔断的时候不是配置在consumer中了么。可见好像配置的位置不怎么正确，不过功能依据注解，还是可以使用的。<br>但是，我们尝试把consumer的服务熔断给取消掉，然后由userservice来处理服务熔断这个问题，发现，是没有问题的。可以放在userservice中，那么这个监控的问题就顺理成章了。</p>
+<p>此时我们的consumer就还是feign和ribbon负载均衡了。而uservice则承载着服务熔断和服务监控，而api依旧是负责服务降级的问题。</p>
+<p>我列一下userservice的UserController和启动类</p>
+<pre><code>@RestController
+public class UserController &#123;
+
+    @Autowired
+    private UserService userService;
+
+    @ResponseBody
+    @PostMapping(&quot;/user/add&quot;)
+    public boolean add(@RequestBody User user)&#123;
+        return userService.add(user);
+    &#125;
+    @HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
+    @ResponseBody
+    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
+    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
+        User user = userService.get(id);
+        if (user==null)&#123;
+            throw  new RuntimeException();
+        &#125;
+        return user;
+    &#125;
+
+    @ResponseBody
+    @GetMapping(&quot;/user/list&quot;)
+    public List&lt;User&gt; list()&#123;
+        return userService.list();
+    &#125;
+
+    public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
+        return new User().setAge((long) 0).setName(&quot;Asd&quot;).setId((long) 0);
+    &#125;
+&#125;
+
+@EnableCircuitBreaker
+@EnableHystrixDashboard
+@EnableEurekaClient
+@SpringBootApplication
+public class UserServiceApplication &#123;
+    public static void main(String[] args) &#123;
+        SpringApplication.run(UserServiceApplication.class,args);
+    &#125;
+&#125;</code></pre><p>application.yml是没变的，pom是父pom添加的依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>consumer的启动类</p>
+<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
+@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+
+&#125;</code></pre><p>项目下载:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/72">https://nas.tsaving.cn/file/download/72</a></p>
 
       
       <!-- reward -->
@@ -709,7 +1289,7 @@ public class DemoController extends Controller &#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/21/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="page-number current">22</span><a class="page-number" href="/page/23/">23</a><a class="page-number" href="/page/24/">24</a><span class="space">&hellip;</span><a class="page-number" href="/page/45/">45</a><a class="extend next" rel="next" href="/page/23/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/21/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="page-number current">22</span><a class="page-number" href="/page/23/">23</a><a class="page-number" href="/page/24/">24</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/">47</a><a class="extend next" rel="next" href="/page/23/">下一页</a>
   </nav>
   
 </section>
@@ -759,7 +1339,7 @@ public class DemoController extends Controller &#123;
 <nav class="navbar">
   
   <div class="logo">
-    <a href="/"><img src="/images/ayer.jpg" alt="Notes"></a>
+    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
   </div>
   
   <ul class="nav nav-main">
