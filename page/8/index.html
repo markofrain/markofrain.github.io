@@ -78,6 +78,87 @@
     
     
     
+    <article id="post-Javascript/apache与nginx允许跨域访问" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/26/Javascript/apache%E4%B8%8Enginx%E5%85%81%E8%AE%B8%E8%B7%A8%E5%9F%9F%E8%AE%BF%E9%97%AE/"
+    >apache与nginx允许静态资源跨域访问</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/26/Javascript/apache%E4%B8%8Enginx%E5%85%81%E8%AE%B8%E8%B7%A8%E5%9F%9F%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2021-01-26T09:26:48.524Z" itemprop="datePublished">2021-01-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/JS/">JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="Nginx静态资源跨域访问配置"><a href="#Nginx静态资源跨域访问配置" class="headerlink" title="Nginx静态资源跨域访问配置"></a>Nginx静态资源跨域访问配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F;oss&#x2F; &#123;</span><br><span class="line">    add_header &#39;Access-Control-Allow-Origin&#39; &#39;*&#39;;</span><br><span class="line">    add_header &#39;Access-Control-Allow-Methods&#39; &#39;GET,POST,PUT,DELETE,OPTIONS&#39;;</span><br><span class="line">    if ($request_method &#x3D; OPTIONS ) &#123;</span><br><span class="line">        add_header Access-Control-Allow-Origin *;</span><br><span class="line">        add_header Access-Control-Allow-Credentials true; </span><br><span class="line">        add_header &#39;Access-Control-Allow-Methods&#39; &#39;GET,POST,PUT,DELETE,OPTIONS&#39;;</span><br><span class="line">        add_header Access-Control-Allow-Headers Origin,X-Requested-With,Content-Type,Accept,Authorization;</span><br><span class="line">        return 200;</span><br><span class="line">    &#125;</span><br><span class="line">    alias D:&#x2F;oss&#x2F;;</span><br><span class="line">    autoindex on;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在nginx.conf中，改代码为静态资源映射，目标为D:/oss/目录，访问资源标识名为/oss/。</p>
+<p>其中在Access-Control-Allow-Headers的配置中,可能会根据不同的请求头中的请求头名称而不同</p>
+<p><code>nginx.exe -s reload</code>重启nginx</p>
+<h3 id="Apache跨域访问"><a href="#Apache跨域访问" class="headerlink" title="Apache跨域访问"></a>Apache跨域访问</h3><p>修改conf/httpd.conf文件的<code>LoadModule headers_module modules/mod_headers.so</code>注释打开</p>
+<p>修改conf/extra/httpd-vhosts.conf的配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">    #ServerAdmin localhost</span><br><span class="line">    DocumentRoot &quot;$&#123;SRVROOT&#125;&#x2F;htdocs&quot;</span><br><span class="line">    Header set Access-Control-Allow-Origin *</span><br><span class="line">    ServerName localhost</span><br><span class="line">    #ServerAlias www.dummy-host.example.com</span><br><span class="line">    #ErrorLog &quot;logs&#x2F;dummy-host.example.com-error.log&quot;</span><br><span class="line">    #CustomLog &quot;logs&#x2F;dummy-host.example.com-access.log&quot; common</span><br><span class="line">&lt;&#x2F;VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在httpd.conf,找到<code>Include conf/extra/httpd-vhosts.conf</code>并解开注释</p>
+<p>然后重新启动Apache服务</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-k8s/持久化存储nfs,pv和pvc" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -198,6 +279,78 @@
 
 </article>
     
+    <article id="post-Linux/linux上仅编译redis-cli" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/18/Linux/linux%E4%B8%8A%E4%BB%85%E7%BC%96%E8%AF%91redis-cli/"
+    >linux上仅编译redis-cli</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/18/Linux/linux%E4%B8%8A%E4%BB%85%E7%BC%96%E8%AF%91redis-cli/" class="article-date">
+  <time datetime="2021-01-18T04:00:00.000Z" itemprop="datePublished">2021-01-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;redis-stable.tar.gz</span><br><span class="line">tar -xvzf redis-stable.tar.gz</span><br><span class="line">cd redis-stable</span><br><span class="line">make redis-cli</span><br><span class="line">sudo cp src&#x2F;redis-cli &#x2F;usr&#x2F;local&#x2F;bin&#x2F;</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/" rel="tag">Redis</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Javascript/ajax-post请求下载文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -256,78 +409,6 @@
     <footer class="article-footer">
       
       
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Linux/linux上仅编译redis-cli" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/18/Linux/linux%E4%B8%8A%E4%BB%85%E7%BC%96%E8%AF%91redis-cli/"
-    >linux上仅编译redis-cli</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/18/Linux/linux%E4%B8%8A%E4%BB%85%E7%BC%96%E8%AF%91redis-cli/" class="article-date">
-  <time datetime="2021-01-18T04:00:00.000Z" itemprop="datePublished">2021-01-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;redis-stable.tar.gz</span><br><span class="line">tar -xvzf redis-stable.tar.gz</span><br><span class="line">cd redis-stable</span><br><span class="line">make redis-cli</span><br><span class="line">sudo cp src&#x2F;redis-cli &#x2F;usr&#x2F;local&#x2F;bin&#x2F;</span><br></pre></td></tr></table></figure>
-
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/" rel="tag">Redis</a></li></ul>
-
 
     </footer>
 
@@ -467,80 +548,6 @@
 
 
 
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Linux/deepin20创建桌面图标" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/15/Linux/deepin20%E5%88%9B%E5%BB%BA%E6%A1%8C%E9%9D%A2%E5%9B%BE%E6%A0%87/"
-    >deepin20创建桌面图标</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/15/Linux/deepin20%E5%88%9B%E5%BB%BA%E6%A1%8C%E9%9D%A2%E5%9B%BE%E6%A0%87/" class="article-date">
-  <time datetime="2021-01-14T16:00:00.000Z" itemprop="datePublished">2021-01-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>将下载的idea.tar.gz解压到opt/apps/idea目录下</p>
-<p>根据应用商店下载的微信，将微信发送到桌面，可以在桌面点击右击通过编辑器打开，看到文件名的格式是app-id.desktop</p>
-<p>参照文件</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[Desktop Entry]</span><br><span class="line">Encoding&#x3D;UTF-8</span><br><span class="line">Type&#x3D;Application</span><br><span class="line">X-Created-By&#x3D;IDEA</span><br><span class="line">Categories&#x3D;chat;</span><br><span class="line">Icon&#x3D;idea</span><br><span class="line">Exec&#x3D;&quot;&#x2F;opt&#x2F;apps&#x2F;idea&#x2F;bin&#x2F;idea.sh&quot;</span><br><span class="line">Name&#x3D;idea</span><br><span class="line">Name[zh_CN]&#x3D;IDEA</span><br><span class="line">Comment&#x3D;IDEA</span><br><span class="line">#StartupWMClass&#x3D;WeChat.exe</span><br><span class="line">MimeType&#x3D;</span><br><span class="line">X-Deepin-CreatedBy&#x3D;com.deepin.dde.daemon.Launcher</span><br><span class="line">X-Deepin-AppID&#x3D;com.idea</span><br></pre></td></tr></table></figure>
-
-<p>X-Deepin-AppID是随意起的AppID标识不同应用，而最后保存的名称是com.idea.desktop。</p>
 
       
       <!-- reward -->

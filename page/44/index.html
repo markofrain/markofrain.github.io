@@ -78,6 +78,124 @@
     
     
     
+    <article id="post-Oracle/Oracle约束类型主键,外键,唯一约束" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/03/Oracle/Oracle%E7%BA%A6%E6%9D%9F%E7%B1%BB%E5%9E%8B%E4%B8%BB%E9%94%AE,%E5%A4%96%E9%94%AE,%E5%94%AF%E4%B8%80%E7%BA%A6%E6%9D%9F/"
+    >Oracle约束类型主键,外键,唯一约束</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/03/Oracle/Oracle%E7%BA%A6%E6%9D%9F%E7%B1%BB%E5%9E%8B%E4%B8%BB%E9%94%AE,%E5%A4%96%E9%94%AE,%E5%94%AF%E4%B8%80%E7%BA%A6%E6%9D%9F/" class="article-date">
+  <time datetime="2018-06-03T14:20:33.000Z" itemprop="datePublished">2018-06-03</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="约束的使用"><a href="#约束的使用" class="headerlink" title="约束的使用"></a>约束的使用</h3><h4 id="主键约束"><a href="#主键约束" class="headerlink" title="主键约束"></a>主键约束</h4><p>主键在每个表中只有一个，主键列是唯一标识，它的值是唯一的不可重复，不能为空。 例如像产品表中，productId,productName，productPrice,productAddress等，productId就相当于主键，用来唯一标识这条数据。 1.可在创建表语句中通过primary key(字段名)设置 2.还可以使用ALTER TABLE语句为表添加主键约束和移除主键约束。</p>
+<pre><code>//创建时添加
+CONSTRAINT constraint_name PRIMARY KEY(column_name)
+//添加约束
+ALTER TABLE table_name ADD CONSTRAINT constraint_name PRIMARY KEY(column_name);
+//移除约束
+ALTER ATBLE table_name DROP CONSTRAINT constraint_name;</code></pre><ul>
+<li>constraint_name:约束的名称</li>
+<li>column_name:作为主键列的列名</li>
+</ul>
+<h4 id="外键约束"><a href="#外键约束" class="headerlink" title="外键约束"></a>外键约束</h4><p>1.外键是指在表（子表）中定义外键的字段的列的值必须在另一张表（父表）中出现。外键是用来实现参照完整性的方法之一。 2.被参照的表称为父表，创建外键的表称为子表。子表中的外键关联的是父表中的主键 3.外键可以在建表的时候定义，也可以通过alter table语句来创建。 例如:班级和学生,<strong>为学生添加约束前需已经创建了主表Class表,否则无从参考</strong>，在学生表中添加约束，外键列为学生表里的class_id,参考的表为Class，参考的列为Class的id。当class的id删除之后，学生表中关联该id的记录都会被级联删除。</p>
+<pre><code>//在创建表中添加
+CONSTRAINT constraint_name FOREIGN KEY (column_name) 
+REFERENCES table_name (column_name)
+[ON DELETE CASCADE];
+//创建表之后添加
+ALTER TABLE table_name ADD CONSTRAINT FOREIGN KEY (column_name) REFERENCES table_name (column_name);
+//删除约束
+ALTER TABLE table_name DROP CONSTRAINT constraint_name;</code></pre><ul>
+<li><p>constraint_name:创建的外检约束的名称</p>
+</li>
+<li><p>FOREIGN KEY(column_name):指定外键约束的列名(子表外键列名)</p>
+</li>
+<li><p>table_name(column_name):要引用的表名,列名(主表主键名)</p>
+</li>
+<li><p>[ON DELETE CASCADE]:可选，设置级联删除，当主键的字段被删除，外键对应的记录也被删除。</p>
+<p>CONSTRAINT FK_class_student FOREIGN KEY(classId) REFERENCES class(Id) ON DELETE CASCADE;</p>
+<p>ALTER TABLE student ADD CONSTRAINT fk_stu_class FOREIGN KEY (classId) references classes (Id) ON DELETE CASCADE;</p>
+<p>ALTER TABLE student DROP CONSTRAINT fk_stu_class;</p>
+</li>
+</ul>
+<h4 id="检查约束"><a href="#检查约束" class="headerlink" title="检查约束"></a>检查约束</h4><p>检查约束就是CHECK约束，规定该列能输入的值，以保证数据的正确性 1.在创建表时添加约束 2.使用ALTER TABLE添加约束</p>
+<pre><code>CONSTRAINT constraint_name CHECK(condition);
+
+ALTER TABLE table_name ADD CONSTRAINT constraint_name CHECK(condition);
+
+ALTER TABLE table_name DROP CONSTRAINT constraint_name;</code></pre><p>condition指约束条件,可以使用between and,&gt;&lt;,and,or等。</p>
+<pre><code>CONSTRAINT chk_age CHECK(age&gt;=18 and age&lt;=60);
+ALTER TABLE employee CONSTRAINT chk_sex CHECK(sex=&apos;男&apos; or sex=&apos;女&apos;);
+ALTER TABLE employee CONSTRAINT chk_age CHECK(age between 18 and 60);</code></pre><h4 id="唯一约束"><a href="#唯一约束" class="headerlink" title="唯一约束"></a>唯一约束</h4><p>UNIQUE约束也称为唯一约束，设置后表示该列的值时<strong>唯一的，不允许重复，可以为空格</strong>，一个表中可以有多个唯一约束的列 1.在创建表时添加约束 2.使用ALTER TABLE添加约束</p>
+<pre><code>CONSTRAINT constraint_name UNIQUE(column_name);
+ALTER TABLE ADD ....//与上面的格式一致
+ALTER TABLE DROP</code></pre><h4 id="非空约束"><a href="#非空约束" class="headerlink" title="非空约束"></a>非空约束</h4><p>NOT NULL约束，表示该列的值不能为空 1.在创建表时，在列名后面写 2.通过ALTER TABLE添加删除约束</p>
+<pre><code>//创建时添加,不写后面的NOT NULL则默认可以为空
+empName nvarchar2(10) NOT NULL
+//创建后设置为NOT NULL
+ALTER TABLE table_name MODIFY column_name NOT NULL;
+//创建后设置为NULL
+ALTER TABLE  dept MODIFY name NULL;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-中间件/阿里云域名加速服务阿里云CDN加速配置" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -464,195 +582,6 @@ insert into c1(times) values(TO_TIMESTAMP(&apos;2018-12-01 12:12:09.123456&apos;
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/vue-router路由" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/29/Vue/vue-router%E8%B7%AF%E7%94%B1/"
-    >vue-router路由</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/29/Vue/vue-router%E8%B7%AF%E7%94%B1/" class="article-date">
-  <time datetime="2018-05-29T13:30:12.000Z" itemprop="datePublished">2018-05-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>使用Vue.js开发SPA（Single Page Application）单页面应用。 vue-router可以通过html5的history API或者hash实现单页应用，即不刷新跳转，切换地址，只是页面上的组件的切换； vue-router可以实现页面间传参等其他功能；</p>
-<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><p>当你要把 vue-router 添加进来，我们需要做的是，将组件(components)映射到路由(routes)，然后告诉 vue-router 在哪里渲染它们。 首先我们需要定义链接url，而vue-router使用<router-link>对a标签进行包装。 <strong>HTML:</strong></p>
-<pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;div&gt;
-        &lt;!-- 通过router-link来导航，to属性指定链接， 默认 会渲染成a标签 --&gt;
-        &lt;router-link to=&quot;/home&quot;&gt;Home&lt;/router-link&gt;
-        &lt;router-link to=&quot;/user&quot;&gt;User&lt;/router-link&gt;
-    &lt;/div&gt;
-    &lt;div&gt;
-        &lt;!-- 路由出口，路由匹配到的组件将在这里渲染 --&gt;
-        &lt;router-view&gt;&lt;/router-view&gt;
-    &lt;/div&gt;
-&lt;/div&gt;</code></pre><p><strong>Javascript:</strong></p>
-<pre><code>//1.定义(路由)组件
-    var home = &#123;template:&apos;&lt;p&gt;This is Home Page。。。&lt;/p&gt;&apos;&#125;
-    var user = &#123;template:&apos;&lt;p&gt;This is User Page&lt;/p&gt;&apos;&#125;
-    //2.定义路由，这是一组路由，每个路由使用一个大括号
-    const routes = [
-        &#123;path:&apos;/home&apos;,component:home&#125;,
-        &#123;path:&apos;/user&apos;,component:user&#125;
-    ];
-    //3.创建路由实例,然后传入路由配置
-    var router= new VueRouter(&#123;
-       routes   //缩写，相当于routes:routes
-    &#125;);
-    //4.在Vue实例中注入路由
-    var vm = new Vue(&#123;
-        el:&apos;#app&apos;,
-        router   //缩写,相当于router:router
-    &#125;);</code></pre><p>运行一下，可以完美的跑起来。</p>
-<h3 id="router-link类样式"><a href="#router-link类样式" class="headerlink" title="router-link类样式"></a>router-link类样式</h3><p>我们看一下控制台Elements，发现确实变成了<a>标签,并且还为当前选定的<router-link>添加了class “router-link-exact-active”和“router-link-active”，我们可以为其添加类样式。 还可以重新设置它的名称只需要在router路由实例中配置。</p>
-<pre><code>linkActiveClass:&apos;active&apos;//或其他值</code></pre><h3 id="HTML5-History模式"><a href="#HTML5-History模式" class="headerlink" title="HTML5 History模式"></a>HTML5 History模式</h3><p>我们看路径，默认会给前面加上#号，可能会看起来很丑,我们可以使用HTML5 History模式。这种模式充分利用 history.pushState API 来完成 URL 跳转而无须重新加载页面</p>
-<pre><code>const router = new VueRouter(&#123;
-  mode: &apos;history&apos;,
-  routes: [...]
-&#125;);</code></pre><p>而如果你这样做的话，后台服务器需要配置，因为我们的应用是个单页客户端应用，如果后台没有正确的配置，可能就会出现404页面。那么就需要一个通配符的方法解决,你可以使用重定向。 <strong>3.重定向</strong> <strong>1.通过路径方式</strong></p>
-<pre><code>const routes=[
-    ....
-    //若为/,表示默认重定向/home路径，*则表示匹配任何则重定向到
-    &#123;path:&apos;/&apos;,redirect:&apos;/home&apos;&#125;//或者&#123;path:&apos;*&apos;,redirect:&apos;/home&apos;&#125;
-]</code></pre><p>当匹配找不到的时候，就会转到这个路由。 <strong>2.通过路由名称</strong> 当然还可以通过路由名称的方式重定向,前提是你为路由设置了name参数</p>
-<pre><code>const routes = [
-    &#123;path:&apos;/user&apos;,component:user,name:&apos;user&apos;&#125;,//此时通过name设置路由名称
-    &#123;path:&apos;/&apos;,redirect:&#123;name:&apos;user&apos;&#125;&#125;//此处通过name属性给与路由名称
-];</code></pre><h2 id="嵌套路由"><a href="#嵌套路由" class="headerlink" title="嵌套路由"></a>嵌套路由</h2><p>嵌套路由无非是在路由里再加路由，与组件一样。 假如user中需要login和regist</p>
-<pre><code>//重新为user定义模板
-&lt;template id=&quot;user&quot;&gt;
-    &lt;div&gt;
-        &lt;ul&gt;
-            &lt;li&gt;&lt;router-link to=&quot;/user/login&quot;&gt;User Login&lt;/router-link&gt;&lt;/li&gt;
-            &lt;li&gt;&lt;router-link to=&quot;/user/regist&quot;&gt;User Regist&lt;/router-link&gt;&lt;/li&gt;
-        &lt;/ul&gt;
-        &lt;router-view&gt;&lt;/router-view&gt;
-    &lt;/div&gt;
-&lt;/template&gt;
-//为user路由添加子路由
-children:[
-    &#123;path:&apos;login&apos;,component:login&#125;,
-    &#123;path:&apos;regist&apos;,component:regist&#125;
-&#125;
-//定义组件
-var login = &#123;template:&apos;&lt;p&gt;用户登录&lt;/p&gt;&apos;&#125;
-var regist = &#123;template:&apos;&lt;p&gt;用户注册&lt;/p&gt;&apos;&#125;</code></pre><p>运行一下，可以正常显示。 注意user模板中的router-link和router-view，他俩是一一对应的，跟外面的不一样。</p>
-<h3 id="router-link标签渲染"><a href="#router-link标签渲染" class="headerlink" title="router-link标签渲染"></a>router-link标签渲染</h3><p>前面说过，router-link的默认渲染为<a>标签，我们可以更改,通过<strong>tag属性</strong></p>
-<pre><code>&lt;router-link to=&quot;/user/login&quot; tag=&quot;li&quot;&gt;User Login&lt;/router-link&gt;
-&lt;router-link to=&quot;/user/regist&quot; tag=&quot;li&quot;&gt;User Regist&lt;/router-link&gt;</code></pre><h3 id="动态路由匹配"><a href="#动态路由匹配" class="headerlink" title="动态路由匹配"></a>动态路由匹配</h3><p>如果我们通过路径路径来匹配到某个路由。例如，我们有一个 User 组件，对于所有 ID 各不相同的用户，都要使用这个组件来渲染。那么，我们可以在 vue-router 的路由路径中使用『动态路径参数』。 通俗地讲就是参数嘛，</p>
-<ul>
-<li>字符串参数 ?uname=xiao&amp;pwd=123</li>
-<li>rest风格传参 /yao/456</li>
-</ul>
-<p>当然我们这样映射路由的话，肯定是要参数值的，字符串的获得参数和rest获得参数使用了不同的方法</p>
-<ul>
-<li><p>字符串参数 $route.query</p>
-</li>
-<li><p>rest风格参数 $route.params</p>
-<p>//字符串参数的方式无需配置映射路径,直接显示<br>var login = {template:’<p>用户登录,获取参数,{ {$route.query}}</p>‘}</p>
-<p>//rest方式<br>children:[</p>
-<pre><code>&#123;path:&apos;login&apos;,component:login&#125;,
-&#123;path:&apos;regist/:uname/:pwd&apos;,component:regist&#125;</code></pre><p>]<br>var regist = {template:’<p>用户注册,获取参数,{ {$route.params}}</p>‘}</p>
-</li>
-</ul>
-<p>主要说一下第二种动态路径参数，它类似REST ful,匹配的路径都能够映射,<strong>一个『路径参数』使用冒号</strong> ** *: 标记* ** <strong>,当匹配到一个路由时，参数值会被设置到 this.$route.params，可以在每个组件内使用</strong>。</p>
-<h3 id="响应路由参数的变化"><a href="#响应路由参数的变化" class="headerlink" title="响应路由参数的变化"></a>响应路由参数的变化</h3><p>当使用路由参数时，例如从 /user/login 导航到 /user/regist，<strong>原来的组件实例会被复用</strong>。因为两个路由都渲染同个组件，比起销毁再创建，复用则显得更加高效。不过，<strong>这也意味着组件的生命周期钩子不会再被调用</strong> 复用组件时，想对路由参数的变化作出响应的话，你可以简单地 watch（监测变化） $route 对象</p>
-<pre><code>watch: &#123;
-    &apos;$route&apos; (to, from) &#123;
-      // 对路由变化作出响应...
-    &#125;
-  &#125;</code></pre><h3 id="匹配优先级"><a href="#匹配优先级" class="headerlink" title="匹配优先级"></a>匹配优先级</h3><p>有时候，同一个路径可以匹配多个路由，此时，匹配的优先级就按照路由的定义顺序：谁先定义的，谁的优先级就最高。</p>
-<h2 id="编程式导航"><a href="#编程式导航" class="headerlink" title="编程式导航"></a>编程式导航</h2><h3 id="router-push向当前添加一个路由并使用"><a href="#router-push向当前添加一个路由并使用" class="headerlink" title="router.push向当前添加一个路由并使用"></a>router.push向当前添加一个路由并使用</h3><p>除了使用 <router-link> 创建 a 标签来定义导航链接，我们还可以借助 router 的实例方法，通过编写代码来实现。 <strong>router.push(location, onComplete?, onAbort?)</strong> <strong>注意:在 Vue 实例内部，你可以通过 $router 访问路由实例。因此你可以调用 this.$router.push</strong> <strong>这个方法会向 history 栈添加一个新的记录</strong>，所以，当用户点击浏览器后退按钮时，则回到之前的 URL。 当你点击 <router-link> 时，这个方法会在内部调用，所以说，点击 <router-link :to="..." > 等同于调用 router.push(…)。</p>
-<p>声明式</p>
-<p>编程式</p>
-<router-link :to="..." >
-
-<p>router.push(…)</p>
-<pre><code>//this.$router.push(&quot;home&quot;);//字符串，值为路由名称
-//this.$router.push(&#123;path:&apos;/user&apos;&#125;);//对象，path指定路径
-//this.$router.push(&#123;name:&apos;regist&apos;,params:&#123;uname:&apos;chen&apos;,pwd:123&#125;&#125;);//动态参数路由
-//this.$router.push(&#123;path:&apos;/user/login&apos;,query:&#123;uname:&apos;chen&apos;,pwd:123&#125;&#125;);//带查询参数
-以及
-router.push(&#123; name: &apos;user&apos;, params: &#123; userId &#125;&#125;) // -&gt; /user/123
-router.push(&#123; path: `/user/$&#123;userId&#125;` &#125;) // -&gt; /user/123</code></pre><p><strong>注意：如果提供了 path，params 会被忽略</strong> <strong>你还需注意，你使用的方式是query还是params，如果你的path使用的是：标注方式的，则使用params，否则使用query</strong></p>
-<h3 id="router-replace替换掉当前记录"><a href="#router-replace替换掉当前记录" class="headerlink" title="router.replace替换掉当前记录"></a>router.replace替换掉当前记录</h3><p>跟 router.push 很像，唯一的不同就是，<strong>它不会向 history 添加新记录</strong>，而是跟它的方法名一样 —— <strong>替换掉当前的 history 记录。</strong></p>
-<p>声明式</p>
-<p>编程式</p>
-<p>router-link :to=”…” replace</p>
-<p>router.replace(…)</p>
-<p>其语法结构与router.push方法完全一样，只不过重要的是，不会生成一条历史记录。</p>
-<h3 id="router-go-n-前进或后退"><a href="#router-go-n-前进或后退" class="headerlink" title="router.go(n)前进或后退"></a>router.go(n)前进或后退</h3><p>这个方法的参数是一个整数，意思是在 history 记录中向前或者后退多少步，类似 window.history.go(n)。</p>
-<pre><code>// 在浏览器记录中前进一步，等同于 history.forward()
-router.go(1)
-
-// 后退一步记录，等同于 history.back()
-router.go(-1)
-
-// 前进 3 步记录
-router.go(3)
-
-// 如果 history 记录不够用，那就默默地失败呗
-router.go(-100)
-router.go(100)</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
 
 
     </footer>

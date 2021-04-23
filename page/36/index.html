@@ -78,6 +78,169 @@
     
     
     
+    <article id="post-Vue/Vue2.0项目结构与模块" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/21/Vue/Vue2.0%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A8%A1%E5%9D%97/"
+    >Vue2.0项目结构与模块</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/21/Vue/Vue2.0%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84%E4%B8%8E%E6%A8%A1%E5%9D%97/" class="article-date">
+  <time datetime="2018-09-21T05:06:31.000Z" itemprop="datePublished">2018-09-21</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="项目结构与模块"><a href="#项目结构与模块" class="headerlink" title="项目结构与模块"></a>项目结构与模块</h2><p>Vuex并不限制代码结构，但如果你的store文件太大，getters和mutations这些对象里的东西太多，就搞得特别复杂，就像是多个业务模块冗余在一起。于是就有了模块。而它规定了一些规则。</p>
+<ol>
+<li><p>应用层级的状态应该集中到单个 store 对象中。也就是说像是全局的数据之类的可以放在一个根store里，最后所有的module模块放在store里导出。</p>
+</li>
+<li><p>提交mutation是更改状态的唯一方法，并且这个过程是同步的。就是说你的数据更改必须要提交到mutation里修改，这样能保持过程同步，且更容易监视这个流程。</p>
+</li>
+<li><p>异步逻辑都应该封装到 action 里面。就如ajax或其他事件方法等需要放在action里。</p>
+</li>
+</ol>
+<p>那么官方的结构</p>
+<pre><code>├── index.html
+├── main.js
+├── api
+│   └── ... # 抽取出API请求
+├── components
+│   ├── App.vue
+│   └── ...
+└── store
+    ├── index.js          # 我们组装模块并导出 store 的地方
+    ├── actions.js        # 根级别的 action
+    ├── mutations.js      # 根级别的 mutation
+    └── modules
+        ├── cart.js       # 购物车模块
+        └── products.js   # 产品模块</code></pre><p>store文件夹下，action.js,mutations.js,actions.js就是用来放共用的或应用级的东西，最后在index.js中组装，而modules中都是些模块，cart.js和products.js里，都有action,mutations,actions，他们组成了单个模块。那么么他们也需要在index.js中组装并导出，所以就提供了一个modules的选项。</p>
+<pre><code>const moduleA = &#123;
+  state: &#123; ... &#125;,
+  mutations: &#123; ... &#125;,
+  actions: &#123; ... &#125;,
+  getters: &#123; ... &#125;
+&#125;
+
+const store = new Vuex.Store(&#123;
+  modules: &#123;
+    a: moduleA,
+    b: moduleB
+  &#125;
+&#125;)</code></pre><p>modules选项中a,b代表模块名,moduleA和moduleB代表模块引用。 ** 导出js代码**</p>
+<pre><code>//模块里的导出
+export default &#123;
+  state,
+  getters,
+  actions,
+  mutations
+&#125;
+
+
+//index.js
+import Vue from &apos;vue&apos;
+import Vuex from &apos;vuex&apos;
+import action from &apos;./actions&apos;
+import getters from &apos;./getters&apos;
+import mutations from &apos;./mutations&apos;
+import user from &apos;./modules/user&apos;
+
+Vue.use(Vuex)
+
+export default new Vuex.Store(&#123;
+  action,
+  getters,
+  mutations,
+  modules: &#123;
+    user
+  &#125;
+&#125;)
+
+
+//main.js,一定不要忘记设置store到Vue实例里
+import store from &apos;./store/index&apos;</code></pre><p>你可以参考官网指出来的例子:<a target="_blank" rel="noopener" href="https://github.com/vuejs/vuex/tree/dev/examples/shopping-cart">购物车示例</a></p>
+<h3 id="模块的局部状态"><a href="#模块的局部状态" class="headerlink" title="模块的局部状态"></a>模块的局部状态</h3><ol>
+<li><p>对于模块内部的 mutation 和 getter，接收的第一个参数是模块的局部状态对象。也就是说在模块里js文件中,你获取的状态，参数都是局部的，也就是当前模块里的参数数据。</p>
+</li>
+<li><p>而对于模块里的actions,获取根节点状态则通过context.rootState</p>
+</li>
+<li><p>对于getters,根节点状态会作为第三个参数暴露出来</p>
+</li>
+</ol>
+<pre><code>getters: &#123;
+    sumWithRootCount (state, getters, rootState) &#123;
+      return state.count + rootState.count
+    &#125;
+  &#125;</code></pre><h3 id="表单处理，双向绑定的计算属性"><a href="#表单处理，双向绑定的计算属性" class="headerlink" title="表单处理，双向绑定的计算属性"></a>表单处理，双向绑定的计算属性</h3><pre><code>&lt;input v-model=&quot;message&quot;&gt;
+
+
+// ...
+computed: &#123;
+  message: &#123;
+    get () &#123;
+      return this.$store.state.obj.message
+    &#125;,
+    set (value) &#123;
+      this.$store.commit(&apos;updateMessage&apos;, value)
+    &#125;
+  &#125;
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0-Vuex插件学习" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -711,97 +874,6 @@ VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%97%AA%E5%9B%9E/" rel="tag">闪回</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Linux/使用Ubuntu18.04和VirtualBox虚拟软件使虚拟机之间互通和与宿主互通" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/18/Linux/%E4%BD%BF%E7%94%A8Ubuntu18.04%E5%92%8CVirtualBox%E8%99%9A%E6%8B%9F%E8%BD%AF%E4%BB%B6%E4%BD%BF%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B9%8B%E9%97%B4%E4%BA%92%E9%80%9A%E5%92%8C%E4%B8%8E%E5%AE%BF%E4%B8%BB%E4%BA%92%E9%80%9A/"
-    >使用Ubuntu18.04和VirtualBox虚拟软件使虚拟机之间互通和与宿主互通</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/18/Linux/%E4%BD%BF%E7%94%A8Ubuntu18.04%E5%92%8CVirtualBox%E8%99%9A%E6%8B%9F%E8%BD%AF%E4%BB%B6%E4%BD%BF%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B9%8B%E9%97%B4%E4%BA%92%E9%80%9A%E5%92%8C%E4%B8%8E%E5%AE%BF%E4%B8%BB%E4%BA%92%E9%80%9A/" class="article-date">
-  <time datetime="2018-09-18T08:09:44.000Z" itemprop="datePublished">2018-09-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="使用Ubuntu18-04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问"><a href="#使用Ubuntu18-04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问" class="headerlink" title="使用Ubuntu18.04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问"></a>使用Ubuntu18.04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问</h1><p>直接切入操作，不讲废话，毕竟也是参考别人并尝试出来的。 1. 新建适配器网卡 首先你需要配置一个【虚拟适配器】，再【设置】，【主机网络管理器】，新建一个网络，下面【网卡选项】选择手动配置，好像创建完之后，文本框里就已经有值了，【取消启用HDCP服务器】。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918152356.png" alt=""> 每个机子的网段IP可能是不一样的，我的是192.168.135.1,你的135这个网段会变，另外第四位设置为1就好。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918152611.png" alt=""> 此时你的网络中会多出一个适配器。</p>
-<ol start="2">
-<li>配置网络网卡</li>
-</ol>
-<p>点击你已经虚拟好的机子，点击设置，配置【网络】，【网卡1】配置【网络地址转换NAT】 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918153019.png" alt=""> 【网卡2】配置，点击【启用连接】复选框，设置连接方式为【仅主机Host-Only网络】，【界面名称就是刚才创建的网络适配器，选中】 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918153046.png" alt=""> 你有两个虚拟机，你的两个虚拟机都要这样设置。如果之后你连接不上，一定要确认你的虚拟机这两个网卡的网络设置是否正确。 可以还在这个设置中看，还可以在虚拟机启动后，右下角的工具栏中显示的网络配置。</p>
-<ol start="3">
-<li>简单说一下这么配置的原因，也是引用源博主的文章。</li>
-</ol>
-<p>首先引一下图片 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/201809181536120.png" alt=""> 随后，看他说的，两个网卡分别有什么作用。 【网卡1，网络地址转换NAT】的目的是用上<strong>虚拟机与主机之间通讯</strong>，并且可以上外网。由于VirtualBox 的 NAT方式，只允许<strong>虚拟机与主机之间单向通讯</strong>（因为VirtualBox只虚拟了一个网卡，所以主机是ping不通虚拟机的。 而按图例中，虚拟机之间可以通过Host-Only和桥接方式，所以你要设置一个Host-Only，它不是刚设置的嘛，有ip4，所以它用来<strong>给两台虚拟机设置静态IP</strong>,而网卡1就是连接宿主的，可以访问网络，IP4和HDCP都是自动获取的，而且IP地址是类似10.10.x.x的。 这样的话，又能访问宿主网络，ping宿主(宿主不能ping虚拟机)，又能虚拟机之间访问，而且是静态的IP。</p>
-<ol start="4">
-<li>进入Ubuntu18.4中设置网络</li>
-</ol>
-<p>到linux里，这两个配置的网卡就变名字了，enp0s3和enp0s8，当然每个机子可能都是不一样的，也可能一样。但是有一点就是再做这个操作之前，我也分不清哪个用来虚拟机互通的，那个是用来连接虚拟机自动获取网络的。 所以先拿一台虚拟机尝试,配置 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/T20180918155055.png" alt=""> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/T20180918155233.png" alt=""></p>
-<ol>
-<li>0s3我配置的是自动连接，就是自动获取ip，DHCP，用于连接宿主，访问网络的。【身份选项】，mac地址就选择当前配置的enp0s3,ip4和ip6中都是自动，这间完成自动获取宿主连接了。</li>
-</ol>
-<p>对于enp0s8是虚拟机之间的通信，设置静态ip,【身份选项】mac选择当前对应网卡的地址enp0s8,ip4设置如下，ip6自动(文章中说NAT是无法设置IP6的) <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918155503.png" alt=""></p>
-<ol start="2">
-<li>这个IP4的配置，ip4选手动单选，地址:192.168.x.x,第三位是创建适配器时的默认给你的，第四位就是当前机子的ip号，这个号肯定是当前ip端唯一的。子网掩码:255.255.255.0这个是不用更改的，【网关】就是创建时默认的192.168.x.1。</li>
-</ol>
-<p>好，这样一台虚拟机就配置完成了，你可以ping一下百度网址<a target="_blank" rel="noopener" href="http://www.baidu.com或者宿主ip地址，如果响应没问题就说明OK了。如果有问题，那么你就得把两个网卡的配置反过来试试吧。。。。。。。">www.baidu.com或者宿主ip地址，如果响应没问题就说明OK了。如果有问题，那么你就得把两个网卡的配置反过来试试吧。。。。。。。</a> 对于虚拟机之间的ping，就得把另一个虚拟机也配置了之后，在相互ping，如果通了，那就完成了。 该案例也是秩序配置，不需要修改什么配置文件，上午改了配置文件，改yaml文件，始终编译不成功。 参考的博客: <a target="_blank" rel="noopener" href="https://blog.csdn.net/techsupporter/article/details/51810649">https://blog.csdn.net/techsupporter/article/details/51810649</a> <a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/149551">https://yq.aliyun.com/articles/149551</a> 那么我这么做，虚拟机互相ping时干什么，恩，大数据搭建环境，额虽然大数据已经很火爆很完善了现在，但是我还在开始学啊。看后面大数据环境的配置把。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="tag">虚拟机</a></li></ul>
 
 
     </footer>

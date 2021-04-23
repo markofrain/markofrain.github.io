@@ -78,6 +78,84 @@
     
     
     
+    <article id="post-SpringCloud/openFeign相关问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
+    >openFeign相关问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2021-04-14T04:00:00.000Z" itemprop="datePublished">2021-04-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="全局Feign增加请求头"><a href="#全局Feign增加请求头" class="headerlink" title="全局Feign增加请求头"></a>全局Feign增加请求头</h3><p>增加token的Authorization请求头</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 全局的feign调用使用的配置类</span></span><br><span class="line"><span class="comment"> * 1.无法获取attributes的问题，是hystrix机制的隔离策略。最终发现RequestContextHolder.getRequestAttributes()该方法是从ThreadLocal</span></span><br><span class="line"><span class="comment"> * 需要修改配置即可hystrix.command.default.execution.isolation.strategy: SEMAPHORE,但不推荐设置此值</span></span><br><span class="line"><span class="comment"> * 当隔离策略为 THREAD 时，是没办法拿到 ThreadLocal 中的值的。</span></span><br><span class="line"><span class="comment"> * 2. 可自定义配置策略</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> FeignHystrixConcurrencyStrategy https://blog.csdn.net/crystalqy/article/details/79083857</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cgq_r</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020/7/9</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GlobalFeignConfiguration</span> <span class="keyword">implements</span> <span class="title">RequestInterceptor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(RequestTemplate requestTemplate)</span> </span>&#123;</span><br><span class="line">        ServletRequestAttributes attributes = (ServletRequestAttributes)</span><br><span class="line">                RequestContextHolder.getRequestAttributes();</span><br><span class="line">        <span class="keyword">if</span> (attributes != <span class="keyword">null</span>) &#123;</span><br><span class="line">            HttpServletRequest request = attributes.getRequest();</span><br><span class="line">            Enumeration&lt;String&gt; headerNames = request.getHeaderNames();</span><br><span class="line">            <span class="keyword">if</span> (headerNames != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">while</span> (headerNames.hasMoreElements()) &#123;</span><br><span class="line">                    String name = headerNames.nextElement();</span><br><span class="line">                    <span class="keyword">if</span> (Constants.TOKEN_HEADER.toLowerCase().equals(name)) &#123;</span><br><span class="line">                        requestTemplate.header(Constants.TOKEN_HEADER, request.getHeader(name));</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            requestTemplate.header(Constants.GATEWAY_NAME,<span class="keyword">new</span> String(Base64Utils.encode(Constants.GATEWAY_VALUE.getBytes())));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="Feign调用出现中文乱码问题"><a href="#Feign调用出现中文乱码问题" class="headerlink" title="Feign调用出现中文乱码问题"></a>Feign调用出现中文乱码问题</h3><p>可在FeignClient中的请求@GetMapping等注解添加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">produces &#x3D; MediaType.APPLICATION_JSON_UTF8_VALUE, consumes &#x3D; &quot;application&#x2F;json;charset&#x3D;UTF-8&quot;</span><br></pre></td></tr></table></figure>
+
+<p>或者在Configuration中配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解决因sentinel依赖的jackjson-format-xml默认转为xml结果。设置默认结果为json类型。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> configurer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configureContentNegotiation</span><span class="params">(ContentNegotiationConfigurer configurer)</span> </span>&#123;</span><br><span class="line">    configurer.defaultContentType(MediaType.APPLICATION_JSON);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该代码配置默认的上下文类型为JSON，配置默认的内容格式。本来是为了解决意外转换为xml的问题。此处也可以解决。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Docker/docker-compose相关操作" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -407,81 +485,6 @@
 <h3 id="回归直线"><a href="#回归直线" class="headerlink" title="回归直线"></a>回归直线</h3><p>回归直线方程是根据样本资料通过回归分析所得到的反映一个变量（<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/因变量">因变量</a>）对另一个或一组变量（<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/自变量">自变量</a>）的回归关系的数学表达式。指在一组具有相关关系的变量的数据（x与Y）间，一条最好地反映x与Y之间的关系直线。</p>
 <h3 id="标准正态分布"><a href="#标准正态分布" class="headerlink" title="标准正态分布"></a>标准正态分布</h3><p><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/期望值/8664642">期望值</a>μ=0，即曲线图象对称轴为Y轴，<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/标准差/1415772">标准差</a>σ=1条件下的<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/正态分布">正态分布</a>，记为N(0，1)。</p>
 <img src="https://bkimg.cdn.bcebos.com/pic/4bed2e738bd4b31c04ff2c9f85d6277f9f2ff8d7?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UyMjA=,g_7,xp_5,yp_5/format,f_auto">
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/截取视频帧数图片" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/04/04/Java/%E6%88%AA%E5%8F%96%E8%A7%86%E9%A2%91%E5%B8%A7%E6%95%B0%E5%9B%BE%E7%89%87/"
-    >截取视频帧数图片</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/04/04/Java/%E6%88%AA%E5%8F%96%E8%A7%86%E9%A2%91%E5%B8%A7%E6%95%B0%E5%9B%BE%E7%89%87/" class="article-date">
-  <time datetime="2021-04-04T04:00:00.000Z" itemprop="datePublished">2021-04-04</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.bytedeco<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javacv-platform<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 截取视频第六帧的图片</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> file 视频路径</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 图片的全路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">videoImage</span><span class="params">(File file)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String pngPath = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    FFmpegFrameGrabber ff = FFmpegFrameGrabber.createDefault(file);</span><br><span class="line"></span><br><span class="line">    ff.start();</span><br><span class="line">    <span class="keyword">int</span> ffLength = ff.getLengthInFrames();</span><br><span class="line">    Frame f;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i &lt; ffLength) &#123;</span><br><span class="line">        f = ff.grabFrame();</span><br><span class="line">        <span class="comment">//截取第6帧</span></span><br><span class="line">        <span class="keyword">if</span> ((i &gt; <span class="number">1</span>) &amp;&amp; (f.image != <span class="keyword">null</span>)) &#123;</span><br><span class="line">            <span class="comment">//生成图片的相对路径 例如：pic/uuid.png</span></span><br><span class="line">            pngPath = getPngPath();</span><br><span class="line">            <span class="comment">//执行截图并放入指定位置</span></span><br><span class="line">            System.out.println(<span class="string">&quot;存储图片 ： &quot;</span> + pngPath);</span><br><span class="line">            doExecuteFrame(f, pngPath);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        i++;</span><br><span class="line">    &#125;</span><br><span class="line">    ff.stop();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> pngPath;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 生成图片的相对路径</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 图片的相对路径 例：pic/1.png</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title">getPngPath</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Constants.TEMP_DIR + IdUtil.simpleUUID() + <span class="string">&quot;.png&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 截取缩略图</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> f                       Frame</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> targerFilePath:封面图片存放路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">doExecuteFrame</span><span class="params">(Frame f, String targerFilePath)</span> </span>&#123;</span><br><span class="line">    String imagemat = <span class="string">&quot;png&quot;</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == f || <span class="keyword">null</span> == f.image) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    Java2DFrameConverter converter = <span class="keyword">new</span> Java2DFrameConverter();</span><br><span class="line">    BufferedImage bi = converter.getBufferedImage(f);</span><br><span class="line">    File output = <span class="keyword">new</span> File(targerFilePath);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ImageIO.write(bi, imagemat, output);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-
       
       <!-- reward -->
       

@@ -146,6 +146,146 @@
 
 </article>
     
+    <article id="post-Redis/Redis-RDB与AOF持久化" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/"
+    >Redis RDB与AOF持久化</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/" class="article-date">
+  <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Redis/">Redis</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>持久化操作可分为RDB(Redis DataBase)方式AOF(Append Only File)方式。</p>
+<h2 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h2><p>RDB文件用于保存和还原Redis服务器所有数据库中的所有键值对，它会在指定时间段内按规则进行一次全量保存。</p>
+<p>RDB文件是一个经过压缩的二进制文件，由多个部分组成。</p>
+<p><strong>指令</strong></p>
+<ul>
+<li>save   直接阻塞服务器进程，服务器不能处理任何请求，等待直到RDB创建完毕</li>
+<li>bgsave   派生出一个子进程，由子进程负责创建RDB文件，父进程继续处理请求</li>
+</ul>
+<p><strong>创建</strong></p>
+<p>创建RDB文件实际由rdb.c/rdbSave函数完成,两个命令则以不同的方式调用这个函数。</p>
+<p><strong>载入</strong></p>
+<p>redis没有直接载入RDB文件的命令，只要redis服务启动，则自动 载入RDB文件，服务器会一直处以阻塞状态，直到载入工作完成。</p>
+<p>载入文件的实际工作由rdb.c/rdbLoad函数完成</p>
+<h3 id="客户端save指令保存"><a href="#客户端save指令保存" class="headerlink" title="客户端save指令保存"></a>客户端save指令保存</h3><p>当SAVE执行时，Redis服务器会被阻塞，客户端发送的请求都会被拒绝</p>
+<p>只有执行完SAVE命令后，才能重新开始接收命令请求，客户端发送的命令才会被处理</p>
+<h3 id="间隔性保存-bgsave"><a href="#间隔性保存-bgsave" class="headerlink" title="间隔性保存 bgsave"></a>间隔性保存 bgsave</h3><p>redis <code>bgsave</code>执行命令会在后台子进程执行，所以redis允许用户设置服务器配置save选项，让服务器每隔一段时间bgsave一次。该命令并不会阻塞服务器</p>
+<p>在redis.conf的<code>SNAPSHOTTING</code>注释模块是rdb的配置。其中注释了三行数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># save &lt;seconds&gt; &lt;changes&gt;</span><br><span class="line"># Unless specified otherwise, by default Redis will save the DB:</span><br><span class="line">#   * After 3600 seconds (an hour) if at least 1 key changed</span><br><span class="line">#   * After 300 seconds (5 minutes) if at least 100 keys changed</span><br><span class="line">#   * After 60 seconds if at least 10000 keys changed</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># save 3600 1</span><br><span class="line"># save 300 100</span><br><span class="line"># save 60 10000</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>900秒内，至少对数据库执行1次命令</li>
+<li>300秒内，至少对数据库执行10次命令</li>
+<li>60秒内，至少对数据库执行10000次命令</li>
+</ul>
+<p>以上为默认配置，可以进行修改和增加。</p>
+<p>满足以上三个任意的条件将会自动触发bgsave命令，Redis调用bgsaveCommand函数，该函数fork一个子进程执行rdbSave函数进行实际的快照存储工作，而父进程可以继续处理客户端请求。当子进程退出后，父进程调用相关回调函数进行后续处理。</p>
+<p><strong>BGSAVE命令执行时服务器状态</strong></p>
+<ul>
+<li>保存工作有子进程执行，redis服务器仍可以处理命令请求</li>
+<li>在bgsave执行期间，客户端发送save命令会被服务器拒绝。禁止父子进程同时执行rdbSave函数，防止产生竞争</li>
+<li>在bgsave执行期间 ，客户端发送bgsave会被拒绝，防止产生竞争条件</li>
+<li>bgrewriteraof和bgsave不能同时执行<ul>
+<li>如果bgsave正在执行，那么bgrewriteraof会被延迟到在bgsave执行完毕后执行</li>
+<li>如果bgrewriteraof正在执行，那么bgsave会被拒绝</li>
+<li>这两个命令都是由子进程执行，两者并没有冲突的地方，不能同时执行，只是因为性能方面的考虑，因为这个两个子进程都会执行大量磁盘写入操作</li>
+</ul>
+</li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h2 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h2><p>AOF持久化是通过保存Redis服务器所执行的<strong>写的命令</strong>来记录的。</p>
+<p>当aof持久化打开时，服务器会以Redis协议格式将被执行的命令追加到服务器状态的aof_buf缓冲区末尾，之后再定期写入并同步到AOF文件中。</p>
+<p>默认不开启AOF，可修改<code>appendonly</code>的值为<code>yes</code>；<code>appendfilename</code>可指定持久化文件名称，默认可不修改。</p>
+<p>AOF保存的是一条条命令，理论上可以做到发生故障时只丢失一条命令。但由于操作系统中执行写文件操作代价很大，Redis提供了配置参数，通过对安全性和性能的折中，我们可以设置不同的策略。</p>
+<p><code>appendfsync</code>配置项配置了策略，可用值分别为:</p>
+<ul>
+<li>always：同步持久化，每次发生改变立即记录到磁盘。性能查数据完整性好</li>
+<li>everysec：默认，每秒触发一次，将aof_buf缓存区中的内容写到aof文件中，这个同步操作由一个线程专门负责</li>
+<li>no：不进行操作</li>
+</ul>
+<h3 id="AOF重写"><a href="#AOF重写" class="headerlink" title="AOF重写"></a>AOF重写</h3><p>随着aof文件越来越大，可能会造成影响，使用AOF还原数据的时间也就越多，因此Redis提供了重写功能。</p>
+<p>假如客户端向服务器执行了5条<code>lpush mylist xxx</code>语句，因此，就要向aof中写入这五条记录，然而重写可以将这5条变成一条，即<code>lpush mylist xxx xxx xxx xxx xxx</code>，这样5条命令就变成了一条，用着一条代替之前记录的多条命令。</p>
+<p>AOF重写会产生一个新的AOF文件，这个新的AOF文件和原有的AOF文件所保存的数据库状态一样，但体积更小。</p>
+<p>重写触发机制会执行<code>bgrewriteaof</code>命令，Redis服务器会维护一个AOF重写缓冲区，该缓冲区会在子进程中创建新AOF文件期间，记录服务器执行的所有命令。当子进程完成创建新的AOF文件之后，服务器会将重写缓冲区的所有内容追加到新的AOF文件中，使得新旧两个AOF文件所保存的数据状态一致。最后服务器用新的AOF文件替换旧的AOF文件。</p>
+<p><strong>重写配置</strong></p>
+<p>Redis会记录上次重写时的AOF大小，当AOF文件大小是上次rewriter后大小的一倍且文件大于64MB时触发</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 是否开启重写机制</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"># 百分比</span><br><span class="line">uto-aof-rewrite-percentage 100</span><br><span class="line"># 大小</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p>注意：在处理重写时,在列表，哈希，集合可能会带有多个元素的键时，会先检查键所包含的数量，超过一定数量后会用多条命令处理重写触发机制=</p>
+</blockquote>
+<h3 id="混合持久化"><a href="#混合持久化" class="headerlink" title="混合持久化"></a>混合持久化</h3><p>混合持久化指进行AOF重写时子进程将当前时间点的数据快照保存为RDB文件格式，而后将父进程累积命令保存为AOF格式。</p>
+<p>加载时，首先会识别AOF文件是否以REDIS字符串开头，如果是，就按RDB格式加载，加载完RDB后继续按AOF格式加载剩余部分。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aof-use-rdb-preamble yes</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="RDB与AOF区别"><a href="#RDB与AOF区别" class="headerlink" title="RDB与AOF区别"></a>RDB与AOF区别</h2><p>AOF更新频率会比RDB高</p>
+<p>如果服务其启动了AOF，则优先通过AOF还原数据，只有在AOF关闭的情况下才使用RDB文件来还原数据库状态</p>
+<p>AOF在载入数据库时会比RDB载入慢很多</p>
+<p>RDB数据可能会出现丢失，比AOF安全性低。</p>
+<p>RDB保存的是最终的结果，AOF保存最终结果之间的过程。</p>
+<h3 id="其他相关配置项"><a href="#其他相关配置项" class="headerlink" title="其他相关配置项"></a>其他相关配置项</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 开启该参数后，如果开启了RDB快照（即配置了bgsave指令），并且最近一次快照执行失败，则Redis将停止接收写相关的请求</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 开启该参数后，如果后台正在执行一次RDB快照或者AOF重写，则主进程不再进行fsync操作（即使将appendfsync配置为always或者everysec）</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"># AOF文件以追加日志的方式生成，所以服务端发生故障时可能会有尾部命令不完整的情况。</span><br><span class="line"># 该参数后，在此种情况下，AOF文件会截断尾部不完整的命令然后继续加载，并且会在日志中进行提示。如果不开启该参数，则加载AOF文件时会打印错误日志，然后直接退出</span><br><span class="line"># 在重新启动服务器之前，可以尝试执行bin下的redis-check-AOF工具检查修改AOF</span><br><span class="line">aof-load-truncated yes</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Redis/Redis缓存过期策略与内存淘汰策略" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -670,82 +810,6 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker rm $(docker ps -a|grep redis7|awk &#39;&#123;print $1&#125;&#39;)</span><br></pre></td></tr></table></figure>
 
 <p>此命令可以将过滤出来的数据一起删除</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Redis/Redis安装" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/"
-    >Redis安装</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/" class="article-date">
-  <time datetime="2021-03-21T04:00:00.000Z" itemprop="datePublished">2021-03-21</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Redis/">Redis</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="centos-mini下安装redis"><a href="#centos-mini下安装redis" class="headerlink" title="centos mini下安装redis"></a>centos mini下安装redis</h3><p>由于mini安装缺少各种依赖，因此需要新下载依赖。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo yum -y install gcc gcc-c++ libstdc++-devel</span><br><span class="line">sudo yum install centos-release-scl</span><br><span class="line">sudo yum install devtoolset-7-gcc*</span><br><span class="line">scl enable devtoolset-7 bash</span><br><span class="line"></span><br><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;releases&#x2F;redis-6.0.6.tar.gz</span><br><span class="line">tar xzf redis-6.0.6.tar.gz</span><br><span class="line">cd redis-6.0.6</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-
-<p>gui安装可能全部包含，直接下载编译，出现问题可在网上搜索报错信息。</p>
-<h3 id="window安装3-0-503"><a href="#window安装3-0-503" class="headerlink" title="window安装3.0.503"></a>window安装3.0.503</h3><p>github地址:<a target="_blank" rel="noopener" href="https://github.com/ServiceStack/redis-windows">https://github.com/ServiceStack/redis-windows</a></p>
-<p>下载地址:<a target="_blank" rel="noopener" href="https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip">https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip</a></p>
-<p>版本太老，仅用于缓存的存储使用。其它高级功能需要更高版本的。</p>
-<h3 id="RedisDesktopMange-windows-gui界面版redis"><a href="#RedisDesktopMange-windows-gui界面版redis" class="headerlink" title="RedisDesktopMange-windows gui界面版redis"></a>RedisDesktopMange-windows gui界面版redis</h3><p>下载地址:<a target="_blank" rel="noopener" href="https://github.com/lework/RedisDesktopManager-Windows/releases">https://github.com/lework/RedisDesktopManager-Windows/releases</a></p>
 
       
       <!-- reward -->

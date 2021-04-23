@@ -78,6 +78,195 @@
     
     
     
+    <article id="post-Vue/vue-router路由" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/29/Vue/vue-router%E8%B7%AF%E7%94%B1/"
+    >vue-router路由</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/29/Vue/vue-router%E8%B7%AF%E7%94%B1/" class="article-date">
+  <time datetime="2018-05-29T13:30:12.000Z" itemprop="datePublished">2018-05-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="简介"><a href="#简介" class="headerlink" title="简介"></a>简介</h2><p>使用Vue.js开发SPA（Single Page Application）单页面应用。 vue-router可以通过html5的history API或者hash实现单页应用，即不刷新跳转，切换地址，只是页面上的组件的切换； vue-router可以实现页面间传参等其他功能；</p>
+<h2 id="基本用法"><a href="#基本用法" class="headerlink" title="基本用法"></a>基本用法</h2><p>当你要把 vue-router 添加进来，我们需要做的是，将组件(components)映射到路由(routes)，然后告诉 vue-router 在哪里渲染它们。 首先我们需要定义链接url，而vue-router使用<router-link>对a标签进行包装。 <strong>HTML:</strong></p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;div&gt;
+        &lt;!-- 通过router-link来导航，to属性指定链接， 默认 会渲染成a标签 --&gt;
+        &lt;router-link to=&quot;/home&quot;&gt;Home&lt;/router-link&gt;
+        &lt;router-link to=&quot;/user&quot;&gt;User&lt;/router-link&gt;
+    &lt;/div&gt;
+    &lt;div&gt;
+        &lt;!-- 路由出口，路由匹配到的组件将在这里渲染 --&gt;
+        &lt;router-view&gt;&lt;/router-view&gt;
+    &lt;/div&gt;
+&lt;/div&gt;</code></pre><p><strong>Javascript:</strong></p>
+<pre><code>//1.定义(路由)组件
+    var home = &#123;template:&apos;&lt;p&gt;This is Home Page。。。&lt;/p&gt;&apos;&#125;
+    var user = &#123;template:&apos;&lt;p&gt;This is User Page&lt;/p&gt;&apos;&#125;
+    //2.定义路由，这是一组路由，每个路由使用一个大括号
+    const routes = [
+        &#123;path:&apos;/home&apos;,component:home&#125;,
+        &#123;path:&apos;/user&apos;,component:user&#125;
+    ];
+    //3.创建路由实例,然后传入路由配置
+    var router= new VueRouter(&#123;
+       routes   //缩写，相当于routes:routes
+    &#125;);
+    //4.在Vue实例中注入路由
+    var vm = new Vue(&#123;
+        el:&apos;#app&apos;,
+        router   //缩写,相当于router:router
+    &#125;);</code></pre><p>运行一下，可以完美的跑起来。</p>
+<h3 id="router-link类样式"><a href="#router-link类样式" class="headerlink" title="router-link类样式"></a>router-link类样式</h3><p>我们看一下控制台Elements，发现确实变成了<a>标签,并且还为当前选定的<router-link>添加了class “router-link-exact-active”和“router-link-active”，我们可以为其添加类样式。 还可以重新设置它的名称只需要在router路由实例中配置。</p>
+<pre><code>linkActiveClass:&apos;active&apos;//或其他值</code></pre><h3 id="HTML5-History模式"><a href="#HTML5-History模式" class="headerlink" title="HTML5 History模式"></a>HTML5 History模式</h3><p>我们看路径，默认会给前面加上#号，可能会看起来很丑,我们可以使用HTML5 History模式。这种模式充分利用 history.pushState API 来完成 URL 跳转而无须重新加载页面</p>
+<pre><code>const router = new VueRouter(&#123;
+  mode: &apos;history&apos;,
+  routes: [...]
+&#125;);</code></pre><p>而如果你这样做的话，后台服务器需要配置，因为我们的应用是个单页客户端应用，如果后台没有正确的配置，可能就会出现404页面。那么就需要一个通配符的方法解决,你可以使用重定向。 <strong>3.重定向</strong> <strong>1.通过路径方式</strong></p>
+<pre><code>const routes=[
+    ....
+    //若为/,表示默认重定向/home路径，*则表示匹配任何则重定向到
+    &#123;path:&apos;/&apos;,redirect:&apos;/home&apos;&#125;//或者&#123;path:&apos;*&apos;,redirect:&apos;/home&apos;&#125;
+]</code></pre><p>当匹配找不到的时候，就会转到这个路由。 <strong>2.通过路由名称</strong> 当然还可以通过路由名称的方式重定向,前提是你为路由设置了name参数</p>
+<pre><code>const routes = [
+    &#123;path:&apos;/user&apos;,component:user,name:&apos;user&apos;&#125;,//此时通过name设置路由名称
+    &#123;path:&apos;/&apos;,redirect:&#123;name:&apos;user&apos;&#125;&#125;//此处通过name属性给与路由名称
+];</code></pre><h2 id="嵌套路由"><a href="#嵌套路由" class="headerlink" title="嵌套路由"></a>嵌套路由</h2><p>嵌套路由无非是在路由里再加路由，与组件一样。 假如user中需要login和regist</p>
+<pre><code>//重新为user定义模板
+&lt;template id=&quot;user&quot;&gt;
+    &lt;div&gt;
+        &lt;ul&gt;
+            &lt;li&gt;&lt;router-link to=&quot;/user/login&quot;&gt;User Login&lt;/router-link&gt;&lt;/li&gt;
+            &lt;li&gt;&lt;router-link to=&quot;/user/regist&quot;&gt;User Regist&lt;/router-link&gt;&lt;/li&gt;
+        &lt;/ul&gt;
+        &lt;router-view&gt;&lt;/router-view&gt;
+    &lt;/div&gt;
+&lt;/template&gt;
+//为user路由添加子路由
+children:[
+    &#123;path:&apos;login&apos;,component:login&#125;,
+    &#123;path:&apos;regist&apos;,component:regist&#125;
+&#125;
+//定义组件
+var login = &#123;template:&apos;&lt;p&gt;用户登录&lt;/p&gt;&apos;&#125;
+var regist = &#123;template:&apos;&lt;p&gt;用户注册&lt;/p&gt;&apos;&#125;</code></pre><p>运行一下，可以正常显示。 注意user模板中的router-link和router-view，他俩是一一对应的，跟外面的不一样。</p>
+<h3 id="router-link标签渲染"><a href="#router-link标签渲染" class="headerlink" title="router-link标签渲染"></a>router-link标签渲染</h3><p>前面说过，router-link的默认渲染为<a>标签，我们可以更改,通过<strong>tag属性</strong></p>
+<pre><code>&lt;router-link to=&quot;/user/login&quot; tag=&quot;li&quot;&gt;User Login&lt;/router-link&gt;
+&lt;router-link to=&quot;/user/regist&quot; tag=&quot;li&quot;&gt;User Regist&lt;/router-link&gt;</code></pre><h3 id="动态路由匹配"><a href="#动态路由匹配" class="headerlink" title="动态路由匹配"></a>动态路由匹配</h3><p>如果我们通过路径路径来匹配到某个路由。例如，我们有一个 User 组件，对于所有 ID 各不相同的用户，都要使用这个组件来渲染。那么，我们可以在 vue-router 的路由路径中使用『动态路径参数』。 通俗地讲就是参数嘛，</p>
+<ul>
+<li>字符串参数 ?uname=xiao&amp;pwd=123</li>
+<li>rest风格传参 /yao/456</li>
+</ul>
+<p>当然我们这样映射路由的话，肯定是要参数值的，字符串的获得参数和rest获得参数使用了不同的方法</p>
+<ul>
+<li><p>字符串参数 $route.query</p>
+</li>
+<li><p>rest风格参数 $route.params</p>
+<p>//字符串参数的方式无需配置映射路径,直接显示<br>var login = {template:’<p>用户登录,获取参数,{ {$route.query}}</p>‘}</p>
+<p>//rest方式<br>children:[</p>
+<pre><code>&#123;path:&apos;login&apos;,component:login&#125;,
+&#123;path:&apos;regist/:uname/:pwd&apos;,component:regist&#125;</code></pre><p>]<br>var regist = {template:’<p>用户注册,获取参数,{ {$route.params}}</p>‘}</p>
+</li>
+</ul>
+<p>主要说一下第二种动态路径参数，它类似REST ful,匹配的路径都能够映射,<strong>一个『路径参数』使用冒号</strong> ** *: 标记* ** <strong>,当匹配到一个路由时，参数值会被设置到 this.$route.params，可以在每个组件内使用</strong>。</p>
+<h3 id="响应路由参数的变化"><a href="#响应路由参数的变化" class="headerlink" title="响应路由参数的变化"></a>响应路由参数的变化</h3><p>当使用路由参数时，例如从 /user/login 导航到 /user/regist，<strong>原来的组件实例会被复用</strong>。因为两个路由都渲染同个组件，比起销毁再创建，复用则显得更加高效。不过，<strong>这也意味着组件的生命周期钩子不会再被调用</strong> 复用组件时，想对路由参数的变化作出响应的话，你可以简单地 watch（监测变化） $route 对象</p>
+<pre><code>watch: &#123;
+    &apos;$route&apos; (to, from) &#123;
+      // 对路由变化作出响应...
+    &#125;
+  &#125;</code></pre><h3 id="匹配优先级"><a href="#匹配优先级" class="headerlink" title="匹配优先级"></a>匹配优先级</h3><p>有时候，同一个路径可以匹配多个路由，此时，匹配的优先级就按照路由的定义顺序：谁先定义的，谁的优先级就最高。</p>
+<h2 id="编程式导航"><a href="#编程式导航" class="headerlink" title="编程式导航"></a>编程式导航</h2><h3 id="router-push向当前添加一个路由并使用"><a href="#router-push向当前添加一个路由并使用" class="headerlink" title="router.push向当前添加一个路由并使用"></a>router.push向当前添加一个路由并使用</h3><p>除了使用 <router-link> 创建 a 标签来定义导航链接，我们还可以借助 router 的实例方法，通过编写代码来实现。 <strong>router.push(location, onComplete?, onAbort?)</strong> <strong>注意:在 Vue 实例内部，你可以通过 $router 访问路由实例。因此你可以调用 this.$router.push</strong> <strong>这个方法会向 history 栈添加一个新的记录</strong>，所以，当用户点击浏览器后退按钮时，则回到之前的 URL。 当你点击 <router-link> 时，这个方法会在内部调用，所以说，点击 <router-link :to="..." > 等同于调用 router.push(…)。</p>
+<p>声明式</p>
+<p>编程式</p>
+<router-link :to="..." >
+
+<p>router.push(…)</p>
+<pre><code>//this.$router.push(&quot;home&quot;);//字符串，值为路由名称
+//this.$router.push(&#123;path:&apos;/user&apos;&#125;);//对象，path指定路径
+//this.$router.push(&#123;name:&apos;regist&apos;,params:&#123;uname:&apos;chen&apos;,pwd:123&#125;&#125;);//动态参数路由
+//this.$router.push(&#123;path:&apos;/user/login&apos;,query:&#123;uname:&apos;chen&apos;,pwd:123&#125;&#125;);//带查询参数
+以及
+router.push(&#123; name: &apos;user&apos;, params: &#123; userId &#125;&#125;) // -&gt; /user/123
+router.push(&#123; path: `/user/$&#123;userId&#125;` &#125;) // -&gt; /user/123</code></pre><p><strong>注意：如果提供了 path，params 会被忽略</strong> <strong>你还需注意，你使用的方式是query还是params，如果你的path使用的是：标注方式的，则使用params，否则使用query</strong></p>
+<h3 id="router-replace替换掉当前记录"><a href="#router-replace替换掉当前记录" class="headerlink" title="router.replace替换掉当前记录"></a>router.replace替换掉当前记录</h3><p>跟 router.push 很像，唯一的不同就是，<strong>它不会向 history 添加新记录</strong>，而是跟它的方法名一样 —— <strong>替换掉当前的 history 记录。</strong></p>
+<p>声明式</p>
+<p>编程式</p>
+<p>router-link :to=”…” replace</p>
+<p>router.replace(…)</p>
+<p>其语法结构与router.push方法完全一样，只不过重要的是，不会生成一条历史记录。</p>
+<h3 id="router-go-n-前进或后退"><a href="#router-go-n-前进或后退" class="headerlink" title="router.go(n)前进或后退"></a>router.go(n)前进或后退</h3><p>这个方法的参数是一个整数，意思是在 history 记录中向前或者后退多少步，类似 window.history.go(n)。</p>
+<pre><code>// 在浏览器记录中前进一步，等同于 history.forward()
+router.go(1)
+
+// 后退一步记录，等同于 history.back()
+router.go(-1)
+
+// 前进 3 步记录
+router.go(3)
+
+// 如果 history 记录不够用，那就默默地失败呗
+router.go(-100)
+router.go(100)</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0组件3" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -803,250 +992,6 @@ Vue.directive(&apos;my-directive&apos;, function () &#123;
 &#125;</code></pre><p>focus即为指令名称，使用时直接，v-focus即可。</p>
 <blockquote>
 <p>el参数和binding参数，获得绑定元素与当前指令对象只有在bind函数绑定之后才能得到值。所以inserted，update也是可以的。</p>
-</blockquote>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue常用实例属性，实例方法" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue%E5%B8%B8%E7%94%A8%E5%AE%9E%E4%BE%8B%E5%B1%9E%E6%80%A7%EF%BC%8C%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95/"
-    >Vue常用实例属性，实例方法</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue%E5%B8%B8%E7%94%A8%E5%AE%9E%E4%BE%8B%E5%B1%9E%E6%80%A7%EF%BC%8C%E5%AE%9E%E4%BE%8B%E6%96%B9%E6%B3%95/" class="article-date">
-  <time datetime="2018-05-28T14:20:24.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="实例属性"><a href="#实例属性" class="headerlink" title="实例属性"></a>实例属性</h3><ul>
-<li><strong>vm.$el</strong></li>
-<li><strong>vm.$data</strong></li>
-<li><strong>vm.options</strong></li>
-<li><strong>vm.$refs</strong></li>
-<li><strong>vm.$root</strong></li>
-</ul>
-<h4 id="vm-el"><a href="#vm-el" class="headerlink" title="vm.$el"></a>vm.$el</h4><p>该实例属性用于获取Vue实例使用的根DOM元素,即el选项所指的元素DOM</p>
-<pre><code>&lt;body&gt;
-&lt;div id=&quot;app&quot;&gt;
-    &lt;h4&gt;你好，这是四级标题&lt;/h4&gt;
-    &lt;p&gt;这是一个段落，我什么都不想说&lt;/p&gt;
-&lt;/div&gt;
-&lt;button onclick=&quot;getEl()&quot;&gt;获得el选项的DOM元素&lt;/button&gt;
-&lt;script&gt;
-    var vm = new Vue(&#123;
-        el:&apos;#app&apos;
-    &#125;)
-    function getEl()&#123;
-        console.log(vm.$el);//获得DOM元素
-        vm.$el.style.color=&apos;red&apos;;//设置字体颜色
-    &#125;
-&lt;/script&gt;
-&lt;/body&gt;</code></pre><h4 id="vm-data"><a href="#vm-data" class="headerlink" title="vm.$data"></a>vm.$data</h4><p>Vue 实例观察的数据对象。Vue 实例代理了对其 data 对象属性的访问。 即可以访问data选项中的数据。</p>
-<pre><code>&lt;button onclick=&quot;getData()&quot;&gt;vm.$data获得数据值&lt;/button&gt;
-data:&#123;
-    msg:&apos;你好你好&apos;,
-    arr:[&apos;what&apos;,&apos;are&apos;,&apos;you&apos;,&apos;doing&apos;,&apos;?&apos;]
-&#125;
-function getData()&#123;
-    console.log(vm.$data.msg);
-    console.log(vm.$data.arr.join(&apos; &apos;));
-&#125;</code></pre><p>获得msg属性，获得arr数组，并通过join生成字符串。</p>
-<h4 id="vm-options"><a href="#vm-options" class="headerlink" title="vm.$options"></a>vm.$options</h4><p>用于当前 Vue 实例的初始化选项。需要在选项中包含自定义属性时会有用处。：</p>
-<pre><code>var vm = new Vue(&#123;
-    el:&apos;#app&apos;,
-    data:&#123;
-        msg:&apos;你好你好&apos;,
-        arr:[&apos;what&apos;,&apos;are&apos;,&apos;you&apos;,&apos;doing&apos;,&apos;?&apos;]
-    &#125;,
-    name:&apos;小小陈先森&apos;,
-    user:&#123;name:&apos;小小陈先森&apos;,age:18,sex:&apos;男&apos;&#125;，
-    show()&#123;
-            console.log(this.user.sex);
-    &#125;
-&#125;)
-
-console.log(vm.$options.name);
-console.log(vm.$options.user.age);
-console.log(vm.$options.show());</code></pre><p>这个自定义属性，就是跟data选项同级，定义的属性或方法函数。通过$options可以操作调用。</p>
-<h4 id="vm-refs"><a href="#vm-refs" class="headerlink" title="vm.$refs"></a>vm.$refs</h4><p>返回持有注册过 ref 特性 的所有 DOM 元素和组件实例，该类型为Object，且只读。 因为有好多ref，所以通过.名称获得组件实例。</p>
-<pre><code>&lt;input type=&quot;text&quot; ref=&quot;name&quot; value=&quot;this is text&quot;/&gt;
-&lt;p ref=&quot;hello&quot;&gt;HelloWorld&lt;/p&gt;
-
-console.log(vm.$refs.hello);
-vm.$refs.name.value=&apos;whats&apos;;//.style.color=&apos;red&apos;;</code></pre><p>Vue实例中不需要任何设置，只要持有ref属性的元素在根节点元素中即可。</p>
-<h4 id="vm-root"><a href="#vm-root" class="headerlink" title="vm.$root"></a>vm.$root</h4><p>当前组件树的根 Vue 实例。如果当前实例没有父实例，此实例将会是其自己。</p>
-<pre><code>console.log(vm.$root);</code></pre><p>若果只有这个一个vm实例，那么么vm.$root将返回自己，返回自己，直接相当于vm。 其他几个实例属性，将在讲解<strong>组件</strong>的时候介绍，而且组件很重要。</p>
-<h3 id="实例方法-数据操作"><a href="#实例方法-数据操作" class="headerlink" title="实例方法(数据操作)"></a>实例方法(数据操作)</h3><h4 id="vm-watch"><a href="#vm-watch" class="headerlink" title="vm.$watch"></a>vm.$watch</h4><p>语法:</p>
-<pre><code>vm.$watch( expOrFn, callback, [options] )</code></pre><p>观察Vue实例变化中的一个表达式或计算属性函数。监视某个属性，如果被更该，将执行回调函数。 表达式只接受监督的键路径。对于更复杂的表达式，用一个函数取代。 + 第一个参数为表达式或计算属性函数，也可以是一个属性。 + 第二个参数为，触发的回调函数 + 第三个参数为，可添加的选项</p>
-<pre><code>&lt;input type=&quot;text&quot; v-model=&quot;msg&quot;&gt;
-data:&#123;
-    msg:&apos;你好你好&apos;
-&#125;
-vm.$watch(&apos;msg&apos;,function(newVal,oldVal)&#123;
-    console.log(&apos;新值为:&apos; + newVal + &apos;,旧值为:&apos; +oldVal);
-&#125;);</code></pre><p>你可以把第一个参数设置为计算属性函数。</p>
-<pre><code>vm.$watch(
-        function()&#123;
-            return Number(this.a) +Number(this.b);
-        &#125;,
-        function(newVal,oldVal)&#123;
-            console.log(&apos;新值为:&apos; + newVal + &apos;,旧值为:&apos; +oldVal);
-        &#125;
-    );</code></pre><p>另外vm.$watch返回一个取消观察函数，用来停止触发回调:</p>
-<pre><code>var unwatch = vm.$watch(&apos;a&apos;, cb)
-// 之后取消观察
-unwatch()</code></pre><p>一旦执行unwatch()函数，就不会触发回调,且不再监视它。</p>
-<blockquote>
-<p>[options]可选参数，可以放值deep:true,用来深度监视。 immediate：true,立即以表达式的当前值触发回调。 另外vm.$watch方法与实例的watch选项具有相同的作用。</p>
-</blockquote>
-<h4 id="vm-set"><a href="#vm-set" class="headerlink" title="vm.$set"></a>vm.$set</h4><p>语法:</p>
-<pre><code>vm.$set( target, key, value )</code></pre><p>参数: + {Object | Array} target + {string | number} key + {any} value 设置对象的属性。如果对象是响应式的，确保属性被创建后也是响应式的，同时触发视图更新 <strong>示例：</strong></p>
-<pre><code>data:&#123;
-    user:&#123;
-        id:1001,
-            name:&apos;tom&apos;
-        &#125;
-&#125;
-
- //通过普通方式为对象添加属性时vue无法实时监视到
-this.user.age=25;
-//通过vue实例的$set方法为对象添加属性，可以实时监视
-this.$set(this.user,&apos;age&apos;,18); 
-//通过全局API方式设置，全局API在后面介绍
-Vue.set(this.user,&apos;age&apos;,22);</code></pre><blockquote>
-<p>注意对象不能是 Vue 实例，或者 Vue 实例的根数据对象</p>
-</blockquote>
-<h4 id="vm-delete"><a href="#vm-delete" class="headerlink" title="vm.$delete"></a>vm.$delete</h4><p>语法:</p>
-<pre><code>Vue.delete( target, key )</code></pre><p>参数: + {Object | Array} target + {string | number} key/index</p>
-<blockquote>
-<p>仅在 2.2.0+ 版本中支持 Array + index 用法。</p>
-</blockquote>
-<p>删除对象的属性。如果对象是响应式的，确保删除能触发更新视图。</p>
-<pre><code>//使用js的方式无效
-delete this.user.age; 
-//使用vm.$delete
-vm.$delete(this.user,&apos;name&apos;);
-//使用全局API的方式
-Vue.delete(this.user,&apos;age&apos;);</code></pre><blockquote>
-<p>目标对象不能是一个 Vue 实例或 Vue 实例的根数据对象。</p>
-</blockquote>
-<h3 id="实例方法-事件操作"><a href="#实例方法-事件操作" class="headerlink" title="实例方法(事件操作)"></a>实例方法(事件操作)</h3><h4 id="vm-on-vm-emit"><a href="#vm-on-vm-emit" class="headerlink" title="vm.$on,vm.$emit"></a>vm.$on,vm.$emit</h4><p>语法:</p>
-<pre><code>vm.$on( event, callback )</code></pre><p>监听当前实例上的自定义事件。事件可以由vm.$emit触发。回调函数会接收所有传入事件触发函数的额外参数。 语法:</p>
-<pre><code>vm.$emit( event, […args] )</code></pre><p>触发当前实例上的事件。附加参数都会传给监听器回调。 <strong>示例:</strong></p>
-<pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;p v-on:click=&quot;test($event,&apos;123&apos;)&quot;&gt;自定义事件&lt;/p&gt;
-&lt;/div&gt;
-methods:&#123;
-    test(event,num)&#123;
-        vm.$emit(&apos;test&apos;,num);
-    &#125;
-&#125;
-
-vm.$on(&apos;test&apos;,function(num)&#123;
-    console.log(&apos;已监听，并执行回调函数&apos;);
-    console.log(&apos;获得的值为:&apos; + num);
-&#125;);</code></pre><p>当单击p标签文字时，将触发自定义的单击事件test,我们可以在test函数里进行单击后的操作。 通过vm.$on监听这个自定义的test事件，可以执行回调函数，但是它需要通过vm.$emit方法来触发，第一个参数为自定义事件名，第二个参数为附加参数。</p>
-<blockquote>
-<p>vm.$emit方法在父子组件中也用于子组件向上传递数据。</p>
-</blockquote>
-<h4 id="vm-once"><a href="#vm-once" class="headerlink" title="vm.$once"></a>vm.$once</h4><p>语法:</p>
-<pre><code>vm.$once( event, callback )</code></pre><p>监听一个自定义事件，但是只触发一次，在第一次触发之后移除监听器。 <strong>示例:</strong></p>
-<pre><code>&lt;button v-on:mouseover=&quot;mouseover&quot;&gt;只执行一次监听&lt;/button&gt;
-
-methods:&#123;
-    mouseover()&#123;
-        console.log(&apos;移动到了此节点&apos;)
-        vm.$emit(&apos;mouseover&apos;);//可随时，在任何处触发.
-    &#125;
-&#125;
-
-vm.$once(&apos;mouseover&apos;,function()&#123;
-    console.log(&apos;已监听，并执行回调函数&apos;);
-&#125;);</code></pre><p>通过测试发现，第一次触碰按钮，将打印“移动到了此节点”，“已监听，并执行回调函数”,但是，等第二次在触碰则只打印“移动到了此节点”。将不会在调用监听的回调函数，因为它已不再被监听。</p>
-<h4 id="vm-off"><a href="#vm-off" class="headerlink" title="vm.$off"></a>vm.$off</h4><p>语法:</p>
-<pre><code>vm.$off( [event, callback] )</code></pre><p>移除自定义事件监听器。 + 如果没有提供参数，则移除所有的事件监听器； + 如果只提供了事件，则移除该事件所有的监听器； + 如果同时提供了事件与回调，则只移除这个回调的监听器。</p>
-<h3 id="实例方法-生命周期"><a href="#实例方法-生命周期" class="headerlink" title="实例方法(生命周期)"></a>实例方法(生命周期)</h3><h4 id="vm-mount"><a href="#vm-mount" class="headerlink" title="vm.$mount"></a>vm.$mount</h4><p>语法:</p>
-<pre><code>vm.$mount( [elementOrSelector] )</code></pre><p>如果 Vue 实例在实例化时没有收到 el 选项，则它处于“未挂载”状态，没有关联的 DOM 元素。可以使用 vm.$mount() 手动地挂载一个未挂载的实例。 这个方法返回实例自身，因而可以链式调用其它实例方法。 <strong>示例:</strong></p>
-<pre><code>vm.$mount(&apos;#app&apos;);
-//或
-var vm=new Vue(&#123;
-    data:&#123;
-        msg:&apos;小小陈先森&apos;,
-        name:&apos;tom&apos;
-    &#125;
-&#125;).$mount(&apos;#app&apos;);</code></pre><p><a target="_blank" rel="noopener" href="http://blog.51cto.com/zouzhelu/2105104">查看Vue实例生命周期</a></p>
-<h4 id="vm-forceUpdate"><a href="#vm-forceUpdate" class="headerlink" title="vm.$forceUpdate()"></a>vm.$forceUpdate()</h4><p>迫使 Vue 实例重新渲染。注意它仅仅影响实例本身和插入插槽内容的子组件，而不是所有子组件。</p>
-<h4 id="vm-nextTick-callback"><a href="#vm-nextTick-callback" class="headerlink" title="vm.$nextTick( [callback] )"></a>vm.$nextTick( [callback] )</h4><p>将回调延迟到下次 DOM 更新循环之后执行。在修改数据之后立即使用它，然后等待 DOM 更新。 <strong>在DOM更新完成后再执行回调函数</strong>，一般在修改数据之后使用该方法，以便获取更新后的DOM。 <strong>举个小例子:</strong></p>
-<pre><code>&lt;p ref=&quot;thisP&quot;&gt;&#123; &#123;name&#125;&#125;&lt;/p&gt;
-
-data:&#123;
-    name:&apos;小小陈先森&apos;
-&#125;
-//js代码
-vm.name=&apos;Tom&apos;;
-console.log(vm.$refs.thisP.textContent);</code></pre><p>如果你没有添加最后一行的.textContent,那么你执行起来也没什么数据的错误。 设置为“Tom”值，console.log依然为“Tom”。如果你加上.textContent或的其内容。 你会发现，虽然设置了值为“Tom”，但打印控制台在依然为“小小陈先森”。 <strong>原因:</strong> 就如，该函数的介绍所说，当实例渲染加载完毕后显示Tom，但因为<strong>Vue数据更新后，需要渲染视图</strong>，所以需要等待这块DOM更新后才能显示出新值，而js代码执行较快，而直接通过.$refs获得了内容，没等得及DOM加载渲染完毕。 而此方法就是来处理它的。 <strong>代码:</strong></p>
-<pre><code>vm.$nextTick(function()&#123;
-    console.log(vm.$refs.thisP.textContent);
-&#125;);</code></pre><p>将其放在回调函数里，等DOM执行完后，在执行回调函数。这样就额可以了。</p>
-<h4 id="vm-destroy"><a href="#vm-destroy" class="headerlink" title="vm.$destroy()"></a>vm.$destroy()</h4><p>完全销毁一个实例。清理它与其它实例的连接，解绑它的全部指令及事件监听器。 触发 beforeDestroy 和 destroyed 的钩子函数。</p>
-<blockquote>
-<p>在大多数场景中你不应该调用这个方法。最好使用 v-if 和 v-for 指令以数据驱动的方式控制子组件的生命周期。 + 参考<a target="_blank" rel="noopener" href="http://www.fsats.com/2018/05/28/41/">生命周期</a></p>
 </blockquote>
 
       
