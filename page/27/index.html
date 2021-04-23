@@ -78,6 +78,103 @@
     
     
     
+    <article id="post-SpringBoot/SpringBoot异步任务定时任务邮件任务" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/"
+    >SpringBoot异步任务定时任务邮件任务</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/" class="article-date">
+  <time datetime="2019-01-20T16:48:41.000Z" itemprop="datePublished">2019-01-21</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="异步任务"><a href="#异步任务" class="headerlink" title="异步任务"></a>异步任务</h3><p>SpringBoot简单集成的异步，可<strong>使用@EnableAsync和@Async注解</strong>来开启和标注异步任务,<strong>将@EnableAysnc标注在启动类上</strong>，@Async标注在要执行的方法上，则该方法在被调用是不阻塞线程，以异步方式执行。 关于再2.0中，仅仅这个俩个注解是不行的,需要额外注入bean</p>
+<pre><code>@Bean(name = &quot;threadPoolTaskExecutor&quot;)
+public Executor threadPoolTaskExecutor() &#123;
+    return new ThreadPoolTaskExecutor();
+&#125;</code></pre><h3 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h3><p>SpringBoot也简单的继承了定时任务，可以在方法上<strong>标注@Scheduled注解</strong>，指定cron表达式，这个表达式和quartz任务调度的cron都是一样的，quartz是完整的，可继承SpringBoot并持久化到数据库，并可使用是API进行相关增改，暂停等。 而SpringBoot内置的比较简单，使用@Scheduled，并且需要在启动类上<strong>标注@EnableScheduling注解</strong>。则只要将该类注入到容器，即可默认根据cron表达式进行执行。关于quartz的可以看官网或quartz标签归档及Spring的整合quartz。</p>
+<h3 id="邮件任务"><a href="#邮件任务" class="headerlink" title="邮件任务"></a>邮件任务</h3><p>SpringBoot开发了与邮件相关的依赖。引入依赖包，再进行配置即可进行使用。之前Spring使用javax的mail的话，需要依赖mail的jar包，然后依据邮件服务商的配置等进行开发。 这里SpringBoot依赖的mail可自动配置。自动引入了javax的mail并自动配置。虽然需要邮箱服务器账号的授权码，但仍然省去了很多的麻烦。</p>
+<ol>
+<li><p>添加依赖</p>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-mail</artifactId>
+</dependency>
+</li>
+<li><p>yml配置</p>
+<p>spring:<br>  mail:</p>
+<pre><code>host: stmp.163.com
+username: cgq_rain@163.com
+##此为客户端授权码
+password: xxxxxxx
+properties:
+  mail.smtp.enable: true</code></pre></li>
+<li><p>注入JavaMailSenderimpl，用户发送,并编写简单邮件和带附件的邮件</p>
+</li>
+</ol>
+<p>此为带附件的消息，不带附件的可以使用SimpleMailMessage</p>
+<pre><code>@Autowired
+private JavaMailSenderImpl javaMailSender;</code></pre><p>​<br>​    MimeMessage mailMessage = javaMailSender.createMimeMessage();<br>​    try {<br>​        MimeMessageHelper messageHelper = new MimeMessageHelper(mailMessage,true);<br>​        messageHelper.setFrom(mail.getSender());<br>​        messageHelper.setTo(mail.getAccepter());<br>​        messageHelper.setSubject(mail.getSubject());<br>​        messageHelper.setText(mail.getText(),true);<br>​        for (Object key:hashMap.keySet()) {<br>​            String o = hashMap.get(key).toString();<br>​            byte[] bytes = new BASE64Decoder().decodeBuffer(o);<br>​            messageHelper.addAttachment(key.toString(),new ByteArrayResource(bytes));<br>​        }<br>​        javaMailSender.send(mailMessage);<br>​        log.info(“发送成功”);<br>​    } catch (MessagingException e) {<br>​        e.printStackTrace();<br>​    } catch (IOException e) {<br>​        e.printStackTrace();<br>​    }</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-SpringBoot/SpringBoot中遇到的的某些问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -704,187 +801,6 @@ public LocaleResolver localeResolver()&#123;
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Hadoop/hadoop搭建本机模式和伪分布式并执行案例" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/"
-    >hadoop搭建本机模式和伪分布式并执行案例</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/" class="article-date">
-  <time datetime="2018-12-31T11:10:22.000Z" itemprop="datePublished">2018-12-31</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="单节点Hadoop运行-本地模式"><a href="#单节点Hadoop运行-本地模式" class="headerlink" title="单节点Hadoop运行(本地模式)"></a>单节点Hadoop运行(本地模式)</h2><p><a target="_blank" rel="noopener" href="http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SingleCluster.html">官网步骤地址</a> 必备条件:安装java及配置java环境变量，安装hadoop及配置hadoop环境变量</p>
-<pre><code>export JAVA_HOME=/home/ubuntu1/jdk1.8
-export PATH=$JAVA_HOME/bin:$PATH
-
-export HADOOP_HOME=/home/ubuntu1/hadoop-2.7.7
-export PATH=$PATH:$HADOOP_HOME/bin
-export PATH=$PATH:$HADOOP_HOME/sbin</code></pre><p>配置hadoop根目录下etc下hadoop下的hadoop-env.sh文件中的JAVA_HOME地址</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd etc/hadoop/
-ubuntu1@ubuntu1:~/hadoop-2.7.7/etc/hadoop$ vim hadoop-env.sh
-export JAVA_HOME=/home/ubuntu1/jdk1.8</code></pre><p>当前本地local模式只有当前一台机器，可以不安装ssh，而分布式需要ssh。那么配置完成之后，bin目录下的hadoop命令可以执行。 <strong>非分布式模式运行:grep程序</strong> grep程序用来检索intpu目录下所有符合指定参数的文件。</p>
-<pre><code>$ mkdir input
-$ cp etc/hadoop/*.xml input
-$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar grep input output &apos;dfs[a-z.]+&apos;
-$ cat output/*</code></pre><p>表示在hadoop根目录下创建input文件夹，将etc/hadoop下所有xml文件拷贝到input目录下，执行hadoop命令。执行完成后，进入output目录，这个output目录是程序运行后自动生成的，不能直接创建。目录下有两个文件：</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd output/
-ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ ls
-part-r-00000  _SUCCESS</code></pre><p>一个是执行结果存放，一个是成功标识。 <strong>非分布式模式运行:wordcount程序</strong> wordcount程序用来查询文件下单词每个重复的次数。</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ rm -rf output/
-ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ rm -rf *
-ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ vim testhello.txt
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount input output</code></pre><p>​    </p>
-<p>删除output目录，删除input目录下所有文件，并创建testhello.txt文件，在文件内填多个单词，每个单词用空格分开，保存。然后执行命令。</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ cat part-r-00000 
-and 2
-cehn    1
-chen    2
-name    1
-where   1
-with    1
-xiaoxing    1</code></pre><h2 id="伪分布式配置"><a href="#伪分布式配置" class="headerlink" title="伪分布式配置"></a>伪分布式配置</h2><p>即单节点配置HDFS和YARN,可正常使用功能。</p>
-<ol>
-<li><p>配置core-site.xml</p>
-<pre><code>&lt;!-- 指定HDFS中的NameNode地址 --&gt;
-&lt;property&gt;
-     &lt;name&gt;fs.defaultFS&lt;/name&gt;
-     &lt;value&gt;hdfs://ubuntu1:9000&lt;/value&gt;
-&lt;/property&gt;
-&lt;!-- 指定hadoop运行时产生的临时文件 --&gt;
-&lt;property&gt;
-     &lt;name&gt;hadoop.temp.dir&lt;/name&gt;
-     &lt;value&gt;/home/ubuntu1/hadoop-2.7.7/data/tmp&lt;/value&gt;
-&lt;/property&gt;</code></pre></li>
-<li><p>配置hdfs-site.xml</p>
-<pre><code> &lt;!-- 指定HDFS副本数量 --&gt;
-&lt;proerpty&gt;
-    &lt;name&gt;dfs.replication&lt;/name&gt;
-    &lt;value&gt;1&lt;/value&gt;
-&lt;/proerpty&gt;</code></pre></li>
-<li><p>配置完成后一定要将hdfs进行首次格式化</p>
-<pre><code>hdfs namenode -format</code></pre></li>
-<li><p>启动守护进程</p>
-<pre><code>sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
-sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
-jps  //查看进程
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ jps
-6889 Jps
-6683 NameNode
-6813 DataNode</code></pre></li>
-<li><p>WEB浏览器访问 配置服务IP:50070进入HDFS文件系统。界面显示 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181231184929.png" alt=""> 其中Utilities菜单栏下的Browse the file system可以查看HDFS结构。</p>
-</li>
-<li><p>使用HDFS并运行wordcount</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -mkdir -p /user/ubuntu1/input
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -put input/testhello.txt  /user/ubuntu1/input/
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount /user/ubuntu1/input /user/ubuntu1/output</code></pre></li>
-</ol>
-<pre><code>以上命令分别表示创建一个多级目录到hdfs，并将本地input/testhello.txt上传到hdfs的intpu目录下。然后执行wordcount案例，指定hdfs中的文件和目录。执行完毕后，无错误则进入web查看结果，或使用如下命令:
-
-    ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -cat /user/ubuntu1/output/par*
-    and  2
-    cehn 1
-    chen 2
-    name 1
-    where    1
-    with 1
-    xiaoxing 1</code></pre><ol start="7">
-<li><p>查看HDFS,及命令</p>
-<ol>
-<li><p>查看文件系统</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /
-Found 1 items
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
-
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls -R /
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input
--rw-r--r--   1 ubuntu1 supergroup         50 2018-12-31 18:47 /user/ubuntu1/input/testhello.txt
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output
--rw-r--r--   1 ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output/_SUCCESS
--rw-r--r--   1 ubuntu1 supergroup         53 2018-12-31 18:53 /user/ubuntu1/output/part-r-00000</code></pre></li>
-<li><p>下载文件到本地</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -get /user/ubuntu1/output/par* ./
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ cat ./part-r-00000 
-and   2
-cehn  1
-chen  2
-name  1
-where 1
-with  1
-xiaoxing  1</code></pre></li>
-<li><p>删除HDFS中文件或文件夹</p>
-<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -rm -r /user/ubuntu1/output
-18/12/31 19:04:14 INFO fs.TrashPolicyDefault: Namenode trash configuration: Deletion interval = 0 minutes, Emptier interval = 0 minutes.
-Deleted /user/ubuntu1/output
-
-ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /user/ubuntu1
-Found 1 items
-drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input</code></pre></li>
-</ol>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
 
 
     </footer>

@@ -78,6 +78,130 @@
     
     
     
+    <article id="post-开源/Jeesite开源项目SSM基础搭建——系统管理释义" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E9%87%8A%E4%B9%89/"
+    >Jeesite开源项目SSM基础搭建——系统管理释义</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E9%87%8A%E4%B9%89/" class="article-date">
+  <time datetime="2018-07-26T14:40:39.000Z" itemprop="datePublished">2018-07-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>dbunit技术 maven dbunit导入导出数据库 oracle数据库i 1.jeesite。properties文件需要改配置为oracle 2.pom文件需要改，使用dbunit技术。更改pom的依赖，不同数据库版本，使用不同的jar包； 更改maven-antrun-plugin插件中，target中的配置，property标签 注释mysql，解除oracle注释 dbunit标签，注释mysql的，解除oracle 只要数据导入到数据库中就先启动项目 3项目启动No matching authentication protocol错误异常问题， 解决：在Oracle用户（不是grid用户）下，将$ORACLE_HOME/network/admin/sqlnet.ora文件原来的SQLNET.ALLOWED_LOGON_VERSION=8注释掉（如果没有sqlnet.ora文件，那么就创建一个），修改为如下的行</p>
+<pre><code>SQLNET.ALLOWED_LOGON_VERSION_SERVER=8
+
+SQLNET.ALLOWED_LOGON_VERSION_CLIENT=8</code></pre><p>spring jsp自定义标签 tag文件和tld文件 tag文件：自定义控件标签，直接就是自定义的控件标签 tld文件：自定义方法标签通过,${名称:方法名(参数)}的方式调用 Mustache库，render回调函数，模板引擎 模板中变量使用{ {name}}的方式显示值 treeTable 树形网格 jquery validate校验框架 jQuery pagination插件 SpringContextHolder类，静态持有SpringContext引用 package com.thinkgem.jeesite.common.utils;</p>
+<pre><code>private static UserDao userDao = SpringContextHolder.getBean(UserDao.class);</code></pre><p>WdatePicker日期插件||jeDate日期控件 跨站脚本XSS又叫CSS (Cross Site Script)。它指的是恶意攻击者往Web页面里插入恶意html代码 将所有传递进来的String进行HTML编码，防止XSS攻击 StringEscapeUtils类，HTML转解码，XML转解码 com.thinkgem.jeesite.common.utils.Encodes类,fns.tld引用 BaseController下的initBinder类 NamedThreadLocal类，多线程模式 jquery jbox通知插件</p>
+<h2 id="系统管理"><a href="#系统管理" class="headerlink" title="系统管理"></a>系统管理</h2><h3 id="区域管理-一般模块"><a href="#区域管理-一般模块" class="headerlink" title="区域管理(一般模块)"></a>区域管理(一般模块)</h3><p>List: 列表页进入，默认显示列表，list方法的请求路径为list和””，那么点击区域管理可直接执行此方法显示列表 列表通过table表显示，使用jQuery treetable树形表格显示，每个tr使用Mustache模板库，来解析，将所有解析的值带入到模板中并追加到tbody中。 将list数据解析为前台js可操纵的json格式，以便可循环设置模板属性值。 通过迭代循环，if判断当前节点id的parentid是否为上次调用传来pid，是则表示为上下级。</p>
+<pre><code>addRow(&quot;#treeTableList&quot;, tpl, data, rootId, true);
+
+//list:tbody标签id，tpl为js中解析的模板,data为将areaList解析的json字符串，pid为父id，root表示根节点值
+function addRow(list, tpl, data, pid, root)&#123;
+    for (var i=0; i&lt;data.length; i++)&#123;
+        var row = data[i];
+        if (($&#123;fns:jsGetVal(&apos;row.parentId&apos;)&#125;) == pid)&#123;
+            //使用js Mustache模板库，render回调设置模板参数和值
+            $(list).append(Mustache.render(tpl, &#123;
+                dict: &#123;
+                    type: getDictLabel($&#123;fns:toJson(fns:getDictList(&apos;sys_area_type&apos;))&#125;, row.type)
+                &#125;, 
+                pid: (root?0:pid),
+                row: row
+            &#125;));
+            addRow(list, tpl, data, row.id);
+        &#125;
+    &#125;
+&#125;</code></pre><p>Form: 可通过区域操作添加下级区域的超链接，也可以通过添加按钮添加新的区域。 为保证进入Form页时，上级区域有默认值，所以需要有parent.id属性值，这样在进入页面时才能显示。对于点击按钮和超链接都是创建一个空实例，超链接带parent.id属性，所以直接设置parent属性为上级area对象；而对于按钮点击的空实例对象，parent属性就设置为当前用户所在机构的区域对象。 save: 上级区域使用自定义sys标签，选择树treeSelect,默认值value为area实例的parent.id属性值，数据树通过url请求方法返回list 保存前表单通过jquery validate校验 保存消息提示，通过基类BaseController的addMessage方法设置通用Flash消息,并重定向至列表请求。 页面上通过sys的message标签，通过其标签设置显示信息。 delete 删除提示，执行删除，并通过sys:message标签显示消息信息。</p>
+<h3 id="字典管理"><a href="#字典管理" class="headerlink" title="字典管理"></a>字典管理</h3><p>List: 列表页进入，默认显示列表，list方法的请求路径为list和””，那么点击字典管理可直接执行此方法显示列表 搜索方法，设置类型和描述，以及可能的page对象,提交到list请求，页面显示。list请求方法，会传递typeList和page对象，页面list通过page.list属性显示，分页使用jQuery pagination插件 form: 依旧是两种，按钮和超链接添加 该添加主要用于新的字典类型添加，按钮将携带sort=10参数 超链接主要是为当前字典类型添加新键值，携带类型，描述和sort参数，sort参数的值为当前sort值+10(这样做可能会导致排序重复，但对于插入操作并无影响) insert: 根据Dict对象显示信息，提交前进行校验,之后方法里，还需要服务端校验，之后返回list请求方法，并携带type参数可只在list显示该类型的字典值 delete： 删除提示，执行删除，返回消息,显示该类型的字典列表</p>
+<h3 id="日志查询"><a href="#日志查询" class="headerlink" title="日志查询"></a>日志查询</h3><p>List: 查询日志，设置参数，title，createBy.id，requesturi，begindate，enddate，查询，业务层使用Page对象封装，到list页面显示 list显示通过page.list，判断exception属性是否有值，为空则不显示该列，不为空则显示该异常信息</p>
+<pre><code>$&#123;fn:replace(fn:replace(fns:escapeHtml(log.exception), strEnter, &apos;&lt;br /&gt;&apos;), strTab, &apos;&amp;nbsp; &amp;nbsp; &apos;)&#125;</code></pre><p>div.pagination 显示分页div导航 Insert: 使用 com.thinkgem.jeesite.modules.sys.interceptor.LogInterceptor拦截器类 preHandle和postHandle方法用户与计时显示，afterCompletion方法在渲染后执行，可以进行日志记录。 日志记录通过LogUtils类的saveLog方法执行，具体日志保存，通过内部线程类，异步保存日志。title属性值的设置，通过获得@RequiresPermissions注解的value属性值，并通过getMenuNamePath方法解析。</p>
+<h3 id="菜单管理"><a href="#菜单管理" class="headerlink" title="菜单管理"></a>菜单管理</h3><p>List: 查询所有菜单，并创建一个新List</p>
+<p>通过Menu类的静态sort方法惊醒排序，将sourcelist排好序放在新创建的list中</p>
+<pre><code>Menu.sortList(list, sourcelist, Menu.getRootId(), true);
+
+public static void sortList(List&lt;Menu&gt; list, List&lt;Menu&gt; sourcelist, String parentId, boolean cascade)&#123;
+    for (int i=0; i&lt;sourcelist.size(); i++)&#123;
+        Menu e = sourcelist.get(i);
+        if (e.getParent()!=null &amp;&amp; e.getParent().getId()!=null
+                &amp;&amp; e.getParent().getId().equals(parentId))&#123;
+            list.add(e);
+            if (cascade)&#123;
+                // 判断是否还有子节点, 有则继续获取子节点
+                for (int j=0; j&lt;sourcelist.size(); j++)&#123;
+                    Menu child = sourcelist.get(j);
+                    if (child.getParent()!=null &amp;&amp; child.getParent().getId()!=null
+                            &amp;&amp; child.getParent().getId().equals(e.getId()))&#123;
+                        sortList(list, sourcelist, e.getId(), true);
+                        break;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;</code></pre><p>该方法简而言之，从sourcelist中一次获得对象，判断该菜单的父id是否为参数的parentId，则说明是其子类，并添加到list，随后判断该节点是否有子节点，再次循环sourcelise，如果某个菜单id的父id等于刚才被添加到list中的菜单，那么是父子关系则add到list，因为多级菜单，所以用到迭代方法，，只不过第一次调用此方法是，传递parentid是根root。 该代码与区域管理都是tree table，排序的方式也是一样的。不过区域排序是在前台js写的。 form: 还是和区域管理一样，一个按钮，一个超链接创建下级，创建实例时，一个parent为root，一个为当前id。 为传入form页面的新menu对象设置sort值，方式：排序，值通过最大值+30 Save: 上级菜单选项，使用tree select树形选择框，请求路径/sys/menu/treeData。显示树形选择 保存时,验证是否为管理员权限，之后进行服务端参数有效性校验 Delete: 删除,逻辑删除，更新del_flag字段为1 menuTree页面是最左侧导航 menuTreeSelect</p>
+<h3 id="用户管理"><a href="#用户管理" class="headerlink" title="用户管理"></a>用户管理</h3><p>List: 分页显示列表 搜索查询，归属公司，归属部门使用treeselect显示， 用户信息导入导出，请求后台导出信息，file upload导入上传用户信息 form: 根据对象的id值，判断form页如何显示表单 save: jquery validate校验 保存 info: 信息修改保存，基本信息修改 modifyPwd： 密码修改，密码修改前校验</p>
+<h3 id="角色管理"><a href="#角色管理" class="headerlink" title="角色管理"></a>角色管理</h3><p>List: 显示list角色信息 edit/insert: 角色授权，树结构，${role.menuIds]与${role.officeIds}如何而来,以及保存方式 Assign角色分配： 为用户分配当前角色 selectUserToRole页面显示 用户 用户与机构 用户与角色 角色 角色与机构 角色与菜单 区域 机构 机构与区域 机构与机构的上下级关系 parent_id,grade 菜单 父子级菜单 字典 按type和key，value。与parentId无关</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Java/Java使用阿里云短信服务实现手机验证码注册验证" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -826,135 +950,6 @@ CACHE 30;</code></pre></li>
 <li>如果事务回滚，且依然连续使用NEXTVAL会导致序列不连续，导致除 回滚前最后一条NEXTVAL语句 之前的序列号断掉。你只能获得最后一条的值，通过CURRVAL得到。</li>
 <li>大量请求是，为了申请序列更快，允许通过CACHE提前将n个序列存到内存中，而如果数据库服务器重启，断点等情况也会导致内存序列丢失。</li>
 </ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle事务和锁" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/27/Oracle/Oracle%E4%BA%8B%E5%8A%A1%E5%92%8C%E9%94%81/"
-    >Oracle事务和锁</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/27/Oracle/Oracle%E4%BA%8B%E5%8A%A1%E5%92%8C%E9%94%81/" class="article-date">
-  <time datetime="2018-06-27T09:00:53.000Z" itemprop="datePublished">2018-06-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="什么是事务"><a href="#什么是事务" class="headerlink" title="什么是事务"></a>什么是事务</h3><p>事务在数据库中主要用于保证数据的一致性，防止出现错误的数据。事务内的语句被看成一个单元，一旦有一个失败，那么所有的都会失败。在编程过程中经常用到事务。</p>
-<h4 id="认识事务"><a href="#认识事务" class="headerlink" title="认识事务"></a>认识事务</h4><p>事务就是一组包含一条或多条语句的逻辑单元，事务中的与具备作为一个整体，要么一起被提交，要么回滚。提交后数据将会永久保存。 对于银行转账操作中的事务来说，有以下3步完成: 1. 源账户减少金额1000 2. 目标账户增加存储金额1000 3. 事务日志中记录该事务 在整个交易过程，我们看做一个事务，如果操作失败事务便会回滚，将事务中的操作撤销，回到原始情况，如果操作成功则对数据库永久修改。一旦事务提交就不能回滚了。 Oracle控制事务的语句有以下几个:</p>
-<ul>
-<li>SET TRANSACTION：设置事务的属性</li>
-<li>COMMIT：提交事务</li>
-<li>SAVEPOINT：设置保存点</li>
-<li>ROLLBACK：回滚事务</li>
-<li>ROLLBACK TO SAVEPOINT：回滚至保存点</li>
-</ul>
-<h5 id="事务的使用类型"><a href="#事务的使用类型" class="headerlink" title="事务的使用类型"></a>事务的使用类型</h5><ol>
-<li><p><strong>显式方式：</strong>显式事务，就是手动通过命令完成</p>
-</li>
-<li><p><strong>隐式方式：</strong>该类型的事务没有明确的开始和结束标志，由数据库自动开启，设置AUTOCOMMIT设置是否自动提交。</p>
-</li>
-</ol>
-<pre><code>SET AUTOCOMMIT ON/OFF</code></pre><p>默认为关闭状态，当程序执行DDL语言时会自动提交，失败会自动回滚。只有打开后每次执行的DML操作才会自动提交。 什么时候事务会结束:</p>
-<ul>
-<li>使用COMMIT事务提交或ROLLBACK事务回滚</li>
-<li>执行DDL语句，事务自动提交。数据定义语言，CREATE、DROP、GRANT等</li>
-<li>正常退出SQL*Plus时自动提交事务，非正常退出则ROLLBACK事务回滚</li>
-</ul>
-<h4 id="事务ACID特性"><a href="#事务ACID特性" class="headerlink" title="事务ACID特性"></a>事务ACID特性</h4><p><strong>Atomic原子性</strong> 指事务是数据库的逻辑工作单位，事务包含的所有操作要么都完成，要么都不完成 <strong>Consistency一致性</strong> 事务的执行结果必须从一个一致性状态转换为另一个一致性状态，也就是说，在事务之前数据库的数据与事务之后数据数据处于一致，不能A账户+1000，B账户确被迫中断没有更改，这样就处于了不一致性。 <strong>lsolation隔离性</strong> 一个事务的执行不能被其他事务干扰，当多个用户并发访问数据库，操作同一张表，数据库为每个用户开启的事务，不能被其他事务干扰，多个事物之间要相互隔离。对于数据库的隔离级别，数据库提供了多种隔离级别。 <strong>Durability持久性</strong> 事务一旦被提交了，那么对数据库的改变将是永久的，即便在断电或数据库系统故障下也不会丢失提交事务的操作。</p>
-<h3 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h3><p>锁出现在数据共享的环境中，它是一种机制，在访问相同资源时，可以防止事务之间的破坏性交互。在多个会话同时操作某表时，优先操作的回话需要对其锁定。</p>
-<h4 id="锁的分类"><a href="#锁的分类" class="headerlink" title="锁的分类"></a>锁的分类</h4><p>Oracle中分为两种模式的锁，一种是排它锁(X锁)，另一种是共享锁(S锁)。</p>
-<ul>
-<li>排它锁也叫写锁。它禁止资源的共享，用作数据的修改。假如有事务T给数据A加上该锁，那么么其他事务将不能为A添加任何锁，因此只允许T对该数据进行读取和修改，直到失误完成将该锁释放为止。</li>
-<li>共享锁也叫读锁。该模式下的数据只能被读取，不能被修改。如果有事务T给数据A加上共享锁后，那么其他事务不能对其加排它锁，只能加共享锁。加了该锁的数据可以被并发地读取。</li>
-</ul>
-<p>锁是实现并发地主要手段。</p>
-<h4 id="锁的类型"><a href="#锁的类型" class="headerlink" title="锁的类型"></a>锁的类型</h4><p>Oracle为了使数据库实现高度的并发访问，它使用了不同类型的锁来管理并发会话对数据对象操作。按作用对象分为以下几种:</p>
-<ul>
-<li>DML锁：该类型的锁被称为数据锁，用于保护数据。</li>
-<li>DDL锁：可以保护模式中的对象结构。</li>
-<li>内部锁：保护数据库的内部结构。</li>
-</ul>
-<p>其中DML锁保证的并发访问时数据的完整性。如果再细分可分为以下两种：</p>
-<ol>
-<li><p>行级锁(TX),也可以成为事务锁。当修改表中的某行记录时，需要对将要修改的记录加行级锁，防止两个事务同时修改相同记录，事务结束，该锁也会释放，是粒度最小的锁。该锁只能属于排它锁(X锁)。</p>
-</li>
-<li><p>表级锁(TM)，主要作用是防止在修改表的数据时，表的结构发生变化。</p>
-</li>
-</ol>
-<p>表级锁包含如下几种模式:</p>
-<ul>
-<li>ROW SHARE，行级共享锁(RS)。该模式下不许与其他并行会话对同一张表使用排他锁，但允许利用DML语句或lock命令锁定同一张表的其他记录。</li>
-<li>ROW EXCLUSIVE，行级排他锁(RX)。该模式下允许并行会话对同一张表的其他数据进行修改，但不允许并行会话对同一张表使用排他锁。</li>
-<li>SHARE，共享锁(S)。该模式下，不允许会话更新表，但允许对表添加RS锁。</li>
-<li>SHARE ROW EXCLUSIVE，共享行级排他锁(SRX)。该模式下，不能对同一张表进行DML操作，也不能添加S锁。</li>
-<li>EXCLUSIVE,排他锁(X)。该模式下，其他的并行会话不能对表进行DML和DDL操作。该表只能读。</li>
-</ul>
-<p>在Oracle中除了执行DML时自动为表添加TM锁外，也可以主动的为表添加TM锁。 <strong>语法:</strong></p>
-<pre><code>LOCK TABLE tablename IN
-    [EXCLUSIVE]
-    [SHARE]
-    [ROW EXCLUSIVE]
-    [SHARE ROW EXCLUSIVE]
-    [ROW SHARE* | SHARE UPDATE*]
-    MODE [NOWAIT]</code></pre><p>要释放它们，需要使用ROLLBACK命令。</p>
-<h4 id="锁等待与死锁"><a href="#锁等待与死锁" class="headerlink" title="锁等待与死锁"></a>锁等待与死锁</h4><p>在某些情况下，由于占用的资源不能及时释放，而造成锁等待，也可叫锁冲突。所等待会严重得影响数据库性能和日冲工作。 死锁是锁等待的一个特例，通常发生在两会话之间。A,B两个会话互相占用都占用相同的两个资源，一个资源被A锁定，一个被B锁定，而A要获得另一个资源时，因为B已经锁了，而B要获得另一个资源时，A所占的资源也锁了。两边都锁了，两个会话都不能得到想要的对象，于是出现了死锁。 此时Oracle自动做出处理，并重新回到锁等待的情况。出现锁等待应尽快找出错误原因并对其处理。</p>
 
       
       <!-- reward -->

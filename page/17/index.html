@@ -78,6 +78,119 @@
     
     
     
+    <article id="post-Jenkins/SVN+Docker+Jenkins提交自动部署" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/29/Jenkins/SVN+Docker+Jenkins%E6%8F%90%E4%BA%A4%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2/"
+    >SVN+Docker+Jenkins提交自动部署war</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/29/Jenkins/SVN+Docker+Jenkins%E6%8F%90%E4%BA%A4%E8%87%AA%E5%8A%A8%E9%83%A8%E7%BD%B2/" class="article-date">
+  <time datetime="2020-05-29T01:10:10.000Z" itemprop="datePublished">2020-05-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Jenkins/">Jenkins</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="Jenkins安装"><a href="#Jenkins安装" class="headerlink" title="Jenkins安装"></a>Jenkins安装</h2><p>使用docker的方式安装</p>
+<p>下载官方jenkins，不给过版本可能会老一些。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name myjenkins -p 8081:8080 -p 50000:50000 -v /usr/local/kjgh/jenkins/home:/var/jenkins_home -u 0 jenkins</span><br></pre></td></tr></table></figure>
+
+<p><code>-u 0</code>指定了当前容器执行的用户为uid为0，root。jenkins在构建容时，使用的是jenkins用户，也是新建的一个1000的用户。因此使用root会造成没有权限。</p>
+<p>容器在启动后，因为版本较老，可能出现一些问题或下载错误，因此要重新上传一个新的war包更新，或者自己使用dockerfile构建自己想要的版本。</p>
+<p>先选择推荐下载插件，下载不下来可以更改一下镜像，看看能不能下载，不行的话就重启一下jenkins服务，再次重新下载应该就可以了。</p>
+<p>下载镜像的修改访问<code>http://localhost:8080/pluginManager/advanced</code>,最下面的Update Site,更改地址<code>https://mirrors.tuna.tsinghua.edu.cn/jenkins/updates/update-center.json</code></p>
+<h3 id="添加插件"><a href="#添加插件" class="headerlink" title="添加插件"></a>添加插件</h3><p>首先确保是否有SSH plugin，但是此文章不一定需要。</p>
+<p>然后下载官方提供的中文插件<code>Localization: Chinese (Simplified)</code>，和<code>Deploy to container Plugin</code>插件，该插件是将打包的war部署到tomcat或jboos的。</p>
+<h3 id="全局配置"><a href="#全局配置" class="headerlink" title="全局配置"></a>全局配置</h3><p>【系统管理】 - 【全局工具配置】</p>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529093637.png" alt=""></p>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529093846.png" alt=""></p>
+<h3 id="创建任务"><a href="#创建任务" class="headerlink" title="创建任务"></a>创建任务</h3><p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529090518.png" alt=""></p>
+<p><strong>配置基础信息</strong></p>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529091242.png" alt=""></p>
+<p><strong>配置svn</strong></p>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529091617.png" alt=""></p>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529091749.png" alt=""></p>
+<p>构建环境可以不选择</p>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529091954.png" alt=""></p>
+<p>选择部署容器</p>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200529092245.png" alt=""></p>
+<p>此处的手动构建即是，先不配置湖这个构建操作，手动构建一次，看看在哪。其实都不用的，直接这个即可。不给过war包名字是要改的根据你pom定义的项目名。</p>
+<h2 id="svn仓库post-commit修改"><a href="#svn仓库post-commit修改" class="headerlink" title="svn仓库post-commit修改"></a>svn仓库post-commit修改</h2><p>不管是linux安装的visualSVN还是window上安装的，post-commit的命令是一样的。文件的位置是在仓库的hooks目录下，下面是所有的钩子命令(生命周期或执行过程)文件。</p>
+<p>在linux上无后缀，但需要给出可执行权限。windows下为bat脚本。linux需要/bin/bash开头。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">!/bin/bash</span></span><br></pre></td></tr></table></figure>
+
+<p>命令如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">java -jar D:&#x2F;software&#x2F;svnRepositories&#x2F;jenkins-cli.jar -s http:&#x2F;&#x2F;192.168.0.165:8081 -auth push:push build test</span><br></pre></td></tr></table></figure>
+
+<p>其中jenkins-cli.jar为从jenkins服务器下下来的文件，此处官方已说明，不同版本之间会有所差异和兼容性。下载路径为:</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http:&#x2F;&#x2F;jenkins服务器地址:端口&#x2F;jnlpJars&#x2F;jenkins-cli.jar</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>-s后的路径为jenkins服务器地址</li>
+<li>-auth push:push表示认证用户名密码为push和push</li>
+<li>build test 表示构建job名为 test的任务</li>
+</ul>
+<p>用户的创建可以在【系统管理】- 【用户管理】 - 【新建用户】 添加用户。</p>
+<p>在【系统管理】 - 【全局安全配置】中，选择授权策略，单选登录用户可以做任何事。</p>
+<p>肯定是需要安全策略才能确保对jenkins的操作。</p>
+<p>另外，在windows上时，拷贝post-commit.tmpl，重命名为bat时，模板文件默认都为linux上的执行文件，因此需要去掉#注释和其他代码，避免执行失败。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Jenkins/" rel="tag">Jenkins</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Jenkins/Jenkins安装问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -388,111 +501,6 @@
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PostgreSQL/" rel="tag">PostgreSQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Activiti/Activiti并行节点跳转回退示例" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/05/23/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E8%B7%B3%E8%BD%AC%E5%9B%9E%E9%80%80%E7%A4%BA%E4%BE%8B/"
-    >Activiti并行节点跳转回退示例V5.21</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/05/23/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E8%B7%B3%E8%BD%AC%E5%9B%9E%E9%80%80%E7%A4%BA%E4%BE%8B/" class="article-date">
-  <time datetime="2020-05-23T10:26:00.000Z" itemprop="datePublished">2020-05-23</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="节点跳转方法"><a href="#节点跳转方法" class="headerlink" title="节点跳转方法"></a>节点跳转方法</h2><p>可以试用cmd的方式进行操作，毕竟activiti提供的service，很多方法都是执行的command</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">JDJumpTaskCmd</span> <span class="keyword">implements</span> <span class="title">Command</span>&lt;<span class="title">Void</span>&gt; </span>&#123;</span><br><span class="line">    <span class="keyword">protected</span> List&lt;TaskEntity&gt; taskEntities;</span><br><span class="line">    <span class="keyword">protected</span> ActivityImpl desActivity;</span><br><span class="line">    <span class="keyword">protected</span> Map&lt;String, Object&gt; paramvar;</span><br><span class="line">    <span class="keyword">protected</span> ActivityImpl currentActivity;</span><br><span class="line">    <span class="keyword">protected</span> String taskId;</span><br><span class="line">    <span class="keyword">protected</span> String procInsId;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Logger logger = LoggerFactory.getLogger(getClass());</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskEntities 可能存在并行任务，多个任务节点同时进行，因此需要全部删除</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> desActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> paramvar</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> currentActivity</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JDJumpTaskCmd</span><span class="params">(List&lt;TaskEntity&gt; taskEntities, ActivityImpl desActivity,</span></span></span><br><span class="line"><span class="function"><span class="params">                         Map&lt;String, Object&gt; paramvar, ActivityImpl currentActivity,String procInsId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.taskEntities = taskEntities;</span><br><span class="line">        <span class="keyword">this</span>.desActivity = desActivity;</span><br><span class="line">        <span class="keyword">this</span>.paramvar = paramvar;</span><br><span class="line">        <span class="keyword">this</span>.currentActivity = currentActivity;</span><br><span class="line">        <span class="keyword">this</span>.procInsId = procInsId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskEntities 可能存在并行任务，多个任务节点同时进行，因此需要全部删除</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> desActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> paramvar</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> currentActivity</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> procInsId</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> taskId 当前任务需要手动complete状态</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">JDJumpTaskCmd</span><span class="params">(List&lt;TaskEntity&gt; taskEntities, ActivityImpl desActivity,</span></span></span><br><span class="line"><span class="function"><span class="params">                         Map&lt;String, Object&gt; paramvar, ActivityImpl currentActivity,String procInsId,String taskId)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.taskEntities = taskEntities;</span><br><span class="line">        <span class="keyword">this</span>.desActivity = desActivity;</span><br><span class="line">        <span class="keyword">this</span>.paramvar = paramvar;</span><br><span class="line">        <span class="keyword">this</span>.currentActivity = currentActivity;</span><br><span class="line">        <span class="keyword">this</span>.procInsId = procInsId;</span><br><span class="line">        <span class="keyword">this</span>.taskId = taskId;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Void <span class="title">execute</span><span class="params">(CommandContext commandContext)</span> </span>&#123;</span><br><span class="line">        ExecutionEntityManager executionEntityManager = Context.getCommandContext().getExecutionEntityManager();</span><br><span class="line">        <span class="comment">// 获取当前流程的executionId，因为在并发的情况下executionId是唯一的。</span></span><br><span class="line">        String executionId = taskEntities.size() == <span class="number">0</span> ? procInsId : taskEntities.get(taskEntities.size() - <span class="number">1</span>).getExecutionId();</span><br><span class="line">        ExecutionEntity executionEntity = executionEntityManager.findExecutionById(executionId);</span><br><span class="line">        executionEntity.setVariables(paramvar);</span><br><span class="line">        executionEntity.setEventSource(<span class="keyword">this</span>.currentActivity);</span><br><span class="line">        executionEntity.setActivity(<span class="keyword">this</span>.currentActivity);</span><br><span class="line"></span><br><span class="line">        TaskEntity afterDel = <span class="keyword">null</span>;</span><br><span class="line">        <span class="keyword">if</span> (taskId==<span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">for</span> (TaskEntity taskEntity : taskEntities) &#123;</span><br><span class="line">                taskEntity.fireEvent(<span class="string">&quot;complete&quot;</span>);</span><br><span class="line">                logger.warn(<span class="string">&quot;并行取回操作:===删除任务&quot;</span> + taskEntity.getName());</span><br><span class="line">                System.out.println(<span class="string">&quot;=============&quot;</span> + taskEntity.getName());</span><br><span class="line">                Context.getCommandContext().getTaskEntityManager().deleteTask(taskEntity, <span class="string">&quot;jump&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">            <span class="keyword">for</span> (TaskEntity taskEntity : taskEntities) &#123;</span><br><span class="line">                taskEntity.fireEvent(<span class="string">&quot;complete&quot;</span>);</span><br><span class="line">                logger.warn(<span class="string">&quot;并行回退操作:===删除任务&quot;</span> + taskEntity.getName());</span><br><span class="line">                System.out.println(<span class="string">&quot;=============&quot;</span> + taskEntity.getName());</span><br><span class="line">                <span class="keyword">if</span> (!taskEntity.getId().equals(taskId))&#123;</span><br><span class="line">                    Context.getCommandContext().getTaskEntityManager().deleteTask(taskEntity, <span class="string">&quot;jump&quot;</span>, <span class="keyword">false</span>);</span><br><span class="line">                &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                    afterDel = taskEntity;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        executionEntity.executeActivity(<span class="keyword">this</span>.desActivity);</span><br><span class="line">        <span class="keyword">if</span> (StringUtils.isNotBlank(taskId) &amp;&amp; afterDel != <span class="keyword">null</span>) &#123;</span><br><span class="line">            Context.getCommandContext().getTaskEntityManager().deleteTask(afterDel, TaskEntity.DELETE_REASON_COMPLETED, <span class="keyword">false</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>以上方法可能过于项目化。实际上跳转所表达的是，定义开始节点，执行目标节点，就是从当前要跳转的节点跳转到定义的目标activityId位置。中间的判断和删除，就是删除当前未办完的任务，因为当前节点要跳转了，所以不走taskService.complete了，因此在此处要完成这个任务(设置事件名称)，然后删除这个任务。此时循环删除完执行跳转。</p>
-<p>但是要注意的是taskService.deleteTask和TaskEntityManager.deleteTask这两个删除时有区别的。<strong>taskService是不允许删除正在运行的流程的</strong>，他会判断当前task的executionId是否为空。而TaskEntityManager可以删除当前正在运行的这个主流程。</p>
-<p>EntityTask实现的是Task接口，两者是父子关系。另外还有一个model包的Task，而现在的是与流程引擎相关的engine包里的。</p>
-<blockquote>
-<p>任务监听器中有任务事件，create,assignment,complete,delete。</p>
-</blockquote>
-<h2 id="并行节点的执行情况"><a href="#并行节点的执行情况" class="headerlink" title="并行节点的执行情况"></a>并行节点的执行情况</h2><p>并行节点的执行</p>
-<p>首先，并行开始网关前的一个用户任务完成任务后，在act_ru_execution中便会出现n+1个execution，以简单的并行阶段为例，n表示并行网关内的并行用户任务数量，加入n为3，则在这三条execution中，execution_id与proc_inst_id_值是不一致的，它表示为并行节点下的每个任务一个独立的子流程，而另一个1则为并行网关的主流程，他的execution_id与proc_inst_id_是一致的。而act_ru_task里则依然是n个用户任务。</p>
-<p>并行节点每完成一个任务，对应的execution便少一条。而在act_hi_actinst中，便会多出一个结束网关的act。直到最后一个并行节点任务执行完，execution中便为并行阶段后下一个用户任务。</p>
-<p>以上是用户任务在act_ru_execution中出现的情况。还有必要了解到act_ru_task,act_hi_taskinst,act_hi_actinst表的数据。</p>
-<p>一般对于只存在排他网关和用户任务的简单流程，不含并行的。execution表和task表都只有一条数据，且流程id和执行id是一样的。使用节点跳转的时候可以直接进行跳转。</p>
-<p>而并行使用此方式跳转，而不加改造的话，可能回到导致，跳转之后，完成这个任务，流程就异常结束了。或者跳转后多了一个重复任务(没删任务的情况)。</p>
-<p>对于流程异常结束的情况，认为往往在，主流程execution出现异常。而如果execution中不存在一条主流程，那么流程查询会出现问题，报错说没有这个execution执行。还有就是execution执行后没有下一个execution了。</p>
-<h2 id="并行跳转的补充"><a href="#并行跳转的补充" class="headerlink" title="并行跳转的补充"></a>并行跳转的补充</h2><p>并行方面，在做项目时，可以取回和回退。而且要做这两个功能，在并行操作是，还要顾及到并行前的节点和并行后的节点，对于并行取回和回退所出现的问题。比如回退后，任务没了、任务重复了等等。</p>
-<p>另外，对于并行取回和回退的处理，需要手动对act表做更改,比如删除execution，而非仅使用api调用。</p>
-<p>首先说一下条件，</p>
-<ul>
-<li>并行节点的取回，在并行阶段后的任务没有签收时，可以且仅取回自己的任务</li>
-<li>并行节点回退，所有其他并行节点同时回退，回退到并行阶段的上一个用户任务。</li>
-<li>任意一个并行节点意见为不通过，等并行结束后回到并行阶段前的上一个用户节点</li>
-<li>并行阶段后的用户任务，回退或不通过回到并行阶段</li>
-<li>取回并行阶段前的用户任务。(此处代办已经在并行阶段了)</li>
-</ul>
-<h3 id="并行阶段前的用户任务取回"><a href="#并行阶段前的用户任务取回" class="headerlink" title="并行阶段前的用户任务取回"></a>并行阶段前的用户任务取回</h3><p>取回肯定是当前任务没有被签收。</p>
-<p>此时代办在三个并行任务处了。</p>
-<p><strong>要想取回可以直接使用跳转的方式，并删除三个代办的并行任务，执行跳转</strong>，可以直接将主流程做变更。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ActivityImpl destinationActivity = (ActivityImpl) processDefinitionEntity.findActivity(historicTaskInstance.getTaskDefinitionKey());</span><br><span class="line">ActivityImpl currentActivity = (ActivityImpl) processDefinitionEntity.findActivity(current);</span><br><span class="line">managementService.executeCommand(<span class="keyword">new</span> JDJumpTaskCmd(taskEntitys,destinationActivity, vars, currentActivity,procInsId));</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="并行节点的取回"><a href="#并行节点的取回" class="headerlink" title="并行节点的取回"></a>并行节点的取回</h3><p>第一个并行节点取回，第一个并行节点取回时，其他并行没有办理，仅当前第一个并行在取回后要重新办理。因此可以直接删除所有所有代办的业务，然后自动签收要取回的业务，替换原要取回的关联业务数据变更为跳转后的taskId。而跳转的目标是哪里，已办可以想到的是开始并行网关，因此将其目标设为并行开始网关，也就是要取回的节点的上一个节点。</p>
-<p>第二个节点或第三个节点的取回，此时并行阶段中均有已办的并行节点。此时如果仅仅直接跳到并行开始网关已经不行了。但是依然是主流程要停留在并行阶段的。首先数据要替换，已办的要完成任务。然后由于其他原因必须要跳到并行前的排他网关处。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
 
 
     </footer>

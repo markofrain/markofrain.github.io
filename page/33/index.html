@@ -78,6 +78,100 @@
     
     
     
+    <article id="post-Oracle/Oracle Sqlplus相关操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/23/Oracle/Oracle%20Sqlplus%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
+    >Oracle Sqlplus相关操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/23/Oracle/Oracle%20Sqlplus%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2018-10-23T09:31:33.000Z" itemprop="datePublished">2018-10-23</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Oracle-sqlplus"><a href="#Oracle-sqlplus" class="headerlink" title="Oracle sqlplus"></a>Oracle sqlplus</h1><h2 id="shutdown命令的参数"><a href="#shutdown命令的参数" class="headerlink" title="shutdown命令的参数"></a>shutdown命令的参数</h2><p>有四种 NORMAL / TRANSACTIONAL / IMMEDIATE / ABORT</p>
+<ul>
+<li>SHUTDOWN NORMAL：不允许新的连接、等待会话结束、等待事务结束、做一个检查点并关闭数据文件。启动时不需要实例恢复。</li>
+<li>SHUTDOWN TRANSACTIONAL：不允许新的连接、不等待会话结束、等待事务结束、做一个检查点并关闭数据文件。启动时不需要实例恢复。</li>
+<li>SHUTDOWN IMMEDIATE：不允许新的连接、不等待会话结束、不等待事务结束、做一个检查点并关闭数据文件。没有结束的事务是自动rollback的。启动时不需要实例恢复。</li>
+<li>SHUTDOWN ABORT：不允许新的连接、不等待会话结束、不等待事务结束、不做检查点且没有关闭数据文件。启动时自动进行实例恢复。非正常关闭</li>
+</ul>
+<p>关闭数据库的时间从长到短，相反，开启的时候是从短到长。</p>
+<h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><p><strong>cmd连接sqlplus</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sqlplus sys&#x2F;system@hsbdc as sysdba</span><br></pre></td></tr></table></figure>
+
+<p><strong>控制台启动关闭数据库服务,需要管理员方式打开cmd</strong></p>
+<pre><code>net stop oracleserviceorcl;
+net start oracleserviceorcl;</code></pre><p><strong>查看数据库状态</strong></p>
+<pre><code>select status from v$instance;</code></pre><p><strong>设置sqlplus的时间格式</strong></p>
+<pre><code>alter session set nls_date_format=&apos;yyyy-mm-dd hh24:mi:ss&apos;;</code></pre><p><strong>查看角色被授予的权限</strong></p>
+<pre><code>select * from dba_sys_privs where grantee=&apos;RESOURCE&apos;;</code></pre><p><strong>查看数据库是否运行在归档模式</strong></p>
+<pre><code>select log_mode from v$database;
+archive log list;</code></pre><p><strong>查看数据库参数信息</strong></p>
+<pre><code>select * from nls_database_parameters;</code></pre><p><strong>查看行对应数据库地址</strong></p>
+<pre><code>select empno,ename,rowid,dbms_rowid.rowid_relative_fno(rowid) || &apos;_&apos; ||dbms_rowid.rowid_block_number (rowid) || &apos;_&apos; || dbms_rowid.rowid_row_number(rowid) location from emp;</code></pre><p><strong>返回当前会话用户</strong></p>
+<pre><code>select user,uid from dual;</code></pre><p><strong>查看闪存恢复区使用情况,也包括归档空间</strong></p>
+<pre><code>select * from v$flash_recovery_area_usage;</code></pre><p><strong>查看用户索引建立在那些字段上</strong></p>
+<pre><code>select i.owner,i.table_name,i.index_name,c.column_name from dba_indexes i,dba_ind_columns c where i.owner=c.index_owner and i.index_name=c.index_name and i.table_owner=&apos;SCOTT&apos;;</code></pre><p><strong>查看当前SCN</strong></p>
+<pre><code>select dbms_flashback.get_system_change_number scn from dual;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle触发器" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -730,136 +824,6 @@ restore database preview;--还原备份文件预览</code></pre><h3 id="增量�
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RMAN/" rel="tag">RMAN</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle修改表空间大小、表空间查询" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/10/15/Oracle/Oracle%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F%E3%80%81%E8%A1%A8%E7%A9%BA%E9%97%B4%E6%9F%A5%E8%AF%A2/"
-    >Oracle修改表空间大小、表空间查询</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/10/15/Oracle/Oracle%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F%E3%80%81%E8%A1%A8%E7%A9%BA%E9%97%B4%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-10-15T03:25:29.000Z" itemprop="datePublished">2018-10-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Oracle修改表空间大小"><a href="#Oracle修改表空间大小" class="headerlink" title="Oracle修改表空间大小"></a>Oracle修改表空间大小</h1><p>对于创建表空间时，设置表空间过大或表空间过小已占满最大大小,对表空间进行修改大小操作，以节省磁盘空间</p>
-<ol>
-<li><p>查看所有表空间及表空间数据文件位置</p>
-<p>select tablespace_name,file_name from dba_data_files;</p>
-</li>
-</ol>
-<ol start="2">
-<li><p>查看所有表空间及表空间大小</p>
-<p>select tablespace_name ,sum(bytes) / 1024 / 1024 as MB　from dba_data_files group by tablespace_name;</p>
-</li>
-</ol>
-<ol start="3">
-<li><p>查看表空间使用情况</p>
-<p>SELECT tbs 表空间名,</p>
-<pre><code>sum(totalM) 总共大小M,
-sum(usedM) 已使用空间M,
-sum(remainedM) 剩余空间M,
-sum(usedM)/sum(totalM)*100 已使用百分比,
-sum(remainedM)/sum(totalM)*100 剩余百分比
-FROM(
- SELECT b.file_id ID,
- b.tablespace_name tbs,
- b.file_name name,
- b.bytes/1024/1024 totalM,
- (b.bytes-sum(nvl(a.bytes,0)))/1024/1024 usedM,
- sum(nvl(a.bytes,0)/1024/1024) remainedM,
- sum(nvl(a.bytes,0)/(b.bytes)*100),
- (100 - (sum(nvl(a.bytes,0))/(b.bytes)*100))
- FROM dba_free_space a,dba_data_files b
- WHERE a.file_id = b.file_id
- GROUP BY b.tablespace_name,b.file_name,b.file_id,b.bytes
- ORDER BY b.tablespace_name
-)
-GROUP BY tbs;</code></pre></li>
-</ol>
-<ol start="4">
-<li><p>修改表空间大小</p>
-<p>alter database datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN.DBF’ RESIZE 10240M;</p>
-</li>
-</ol>
-<ol start="5">
-<li><p>设置自增长</p>
-<p>alter database datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN.DBF’ autoextend on next 50m maxsize 500m;</p>
-</li>
-</ol>
-<ol start="6">
-<li><p>增加数据文件</p>
-<p>alter tablespace BAOWEN add datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN2.DBF’ size 500m;</p>
-</li>
-</ol>
-<ol start="7">
-<li><p>查询当前用户中表所属表空间</p>
-<p>select table_name,tablespace_name from user_tables;</p>
-</li>
-</ol>
-<ol start="8">
-<li><p>查询表空间所属文件</p>
-<p>select * from dba_data_files where tablespace_name=’BAOWEN’;</p>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A1%A8%E7%A9%BA%E9%97%B4/" rel="tag">表空间</a></li></ul>
 
 
     </footer>

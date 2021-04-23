@@ -78,6 +78,100 @@
     
     
     
+    <article id="post-Oracle/Oracle数据库expdp,impdp命令数据库导入导出" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/08/18/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93expdp,impdp%E5%91%BD%E4%BB%A4%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/"
+    >Oracle数据库expdp,impdp命令数据库导入导出</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/08/18/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93expdp,impdp%E5%91%BD%E4%BB%A4%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/" class="article-date">
+  <time datetime="2018-08-18T07:23:55.000Z" itemprop="datePublished">2018-08-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="导入导出示例"><a href="#导入导出示例" class="headerlink" title="导入导出示例"></a>导入导出示例</h3><ol>
+<li><p>查看管理理员目录（同时查看操作系统是否存在，因为Oracle并不关心该目录是否存在，如果不存在，则出错）</p>
+<p>select * from dba_directories;</p>
+</li>
+<li><p>给你需要导入的用户赋予指定目录的操作权限</p>
+<p>grant read,write on directory DATA_PUMP_DIR to 用户名;</p>
+</li>
+</ol>
+<p>DATA_PUMP_DIR目录名默认值为当前oracle安装目录/orcl/dpdump/,DIRECTORY参数表示dmp文件放置的位置。导入导出的dmp文件都放在此目录下。</p>
+<ol>
+<li><p>导出用户数据(包含表结构，数据等)</p>
+<p>expdp 用户名/密码@数据库实例名称 schemas=用户名 dumpfile=要导出的dmp文件名.dmp DIRECTORY=目录名称;<br>expdp scott/tiger@orcl schemas=scott dumpfile=scott.dmp DIRECTORY=DATA_PUMP_DIR;</p>
+</li>
+<li><p>导入用户</p>
+<p>impdp 用户名/密码@orcl  DUMPFILE=dmp名称.dmp SCHEMAS=要导入库的用户名，逗号隔开 DIRECTORY=目录名称</p>
+</li>
+</ol>
+<p>导入前，dmp文件放置在directory目录路径下。impdp和expdp命令后面的用户名密码为连接数据库的用户名密码，可以不和schemas用户名一样，但一定具有读写目录的权限。 数据导出可以设置只导出的数据，可以是表结构，或表空间 CONTENT=METADATA_ONLY 参数表示，导出时只导出所有指定用户下的表结构及其他视图，包，存储过程等对象，但不包括数据内容。 expdp -help和impdp-help可以查看参数。</p>
+<ol start="3">
+<li>只导出表</li>
+</ol>
+<p>如果要导出表，就是用tables属性，tables=(T1:P1)，T1指表名，P1指表的分区；多个表使用逗号分割。如果使用tables属性就能不使用schemas属性 对于导入的话，只需要库中存在这些表，不需要指定tables属性</p>
+<h3 id="创建表空间用户示例"><a href="#创建表空间用户示例" class="headerlink" title="创建表空间用户示例"></a>创建表空间用户示例</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">--登录sqlplus</span></span><br><span class="line">sqlplus sys/sys@smbdc as sysdba</span><br><span class="line"></span><br><span class="line"><span class="comment">--创建表空间</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcsde  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\sm\bdcsde.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> xxch  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\xxch.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> archives   </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\archives.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> sde  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\sde.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcbiz  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcbiz.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcqj  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcqj.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcgx  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcgx.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="comment">--创建临时表空间</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcsde_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcsde_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> xxch_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\xxch_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> sde_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\sde_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcbiz_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcbiz_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcqj_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcqj_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> newarchives_temp_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\newarchives_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--创建用户并指定表空间（在新建的tb及 tmp-tb上建库）：</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcsde PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCSDE&quot;</span>  <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span> ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> xxch PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;XXCH&quot;</span> <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> archives PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;NEWARCHIVES&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcbiz PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCBIZ&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcqj PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCQJ&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcgx PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCGX&quot;</span>  <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span> ;</span><br><span class="line"></span><br><span class="line"><span class="comment">--给新建的用户授权</span></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcsde;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> xxch;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> archives;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcqj;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcgx;</span><br><span class="line"></span><br><span class="line"><span class="comment">--CMD直接导入数据库dmp文件</span></span><br><span class="line">imp bdcsde/123456@localhost/orcl file=&quot;C:\db\1126按用户执行备份\1126按用户备份\exp_backup\bdcsde_bf.dmp&quot; full=y ignore=y; </span><br><span class="line">imp xxch/123456@localhost/orcl file=&quot;C:\db\1126按用户执行备份\1126按用户备份\exp_backup\xxch_bf.dmp&quot; full=y ignore=y;</span><br><span class="line"></span><br><span class="line"><span class="comment">--数据泵导入</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">directory</span> dpdata1 <span class="keyword">as</span> <span class="string">&#x27;D:\db\jz\dump_dir&#x27;</span>;（数据库放置目录如:D:\DBback\sanheDB\dump_dir）(ok)</span><br><span class="line"><span class="keyword">Grant</span> <span class="keyword">read</span>,write <span class="keyword">on</span> <span class="keyword">directory</span> dpdata1 <span class="keyword">to</span> <span class="keyword">system</span>;(ok)</span><br><span class="line">impdp system/123456@smbdc DIRECTORY=dpdata1 DUMPFILE=20190329_FULLDP.DMP FULL=y log=impdpsmbdc.log;(ap不是数据泵导出的，所以不能用,三和可以)</span><br><span class="line">impdp system/system@smbdc DIRECTORY=dpdata1 DUMPFILE=QLFULLDB.DMP FULL=y log=qldb.log ignore=y;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--删除用户及级联关系也删除掉</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> xxch <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> bdcsde <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> archives <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> bdcbiz <span class="keyword">cascade</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">--删除表空间及物理文件（需要先删除用户）</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> XXCH <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> BDCSDE <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> ARCHIVES <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> BDCBIZ <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">--修改用户名密码</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> bdcsde <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> xxch <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> archives <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> bdcbiz <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> sde <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--无法分发客户机session或process数量不够用</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> v$process; <span class="comment">--取得数据库目前的进程数。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">from</span> v$parameter <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">&#x27;processes&#x27;</span>;     <span class="comment">--取得进程数的上限。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> v$<span class="keyword">session</span>; <span class="comment">--取得数据库目前的会话数。 </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">from</span> v$parameter <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">&#x27;sessions&#x27;</span>; <span class="comment">--取得会话数的上限。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">set</span> processes=<span class="number">1000</span> <span class="keyword">scope</span>=<span class="keyword">spfile</span>;   <span class="comment">--将process值改为1000</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">set</span> sessions=<span class="number">1105</span> <span class="keyword">scope</span>=<span class="keyword">spfile</span>;    <span class="comment">--将sessions值改为1105</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> pfile <span class="keyword">from</span> <span class="keyword">spfile</span>;   <span class="comment">--从spfile（运行时配置）创建pfile（系统配置）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">--重启oracle</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/关于Oracle在未删除用户时手动直接删除DBF文件引起的错误" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -830,111 +924,6 @@ new jBox(&apos;Tooltip&apos;, &#123;
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-帆软/Java使用独立部署的FineReport进行填报的增改操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/07/31/%E5%B8%86%E8%BD%AF/Java%E4%BD%BF%E7%94%A8%E7%8B%AC%E7%AB%8B%E9%83%A8%E7%BD%B2%E7%9A%84FineReport%E8%BF%9B%E8%A1%8C%E5%A1%AB%E6%8A%A5%E7%9A%84%E5%A2%9E%E6%94%B9%E6%93%8D%E4%BD%9C/"
-    >Java使用独立部署的FineReport进行填报的增改操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/07/31/%E5%B8%86%E8%BD%AF/Java%E4%BD%BF%E7%94%A8%E7%8B%AC%E7%AB%8B%E9%83%A8%E7%BD%B2%E7%9A%84FineReport%E8%BF%9B%E8%A1%8C%E5%A1%AB%E6%8A%A5%E7%9A%84%E5%A2%9E%E6%94%B9%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2018-07-31T03:46:52.000Z" itemprop="datePublished">2018-07-31</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="帆软设计器生成报表"><a href="#帆软设计器生成报表" class="headerlink" title="帆软设计器生成报表"></a>帆软设计器生成报表</h3><p>帮助文档查看:<a target="_blank" rel="noopener" href="http://help.finereport.com/finereport8.0/">http://help.finereport.com/finereport8.0/</a> 论坛社区查看:<a target="_blank" rel="noopener" href="http://bbs.fanruan.com/">http://bbs.fanruan.com/</a> 官网查看:<a target="_blank" rel="noopener" href="http://www.fanruan.com/finereport/">http://www.fanruan.com/finereport/</a> 对于报表的基础就不多说，直接开始吧。 步骤:</p>
-<pre><code>+ 独立部署FineReport到tomcat
-+ 设计填报报表
-+ java后端引入报表链接</code></pre><p>事实上真正的增改操作都在填报模板上。</p>
-<h3 id="独立部署FineReport到tomcat上"><a href="#独立部署FineReport到tomcat上" class="headerlink" title="独立部署FineReport到tomcat上"></a>独立部署FineReport到tomcat上</h3><p>首先，你需要安装一个帆软的客户端，设置必须的，它带有一个设计器，用于设计模板，且根目录下的WebReport就是独立项目，我们可以把整个文件夹直接拷贝到tomcat的webapps目录下。关于文件夹内的各文件及文件夹不再说明，都在帮助文档的集成部署选项中。 而设计的模板都放在了/WebReport/WEB-INF/reportlets下，其下可以放文件和文件夹。 到时候我们再设计器中做的模板，再其目录下拷贝，直接拷贝到tomcat下WebReport项目的reportlets目录下。就是与之对应呗。</p>
-<h3 id="设计填报报表"><a href="#设计填报报表" class="headerlink" title="设计填报报表"></a>设计填报报表</h3><p>在设计填报报表前，需要了解基础教程的填报入门，以及参数入门。 连接你需要操作数据表的对应数据库，点击菜单栏 服务器，服务器定义，定义你的数据库服务器。</p>
-<h4 id="新增用途的填报模板"><a href="#新增用途的填报模板" class="headerlink" title="新增用途的填报模板"></a>新增用途的填报模板</h4><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180731110339.jpg" alt="新增模板"></p>
-<ol>
-<li><p>如图所示，我们需要设计一个自由报表，好不好看就看自己动手能力了。</p>
-</li>
-<li><p>随后，<strong>为单元格添加控件</strong>，右击，控件设置，根据情况对其进行设置，控件类型，是否为空，错误提示，校验规则等。</p>
-</li>
-<li><p>当全都完备后，需要设置 报表填报设置，点击菜单栏 模板，<strong>报表填报属性</strong>，新建一个内置SQL，选择<strong>提交类型</strong>，此为新增，选入插入提交即可，你可可以选择智能提交(根据是否含有主键判断，是否插入还是更新)。选择<strong>表</strong>,模式在oracle中就是用户名的意思。选择<strong>智能添加字段</strong>，选择你需要的字段，最好与报表中的属性一一对应。然后设置勾选主键。选择<strong>智能添加单元格</strong>，这样就可以字段绑定单元格了。</p>
-</li>
-<li><p>绑定完毕后，看报表填报属性框中的值，每个字段都会与单元格对应了，接下来就是设置主键了，主键的值通过UUID公式设置，双击值框，选择公式，设置公式为uuid(),确定，保存。当然，你可以设置其他的值，关于主键自增问题，我只知道可以使用uuid，和显示手动赋值的方式。其他方法自行尝试把。</p>
-</li>
-</ol>
-<p>新增的填报报表就完成了。主要就是单元格和字段的绑定以及主键，才使得成功。 另外，新增，是不需要设置数据集的，只要表字段与其单元格数据绑定就好。</p>
-<h4 id="修改用途的填报报表"><a href="#修改用途的填报报表" class="headerlink" title="修改用途的填报报表"></a>修改用途的填报报表</h4><p>对于修改而言，一定要有的就是主键id了。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180731112656.jpg" alt=""> 如图上所示， 不光要<strong>设置控件，以及数据表字段绑定单元格</strong>，还需要的就是数据库查询了。</p>
-<ol>
-<li>左下角，新增 <strong>数据库查询</strong>，语句为where的id条件，根据自己的id字段名称修改 SELECT * FROM JEESITE.”JINRONG” where FINANCEORGAN_ID=’${id}’</li>
-</ol>
-<p>加上单引号表示是字符串，我的id就是字符串，${xxx}表示这是个参数，参数名为xxx。</p>
-<ol start="2">
-<li><p>然后就是把<strong>模板数据集中的字段，拖到对应的单元格</strong>了，这样才能完成引用数据的显示(此处与表字段绑定单元格不是一个概念)。</p>
-</li>
-<li><p>接下来需要设置一个模板参数，选择模板，模板参数，设置名称为id。之后第四步，选择是，才有id参数的选项。</p>
-</li>
-<li><p>设置主键的属性值，打开 模板，填报报表属性，<strong>设置主键的值为参数</strong>，参数就设置为刚才的参数名(这里是id)。这样这个模板就有了动态参数，依据参数进行更新了。</p>
-</li>
-</ol>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180731113415.jpg" alt=""> 这下，就完毕了，依据后台传入的参数id，然后模板得到id后，就通过数据库查询的查询语句，查到一条数据，并通过单元格对模板数据集的引用，把值显示在模板上了。提交的话，因为有id，所以就进行提交。</p>
-<h3 id="移动模板文件和数据源文件"><a href="#移动模板文件和数据源文件" class="headerlink" title="移动模板文件和数据源文件"></a>移动模板文件和数据源文件</h3><p>设计完毕后，就找到对应文件，移动或拷贝到tomcat的WebReport项目下的WEB-INF/reportlets目录下 然后，找到你的帆软安装路径下的WebReport，WEB-INF/resources目录下的datasource.xml文件，此文件记录了数据库连接信息，以及多个数据库连接信息(因为帆软是支持多数据库设计模板的)。将他拷贝到webapps下的，同样是对应目录下的文件，替换原来的文件。</p>
-<h3 id="Java引入报表"><a href="#Java引入报表" class="headerlink" title="Java引入报表"></a>Java引入报表</h3><p>java后台只需要做一件事，就是设置超链接a标签，引入到该模板地址。 a标签href属性值如下</p>
-<pre><code>/WebReport/ReportServer?reportlet=insertBankForm.cpt&amp;amp;op=write</code></pre><p>注意填报模板后需要跟参数op=write，否则它就成了分页模板。 你需要修改的就是reportlet= 后面的内容，可以是reportlet=/doc/Parameter/SelectReport.cpt&amp;op=write，doc就是reportlet下的文件夹。 另外，传递参数id，可直接拼接参数，&amp;id=${xxx.id}。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%86%E8%BD%AF/" rel="tag">帆软</a></li></ul>
 
 
     </footer>

@@ -78,6 +78,189 @@
     
     
     
+    <article id="post-SpringBoot/SpringBoot Mybatis多数据源配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/"
+    >SpringBoot Mybatis多数据源配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2019-04-09T17:02:27.000Z" itemprop="datePublished">2019-04-10</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="SpringBoot-Mybatis多数据源配置"><a href="#SpringBoot-Mybatis多数据源配置" class="headerlink" title="SpringBoot Mybatis多数据源配置"></a>SpringBoot Mybatis多数据源配置</h2><ol>
+<li><p>依赖:</p>
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>2.0.1</version>
+</dependency>
+</li>
+<li><p>再yml配置两个数据库的连接字符串</p>
+<p>spring:</p>
+<pre><code>datasource:
+    primary:  # first database
+      driver-class-name: oracle.jdbc.driver.OracleDriver
+      jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:btbdc
+      username: sjbdc
+      password: sjbdc
+    secondary:
+      driver-class-name: com.mysql.jdbc.Driver
+      jdbcUrl: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;characterEncoding=utf-8
+      username: root
+      password: root</code></pre></li>
+<li><p>配置主从数据源，分两个配置类，主要就是配置DataSource，SqlSessionFactory和SqlSessionTemplate</p>
+<p>package com.fsats.dbanalysis.config;</p>
+<p>import org.apache.ibatis.session.SqlSessionFactory;<br>import org.mybatis.spring.SqlSessionFactoryBean;<br>import org.mybatis.spring.SqlSessionTemplate;<br>import org.mybatis.spring.annotation.MapperScan;<br>import org.springframework.beans.factory.annotation.Autowired;<br>import org.springframework.beans.factory.annotation.Qualifier;<br>import org.springframework.boot.context.properties.ConfigurationProperties;<br>import org.springframework.boot.jdbc.DataSourceBuilder;<br>import org.springframework.context.annotation.Bean;<br>import org.springframework.context.annotation.Configuration;<br>import org.springframework.context.annotation.Primary;<br>import org.springframework.core.env.Environment;<br>import org.springframework.core.io.support.PathMatchingResourcePatternResolver;</p>
+<p>import javax.sql.DataSource;</p>
+<p>@Configuration<br>@MapperScan(basePackages = “com.fsats.**.oracle”,sqlSessionFactoryRef = “sqlSessionFactory”,sqlSessionTemplateRef = “sqlSessionTemplate”)<br>public class PrimaryConfig {</p>
+<pre><code>@Autowired
+private Environment env;
+
+@Primary
+@Qualifier(&quot;primaryDataSource&quot;)
+@Bean(name = &quot;primaryDataSource&quot;)
+@ConfigurationProperties(prefix = &quot;spring.datasource.primary&quot;)
+public DataSource primaryDataSource()&#123;
+    return DataSourceBuilder.create().build();
+&#125;</code></pre></li>
+</ol>
+<pre><code>    @Primary
+    @Bean(name = &quot;sqlSessionFactory&quot;)
+    public SqlSessionFactory sqlSessionFactory(@Qualifier(&quot;primaryDataSource&quot;) DataSource datasource)
+            throws Exception &#123;
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setDataSource(datasource);
+        bean.setMapperLocations(
+                // 设置mybatis的xml所在位置
+                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
+        return bean.getObject();
+    &#125;
+
+    // 表示这个数据源是默认数据源
+    @Bean(&quot;sqlSessionTemplate&quot;)
+    @Primary
+    public SqlSessionTemplate sqlSessionTemplate(
+            @Qualifier(&quot;sqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
+        return new SqlSessionTemplate(sessionfactory);
+    &#125;
+
+&#125;
+
+
+
+package com.fsats.dbanalysis.config;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import javax.sql.DataSource;
+
+
+@Configuration
+@MapperScan(basePackages = &quot;com.fsats.**.mysql&quot;,sqlSessionFactoryRef = &quot;mySqlSqlSessionFactory&quot;,sqlSessionTemplateRef = &quot;mySqlSqlSessionTemplate&quot;)
+public class SecondaryConfig &#123;
+
+    @Bean(name = &quot;secondaryDataSource&quot;)
+    @Qualifier(&quot;secondaryDataSource&quot;)
+    @ConfigurationProperties(prefix = &quot;spring.datasource.secondary&quot;)
+    public DataSource secondaryDataSource() &#123;
+
+        return DataSourceBuilder.create().build();
+    &#125;
+
+    @Bean(name = &quot;mySqlSqlSessionFactory&quot;)
+    public SqlSessionFactory mySqlSqlSessionFactory(@Qualifier(&quot;secondaryDataSource&quot;) DataSource datasource)
+            throws Exception &#123;
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setDataSource(datasource);
+        bean.setMapperLocations(
+                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
+        return bean.getObject();
+    &#125;
+    @Bean(&quot;mySqlSqlSessionTemplate&quot;)
+    public SqlSessionTemplate mySqlSqlSessionTemplate(
+            @Qualifier(&quot;mySqlSqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
+        return new SqlSessionTemplate(sessionfactory);
+    &#125;
+&#125;</code></pre><ol start="4">
+<li>在代码中，先看方法，两个类里，除了方法Bean的名字不一样，之外，在PrimaryConfig里每个方法多了@Primary注解，标识多数据源时默认使用的Bean。</li>
+</ol>
+<p>然后ConfigurationProperties注解的值就是application.yml配置的。 SqlSessionFactory方法里，配置MapperLocations，注意，目录要提前创建。 然后是类上的注解MapperScan，填写，当前数据源所扫描的对应的Dao包位置，以及sqlSessionFactory和sqlsessionTemplate。</p>
+<ol start="5">
+<li><p>配置显示打印sql语句</p>
+<p>logging:<br>  level:</p>
+<pre><code>com.fsats: DEBUG</code></pre></li>
+</ol>
+<p>com.fsats标识包名</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle数据库字符集更改" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -674,103 +857,6 @@ public class SpringBootStartApplication extends SpringBootServletInitializer &#1
 <li><p>随后使用Maven命令，clean package，打成war包，直接放到tomcat webapps下就好。若要修改内容，需要先停止tomcat，然后修改对应文件，然后需要移除webapps里的war，否则重新启动tomcat会重新解压覆盖。</p>
 </li>
 </ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringBoot异步任务定时任务邮件任务" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/"
-    >SpringBoot异步任务定时任务邮件任务</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/" class="article-date">
-  <time datetime="2019-01-20T16:48:41.000Z" itemprop="datePublished">2019-01-21</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="异步任务"><a href="#异步任务" class="headerlink" title="异步任务"></a>异步任务</h3><p>SpringBoot简单集成的异步，可<strong>使用@EnableAsync和@Async注解</strong>来开启和标注异步任务,<strong>将@EnableAysnc标注在启动类上</strong>，@Async标注在要执行的方法上，则该方法在被调用是不阻塞线程，以异步方式执行。 关于再2.0中，仅仅这个俩个注解是不行的,需要额外注入bean</p>
-<pre><code>@Bean(name = &quot;threadPoolTaskExecutor&quot;)
-public Executor threadPoolTaskExecutor() &#123;
-    return new ThreadPoolTaskExecutor();
-&#125;</code></pre><h3 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h3><p>SpringBoot也简单的继承了定时任务，可以在方法上<strong>标注@Scheduled注解</strong>，指定cron表达式，这个表达式和quartz任务调度的cron都是一样的，quartz是完整的，可继承SpringBoot并持久化到数据库，并可使用是API进行相关增改，暂停等。 而SpringBoot内置的比较简单，使用@Scheduled，并且需要在启动类上<strong>标注@EnableScheduling注解</strong>。则只要将该类注入到容器，即可默认根据cron表达式进行执行。关于quartz的可以看官网或quartz标签归档及Spring的整合quartz。</p>
-<h3 id="邮件任务"><a href="#邮件任务" class="headerlink" title="邮件任务"></a>邮件任务</h3><p>SpringBoot开发了与邮件相关的依赖。引入依赖包，再进行配置即可进行使用。之前Spring使用javax的mail的话，需要依赖mail的jar包，然后依据邮件服务商的配置等进行开发。 这里SpringBoot依赖的mail可自动配置。自动引入了javax的mail并自动配置。虽然需要邮箱服务器账号的授权码，但仍然省去了很多的麻烦。</p>
-<ol>
-<li><p>添加依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-mail</artifactId>
-</dependency>
-</li>
-<li><p>yml配置</p>
-<p>spring:<br>  mail:</p>
-<pre><code>host: stmp.163.com
-username: cgq_rain@163.com
-##此为客户端授权码
-password: xxxxxxx
-properties:
-  mail.smtp.enable: true</code></pre></li>
-<li><p>注入JavaMailSenderimpl，用户发送,并编写简单邮件和带附件的邮件</p>
-</li>
-</ol>
-<p>此为带附件的消息，不带附件的可以使用SimpleMailMessage</p>
-<pre><code>@Autowired
-private JavaMailSenderImpl javaMailSender;</code></pre><p>​<br>​    MimeMessage mailMessage = javaMailSender.createMimeMessage();<br>​    try {<br>​        MimeMessageHelper messageHelper = new MimeMessageHelper(mailMessage,true);<br>​        messageHelper.setFrom(mail.getSender());<br>​        messageHelper.setTo(mail.getAccepter());<br>​        messageHelper.setSubject(mail.getSubject());<br>​        messageHelper.setText(mail.getText(),true);<br>​        for (Object key:hashMap.keySet()) {<br>​            String o = hashMap.get(key).toString();<br>​            byte[] bytes = new BASE64Decoder().decodeBuffer(o);<br>​            messageHelper.addAttachment(key.toString(),new ByteArrayResource(bytes));<br>​        }<br>​        javaMailSender.send(mailMessage);<br>​        log.info(“发送成功”);<br>​    } catch (MessagingException e) {<br>​        e.printStackTrace();<br>​    } catch (IOException e) {<br>​        e.printStackTrace();<br>​    }</p>
 
       
       <!-- reward -->

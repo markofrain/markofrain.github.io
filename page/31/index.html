@@ -78,6 +78,103 @@
     
     
     
+    <article id="post-SpringBoot/SpringBoot统一异常处理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/11/25/SpringBoot/SpringBoot%E7%BB%9F%E4%B8%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"
+    >SpringBoot统一异常处理</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/11/25/SpringBoot/SpringBoot%E7%BB%9F%E4%B8%80%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="article-date">
+  <time datetime="2018-11-25T09:42:38.000Z" itemprop="datePublished">2018-11-25</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="SpringBoot统一异常处理"><a href="#SpringBoot统一异常处理" class="headerlink" title="SpringBoot统一异常处理"></a>SpringBoot统一异常处理</h1><p>在SpringBoot中默认提供了一个异常的映射/error,当处理中抛出异常之后，会转到该请求中处理，并且该请求有一个全局的错误页面用来展示异常内容。</p>
+<pre><code>server:
+  error:
+    path: /error</code></pre><h4 id="1-我们配置一个全局的异常类，处理异常-定义GlobalExceptionHandler类并添加注解-ControllerAdvice。"><a href="#1-我们配置一个全局的异常类，处理异常-定义GlobalExceptionHandler类并添加注解-ControllerAdvice。" class="headerlink" title="1. 我们配置一个全局的异常类，处理异常,定义GlobalExceptionHandler类并添加注解@ControllerAdvice。"></a>1. 我们配置一个全局的异常类，处理异常,定义GlobalExceptionHandler类并添加注解@ControllerAdvice。</h4><p>该注解是一个@Compoment,用于定义@ExceptionHandler,@InitBinder,@ModelAttribute方法，适用于所有使用@RequestMapping的方法。 如果我们仅使用ExceptionHandler，则只能在当前Controller中定义错误异常，若使用@ControllerAdvice则不受这个限制。</p>
+<pre><code>@ControllerAdvice
+public class GlobalExceptionHandler &#123;
+&#125;</code></pre><h4 id="2-配置一个方法，添加-ExceptionHandler注解，value值为需要捕获的异常类的class-并在参数中添加对应要捕获的异常类-然后返回到映射页面。"><a href="#2-配置一个方法，添加-ExceptionHandler注解，value值为需要捕获的异常类的class-并在参数中添加对应要捕获的异常类-然后返回到映射页面。" class="headerlink" title="2. 配置一个方法，添加@ExceptionHandler注解，value值为需要捕获的异常类的class,并在参数中添加对应要捕获的异常类,然后返回到映射页面。"></a>2. 配置一个方法，添加@ExceptionHandler注解，value值为需要捕获的异常类的class,并在参数中添加对应要捕获的异常类,然后返回到映射页面。</h4><p>因为默认给异常类的映射路径是/error，则我们在templates下创建error文件夹，添加一个html文件，我们使用thymeleaf来渲染页面。</p>
+<pre><code>@ExceptionHandler(value = Exception.class)
+public String defaultException(Exception e, Model model,HttpServletRequest request)&#123;
+    model.addAttribute(&quot;exception&quot;,e);
+    model.addAttribute(&quot;url&quot;,request.getRequestURL());
+    return &quot;/error/default&quot;;
+&#125;</code></pre><h4 id="3-在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它"><a href="#3-在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它" class="headerlink" title="3. 在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它"></a>3. 在HelloController中定义一个方法，让它throw一个运行时异常来测试，比如RuntimeException，Exception是最大的异常类，所以如果没有匹配的，则都匹配它</h4><pre><code>@RequestMapping(&quot;/&quot;)
+public String index(Model model)&#123;
+    //model.addAttribute(&quot;host&quot;,&quot;http://www.fsats.com&quot;);
+    throw new RuntimeException(&quot;执行/错误&quot;);
+&#125;</code></pre><h4 id="4-启动项目，访问页面完毕，出现定义的错误页面"><a href="#4-启动项目，访问页面完毕，出现定义的错误页面" class="headerlink" title="4. 启动项目，访问页面完毕，出现定义的错误页面"></a>4. 启动项目，访问页面完毕，出现定义的错误页面</h4><h4 id="5-若我们再为-ExceptionHandler注解的方法添加-ResponseBody注解-则我们返回的就是不是页面了，而是返回的数据。"><a href="#5-若我们再为-ExceptionHandler注解的方法添加-ResponseBody注解-则我们返回的就是不是页面了，而是返回的数据。" class="headerlink" title="5. 若我们再为@ExceptionHandler注解的方法添加@ResponseBody注解,则我们返回的就是不是页面了，而是返回的数据。"></a>5. 若我们再为@ExceptionHandler注解的方法添加@ResponseBody注解,则我们返回的就是不是页面了，而是返回的数据。</h4><h4 id="6-接下里测试一下Exception子类的配置-定义一个算术异常"><a href="#6-接下里测试一下Exception子类的配置-定义一个算术异常" class="headerlink" title="6. 接下里测试一下Exception子类的配置,定义一个算术异常"></a>6. 接下里测试一下Exception子类的配置,定义一个算术异常</h4><pre><code>@ExceptionHandler(value = ArithmeticException.class)
+public String ArithmeticExecption(ArithmeticException arich, Model model,HttpServletRequest request)&#123;
+    model.addAttribute(&quot;exception&quot;,arich);
+    model.addAttribute(&quot;url&quot;,request.getRequestURL());
+    return &quot;/error/default&quot;;
+&#125;
+
+@RequestMapping(&quot;/&quot;)
+public String index(Model model)&#123;
+    //model.addAttribute(&quot;host&quot;,&quot;http://www.fsats.com&quot;);
+    int a = 54/0;
+    return &quot;index&quot;;
+&#125;</code></pre><p>则，默认会先匹配子类，返回zero异常。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-SpringBoot/SpringBoot属性配置文件Application.yml" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -411,110 +508,6 @@ commonUtils = (CommonUtils) context.getBean(&quot;commonUtils&quot;);//获得Bea
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li></ul>
 
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle数据库操作问题总结" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E6%93%8D%E4%BD%9C%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/"
-    >Oracle数据库操作问题总结</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E6%93%8D%E4%BD%9C%E9%97%AE%E9%A2%98%E6%80%BB%E7%BB%93/" class="article-date">
-  <time datetime="2018-11-15T14:46:05.000Z" itemprop="datePublished">2018-11-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p><a href="#1">1. 归档日志满出现的问题</a></p>
-<h1 id="1-归档日志满出现的问题"><a href="#1-归档日志满出现的问题" class="headerlink" title="1. 归档日志满出现的问题"></a>1. 归档日志满出现的问题</h1><pre><code>ERROR:
-ORA-01034: ORACLE not available
-ORA-27101: shared memory realm does not exist
-进程 ID: 0
-会话 ID: 0 序列号: 0</code></pre><p>该代码可能是pl/sql登录时爆出的问题，重点在ORACLE not available，你需要进入sqlplus尝试sys as sysdba登录,并alter database open打开数据库。可能出现的依然是上面的错误，但会有一个进程ID，，只要报出<strong>ORA-01034: ORACLE not available</strong>此错，设法找到进程ID，找到类似下面的这个目录</p>
-<pre><code>F:\app\XXHA\diag\rdbms\racdb\racdb\trace</code></pre><p>racdb是实例名，找到trace中文件名包含进程ID的文件trc文件，使用编辑器打开</p>
-<pre><code>*** 2018-11-15 20:34:42.764
-*** SESSION ID:(5.3) 2018-11-15 20:34:42.764
-*** CLIENT ID:() 2018-11-15 20:34:42.764
-*** SERVICE NAME:() 2018-11-15 20:34:42.764
-*** MODULE NAME:(sqlplus.exe) 2018-11-15 20:34:42.764
-*** ACTION NAME:() 2018-11-15 20:34:42.764
-
-ORA-19815: 警告: db_recovery_file_dest_size 字节 (共 10737418240 字节) 已使用 100.00%, 尚有 0 字节可用。
-************************************************************************
-You have following choices to free up space from recovery area:
-1. Consider changing RMAN RETENTION POLICY. If you are using Data Guard,
-   then consider changing RMAN ARCHIVELOG DELETION POLICY.
-2. Back up files to tertiary device such as tape using RMAN
-   BACKUP RECOVERY AREA command.
-3. Add disk space and increase db_recovery_file_dest_size parameter to
-   reflect the new space.
-4. Delete unnecessary files using RMAN DELETE command. If an operating
-   system command was used to delete files, then use RMAN CROSSCHECK and
-   DELETE EXPIRED commands.
-************************************************************************
-ORA-19809: 超出了恢复文件数的限制
-ORA-19804: 无法回收 30321664 字节磁盘空间 (从 10737418240 限制中)
-*** 2018-11-15 20:34:42.780 4132 krsh.c
-ARCH: Error 19809 Creating archive log file to &apos;F:\APP\XXHA\FLASH_RECOVERY_AREA\RACDB\ARCHIVELOG\2018_11_15\O1_MF_1_1136_%U_.ARC&apos;</code></pre><p>可以确定是归档日志满 最快解决的方法是删除归档日志，如果你愿意的话,使用rman target sys/密码 进入rman管理工具,执行删除归档日志命令</p>
-<pre><code>delete archivelog until time &apos;sysdate&apos;; --删除所有日志</code></pre><p>重启数据库。 更改归档日志大小</p>
-<pre><code>alter system set db_recovery_file_dest_size=35G;</code></pre><p>将归档日志改为非归档</p>
-<pre><code>shutdown immediate;-- 关闭数据库
-startup mount;-- 启动数据库到mount状态
-alter database noarchivelog;-- 修改数据库为非归档模式，再改为归档就是取消单词前面的no
-alter database open;-- 打开数据库</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
 
     </footer>
 
