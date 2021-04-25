@@ -202,6 +202,131 @@
 
 </article>
     
+    <article id="post-Redis/Redis缓存过期策略与内存淘汰策略" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/22/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/"
+    >Redis缓存过期策略与内存淘汰策略</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/22/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/" class="article-date">
+  <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Redis/">Redis</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="过期策略"><a href="#过期策略" class="headerlink" title="过期策略"></a>过期策略</h2><h3 id="设置过期和移除过期"><a href="#设置过期和移除过期" class="headerlink" title="设置过期和移除过期"></a>设置过期和移除过期</h3><p>expire和persist可分别设置过期和取消过期</p>
+<p><code>expire key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
+<p><code>persist key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
+<p><code>ttl key</code>获取键的剩余时间，如果有过期时间则输出过期时间，没有过期时间则为-1。如果该键不存在则返回-2</p>
+<p>在Redis2.6起，过期时间误差缩小为0-1毫秒</p>
+<p>redis过期时间采用unix时间戳存储，与服务器本机时间有关，如果将数据迁移到未来时间，则会立即过期失效。</p>
+<h3 id="过期方式"><a href="#过期方式" class="headerlink" title="过期方式"></a>过期方式</h3><p>惰性过期：当客户端访问它时，key会被发现并主动过期</p>
+<p>定期过期，redis每10秒操作一下流程，他会一直重复，直到过期的keys的百分比低于25%</p>
+<ol>
+<li>测试随机的20个keys进行相关过期检测。</li>
+<li>删除所有已经过期的keys。</li>
+<li>如果有多于25%的keys过期，重复步骤1。</li>
+</ol>
+<h2 id="删除策略"><a href="#删除策略" class="headerlink" title="删除策略"></a>删除策略</h2><p>当内存达到内存限制时，Redis将尝试删除keys，根据选择的逐出策略<code>maxmemory-policy</code></p>
+<p>该配置项配置了如下几个配置，默认是<code>noeviction</code></p>
+<table>
+<thead>
+<tr>
+<th>item</th>
+<th>desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>noeviction</td>
+<td>不移除任何键，当写入数据时会发生错误</td>
+</tr>
+<tr>
+<td>volatile-lru</td>
+<td>在所有设置了过期时间的键中，移除最久没有使用的key</td>
+</tr>
+<tr>
+<td>allkeys-lru</td>
+<td>在所有键中，移除最久没有使用的key</td>
+</tr>
+<tr>
+<td>volatile-lfu</td>
+<td>在所有设置了过期时间的建中，移除使用频率最少的key</td>
+</tr>
+<tr>
+<td>allkeys-lfu</td>
+<td>在所有键中，移除使用频率最少的key</td>
+</tr>
+<tr>
+<td>volatile-random</td>
+<td>在所有设置了过期时间的键中，随机删除任意键</td>
+</tr>
+<tr>
+<td>allkeys-random</td>
+<td>在所有键中，随机删除任意键</td>
+</tr>
+<tr>
+<td>volatile-ttl</td>
+<td>在所有设置过期时间的键中，删除过期时间最近的键</td>
+</tr>
+</tbody></table>
+<p>LRU：长时间未被使用。LFU(Redis4.0)：一定时间内访问次数最少</p>
+<p>配置项<code>maxmemory</code>可设置最大内存数，以字节为单位，默认无限制，可以为其配置最大内存，以便服务器可以留出其他内存用于输出缓冲区，副本同步，网络问题等。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Redis/Redis-RDB与AOF持久化" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -315,131 +440,6 @@
 <p>RDB保存的是最终的结果，AOF保存最终结果之间的过程。</p>
 <h3 id="其他相关配置项"><a href="#其他相关配置项" class="headerlink" title="其他相关配置项"></a>其他相关配置项</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 开启该参数后，如果开启了RDB快照（即配置了bgsave指令），并且最近一次快照执行失败，则Redis将停止接收写相关的请求</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 开启该参数后，如果后台正在执行一次RDB快照或者AOF重写，则主进程不再进行fsync操作（即使将appendfsync配置为always或者everysec）</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"># AOF文件以追加日志的方式生成，所以服务端发生故障时可能会有尾部命令不完整的情况。</span><br><span class="line"># 该参数后，在此种情况下，AOF文件会截断尾部不完整的命令然后继续加载，并且会在日志中进行提示。如果不开启该参数，则加载AOF文件时会打印错误日志，然后直接退出</span><br><span class="line"># 在重新启动服务器之前，可以尝试执行bin下的redis-check-AOF工具检查修改AOF</span><br><span class="line">aof-load-truncated yes</span><br></pre></td></tr></table></figure>
 
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Redis/Redis缓存过期策略与内存淘汰策略" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/22/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/"
-    >Redis缓存过期策略与内存淘汰策略</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/22/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/" class="article-date">
-  <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Redis/">Redis</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="过期策略"><a href="#过期策略" class="headerlink" title="过期策略"></a>过期策略</h2><h3 id="设置过期和移除过期"><a href="#设置过期和移除过期" class="headerlink" title="设置过期和移除过期"></a>设置过期和移除过期</h3><p>expire和persist可分别设置过期和取消过期</p>
-<p><code>expire key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
-<p><code>persist key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
-<p><code>ttl key</code>获取键的剩余时间，如果有过期时间则输出过期时间，没有过期时间则为-1。如果该键不存在则返回-2</p>
-<p>在Redis2.6起，过期时间误差缩小为0-1毫秒</p>
-<p>redis过期时间采用unix时间戳存储，与服务器本机时间有关，如果将数据迁移到未来时间，则会立即过期失效。</p>
-<h3 id="过期方式"><a href="#过期方式" class="headerlink" title="过期方式"></a>过期方式</h3><p>惰性过期：当客户端访问它时，key会被发现并主动过期</p>
-<p>定期过期，redis每10秒操作一下流程，他会一直重复，直到过期的keys的百分比低于25%</p>
-<ol>
-<li>测试随机的20个keys进行相关过期检测。</li>
-<li>删除所有已经过期的keys。</li>
-<li>如果有多于25%的keys过期，重复步骤1。</li>
-</ol>
-<h2 id="删除策略"><a href="#删除策略" class="headerlink" title="删除策略"></a>删除策略</h2><p>当内存达到内存限制时，Redis将尝试删除keys，根据选择的逐出策略<code>maxmemory-policy</code></p>
-<p>该配置项配置了如下几个配置，默认是<code>noeviction</code></p>
-<table>
-<thead>
-<tr>
-<th>item</th>
-<th>desc</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>noeviction</td>
-<td>不移除任何键，当写入数据时会发生错误</td>
-</tr>
-<tr>
-<td>volatile-lru</td>
-<td>在所有设置了过期时间的键中，移除最久没有使用的key</td>
-</tr>
-<tr>
-<td>allkeys-lru</td>
-<td>在所有键中，移除最久没有使用的key</td>
-</tr>
-<tr>
-<td>volatile-lfu</td>
-<td>在所有设置了过期时间的建中，移除使用频率最少的key</td>
-</tr>
-<tr>
-<td>allkeys-lfu</td>
-<td>在所有键中，移除使用频率最少的key</td>
-</tr>
-<tr>
-<td>volatile-random</td>
-<td>在所有设置了过期时间的键中，随机删除任意键</td>
-</tr>
-<tr>
-<td>allkeys-random</td>
-<td>在所有键中，随机删除任意键</td>
-</tr>
-<tr>
-<td>volatile-ttl</td>
-<td>在所有设置过期时间的键中，删除过期时间最近的键</td>
-</tr>
-</tbody></table>
-<p>LRU：长时间未被使用。LFU(Redis4.0)：一定时间内访问次数最少</p>
-<p>配置项<code>maxmemory</code>可设置最大内存数，以字节为单位，默认无限制，可以为其配置最大内存，以便服务器可以留出其他内存用于输出缓冲区，副本同步，网络问题等。</p>
 
       
       <!-- reward -->
