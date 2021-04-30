@@ -78,6 +78,438 @@
     
     
     
+    <article id="post-Activiti/Activiti并行节点流程图高亮" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E6%B5%81%E7%A8%8B%E5%9B%BE%E9%AB%98%E4%BA%AE/"
+    >Activiti并行节点流程图高亮V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/22/Activiti/Activiti%E5%B9%B6%E8%A1%8C%E8%8A%82%E7%82%B9%E6%B5%81%E7%A8%8B%E5%9B%BE%E9%AB%98%E4%BA%AE/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> InputStream <span class="title">tracecPhotoContainParallelGateway</span><span class="params">(String processDefinitionId, String procInsId)</span></span>&#123;</span><br><span class="line">	BpmnModel bpmnModel = repositoryService.getBpmnModel(processDefinitionId);</span><br><span class="line">	List&lt;HistoricActivityInstance&gt; historicActivityInstances= Lists.newArrayList();</span><br><span class="line">	List&lt;String&gt; executedActivityIdList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line">	List&lt;HistoricActivityInstance&gt; tempHistoricActivityInstance = historyService</span><br><span class="line">			.createHistoricActivityInstanceQuery().processInstanceId(procInsId).orderByHistoricActivityInstanceStartTime().asc().orderByHistoricActivityInstanceEndTime().asc().list();</span><br><span class="line">	<span class="keyword">for</span>(HistoricActivityInstance historicActivityInstance:tempHistoricActivityInstance)&#123;</span><br><span class="line">		<span class="keyword">if</span>(historicActivityInstance.getEndTime() != <span class="keyword">null</span>)&#123;</span><br><span class="line">			historicActivityInstances.add(historicActivityInstance);</span><br><span class="line">			executedActivityIdList.add(historicActivityInstance.getActivityId());</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 流转线ID集合</span></span><br><span class="line">	List&lt;String&gt; flowIdList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line">	<span class="comment">// 全部活动实例</span></span><br><span class="line">	List&lt;FlowNode&gt; historicFlowNodeList = <span class="keyword">new</span> LinkedList&lt;FlowNode&gt;();</span><br><span class="line">	<span class="comment">// 已完成的历史活动节点</span></span><br><span class="line">	List&lt;HistoricActivityInstance&gt; finishedActivityInstanceList = <span class="keyword">new</span> LinkedList&lt;HistoricActivityInstance&gt;();</span><br><span class="line">	<span class="keyword">for</span> (HistoricActivityInstance historicActivityInstance : historicActivityInstances) &#123;</span><br><span class="line">		historicFlowNodeList.add((FlowNode) bpmnModel.getMainProcess().getFlowElement(historicActivityInstance.getActivityId()));</span><br><span class="line">		<span class="keyword">if</span> (historicActivityInstance.getEndTime() != <span class="keyword">null</span>) &#123;</span><br><span class="line">			finishedActivityInstanceList.add(historicActivityInstance);</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="comment">// 遍历已完成的活动实例，从每个实例的outgoingFlows中找到已执行的</span></span><br><span class="line">	<span class="comment">// 注: 主要操作</span></span><br><span class="line">	FlowNode currentFlowNode = <span class="keyword">null</span>;</span><br><span class="line">	<span class="keyword">for</span> (HistoricActivityInstance currentActivityInstance : finishedActivityInstanceList) &#123;</span><br><span class="line">		<span class="comment">// 获得当前活动对应的节点信息及outgoingFlows信息</span></span><br><span class="line">		currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(currentActivityInstance.getActivityId());</span><br><span class="line">		List&lt;SequenceFlow&gt; sequenceFlowList = currentFlowNode.getOutgoingFlows();</span><br><span class="line"></span><br><span class="line">		<span class="comment">/**</span></span><br><span class="line"><span class="comment">		 * 遍历outgoingFlows并找到已已流转的</span></span><br><span class="line"><span class="comment">		 * 满足如下条件认为已已流转：</span></span><br><span class="line"><span class="comment">		 * 1.当前节点是并行网关或包含网关，则通过outgoingFlows能够在历史活动中找到的全部节点均为已流转</span></span><br><span class="line"><span class="comment">		 * 2.当前节点是以上两种类型之外的，通过outgoingFlows查找到的时间最近的流转节点视为有效流转</span></span><br><span class="line"><span class="comment">		 */</span></span><br><span class="line">		FlowNode targetFlowNode = <span class="keyword">null</span>;</span><br><span class="line">		<span class="keyword">if</span> (<span class="string">&quot;parallelGateway&quot;</span>.equals(currentActivityInstance.getActivityType())) &#123;</span><br><span class="line">			<span class="comment">// 遍历历史活动节点，找到匹配Flow目标节点的</span></span><br><span class="line">			<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">				targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef());</span><br><span class="line">				<span class="keyword">if</span> (historicFlowNodeList.contains(targetFlowNode)) &#123;</span><br><span class="line">					flowIdList.add(sequenceFlow.getId());</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> <span class="keyword">if</span>(<span class="string">&quot;exclusiveGateway&quot;</span>.equals(currentActivityInstance.getActivityType()))&#123;</span><br><span class="line">			String nextActivityId = getHistoryActivityIdWithNext(executedActivityIdList, currentActivityInstance.getActivityId());</span><br><span class="line">			<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">				<span class="comment">// targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef());</span></span><br><span class="line">				<span class="keyword">if</span> (nextActivityId.equals(sequenceFlow.getTargetRef()))&#123;</span><br><span class="line">					flowIdList.add(sequenceFlow.getId());</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;<span class="keyword">else</span> &#123;</span><br><span class="line">			List&lt;Map&lt;String, String&gt;&gt; tempMapList = <span class="keyword">new</span> LinkedList&lt;Map&lt;String,String&gt;&gt;();</span><br><span class="line">			<span class="comment">// 遍历历史活动节点，找到匹配Flow目标节点的</span></span><br><span class="line">			<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">				<span class="keyword">for</span> (HistoricActivityInstance historicActivityInstance : historicActivityInstances) &#123;</span><br><span class="line">					<span class="keyword">if</span> (historicActivityInstance.getActivityId().equals(sequenceFlow.getTargetRef())) &#123;</span><br><span class="line">					<span class="comment">/*Map&lt;String,String&gt; te = new HashMap&lt;&gt;();</span></span><br><span class="line"><span class="comment">						te.put(&quot;flowId&quot;,sequenceFlow.getId());</span></span><br><span class="line"><span class="comment">						te.put(&quot;activityStartTime&quot;,String.valueOf(historicActivityInstance.getStartTime().getTime()));</span></span><br><span class="line"><span class="comment">						tempMapList.add(te);</span></span><br><span class="line"><span class="comment">						*/</span></span><br><span class="line">						<span class="comment">// 不显示jump的线</span></span><br><span class="line">						String taskId = historicActivityInstance.getTaskId();</span><br><span class="line">						<span class="comment">// Object variable = runtimeService.getVariable(procInsId, &quot;jump&quot; + taskId);</span></span><br><span class="line">						HistoricVariableInstanceQuery hisJumpVar = historyService.createHistoricVariableInstanceQuery().processInstanceId(procInsId).variableName(<span class="string">&quot;jump&quot;</span> + taskId);</span><br><span class="line">						<span class="keyword">if</span> (hisJumpVar != <span class="keyword">null</span>) &#123;</span><br><span class="line">							<span class="keyword">break</span>;</span><br><span class="line">						&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">							flowIdList.add(sequenceFlow.getId());</span><br><span class="line">						&#125;</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line"></span><br><span class="line">			<span class="comment">/*// 遍历匹配的集合，取得开始时间最早的一个</span></span><br><span class="line"><span class="comment">			long earliestStamp = 0L;</span></span><br><span class="line"><span class="comment">			String flowId = null;</span></span><br><span class="line"><span class="comment">			for (Map&lt;String, String&gt; map : tempMapList) &#123;</span></span><br><span class="line"><span class="comment">				long activityStartTime = Long.valueOf(map.get(&quot;activityStartTime&quot;));</span></span><br><span class="line"><span class="comment">				if (earliestStamp == 0 || earliestStamp &gt;= activityStartTime) &#123;</span></span><br><span class="line"><span class="comment">					earliestStamp = activityStartTime;</span></span><br><span class="line"><span class="comment">					flowId = map.get(&quot;flowId&quot;);</span></span><br><span class="line"><span class="comment">				&#125;</span></span><br><span class="line"><span class="comment">			&#125;</span></span><br><span class="line"><span class="comment">			flowIdList.add(flowId);*/</span></span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">	List&lt;String&gt; highLightedActivities = Lists.newArrayList();</span><br><span class="line">	Context.setProcessEngineConfiguration(processEngine.getProcessEngineConfiguration());</span><br><span class="line"></span><br><span class="line">	DefaultProcessDiagramGenerator processDiagramGeneratornew = <span class="keyword">new</span> DefaultProcessDiagramGenerator();</span><br><span class="line">	<span class="keyword">return</span> processDiagramGeneratornew.generateDiagram(bpmnModel, <span class="string">&quot;png&quot;</span>,</span><br><span class="line">			executedActivityIdList, flowIdList,</span><br><span class="line">			processEngine.getProcessEngineConfiguration().getActivityFontName(),</span><br><span class="line">			processEngine.getProcessEngineConfiguration().getLabelFontName(),</span><br><span class="line">			procInsId, processEngine.getProcessEngineConfiguration().getClassLoader(), <span class="number">1.0</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="代码解析说明："><a href="#代码解析说明：" class="headerlink" title="代码解析说明："></a>代码解析说明：</h2><h3 id="第一段代码"><a href="#第一段代码" class="headerlink" title="第一段代码"></a>第一段代码</h3><p>读取当前流程的历史活动对象<code>HistoricActivityInstance</code>和<code>FlowNode</code>节点流向，两个集合分别为历史活动实例和actId</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">List&lt;HistoricActivityInstance&gt; historicActivityInstances= Lists.newArrayList();</span><br><span class="line">List&lt;FlowNode&gt; historicFlowNodeList = <span class="keyword">new</span> LinkedList&lt;FlowNode&gt;();</span><br><span class="line">List&lt;String&gt; executedActivityIdList = <span class="keyword">new</span> ArrayList&lt;String&gt;();</span><br><span class="line">List&lt;HistoricActivityInstance&gt; tempHistoricActivityInstance = historyService</span><br><span class="line">		.createHistoricActivityInstanceQuery().processInstanceId(procInsId).orderByHistoricActivityInstanceStartTime().asc().orderByHistoricActivityInstanceEndTime().asc().list();</span><br><span class="line"><span class="keyword">for</span>(HistoricActivityInstance historicActivityInstance:tempHistoricActivityInstance)&#123;</span><br><span class="line">	<span class="keyword">if</span>(historicActivityInstance.getEndTime() != <span class="keyword">null</span>)&#123;</span><br><span class="line">        historicFlowNodeList.add((FlowNode) bpmnModel.getMainProcess().getFlowElement(historicActivityInstance.getActivityId()));</span><br><span class="line">		historicActivityInstances.add(historicActivityInstance);</span><br><span class="line">		executedActivityIdList.add(historicActivityInstance.getActivityId());</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="第二段代码"><a href="#第二段代码" class="headerlink" title="第二段代码"></a>第二段代码</h3><p><strong>主要任务是从历史活动实例中获取流程线id，此线为高亮线。</strong></p>
+<p>通过以下代码可以获取当前Activity的流程流向</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">currentFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(currentActivityInstance.getActivityId());</span><br><span class="line">List&lt;SequenceFlow&gt; sequenceFlowList = currentFlowNode.getOutgoingFlows();</span><br></pre></td></tr></table></figure>
+
+<p>sequenceFlowList即表示当前activity在流程图上流出的SequenceFlow。</p>
+<p>我们只需要循环所有的历史活动实例即可，从历史活动实例中获取FlowNode,再获取SequenceFlow</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">FlowNode targetFlowNode = <span class="keyword">null</span>;</span><br><span class="line"><span class="keyword">if</span> (<span class="string">&quot;parallelGateway&quot;</span>.equals(currentActivityInstance.getActivityType())) &#123;</span><br><span class="line">	<span class="comment">// 遍历历史活动节点，找到匹配Flow目标节点的</span></span><br><span class="line">	<span class="keyword">for</span> (SequenceFlow sequenceFlow : sequenceFlowList) &#123;</span><br><span class="line">		targetFlowNode = (FlowNode) bpmnModel.getMainProcess().getFlowElement(sequenceFlow.getTargetRef());</span><br><span class="line">		<span class="keyword">if</span> (historicFlowNodeList.contains(targetFlowNode)) &#123;</span><br><span class="line">			flowIdList.add(sequenceFlow.getId());</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们只选择并行的，以并行为例。既然要活的高亮线，也就是sequenceFlow的id，那既然高亮必须是已经执行过的历史活动，在act_hi_actinst中，存在所有的历史活动执行，包括用户任务，排他、并行网关等活动信息。</p>
+<p>因此我们循环当前历史activity的流出线,如果当前的流程节点在历史FlowNode<code>historicFlowNodeList</code>中找到(第一段代码)，那么么可以认为当前流出线是高亮的。为何要比较FlowNode，因为首先当前act是并行网关，注意并行开始节点后的一般都为任务，此处获得的targetFlowNode也就是并行阶段的并行节点。因此，如果target节点已经在历史了，那么从开始并行网关到并行节点的线是可以画的。否则并行节点没有执行，线就不会画出来。</p>
+<p>如果是排他网关或用户任务，一般下一个节点就是用户任务节点或排他网关。而排他网关和用户任务在历史执行中，只会出现一次(回退驳回除外)。而并行节点，每执行完成一个并行节点就会多出一个当前并行节点的结束并行网关。对于一般情况，我们直接通过循环getTargetRef所指向的目标actId与当前<code>currentActivityInstance</code>的下一个actId是不是相等的。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">String nextActivityId = getHistoryActivityIdWithNext(executedActivityIdList, currentActivityInstance.getActivityId());</span><br></pre></td></tr></table></figure>
+
+<p>该代码就是获取下一个actId，如果当前循环的currentActivityInstance的下一个actId在流出线targetRef目标所指向的任意一个actId，那么这个sequenceFlow线即可被高亮。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> String <span class="title">getHistoryActivityIdWithNext</span><span class="params">(List&lt;String&gt; historyActivityIds,String activityId)</span></span>&#123;</span><br><span class="line">		<span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; historyActivityIds.size(); i++) &#123;</span><br><span class="line">			<span class="keyword">if</span> (historyActivityIds.get(i).equals(activityId))&#123;</span><br><span class="line">				<span class="keyword">if</span> (historyActivityIds.size()-<span class="number">1</span>==i)&#123;</span><br><span class="line">					<span class="keyword">return</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">				&#125;</span><br><span class="line">				<span class="keyword">return</span> historyActivityIds.get(i+<span class="number">1</span>);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">&quot;&quot;</span>;</span><br><span class="line">	&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/Activiti自定义流程设计器简单属性" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7/"
+    >Activiti自定义流程设计器用户简单属性V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/22/Activiti/Activiti%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="编辑stencilset-json文件"><a href="#编辑stencilset-json文件" class="headerlink" title="编辑stencilset.json文件"></a>编辑stencilset.json文件</h2><p>在集成activiti的流程会绘制工具后，在resource下会有stencilset.json文件，该文件为BPMN的流程编辑器配置。用于完善和布局整个流程设计器。</p>
+<p>以增加一个简单的字符串属性和布尔的勾选属性为例。</p>
+<p>已办配置的属性都在用户任务的右侧属性，包括执行人/角色、事件监听器、任务监听器等。我们只需要在文件中所搜索。其格式为一个json字符串</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">,&#123;</span><br><span class="line">    &quot;name&quot; : &quot;tasklistenerspackage&quot;,</span><br><span class="line">    &quot;properties&quot; : [ &#123;</span><br><span class="line">      &quot;id&quot; : &quot;tasklisteners&quot;,</span><br><span class="line">      &quot;type&quot; : &quot;multiplecomplex&quot;,</span><br><span class="line">      &quot;title&quot; : &quot;任务监听器&quot;,</span><br><span class="line">      &quot;value&quot; : &quot;&quot;,</span><br><span class="line">      &quot;description&quot; : &quot;Listeners for a user task&quot;,</span><br><span class="line">      &quot;popular&quot; : true</span><br><span class="line">    &#125; ]</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>在后面增加如下配置:</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;name&quot;</span>: <span class="string">&quot;nodewarndaypackage&quot;</span>,</span><br><span class="line"><span class="attr">&quot;properties&quot;</span>: [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;nodewarnday&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;String&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;title&quot;</span>: <span class="string">&quot;警告天数&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;value&quot;</span>: <span class="string">&quot;3&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;当前任务节点剩余天数警告阙值&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;popular&quot;</span>: <span class="literal">true</span></span><br><span class="line">  &#125;]</span><br><span class="line">&#125;,</span><br><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;name&quot;</span>: <span class="string">&quot;isreplypackage&quot;</span>,</span><br><span class="line"><span class="attr">&quot;properties&quot;</span>: [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;isreply&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;Boolean&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;title&quot;</span>: <span class="string">&quot;批复文件&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;value&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;是否需要上传批复文件&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;popular&quot;</span>: <span class="literal">true</span></span><br><span class="line">  &#125;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上配置中,name只在stencilset.json文件中使用，</p>
+<ul>
+<li>id属性为表示属性，部署时解析值需要用到 json转BpmnModel</li>
+<li>type为值类型，String或Boolean</li>
+<li>value为默认值</li>
+<li>description为默认描述</li>
+<li>popular是否显示使用</li>
+</ul>
+<p>配置完基础属性后，找到UserTask，在UserTask里加入这两个配置。</p>
+<p>搜索<code>&quot;title&quot; : &quot;用户活动&quot;,</code>找到<code>propertyPackages</code>属性,在数组后面合适的位置，把两个name值放进去。</p>
+<p>重启项目可以看到这两个在用户任务右边显示了。</p>
+<p>自定义属性在部署模型的属性需要自己解析，导出bpmn20.xml、流程定义转模型的时候也需要把自定义属性转json或转BpmnModel。因此需要自定义UserTaskJsonConverter类继承UserTaskJsonConverter类</p>
+<h2 id="解析自定义用户属性"><a href="#解析自定义用户属性" class="headerlink" title="解析自定义用户属性"></a>解析自定义用户属性</h2><p>创建类继承UserTaskJsonConverter并实现StencilConstants接口</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class CustomUserTaskJsonConverter extends UserTaskJsonConverter implements StencilConstants</span><br></pre></td></tr></table></figure>
+
+<h3 id="重写UserTaskJsonConverter类的实现方法"><a href="#重写UserTaskJsonConverter类的实现方法" class="headerlink" title="重写UserTaskJsonConverter类的实现方法"></a>重写UserTaskJsonConverter类的实现方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillTypes</span><span class="params">(Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToBpmnMap,</span></span></span><br><span class="line"><span class="function"><span class="params">                                 Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToJsonMap)</span> </span>&#123;</span><br><span class="line">    fillJsonTypes(convertersToBpmnMap);</span><br><span class="line">    fillBpmnTypes(convertersToJsonMap);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillJsonTypes</span><span class="params">(Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToBpmnMap)</span> </span>&#123;</span><br><span class="line">    convertersToBpmnMap.put(STENCIL_TASK_USER, CustomUserTaskJsonConverter.class);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillBpmnTypes</span><span class="params">(Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToJsonMap)</span> </span>&#123;</span><br><span class="line">    convertersToJsonMap.put(UserTask.class, CustomUserTaskJsonConverter.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="重写convertJsonToElement方法"><a href="#重写convertJsonToElement方法" class="headerlink" title="重写convertJsonToElement方法"></a>重写convertJsonToElement方法</h3><p>该方法是把流程设计器编辑完成后模型json结果文件转为BpmnModel</p>
+<p>也就是说，把json中自定义的属性转换完成后，就可以通过在部署的时候，获取模型BpmnModel的FlowElements，获取自己的属性，插入到自己定义的表中。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//预警天数</span></span><br><span class="line">String nodeWarnDay = <span class="keyword">this</span>.getProperty(<span class="string">&quot;nodewarnday&quot;</span>, elementNode).toString();</span><br><span class="line"><span class="keyword">if</span> (StringUtils.isNotBlank(nodeWarnDay)) &#123;</span><br><span class="line">    CustomProperty nodeWarnProperty = <span class="keyword">new</span> CustomProperty();</span><br><span class="line">    nodeWarnProperty.setName(<span class="string">&quot;nodeWarnDay&quot;</span>);</span><br><span class="line">    nodeWarnProperty.setSimpleValue(nodeWarnDay.replace(<span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    userTask.getCustomProperties().add(nodeWarnProperty);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">boolean</span> isReply = <span class="keyword">this</span>.getProperty(<span class="string">&quot;isreply&quot;</span>, elementNode).asBoolean(<span class="keyword">false</span>);</span><br><span class="line">CustomProperty replyProperty = <span class="keyword">new</span> CustomProperty();</span><br><span class="line">replyProperty.setName(<span class="string">&quot;isReply&quot;</span>);</span><br><span class="line">replyProperty.setSimpleValue(isReply ? <span class="string">&quot;1&quot;</span> : <span class="string">&quot;0&quot;</span>);</span><br><span class="line">userTask.getCustomProperties().add(replyProperty);</span><br></pre></td></tr></table></figure>
+
+<p>此处的获取直接获取的就是id值nodewarnday，而第五行的设置名称就是等到FlowElements循环时获取的属性名。</p>
+<h3 id="重写convertElementToJson方法"><a href="#重写convertElementToJson方法" class="headerlink" title="重写convertElementToJson方法"></a>重写convertElementToJson方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">convertElementToJson</span><span class="params">(ObjectNode propertiesNode, BaseElement baseElement)</span> </span>&#123;</span><br></pre></td></tr></table></figure>
+
+<p>该方法是BpmnModel的FlowElements转为json时的转换方法。其实这两个方法在继承的<code>UserTaskJsonConverter</code>类里就有UserTask自己定义的实现，可以进行参考。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">UserTask userTask = (UserTask) baseElement;</span><br><span class="line">Map&lt;String, List&lt;ExtensionElement&gt;&gt; extensionElements = userTask.getExtensionElements();</span><br><span class="line"></span><br><span class="line">List&lt;ExtensionElement&gt; nodeWarnDay = extensionElements.get(<span class="string">&quot;nodeWarnDay&quot;</span>);</span><br><span class="line">propertiesNode.put(<span class="string">&quot;nodewarnday&quot;</span>, nodeWarnDay.get(<span class="number">0</span>).getElementText());</span><br><span class="line"></span><br><span class="line">List&lt;ExtensionElement&gt; isreply = extensionElements.get(<span class="string">&quot;isReply&quot;</span>);</span><br><span class="line">propertiesNode.put(<span class="string">&quot;isreply&quot;</span>, isreply.get(<span class="number">0</span>).getElementText());</span><br></pre></td></tr></table></figure>
+
+<p>getExtensionElements();就是获取拓展属性。在你导出为bpmn20.xml的时候就会有UserTask的子元素extensionElements，这个元素里面的子元素就是自己定义的属性。</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">userTask</span> <span class="attr">id</span>=<span class="string">&quot;sjghk&quot;</span> <span class="attr">name</span>=<span class="string">&quot;初审&quot;</span> <span class="attr">activiti:candidateGroups</span>=<span class="string">&quot;sjghk&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">documentation</span>&gt;</span>初审<span class="tag">&lt;/<span class="name">documentation</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">extensionElements</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodetask</span>&gt;</span>&lt;![CDATA[&#123;&quot;node&quot;:&#123;&quot;tasks&quot;:[&#123;&quot;value&quot;:&quot;收件表&quot;,&quot;readOnly&quot;:&quot;2&quot;,&quot;id&quot;:&quot;3d0a167ae1534fb387425a35611ca284&quot;,&quot;$$hashKey&quot;:&quot;0NH&quot;,&quot;mode&quot;:&quot;read&quot;&#125;,&#123;&quot;value&quot;:&quot;审核表&quot;,&quot;readOnly&quot;:&quot;1&quot;,&quot;id&quot;:&quot;913ba193d6dc4d08be168c2c2c22ae9f&quot;,&quot;$$hashKey&quot;:&quot;0NK&quot;,&quot;mode&quot;:&quot;read&quot;&#125;]&#125;&#125;]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodetask</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodeDay</span>&gt;</span>&lt;![CDATA[2]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodeDay</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodeWarnDay</span>&gt;</span>&lt;![CDATA[1]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodeWarnDay</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:isReply</span>&gt;</span>&lt;![CDATA[0]]&gt;<span class="tag">&lt;/<span class="name">activiti:isReply</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">extensionElements</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">userTask</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>从xml里可以看到，一般定义的简单属性只有通过CDATA括起来的数组，因此简单的属性,String类型直接就get(0)即可获得到文本<code>nodeWarnDay.get(0).getElementText()</code>，对于nodetask的复杂对象，在jackson2.8.6版本里，可以直接通过<code>objectMapper.readTree(elementText);</code>来读取成JsonNode的,然后把jsonNode放入propertiesNode中,但是在2.8里就已经被标注未来弃用了。这个方法可以再后来的版本找可以替换的方法。</p>
+<h2 id="读取保存的属性"><a href="#读取保存的属性" class="headerlink" title="读取保存的属性"></a>读取保存的属性</h2><h3 id="引入转换器"><a href="#引入转换器" class="headerlink" title="引入转换器"></a>引入转换器</h3><p>在使用BpmnJsonConverter对象，转换成BpmnModel前添加引入转换器map的代码，也就是咱们自定义的用户任务转换器</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CustomBpmnJsonConverter.getConvertersToBpmnMap().put(<span class="string">&quot;UserTask&quot;</span>, CustomUserTaskJsonConverter.class);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomBpmnJsonConverter</span> <span class="keyword">extends</span> <span class="title">BpmnJsonConverter</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//通过继承开放convertersToJsonMap的访问</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; getConvertersToJsonMap()&#123;</span><br><span class="line">        <span class="keyword">return</span> convertersToJsonMap;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//通过继承开放convertersToJsonMap的访问</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; getConvertersToBpmnMap()&#123;</span><br><span class="line">        <span class="keyword">return</span> convertersToBpmnMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该类有两个方法，获取bpmn转json的转换器map，和json转bpmn的转换器map。在这里只需要获取转bpmn的map，并将定义的自定义转换器put进去。如果要是用转josn的就使用此方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CustomBpmnJsonConverter.getConvertersToJsonMap().put(UserTask.class, CustomUserTaskJsonConverter.class);</span><br></pre></td></tr></table></figure>
+
+<p>如果不清楚该方法需要那种转换器，可以将两行代码都放过去。</p>
+<h3 id="获取属性"><a href="#获取属性" class="headerlink" title="获取属性"></a>获取属性</h3><p>在部署完流程之后，process类的getFlowElements方法可以获取所有元素</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">BpmnModel model = repositoryService.getBpmnModel(processDefinition.getId());</span><br><span class="line">Collection&lt;FlowElement&gt; flowElements = model.getMainProcess().getFlowElements();</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(FlowElement e : flowElements) &#123;</span><br><span class="line">	<span class="keyword">if</span>(e <span class="keyword">instanceof</span> UserTask) &#123;</span><br><span class="line">		UserTask userTask = (UserTask)e;</span><br><span class="line">		Map&lt;String, List&lt;ExtensionElement&gt;&gt; extensionElements = userTask.getExtensionElements();</span><br><span class="line">		<span class="keyword">for</span>(String key : extensionElements.keySet()) &#123;</span><br><span class="line">			List&lt;ExtensionElement&gt; list2 = extensionElements.get(key);</span><br><span class="line">			<span class="keyword">for</span> (ExtensionElement et : list2) &#123;</span><br><span class="line">				String node = et.getElementText();</span><br><span class="line">				<span class="keyword">if</span> (<span class="string">&quot;nodeWarnDay&quot;</span>.equals(key))&#123;</span><br><span class="line">					<span class="keyword">if</span> (StringUtils.isBlank(node))&#123;</span><br><span class="line">						node = taskProperty.getNodeTime();</span><br><span class="line">					&#125;</span><br><span class="line">					taskProperty.setWarnTime(node);</span><br><span class="line">					<span class="keyword">if</span> (Long.parseLong(taskProperty.getWarnTime())&gt;Long.parseLong(taskProperty.getNodeTime()))&#123;</span><br><span class="line">						<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;预警天数不能大于节点天数&quot;</span>);</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在如上代码中，首先判断flowElements是否是UserTask，如果看bpmn20.xml可以完全的看出来</p>
+<img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200523170140.png" style="zoom:70%;" />
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/Activiti获取当前节点的上下并行网关" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/"
+    >Activiti获取当前节点的上下并行网关V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
+<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
+<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
+<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
+<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Go/Go基础" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/04/19/Go/Go%E5%9F%BA%E7%A1%80/"
+    >Go基础</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/04/19/Go/Go%E5%9F%BA%E7%A1%80/" class="article-date">
+  <time datetime="2020-04-19T14:28:00.000Z" itemprop="datePublished">2020-04-19</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Go/">Go</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="变量"><a href="#变量" class="headerlink" title="变量"></a>变量</h2><figure class="highlight go"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">var</span> a <span class="keyword">int</span> <span class="comment">//声明变量a</span></span><br><span class="line">a = <span class="number">10</span><span class="comment">//变量a赋值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> a <span class="keyword">int</span> = <span class="number">10</span><span class="comment">//定义并初始化赋值</span></span><br><span class="line"></span><br><span class="line">a := <span class="number">10</span>	<span class="comment">//无var声明直接赋值</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">var</span> n1, n2, n3 <span class="keyword">int</span> <span class="comment">//声明多个变量int类型</span></span><br><span class="line"><span class="keyword">var</span> n1, name, n2 = <span class="number">100</span>, <span class="string">&quot;tom&quot;</span>, <span class="number">888</span> <span class="comment">//多个初始化并按顺序赋值</span></span><br><span class="line">n1, name, n2 := <span class="number">100</span>, <span class="string">&quot;tom&quot;</span>, <span class="number">888</span> <span class="comment">//无声明初始化</span></span><br><span class="line"></span><br><span class="line"><span class="comment">//全局变量声明</span></span><br><span class="line"><span class="keyword">var</span>(</span><br><span class="line">    n1 = <span class="number">100</span></span><br><span class="line">    n2 = <span class="string">&quot;name&quot;</span></span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<h2 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h2><p><strong>基本数据类型</strong></p>
+<ul>
+<li>数值型<ul>
+<li>(有符号)int、int8、int16、int32、int64、(无符号,范围大)uint、uint8、uint16、uint32、uint64、byte</li>
+<li>float32、float64</li>
+</ul>
+</li>
+<li>字符型: byte保存单个字母字符。没有明确的类型</li>
+<li>布尔类型: bool</li>
+<li>字符串类型: string, (基本数据类型)</li>
+</ul>
+<h3 id="有符号int-类型"><a href="#有符号int-类型" class="headerlink" title="有符号int 类型"></a>有符号int 类型</h3><table>
+<thead>
+<tr>
+<th>int8</th>
+<th>$- 2^7$ ~ $2^7-1$</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>int16</td>
+<td>$-2^{15}$ ~ $2^{15}-1$</td>
+</tr>
+<tr>
+<td>int32</td>
+<td>$-2^{31}$~ $2^{31}-1$</td>
+</tr>
+<tr>
+<td>int64</td>
+<td>$-2^{63}$~ $2^{63}-1$</td>
+</tr>
+</tbody></table>
+<h3 id="无符号unit类型"><a href="#无符号unit类型" class="headerlink" title="无符号unit类型"></a>无符号unit类型</h3><table>
+<thead>
+<tr>
+<th>uint8</th>
+<th>0 ~ $2^8$</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>uint16</td>
+<td>0 ~ $2^{16}$</td>
+</tr>
+<tr>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody></table>
+<p><strong>派生类型/复杂类型</strong></p>
+<ul>
+<li>指针 pointer</li>
+<li>数组</li>
+<li>结构体 struct</li>
+<li>管道 Channel</li>
+<li>函数</li>
+<li>切片 slice</li>
+<li>接口 interface</li>
+<li>map</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Go/" rel="tag">Go</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Docker/Docker安装常用镜像操作" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -250,676 +682,13 @@
 
 </article>
     
-    <article id="post-SpringCloud/谷粒商城项目基础部分说明" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/04/12/SpringCloud/%E8%B0%B7%E7%B2%92%E5%95%86%E5%9F%8E%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E9%83%A8%E5%88%86%E8%AF%B4%E6%98%8E/"
-    >谷粒商城项目基础部分说明</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/04/12/SpringCloud/%E8%B0%B7%E7%B2%92%E5%95%86%E5%9F%8E%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E9%83%A8%E5%88%86%E8%AF%B4%E6%98%8E/" class="article-date">
-  <time datetime="2020-04-12T04:00:00.000Z" itemprop="datePublished">2020-04-12</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Docker安装redis和mysql操作"><a href="#Docker安装redis和mysql操作" class="headerlink" title="Docker安装redis和mysql操作"></a>Docker安装redis和mysql操作</h2><p>略</p>
-<h2 id="项目搭建初始化"><a href="#项目搭建初始化" class="headerlink" title="项目搭建初始化"></a>项目搭建初始化</h2><h3 id="数据库初始化"><a href="#数据库初始化" class="headerlink" title="数据库初始化"></a>数据库初始化</h3><p>将资料里的数据库脚本拷贝到sqlyog里，执行。确实是得拷贝过去，拖过去确实有问题。</p>
-<p>数据库的5个库依次创建到docker mysql中即可。</p>
-<h3 id="项目初始化"><a href="#项目初始化" class="headerlink" title="项目初始化"></a>项目初始化</h3><h4 id="初始化项目"><a href="#初始化项目" class="headerlink" title="初始化项目"></a>初始化项目</h4><p>按照视频说明，在码云创建仓库，通过idea clone下来，然后创建子模块</p>
-<ul>
-<li>gulimall-product：商品服务</li>
-<li>gulimall-coupon：优惠券</li>
-<li>gulimall-order：订单</li>
-<li>gulimall-ware：仓储</li>
-<li>gulimall-member：会员</li>
-</ul>
-<p>创建模块时使用spring Initializr,使用spring的创建路径，不建议使用<a target="_blank" rel="noopener" href="https://start.aliyun.com/">aliyun</a>的，如果你访问不了是spring的话就用这个吧。在创建coupon这个模块时会创建失败，只出现unknow文件，淘宝网的html页面。</p>
-<p>在创建时选择spring web和openfeign两个依赖即可。</p>
-<p>RunDashboard在最新版IDEA中已经改为services了。可以再workspacec.xml中添加组件</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">component</span> <span class="attr">name</span>=<span class="string">&quot;RunDashboard&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">option</span> <span class="attr">name</span>=<span class="string">&quot;configurationTypes&quot;</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">set</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">&quot;SpringBootApplicationConfigurationType&quot;</span> /&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">set</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">component</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>或者在Run configuration运行配置界面，复制一个启动类项，保存，右下角会出现提示RunDashboard，点击显示就好。</p>
-<h4 id="生成代码"><a href="#生成代码" class="headerlink" title="生成代码"></a>生成代码</h4><p>在码云的人人开源下载<a target="_blank" rel="noopener" href="https://gitee.com/renrenio/renren-fast">基础项目</a>和<a target="_blank" rel="noopener" href="https://gitee.com/renrenio/renren-generator">代码生成项目</a></p>
-<p>将基础项目和代码生成项目都整合到系统中，使用module作为子模块。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;modules&gt;</span><br><span class="line">    &lt;module&gt;gulimall-product&lt;&#x2F;module&gt;</span><br><span class="line">    &lt;module&gt;gulimall-ware&lt;&#x2F;module&gt;</span><br><span class="line">    &lt;module&gt;gulimall-coupon&lt;&#x2F;module&gt;</span><br><span class="line">    &lt;module&gt;gulimall-member&lt;&#x2F;module&gt;</span><br><span class="line">    &lt;module&gt;gulimall-order&lt;&#x2F;module&gt;</span><br><span class="line">    &lt;module&gt;gulimall-common&lt;&#x2F;module&gt;</span><br><span class="line">    &lt;module&gt;renren-fast&lt;&#x2F;module&gt;</span><br><span class="line">    &lt;module&gt;renren-generator&lt;&#x2F;module&gt;</span><br><span class="line">&lt;&#x2F;modules&gt;</span><br></pre></td></tr></table></figure>
-
-<p>使用代码生成系统生成各个模块的代码。主要修改<strong>yml文件的数据库连接</strong>，然后到generator.properties中修改如下信息</p>
-<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mainPath</span>=<span class="string">com.chen.gulimall</span></span><br><span class="line"><span class="comment">#包名</span></span><br><span class="line"><span class="attr">package</span>=<span class="string">com.chen.gulimall</span></span><br><span class="line"><span class="attr">moduleName</span>=<span class="string">member</span></span><br><span class="line"><span class="comment">#作者</span></span><br><span class="line"><span class="attr">author</span>=<span class="string">xxx</span></span><br><span class="line"><span class="comment">#Email</span></span><br><span class="line"><span class="attr">email</span>=<span class="string">xxx</span></span><br><span class="line"><span class="comment">#表前缀(类名不会包含表前缀)</span></span><br><span class="line"><span class="attr">tablePrefix</span>=<span class="string">ums_</span></span><br></pre></td></tr></table></figure>
-
-<p>mainPath建议写全和包名是一样的，不能少gulimall，否则生成代码要依赖common的时候没有gulimall就跟当前模块规则不符了。</p>
-<p>将生成的包解压，把main放入对应的src里就好了。删除vue的目录，现在还不需要。</p>
-<p>因为需要common的util的相关类，因此要创建gulimall-common模块。把对应需要的类从renren-fast中拷贝到common中。不要多拷，会造成web的依赖的。缺哪个拷哪个。这个是引入的依赖，不多不少即可。</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.chen.gulimall<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>gulimall<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.chen.gulimall<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>gulimall-common<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">name</span>&gt;</span>gulimall-common<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">description</span>&gt;</span>通用模块<span class="tag">&lt;/<span class="name">description</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">java.version</span>&gt;</span>1.8<span class="tag">&lt;/<span class="name">java.version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.baomidou<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mybatis-plus-boot-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.2.0<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.18.12<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-lang<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-lang<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.httpcomponents<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>httpcore<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.4.10<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>6.0.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>所有代码生成后，解决完了依赖后。可以配置application.yml并进行简单的list测试，一共5个模块，分别加上配置，7000,7100,7200…</p>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">7000</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">datasource:</span></span><br><span class="line">    <span class="attr">driverClassName:</span> <span class="string">com.mysql.jdbc.Driver</span></span><br><span class="line">    <span class="attr">url:</span> <span class="string">jdbc:mysql://192.168.0.88:3306/gulimall-sms?useUnicode=true&amp;characterEncoding=UTF-8&amp;useSSL=false</span></span><br><span class="line">    <span class="attr">username:</span> <span class="string">root</span></span><br><span class="line">    <span class="attr">password:</span> <span class="string">root</span></span><br><span class="line"><span class="attr">mybatis-plus:</span></span><br><span class="line">  <span class="attr">mapper-locations:</span> <span class="string">classpath:/mapper/**/*.xml</span></span><br><span class="line">  <span class="attr">typeAliasesPackage:</span> <span class="string">com.chen.gulimall.*.entity</span></span><br><span class="line">  <span class="attr">global-config:</span></span><br><span class="line">    <span class="attr">db-config:</span></span><br><span class="line">      <span class="attr">id-type:</span> <span class="string">auto</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="前端初始化"><a href="#前端初始化" class="headerlink" title="前端初始化"></a>前端初始化</h3><p>下载人人开源的开源项目，拷贝到项目下，通过<code>module</code>标签作为子模块。修改数据库连接，启动服务</p>
-<p>下载人人开元vue前端项目。尝试启动。</p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm install</span><br></pre></td></tr></table></figure>
-
-<p>在安装时可可能出现一下问题</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">Module build failed: Error: ENOENT: no such file or directory, scandir &#39;G:\vscode_test\renren-fast-vue\node_modules\node-sass\vendor&#39;</span><br></pre></td></tr></table></figure>
-
-<p>此时需要到node_module文件夹下执行命令即可</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">npm rebuild node-sass</span><br></pre></td></tr></table></figure>
-
-<h2 id="SpringCloud-Alibaba配置"><a href="#SpringCloud-Alibaba配置" class="headerlink" title="SpringCloud Alibaba配置"></a>SpringCloud Alibaba配置</h2><h3 id="配置配置中心和注册中心"><a href="#配置配置中心和注册中心" class="headerlink" title="配置配置中心和注册中心"></a>配置配置中心和注册中心</h3><p>首先在common中添加对alibaba的依赖管理</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-alibaba-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.2.1.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="openfeign的说明"><a href="#openfeign的说明" class="headerlink" title="openfeign的说明"></a>openfeign的说明</h3><p>openfeign在项目初始化时，每个模块都添加了依赖，现在可以他放到common中，也可以不放。视频教程中演示，<u>在member模块(会员)中添加couponService Feign，然后添加FeignClient注解，并添加扫描注解</u>。其实一般有的视频在项目搭建有两种方式，一个是把api提取出来，就是把公用实体类和feignAPI放一块成为某个独立的api模块。不过其使用的原理一样，同样是把客户端注解放在接口上，把扫描注解放到调用者上，只不过是通过外部引入api依赖扫描而已。这样会让模块里看起来不会出现其他模块的接口名称。</p>
-<h3 id="nacos注册与配置管理"><a href="#nacos注册与配置管理" class="headerlink" title="nacos注册与配置管理"></a>nacos注册与配置管理</h3><p>注册中心与配置中心分为两个依赖</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">&lt;!--注册发现--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-discovery<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!--配置中心--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-alibaba-nacos-config<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>因为所有模块都会用到，所以就放到了common模块里。</p>
-<p>此处可分别看到<a target="_blank" rel="noopener" href="https://github.com/alibaba/spring-cloud-alibaba/wiki/Nacos-config">Nacos-config的配置</a>和<a target="_blank" rel="noopener" href="https://github.com/alibaba/spring-cloud-alibaba/wiki/Nacos-discovery">Nacos-discovery的配置</a></p>
-<p>不过，这个nacos很坑的是，要配置配置中心和注册中心，就一定要有bootstrap.yml来配置才行。对于discovery的情况，如果不使用bootstrap配置，则访问的就是localhost的，尽管配置server-addr也不行。所有的模块可能都需要注册活配置，也不能每个里面都有bootstrap啊，<strong>不过可以把nacos配置放到common的bootstrap里。这样别的模块就不用了定义了。可以自己配置自己的属性了</strong></p>
-<p>例如：在common下创建bootstrap.yml</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">nacos:</span></span><br><span class="line">      <span class="attr">config:</span></span><br><span class="line">        <span class="attr">file-extension:</span> <span class="string">yml</span></span><br><span class="line">      <span class="attr">server-addr:</span> <span class="number">192.168</span><span class="number">.199</span><span class="number">.220</span><span class="string">:8848</span></span><br></pre></td></tr></table></figure>
-
-<p>然后再renren-fast引入common的依赖，然后在自己的application.yml中配置它自己的信息</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">      <span class="attr">name:</span> <span class="string">renren-fast</span></span><br><span class="line">    <span class="attr">cloud:</span></span><br><span class="line">      <span class="attr">nacos:</span></span><br><span class="line">        <span class="attr">config:</span></span><br><span class="line">          <span class="attr">namespace:</span> <span class="string">b80c6dc3-5104-4f69-be53-8c17b14c53ed</span></span><br></pre></td></tr></table></figure>
-
-<p>因为它配的默认环境是dev，所以我们就在namespace命名空间下，创建名为renren-fast-dev.yml配置即可，然后把原来application-dev.yml的配置放到dataId为renren-fast-dev.yml的下面即可。</p>
-<p>另外nacos的config和discovery刚开始也没搞明白，配置也差不多。config配置中心就是说把服务的配置交到nacos的配置管理页面进行管理。读取配置会通过config配置的namespace、group、{prefix}-{profile}.{file-extension}来确定某个配置文件，包括使用<code>extension-configs</code>的拓展配置，可进行分框架的配置。</p>
-<h3 id="gateway网关"><a href="#gateway网关" class="headerlink" title="gateway网关"></a>gateway网关</h3><p>网关使用，鉴权，限流，路由等等。网关就是所有服务的入口，由网关的route来根据一系列条件判定走那个route。路由到哪个服务。</p>
-<p>网关路由的匹配规则是将匹配的路由服务名加上请求的路径。</p>
-<p>在举的baidu的例子中，</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="bullet">-</span> <span class="attr">id:</span> <span class="string">baidu</span></span><br><span class="line">  <span class="attr">uri:</span> <span class="string">https://www.baidu.com</span></span><br><span class="line">  <span class="attr">predicates:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">Path=/hello</span></span><br></pre></td></tr></table></figure>
-
-<p><a target="_blank" rel="noopener" href="https://cloud.spring.io/spring-cloud-static/spring-cloud-gateway/2.2.2.RELEASE/reference/html/#gateway-request-predicates-factories">predicate</a>属性表示断言，当匹配的路径包含/hello路径时，将会路由到uri的路径，然后将/hello拼接到uri后面，因此会说找不到页面。</p>
-<p>而·到后面对于renren-fast前端请求api的方式。因为同样会吧api后的路径拼接到<code>uri:lb://renren-fast</code>后面，但因为没有api这一层路径，所以使用<a target="_blank" rel="noopener" href="https://cloud.spring.io/spring-cloud-static/spring-cloud-gateway/2.2.2.RELEASE/reference/html/#gatewayfilter-factories">filter</a>的方式进行过滤方法是有多种，这个配置是重写路径:RewritePath，相当于路径按表达式替换了。</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">80</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">cloud:</span></span><br><span class="line">    <span class="attr">gateway:</span></span><br><span class="line">      <span class="attr">routes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">baidu</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">https://www.baidu.com</span></span><br><span class="line">          <span class="attr">predicates:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/hello</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">id:</span> <span class="string">default</span></span><br><span class="line">          <span class="attr">uri:</span> <span class="string">lb://renren-fast</span></span><br><span class="line">          <span class="attr">predicates:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">Path=/api/**</span></span><br><span class="line">          <span class="attr">filters:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">RewritePath=/api/(?&lt;segment&gt;.*),/renren-fast/$\&#123;segment&#125;</span></span><br><span class="line">  <span class="attr">application:</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">gulimall-gateway</span></span><br></pre></td></tr></table></figure>
-
-<p>当把默认api请求完成后,请求登录会出现跨域的情况。这里也说明了。只需要如下配置即可</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GuliCorsConfiguration</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CorsWebFilter <span class="title">corsWebFilter</span><span class="params">()</span></span>&#123;</span><br><span class="line">        UrlBasedCorsConfigurationSource source = <span class="keyword">new</span> UrlBasedCorsConfigurationSource();</span><br><span class="line">        CorsConfiguration configuration = <span class="keyword">new</span> CorsConfiguration();</span><br><span class="line">        configuration.addAllowedOrigin(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        configuration.addAllowedMethod(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        configuration.addAllowedHeader(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        configuration.setAllowCredentials(<span class="keyword">true</span>);</span><br><span class="line">        source.registerCorsConfiguration(<span class="string">&quot;/api/**&quot;</span>,configuration);</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CorsWebFilter(source);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>然后因为renren-fast已经有配置cors了，所以把CorsConfig里的方法注释掉即可。</p>
-<h2 id="商品服务"><a href="#商品服务" class="headerlink" title="商品服务"></a>商品服务</h2><h3 id="商品分类"><a href="#商品分类" class="headerlink" title="商品分类"></a>商品分类</h3><p>商品分类接口</p>
-<h2 id="Mybatis-plus"><a href="#Mybatis-plus" class="headerlink" title="Mybatis-plus"></a>Mybatis-plus</h2><h3 id="逻辑删除"><a href="#逻辑删除" class="headerlink" title="逻辑删除"></a><a target="_blank" rel="noopener" href="https://mp.baomidou.com/guide/logic-delete.html">逻辑删除</a></h3><p>yml配置</p>
-<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">mybatis-plus:</span></span><br><span class="line">  <span class="attr">global-config:</span></span><br><span class="line">    <span class="attr">db-config:</span></span><br><span class="line">      <span class="attr">logic-delete-field:</span> <span class="string">flag</span>  <span class="comment">#全局逻辑删除字段值 3.3.0开始支持，详情看下面。</span></span><br><span class="line">      <span class="attr">logic-delete-value:</span> <span class="number">1</span> <span class="comment"># 逻辑已删除值(默认为 1)</span></span><br><span class="line">      <span class="attr">logic-not-delete-value:</span> <span class="number">0</span> <span class="comment"># 逻辑未删除值(默认为 0)</span></span><br></pre></td></tr></table></figure>
-
-<p>然后再实体类字段上添加注解</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@TableLogic(delval = &quot;0&quot;)</span></span><br><span class="line"><span class="keyword">private</span> Integer showStatus;</span><br></pre></td></tr></table></figure>
-
-<p>默认注解 大于 全局逻辑删除字段和删除值配置。</p>
-<h2 id="附录"><a href="#附录" class="headerlink" title="附录"></a>附录</h2><h3 id="VSCode用户代码片段"><a href="#VSCode用户代码片段" class="headerlink" title="VSCode用户代码片段"></a>VSCode用户代码片段</h3><p>文件-首选项-用户代码片段</p>
-<p>可为当前项目、全局、编程语言新建片段文件。添加后，可进行快捷键提示。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Linux/通过VM ware制作linux启动U盘" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/04/03/Linux/%E9%80%9A%E8%BF%87VM%20ware%E5%88%B6%E4%BD%9Clinux%E5%90%AF%E5%8A%A8U%E7%9B%98/"
-    >通过VMWare制作linux启动U盘</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/04/03/Linux/%E9%80%9A%E8%BF%87VM%20ware%E5%88%B6%E4%BD%9Clinux%E5%90%AF%E5%8A%A8U%E7%9B%98/" class="article-date">
-  <time datetime="2020-04-03T08:48:00.000Z" itemprop="datePublished">2020-04-03</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p><strong>以下方法并不能做启动盘，但做移动系统还是可以的</strong></p>
-<h3 id="制作"><a href="#制作" class="headerlink" title="制作"></a>制作</h3><p>本文主要描述的是制作linux自启动u盘，即没有图形页面，直接通过ssh远程操作机器了。因此首先U盘是引导安装或者这个U盘就是一个简易的Linux系统。我们要使用他只需要将u盘插上主板，并将远程ssh将硬盘挂载上即可。</p>
-<p>这是第一个方式，第二种就是引导安装，批量自动安装系统。这个实现起来可能会比较复杂，甚至我也没弄好。</p>
-<p>对于没有GVA,HDMI等图形输出接口的设备而适用。但首先你确保你的主板是可以直接U盘启动的。理论上是可以的，不过在启动前你需要把硬盘都拔掉。因为没有硬盘设备，只有U盘输入设备，因此应该是直接从U盘启动的。然后再次插上硬盘，顺序应该就没问题了。不过这个U盘不能拔。</p>
-<p>材料:</p>
-<ul>
-<li>16/32GU盘</li>
-<li>安装VMWare 软件的笔记本或家用电脑,我用的时15版本，不过配置变更不是太大</li>
-<li>linux的ISO镜像文件</li>
-</ul>
-<p>按标准流程来，创建一个虚拟机</p>
-<p>流程:</p>
-<ol>
-<li>文件</li>
-<li>新建虚拟机</li>
-<li>自定义</li>
-<li>下一步</li>
-<li>单选  稍后安装操作系统</li>
-<li>下一步</li>
-<li>虚拟机名称定义一下，位置定义一下</li>
-<li>设置cpu数量和内存</li>
-<li>设置网络连接方式为桥接</li>
-<li>后面全都默认即可</li>
-</ol>
-<p>编辑虚拟机，选CD/DVD添加iso镜像。</p>
-<p>选择USB控制器，根据你的U盘类型，选择兼容2.0还是3.0，然后勾选显示所有USB输入设备。</p>
-<p>启动虚拟机，然后插入U盘到电脑，选择虚拟机-可移动设备-你的U盘，选择连接。然后在设置分区的时候就找到U盘了。</p>
-<p>启动服务器，一步步安装。在安装的时候，要配置分区的话。你就需要将分区设置到你的U盘上了。这个在网上搜索centos硬盘分区都能找到怎么配。简要地说一下centos7安装中，可以自定义分区，点一下哪个帮助自定义创建，就都给你弄好了。一般是一个/boot配置为标准分区，文件系统都可以选ext4的，一个/根设为LVM逻辑分区，一个swap交换分区，文件系统选为swap。</p>
-<p>等待安装就行了。</p>
-<p>安装完后会让重启，可以选择重启，但是起不来，此时你要关闭虚拟机，在菜单栏上关掉。</p>
-<p>然后编辑虚拟机设置，点击添加，添加一个硬盘，默认选SCSI即可，选择 使用物理磁盘，然后会有设备选择就是硬盘，一般都是最后一个，可以点击使用单个分区按钮之后点下一步，可以看到容量。来确定是不是U盘。知道是哪个后选择使用整个磁盘的单选按钮。设置磁盘文件默认就好。</p>
-<p>然后点菜单 虚拟机-电源-打开电源时进入固件，在boot栏里更换一下U盘在前，通过+号可以向上移。随后F10保存并退出，就直接启动U盘里的系统了，可以再这里操作了。</p>
-<p>等把必要的ssh，静态ip等都配置好就可以关闭虚拟机，拿出来使用了。</p>
-<p>静态IP的配置</p>
-<p>查看ifconfig看看网卡名叫什么，到/etc/sysconfig/network-scripts中找到ifcfg-网卡名即可。添加</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DIY/" rel="tag">DIY</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-PostgreSQL/Postgresql常用函数" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/24/PostgreSQL/Postgresql%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/"
-    >Postgresql常用函数</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/24/PostgreSQL/Postgresql%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/" class="article-date">
-  <time datetime="2020-03-24T01:01:02.000Z" itemprop="datePublished">2020-03-24</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/PostgreSQL/">PostgreSQL</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="日期函数"><a href="#日期函数" class="headerlink" title="日期函数"></a>日期函数</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p>获取最近一周，一个月，一年的日期函数</p>
-<ul>
-<li>近一周<br>select now() - interval ‘1 week’;</li>
-<li>近一月<br>select now() - interval ‘1 month’;</li>
-<li>近一年<br>select now() - interval ‘1 year’;</li>
-<li>下一周<br>select now() + interval ‘1 week’;</li>
-<li>下一月<br>select now() + interval ‘1 month’;</li>
-<li>下一年<br>select now() + interval ‘1 year’;<h3 id="获取指定时间段内的日期列表"><a href="#获取指定时间段内的日期列表" class="headerlink" title="获取指定时间段内的日期列表"></a>获取指定时间段内的日期列表</h3>select to_char(generate_series(‘2018-10-01’::date,’2018-10-25’,’1 day’),’yyyy-mm-dd’);<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> daytime::<span class="built_in">date</span> <span class="keyword">from</span> generate_series(</span><br><span class="line">	(<span class="string">&#x27;2017-06-01&#x27;</span>),		<span class="comment">--查询开始日期（可根据需求调整） </span></span><br><span class="line">	(<span class="keyword">select</span> <span class="keyword">now</span>()::<span class="built_in">date</span>),	<span class="comment">--查询结束日期（可根据需求调整） </span></span><br><span class="line"> 	<span class="string">&#x27;1 day&#x27;</span>			<span class="comment">--间隔（可根据需求调整）</span></span><br><span class="line">) s(daytime)</span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-<h3 id="日期截断-获取当前日期的年月日"><a href="#日期截断-获取当前日期的年月日" class="headerlink" title="日期截断,获取当前日期的年月日"></a>日期截断,获取当前日期的年月日</h3><p>date_trunc(‘&lt;unit&gt;’,&lt;date&gt;);</p>
-<ul>
-<li>截取为当天日期<br>select date_trunc(‘day’,now())</li>
-<li>截取为当月日期<br>select date_trunc(‘month’,now())</li>
-<li>截取小时，即当天0点整合12点整<br>select date_trunc(‘h’,now())<br>select date_trunc(‘h’,to_date(‘2020-02-12 09:00:00’,’YYYY-MM-DD HH24:mi:ss’))</li>
-<li>截取分钟，即当前当前分钟整，秒数归零<br>select date_trunc(‘minute’,now())</li>
-<li>截取当前季度，以1234位第一季度，当前月为2月则季度获取为1月1日<br>select date_trunc(‘quarter’,now())</li>
-</ul>
-<p>第二个参数为日期类型，可以使用日期函数，也可以使用<code>date &#39;2020-01-23 12:23:34&#39;</code>的方式表示为一个日期。还可使用time、timestamp、timestamptz定义对应格式的字符串。</p>
-<p><strong>interval ‘&lt;number&gt; &lt;unit&gt;’</strong><br>interval表示间隔多少，可以不要这个单词</p>
-<ul>
-<li>number 表示数量</li>
-<li>unit 表示单位,second、minute、hour、day、week、month、quarter、year都可以。</li>
-</ul>
-<h3 id="截取年月日时分秒"><a href="#截取年月日时分秒" class="headerlink" title="截取年月日时分秒"></a>截取年月日时分秒</h3><p>使用<strong>to_char</strong>函数，可进行截取</p>
-<ul>
-<li>获取年份,使用YYYY或YY<br>select to_char(date ‘1989-12-12’,’YYYY’)</li>
-<li>获取月份MM</li>
-<li>获取天DD</li>
-<li>获取星期,小写表示星期小写，首字母大写为星期首字母大小，全大写为星期字母全大写<br>select to_char(date ‘1989-12-13’,’day’)</li>
-</ul>
-<p><strong>extract(&lt;unit&gt; from &lt;date&gt;)</strong><br>该函数表示从date中提取，unit为单位，date为日期时间。但unit中的day表示的是日不是星期</p>
-<p><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/10/functions-formatting.html">此处为日期格式化中文官方文档</a></p>
-<h2 id="常用逻辑函数"><a href="#常用逻辑函数" class="headerlink" title="常用逻辑函数"></a>常用逻辑函数</h2><h3 id="COALESCE-val-val2-val3"><a href="#COALESCE-val-val2-val3" class="headerlink" title="COALESCE(val,val2[,val3])"></a>COALESCE(val,val2[,val3])</h3><p>该函数表示为空判断，如果val为空则使用val2的值，否则使用val的值。<br>如果3个参数表示，如果不为空使用val3</p>
-<h3 id="case-when-then-else-end可使用多条件判断"><a href="#case-when-then-else-end可使用多条件判断" class="headerlink" title="case when then else end可使用多条件判断"></a>case when then else end可使用多条件判断</h3>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PostgreSQL/" rel="tag">PostgreSQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-MongoDB/MongoDB笔记" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/24/MongoDB/MongoDB%E7%AC%94%E8%AE%B0/"
-    >MongoDB笔记</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/24/MongoDB/MongoDB%E7%AC%94%E8%AE%B0/" class="article-date">
-  <time datetime="2020-03-24T00:52:12.000Z" itemprop="datePublished">2020-03-24</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>Windows安装mongodb，去官网下载windows最新msi版本，在安装时。取消勾选左下角的Install Mongodb compass选项。改选项是数据库的客户端功能句，在安装时会非常非常慢。<br>安装后服务已经默认安装过了，开发服务即可，cmd输入mongo即可进入mongo命令行</p>
-<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ol>
-<li>数据库<br>数据仓库，一个mongodb有多个数据库</li>
-<li>文档document<br>K-V键值对，类似关系数据库的行，文档中的键/值对顺序是有序的，区分类型和大小写，文档不能有重复的键。<br>键不能有\0(空字符),这个字符表示键的结尾;“.”和$有特别意义，只有在特定环境下才能使用；以下划线”_”开头的键是保留的(不是严格要求的)</li>
-<li>集合collection<br>类似关系数据库的表。当第一行文档插入后，集合就被创建。</li>
-</ol>
-<ul>
-<li>集合名不能是空字符串””</li>
-<li>集合名不能有\0</li>
-<li>集合名不能以system.开头</li>
-<li>集合名不能有保留字符</li>
-</ul>
-<ol start="3">
-<li>元数据<br>数据库的信息，存储在集合中，通过<code>数据库名.system.*</code>的方式</li>
-</ol>
-<ul>
-<li>dbname.system.namespaces:列出所有命名空间</li>
-<li>dbname.system.indexes:列出所有索引</li>
-<li>dbname.system.profile:包含数据库概要(profile)信息</li>
-<li>dbname.system.users:列出所有可访问数据库的用户</li>
-<li>dbname.local.sources:包含复制对端（slave）的服务器信息和状态</li>
-</ul>
-<ol start="4">
-<li>ObjectId<br>类似为唯一主键，可以很快的生成和排序，包含12bytes<br>存储文档必须要有一个_id键，可以是任何类型，默认是ObjectId，在插入不指定_id时自动生成</li>
-</ol>
-<h2 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h2><ul>
-<li>查看所有数据库(<strong>show dbs</strong>)</li>
-<li>使用数据库,不存在则会创建(<strong>use <DATABASE_NAME></strong>)</li>
-<li>查看当前使用的数据库(<strong>db</strong>)</li>
-<li>查看所有集合(<strong>show collections</strong>)</li>
-<li>删除集合(<strong>db.collection.drop()</strong>)</li>
-<li>删除数据库(<strong>db.dropDatabase()</strong>)</li>
-</ul>
-<p>CURD操作:</p>
-<table>
-<thead>
-<tr>
-<th>命令</th>
-<th>示例</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>db.<collection_name>.insert()</td>
-<td>db.student.insert({“name”:”名称”,”age”:18})</td>
-<td></td>
-</tr>
-<tr>
-<td>db.<collection_name>.insertOne()</td>
-<td>db.student.insertOne({“name”:”名称”,”age”:18})</td>
-<td></td>
-</tr>
-<tr>
-<td>db.<collection_name>.insertMany()</td>
-<td>db.student.insertMany([{“name”:”名称”,”age”:20},{“name”:”名2”,”age”:22}])</td>
-<td></td>
-</tr>
-</tbody></table>
-<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/query-documents.html">查询</a></strong></p>
-<table>
-<thead>
-<tr>
-<th>命令</th>
-<th>示例</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>db.<collection_name>.find(,)</td>
-<td>db.student.find();<br/>db.student.find({name:”名称”});<br/>db.student.findOne({name:”名称”});<br/>db.student.find({name:”名称”}).count();<br/>db.student.find({name:{ $in: [“名称”,”名2”]}});<br/> db.student.find({name:”名称”,age:{ $gt: 19}});<br/>db.student.find({ $or: [{name:”名称”},{age:{ $gt:19 }}]});</td>
-<td>查询所有<br/>指定属性名精确查询<br/>匹配第一个<br/>查询结果数量<br/>使用in表达式匹配<br/>使用and，逗号就相当于and，age大于($lt小于)19的<br/>or表达式数组，逗号为或，name为名称,age大于19的</td>
-</tr>
-</tbody></table>
-<p><strong>数组上的查询，即字段的值为数组</strong>,<code>name:[&quot;chen&quot;,&quot;xiao chen&quot;]</code></p>
-<ul>
-<li><p>db.users.find( { badges: [ “blue”, “black” ] } ):精确匹配</p>
-</li>
-<li><p>db.users.find( { badges: “black” } ):包含某个元素</p>
-</li>
-<li><p>db.users.find( { “badges.0”: “black” } ):匹配第一元素是black的</p>
-</li>
-<li><p><code>db.users.find( &#123; finished: &#123; $elemMatch: &#123; $gt: 15, $lt: 20 &#125; &#125; &#125; ): $elemMatch</code>为数组提供的，需要至少满足一个条件</p>
-</li>
-<li><p>db.users.find( { finished: { $gt: 15, $lt: 20 } } ):满足多条件</p>
-</li>
-<li><p>db.student.find({name:/^小/}):查询出name以小开头的数据</p>
-</li>
-<li><p>db.student.find({name:/刚$/}):查询name以刚结尾的数据</p>
-</li>
-<li><p>$lt:&lt;</p>
-</li>
-<li><p>$gt:&gt;</p>
-</li>
-<li><p>$lte:&lt;=</p>
-</li>
-<li><p>$gte:&gt;=</p>
-</li>
-<li><p>$net:!=</p>
-</li>
-<li><p>$eq:=</p>
-</li>
-</ul>
-<p>嵌入文档数组查询:</p>
-<ul>
-<li>db.users.find( { ‘points.0.points’: { $lte: 55 } } ):查询points属性的第一个文档的points属性匹配</li>
-</ul>
-<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/update-documents.html">更新</a></strong></p>
-<table>
-<thead>
-<tr>
-<th>命令</th>
-<th>示例</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>db.collection.updateOne()</td>
-<td>db.student.updateOne({name:”名2”},{$set:{address:”丰台”,name:”小刚”},$currentDate: {lastModifyDate:true}});</td>
-<td>方法第一个参数为查询需要修改的数据，第二个参数为修改，$set表示需要修改的属性或要添加的属性(没有的时候),$currentDate表示为数据添加一个当前日期，lastModifyDate字段为自定义字段，若没有则创建。该方法只修改一条</td>
-</tr>
-<tr>
-<td>db.collection.updateMany()</td>
-<td>同上</td>
-<td>该方法可匹配多个数据进行更改</td>
-</tr>
-<tr>
-<td>db.collection.update()</td>
-<td>db.student.update({name:”名2”},{$set:{address:”丰台”}},{multi:true})</td>
-<td>该方法默认只修改一条数据，若设置multi:true，则修改多条数据</td>
-</tr>
-<tr>
-<td>db.collection.replaceOne()</td>
-<td>db.student.replaceOne({name:”小明”},{name:”小飞”,address:”大马士革”});</td>
-<td>表示替换一条匹配的文档称为新文档</td>
-</tr>
-<tr>
-<td>db.collection.update()</td>
-<td>db.student.update({name:”小刚”},{$unset: {lastModifyDate: “” }});</td>
-<td>删除匹配数据的某个属性</td>
-</tr>
-</tbody></table>
-<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/remove-documents.html">删除</a></strong></p>
-<table>
-<thead>
-<tr>
-<th>命令</th>
-<th>示例</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>db.collection.deleteOne()</td>
-<td>db.student.deleteOne({name:”小飞”});</td>
-<td>仅删除匹配的第一条数据</td>
-</tr>
-<tr>
-<td>db.collection.deleteMany()</td>
-<td>db.users.deleteMany({name:”小飞”})</td>
-<td>删除所有名称为小飞的数据,若传入参数为空参，则清空所有数据</td>
-</tr>
-<tr>
-<td>db.collection.remove()</td>
-<td>db.users.remove({name:”小飞”})</td>
-<td>删除所有name为小飞的数据</td>
-</tr>
-<tr>
-<td>db.collection.remove()</td>
-<td>db.users.remove({name:”小飞”},1)</td>
-<td>仅删除第一条名称为小飞的数据,第二个参数为justOne,bollean类型</td>
-</tr>
-<tr>
-<td>db.collection.remove()</td>
-<td>db.users.remove({name:”小飞”},{justOne:true})</td>
-<td>remove默认删除所有，使用justOne为true表示仅第一条</td>
-</tr>
-</tbody></table>
-<p><strong>操作符</strong></p>
-<p>$type操作符:检索集合中匹配的数据类型。Mongodb中众多数据类型都有对应的数子，查询是可以通过一下查询</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.student.find(&#123;name:&#123;$type:&quot;string&quot;&#125;&#125;)</span><br><span class="line">或</span><br><span class="line">db.student.find(&#123;name:&#123;$type:2&#125;&#125;)</span><br></pre></td></tr></table></figure>
-
-<p><strong>limit()与skip()方法，sort()</strong><br>limit(number)表示从结果集中读取指定数量的数据,默认不填查询全部<br>skip(number)表示从结果集中跳过指定数量,默认为0，即跳过0行<br><strong>但是如果要将limit和skip同时使用，放置顺序不管如何。其mongodb的解析顺序是固定的，先skip()再limit()，如果有sort()，则sort()在最前</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.student.find().skip(1).limit(2)</span><br><span class="line">与下面是相同的</span><br><span class="line">db.student.find().limit(2).skip(1)</span><br></pre></td></tr></table></figure>
-<p>sort方法，-1表示降序，-1表示升序</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.student.find().sort(&#123;age:1,address:-1&#125;);</span><br></pre></td></tr></table></figure>
-
-<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><h3 id="单键索引创建"><a href="#单键索引创建" class="headerlink" title="单键索引创建"></a>单键索引创建</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;name:1&#125;)</span><br></pre></td></tr></table></figure>
-<p>以上表示，创建name字段的索引，1表示升序，-1表示降序</p>
-<p>嵌入式文档的属性单键索引创建</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;&quot;class.address&quot;:-1&#125;)</span><br></pre></td></tr></table></figure>
-<p>使用点的方式，表示学生所在班级地址字段的索引。</p>
-<p>在嵌入式文档创建索引，若要使用需要在查询时写全部字段</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;class:-1&#125;)</span><br></pre></td></tr></table></figure>
-
-<h3 id="复合索引创建"><a href="#复合索引创建" class="headerlink" title="复合索引创建"></a>复合索引创建</h3><p>db.collection.createIndex({name:1,class:1})<br>复合索引的排序<br><strong>索引以升序（1）或降序（-1）排序顺序存储对字段的引用。对于单字段索引，键的排序无关紧要，对于复合索引，排序顺序决定索引是否支持排序操作</strong></p>
-<p>建立复合索引后的排序，如果要想索引可以使用</p>
-<ul>
-<li>索引字段<strong>前后顺序一致</strong>且<strong>数量一致</strong>，查询顺序与索引匹配或相反</li>
-<li>复合索引定义数量与查询排序数量不一致，则以复合索引字段前置优先规则<br>如上规则创立索引:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">db.student.createIndex(&#123;age:-1,name:1&#125;);</span><br><span class="line">以上索引,以下可用</span><br><span class="line">db.student.find().sort(&#123;age:-1,name:1&#125;);</span><br><span class="line">db.student.find().sort(&#123;age:1,name:-1&#125;);</span><br><span class="line">db.student.find().sort(&#123;age:-1&#125;);</span><br><span class="line">但下面这个不可用</span><br><span class="line">db.student.find().sort(&#123;age:-1,name:-1&#125;);</span><br></pre></td></tr></table></figure>
-对于查询时使用索引，只要数量一致，与顺序无关,或使用复合索引的前置字段。</li>
-</ul>
-<p><strong>多键索引</strong>:为数组键创建的索引是多键索引，它为数组中每个元素添加一个索引项。<br><strong>文本索引</strong>:一个集合只能创建创建一个文本索引。为了索引一个存储字符串或字符串数组的键，可以创建文本索引。也可以为文本索引索引多个字段，即复合文本索引。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db.reviews.createIndex( &#123; comments: &quot;text&quot; &#125; )</span><br><span class="line">db.reviews.createIndex( &#123; subject: &quot;text&quot;, comments: &quot;text&quot; &#125; )</span><br></pre></td></tr></table></figure>
-
-<p><strong>索引的第二个参数为可选参数</strong>:</p>
-<ul>
-<li>background:Boolean:建索引为阻塞其他数据库操作，所以若键索引的键数据过多，可设置为true，后台建立索引。默认为false</li>
-<li>unique:Boolean:建立的索引是否是唯一索引,默认false</li>
-<li>name:string:索引的名称</li>
-<li>sparse:Boolean:对文档中不存在的字段数据不启用索引。如果设置为true的话，在索引字段中不会查询出不包含对应字段的文档。默认false</li>
-<li>expireAfterSeconds:integer:指定一个以秒为单位的数值，设定集合的生存时间。</li>
-</ul>
-<p>获得所有索引:db.student.getIndexes();<br>获得索引总大小:db.student.totalIndexSize()<br>获得表数据总大小:db.student.totalSize()<br>删除所有索引:db.student.dropIndexs()<br>删除指定名称索引:db.student.dropIndex(“索引名”)</p>
-<h2 id="聚合"><a href="#聚合" class="headerlink" title="聚合"></a>聚合</h2><p>即聚合方法，类似count，sum等</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.COLLECTION_NAME.aggregate(AGGREGATE_OPERATION)  </span><br></pre></td></tr></table></figure>
-<p>示例<br>db.mycol.aggregate([{$group : {_id : “$by_user”, num_tutorial : {$sum : 1}}}])<br>以上结果类似于select by_user, count(<em>) from mycol group by by_user;<br>首先<code>_id</code>表示要分组的字段,值需要使用键前面加$符号。后面的num_tutorial表示结果集列名，里面的$sum是重点，1说明是1倍，相当于count(</em>),若为2,则其查询的值为count(*) * 2。这个至应该是要进行计算操作的键名。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.mycol.aggregate([&#123;$group : &#123;_id : &quot;$by_user&quot;, likes : &#123;$sum : &quot;$likes&quot;&#125;&#125;&#125;]) </span><br></pre></td></tr></table></figure>
-<p>以上的查询表示，以by_user键进行分组，求likes字段的所有和。注意键前需要$符号<br>类似:select by_user,sum(likes) from mycol group by by_user;</p>
-<p>表达式有:</p>
-<ul>
-<li>$sum:求和或数量</li>
-<li>$avg:求平均数</li>
-<li>$min:求最小值</li>
-<li>$max:求最大值</li>
-<li>$push:将结果文档中插入值到数组中。也就是说不是求数量和求和，而是将分组的结果放到倍分组列里，这个列变成了数组类型</li>
-<li>$addToSet:将结果文档中插入值到数组中，但是set，所以会去重。</li>
-<li>$first:根据资源文档的排序获取第一个文档数据。查询出所有的数据，取第一个值组成分组</li>
-<li>$last:根据资源文档的排序获取第一个文档数据。查询出所有的数据，取最后一个值组成分组</li>
-</ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb/" rel="tag">mongodb</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/18/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/">47</a><a class="extend next" rel="next" href="/page/20/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/18/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/17/">17</a><a class="page-number" href="/page/18/">18</a><span class="page-number current">19</span><a class="page-number" href="/page/20/">20</a><a class="page-number" href="/page/21/">21</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/20/">下一页</a>
   </nav>
   
 </section>

@@ -78,6 +78,556 @@
     
     
     
+    <article id="post-Spring/在使用Spring整合Mybatis出现的问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/11/01/Spring/%E5%9C%A8%E4%BD%BF%E7%94%A8Spring%E6%95%B4%E5%90%88Mybatis%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/"
+    >在使用Spring整合Mybatis出现的问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/11/01/Spring/%E5%9C%A8%E4%BD%BF%E7%94%A8Spring%E6%95%B4%E5%90%88Mybatis%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-11-01T07:13:00.000Z" itemprop="datePublished">2018-11-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <ol>
+<li>没有扫描到xml</li>
+</ol>
+<p>所某个接口的方法not found，则说明没有找到xml或出现后面的情况 如果是当前错误，没有扫描到xml</p>
+<pre><code>在pom.xml中build标签中添加
+&lt;resources&gt;
+    &lt;resource&gt;
+        &lt;directory&gt;src/main/java&lt;/directory&gt;
+        &lt;includes&gt;
+            &lt;include&gt;**/*.xml&lt;/include&gt;
+        &lt;/includes&gt;
+    &lt;/resource&gt;
+&lt;/resources&gt;</code></pre><ol start="2">
+<li>配置@Mapper注解</li>
+</ol>
+<p>不要忘了在Mapper接口上配置，这与spring MVC上是不一致的，一个是mybatis的注解，一个是spring的注解</p>
+<ol start="3">
+<li><p>SqlSessionFactoryBean 和MapperScannerConfigurer配置是否完整</p>
+</li>
+<li><p>无Spring MVC核心控制器的，只使用Spring框架的情况下获取bean实例，需要先获得ApplicationContext,然后getBean</p>
+</li>
+</ol>
+<p>applicationContext=new ClassPathXmlApplicationContext(“classpath:applicationContext.xml”);</p>
+<ol start="5">
+<li>执行myabtis插入语句时ORA-00933: SQL 命令未正确结束</li>
+</ol>
+<p>可能出现的问题是，你插入的不带主键</p>
+<pre><code>&lt;insert id=&quot;insert_&quot; useGeneratedKeys=&quot;false&quot;&gt;
+&lt;/insert&gt;</code></pre><p>所以要显示设置useGeneratedKeys=false才可以正常插入</p>
+<ol start="6">
+<li>执行mybatis插入语句时，出现; uncategorized SQLException; SQL state [99999]; error code [17090]; 不允许的操作; nested exception is jav 类似</li>
+</ol>
+<p>可能出现的原因是，频繁批量插入，没有主键，跟上面的一样的意思，</p>
+<pre><code>&lt;insert id=&quot;insert_&quot; useGeneratedKeys=&quot;false&quot;&gt;
+&lt;/insert&gt;</code></pre><ol start="7">
+<li>spring jdbc访问数据库问题java.lang.NoSuchMethodError: org.apache.commons.pool2.impl.GenericObjectPool</li>
+</ol>
+<p>你使用的是dbcp2的数据源，使用pool2，这个以前用的时候就没发现问题，现在突然有了，网上说是版本问题，就算是最高版本也不行，所以如果可以的话改用c3p0也行</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.mchange&lt;/groupId&gt;
+    &lt;artifactId&gt;c3p0&lt;/artifactId&gt;
+    &lt;version&gt;0.9.5.2&lt;/version&gt;
+&lt;/dependency&gt;
+
+
+&lt;bean id=&quot;dataSource&quot; class=&quot;com.mchange.v2.c3p0.ComboPooledDataSource&quot;&gt;
+        &lt;property name=&quot;driverClass&quot; value=&quot;$&#123;user.driver&#125;&quot;/&gt;
+        &lt;property name=&quot;jdbcUrl&quot; value=&quot;$&#123;user.url&#125;&quot;/&gt;
+        &lt;property name=&quot;user&quot; value=&quot;$&#123;user.username&#125;&quot;/&gt;
+        &lt;property name=&quot;password&quot; value=&quot;$&#123;user.password&#125;&quot;/&gt;
+    &lt;/bean&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Mybatis/" rel="tag">Mybatis</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/数据库DM导入报错ORA-14460- 只能指定一个 COMPRESS 或 NOCOMPRESS 子句" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/11/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93DM%E5%AF%BC%E5%85%A5%E6%8A%A5%E9%94%99ORA-14460-%20%E5%8F%AA%E8%83%BD%E6%8C%87%E5%AE%9A%E4%B8%80%E4%B8%AA%20COMPRESS%20%E6%88%96%20NOCOMPRESS%20%E5%AD%90%E5%8F%A5/"
+    >数据库DM导入报错ORA-14460: 只能指定一个 COMPRESS 或 NOCOMPRESS 子句</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/11/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93DM%E5%AF%BC%E5%85%A5%E6%8A%A5%E9%94%99ORA-14460-%20%E5%8F%AA%E8%83%BD%E6%8C%87%E5%AE%9A%E4%B8%80%E4%B8%AA%20COMPRESS%20%E6%88%96%20NOCOMPRESS%20%E5%AD%90%E5%8F%A5/" class="article-date">
+  <time datetime="2018-11-01T07:06:59.000Z" itemprop="datePublished">2018-11-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>解决办法: 需要在这个导入语句中加入transform=segment_attributes:n参数。该参数可与忽略expdp导出时附带的相关表空间和存储子句约束</p>
+<pre><code>impdp xxx/xxx dumpfile=xxx.dmp transform=segment_attributes:n directory=xxx</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle分析统计函数GROUPROLL、GROUPING、CUBE函数" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/25/Oracle/Oracle%E5%88%86%E6%9E%90%E7%BB%9F%E8%AE%A1%E5%87%BD%E6%95%B0GROUPROLL%E3%80%81GROUPING%E3%80%81CUBE%E5%87%BD%E6%95%B0/"
+    >Oracle分析统计函数GROUPROLL、GROUPING、CUBE函数</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/25/Oracle/Oracle%E5%88%86%E6%9E%90%E7%BB%9F%E8%AE%A1%E5%87%BD%E6%95%B0GROUPROLL%E3%80%81GROUPING%E3%80%81CUBE%E5%87%BD%E6%95%B0/" class="article-date">
+  <time datetime="2018-10-25T08:49:32.000Z" itemprop="datePublished">2018-10-25</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="分析统计函数和其他函数"><a href="#分析统计函数和其他函数" class="headerlink" title="分析统计函数和其他函数"></a>分析统计函数和其他函数</h1><h2 id="一、-substr截取函数"><a href="#一、-substr截取函数" class="headerlink" title="一、 substr截取函数"></a>一、 substr截取函数</h2><p>substr(string,a[,b])</p>
+<ul>
+<li>string表示被截取的字符串</li>
+<li>a表示开始截取的位置，默认截取到末尾，返回被截取的字符串，当值为0/1都是第一位</li>
+<li>b表示结束截取的位置，返回被截取的字符串</li>
+</ul>
+<h2 id="二、-DECODE"><a href="#二、-DECODE" class="headerlink" title="二、 DECODE"></a>二、 DECODE</h2><p>DECODE(条件，值1，返回值1，值2，返回值2，值3，返回值3,…..) 当条件值等于值1时返回返回值1，为值2时，返回返回值2。类似于if..else语句</p>
+<h2 id="三、-NVL函数、NVL2函数、NULLIF函数、COALESCE函数"><a href="#三、-NVL函数、NVL2函数、NULLIF函数、COALESCE函数" class="headerlink" title="三、 NVL函数、NVL2函数、NULLIF函数、COALESCE函数"></a>三、 NVL函数、NVL2函数、NULLIF函数、COALESCE函数</h2><ol>
+<li>NVL(exp1,exp2)</li>
+</ol>
+<p>如果exp1为空则返回exp2的值，否则返回exp1的值，如果两者都为空则返回空。</p>
+<ol start="2">
+<li>NVL2(exp1,exp2,ep3)</li>
+</ol>
+<p>如果exp1为空则返回exp2，否则返回exp3</p>
+<ol start="3">
+<li>NULLIF(exp1,exp2)</li>
+</ol>
+<p>如果exp1等于exp2，则返回空，否则返回exp1</p>
+<ol start="4">
+<li>COALESCE(exp1,exp2,exp3,…)</li>
+</ol>
+<p>返回表达式中第一个非空的表达式。所有exp都必须是同一种类型或可以隐式转换为同一种类型。</p>
+<h2 id="四、-ROLLUP、GROUPBY、GROUPING、GROUPING-SET"><a href="#四、-ROLLUP、GROUPBY、GROUPING、GROUPING-SET" class="headerlink" title="四、 ROLLUP、GROUPBY、GROUPING、GROUPING SET"></a>四、 ROLLUP、GROUPBY、GROUPING、GROUPING SET</h2><pre><code>create table group_test (group_id int, job varchar2(10), name varchar2(10), salary int);
+
+insert into group_test values (10,&apos;Coding&apos;,    &apos;Bruce&apos;,1000);
+insert into group_test values (10,&apos;Programmer&apos;,&apos;Clair&apos;,1000);
+insert into group_test values (10,&apos;Architect&apos;, &apos;Gideon&apos;,1000);
+insert into group_test values (10,&apos;Director&apos;,  &apos;Hill&apos;,1000);
+
+insert into group_test values (20,&apos;Coding&apos;,    &apos;Jason&apos;,2000);
+insert into group_test values (20,&apos;Programmer&apos;,&apos;Joey&apos;,2000);
+insert into group_test values (20,&apos;Architect&apos;, &apos;Martin&apos;,2000);
+insert into group_test values (20,&apos;Director&apos;,  &apos;Michael&apos;,2000);
+
+insert into group_test values (30,&apos;Coding&apos;,    &apos;Rebecca&apos;,3000);
+insert into group_test values (30,&apos;Programmer&apos;,&apos;Rex&apos;,3000);
+insert into group_test values (30,&apos;Architect&apos;, &apos;Richard&apos;,3000);
+insert into group_test values (30,&apos;Director&apos;,  &apos;Sabrina&apos;,3000);
+
+insert into group_test values (40,&apos;Coding&apos;,    &apos;Samuel&apos;,4000);
+insert into group_test values (40,&apos;Programmer&apos;,&apos;Susy&apos;,4000);
+insert into group_test values (40,&apos;Architect&apos;, &apos;Tina&apos;,4000);
+insert into group_test values (40,&apos;Director&apos;,  &apos;Wendy&apos;,4000);
+
+commit;</code></pre><ol>
+<li><p>GROUP BY 分组，查询列除了聚合函数之外，都要在GROUP BY子句中出现，除了grouping函数</p>
+<p>select group_id,sum(salary) from group_test group by group_id;</p>
+<p>  GROUP_ID SUM(SALARY)</p>
+<hr>
+<pre><code>30       12000
+20        8000
+40       16000
+10        4000</code></pre></li>
+</ol>
+<p>以group_by，分组，查询每组的总薪资。</p>
+<ol start="2">
+<li>ROLLUP 分组，不仅进行分组，还对每组进行聚合统计，所有组进行聚合统计</li>
+</ol>
+<p><strong>ROLLUP统计一列的</strong></p>
+<pre><code>select group_id,sum(salary) from group_test group by  rollup(group_id);
+
+  GROUP_ID SUM(SALARY)
+---------- -----------
+        10        4000
+        20        8000
+        30       12000
+        40       16000
+                 40000</code></pre><p><strong>ROLLUP统计两列的</strong></p>
+<pre><code>select group_id,job,sum(salary) from group_test group by rollup(group_id,job);
+
+  GROUP_ID JOB                  SUM(SALARY)
+---------- -------------------- -----------
+        10 Coding                      1000
+        10 Director                    1000
+        10 Architect                   1000
+        10 Programmer                  1000
+        10                             4000
+        20 Coding                      2000
+        20 Director                    2000
+        20 Architect                   2000
+        20 Programmer                  2000
+        20                             8000
+        30 Coding                      3000
+        30 Director                    3000
+        30 Architect                   3000
+        30 Programmer                  3000
+        30                            12000
+        40 Coding                      4000
+        40 Director                    4000
+        40 Architect                   4000
+        40 Programmer                  4000
+        40                            16000
+                                      40000</code></pre><ol>
+<li><p>GROUPING函数</p>
+<p>select group_id,grouping(GROUP_ID),grouping(JOB),sum(salary) from group_test group by rollup(group_id, job);</p>
+<p>  GROUP_ID GROUPING(GROUP_ID) GROUPING(JOB) SUM(SALARY)</p>
+<hr>
+<pre><code>10                  0             0        1000
+10                  0             0        1000
+10                  0             0        1000
+10                  0             0        1000
+10                  0             1        4000
+20                  0             0        2000
+20                  0             0        2000
+20                  0             0        2000
+20                  0             0        2000
+20                  0             1        8000
+30                  0             0        3000
+30                  0             0        3000
+30                  0             0        3000
+30                  0             0        3000
+30                  0             1       12000
+40                  0             0        4000
+40                  0             0        4000
+40                  0             0        4000
+40                  0             0        4000
+40                  0             1       16000
+                    1             1       40000</code></pre></li>
+</ol>
+<h2 id="五、-GROUP-BY、ROLLUP、CUBE、GROUPING的规则"><a href="#五、-GROUP-BY、ROLLUP、CUBE、GROUPING的规则" class="headerlink" title="五、 GROUP BY、ROLLUP、CUBE、GROUPING的规则"></a>五、 GROUP BY、ROLLUP、CUBE、GROUPING的规则</h2><h3 id="GROUP-by"><a href="#GROUP-by" class="headerlink" title="GROUP by"></a>GROUP by</h3><p>对于GROUP BY 排序，group by a或group by a,b 依据a分组，或依据a和b分组。这个是ROLLUP、CUBE的基础 按例子来说就是，按某个字段进行分组的到每组的数量，或者按某个字段分组，再按某个字段分组的数量，也就是某列中某列的数量。</p>
+<h3 id="GROUP-BY-后的ROLLUP-group-by-与rollup之间没有任何内容"><a href="#GROUP-BY-后的ROLLUP-group-by-与rollup之间没有任何内容" class="headerlink" title="GROUP BY 后的ROLLUP,group by 与rollup之间没有任何内容"></a>GROUP BY 后的ROLLUP,group by 与rollup之间没有任何内容</h3><p><strong>如:GROUP BY ROLLUP(A)，其规则可分为GROUP BY 分组，包含</strong></p>
+<pre><code>select group_id,sum(salary) from group_test group by rollup(group_id);</code></pre><ul>
+<li>GROUP BY A:select group_id,sum(salary) from group_test group by(group_id);</li>
+<li>GROUP BY NULL:select NULL,sum(salary) from group_test group by(NULL);</li>
+</ul>
+<p>其中的GRUOP BY NULL,是指，所有符合条件的进行sum，也就是全部，那么null列就是NULL，按NULL分组就是按全部分一组。 那么也就是GROUP BY ROLLUP(A)等于这个两个GROUP BY的UNION ALL。 <strong>如果有两个列分组GROUP BY ROLLUP(A,B)则包含:</strong></p>
+<pre><code>select group_id,job,sum(salary) from group_test group by rollup(group_id,job);</code></pre><ul>
+<li>GROUP BY A,B</li>
+<li>GROUP BY A,NULL</li>
+<li>GROUP BY NULL,NULL</li>
+</ul>
+<p>三个则是</p>
+<pre><code>select group_id,job,name,sum(salary) from group_test group by rollup(group_id,job,name);</code></pre><ul>
+<li>A,B,C</li>
+<li>A,B,NULL</li>
+<li>A,NULL,NULL</li>
+<li>NULL,NULL,NULL</li>
+</ul>
+<blockquote>
+<p><strong>也就是说分组列由多向少，由前向后递减的。也就是说组合的总数始终是列数N(列数量)+1(NULL)</strong><br><strong>有一点需要注意，对于分组的列而言，与顺序无关，也就是说A在前或者B在前都是一样的结果。</strong></p>
+</blockquote>
+<h3 id="GROUP-BY-后的ROLLUP，group-by-与ROLLUP之间有列的关系"><a href="#GROUP-BY-后的ROLLUP，group-by-与ROLLUP之间有列的关系" class="headerlink" title="GROUP BY 后的ROLLUP，group by 与ROLLUP之间有列的关系"></a>GROUP BY 后的ROLLUP，group by 与ROLLUP之间有列的关系</h3><ol>
+<li><p>GROUP BY 后的列与ROLLUP中的列有相同的</p>
+<p>select group_id,job,sum(salary) from group_test group by group_id rollup(group_id,job);</p>
+</li>
+</ol>
+<p>则产生的分组有以下三种</p>
+<ul>
+<li>GROUP BY A,A,B——等价于GROUP BY A,B——对应GROUP BY为select group_id,job,sum(salary) from group_test group by group_id,job</li>
+<li>GROUP BY A,A,NULL——等价于GROUP BY A</li>
+<li>GROUP BY A,NULL,NULL——等价于GROUP BY A</li>
+</ul>
+<ol start="2">
+<li><p>GROUP BY 后的列与ROLLUP中的列不同</p>
+<p>select A, B, C,sum(salary) from group_test group by C rollup(A,B);</p>
+</li>
+</ol>
+<p>则分为以下三种:</p>
+<ul>
+<li>GROUP BY C,A,B</li>
+<li>GROUP BY C,A</li>
+<li>GROUP BY C</li>
+</ul>
+<blockquote>
+<p>那么由此而知，如果GROUP BY 后有列，并且还进行ROLLUP则其组合是M(GROUP BY 列数)+N(ROLLUP列数)</p>
+</blockquote>
+<h3 id="group-by-后跟CUBE"><a href="#group-by-后跟CUBE" class="headerlink" title="group by 后跟CUBE**"></a>group by 后跟CUBE**</h3><p>ROLLUP与CUBE有些区别。查询数据排序相反 当分组列为一个时，查询的数据一样，当多一个job后，不仅有ROLLUP的这21列数据，还多出了每个工作的总薪资,多了4行数据。 带CUBE的子句会产生更多的数据,cube后面的列有多少种组合就有多少种分组，例如两列，则有A、B、A,B、NULL四种，分别对应了数据中的</p>
+<ul>
+<li>A,NULL—— 30 _ 12000:每组的总薪资:select group_id,null,sum(salary) from group_test group by(group_id,null);</li>
+<li>B,NULL—— _ coding 10000:每种工作的总薪资:select null,job,sum(salary) from group_test group by(null,job);</li>
+<li>A,B,NULL—— 40 coding 4000:每组种每种工作的总薪资:select group_id,job,sum(salary) from group_test group by(group_id,job);</li>
+<li>NULL,NULL—— _ _ 40000:所有总薪资:select null,null,sum(salary) from group_test group by(null,null);</li>
+</ul>
+<p>这四种group by组成了cube，而rollup少了第二种(B,NULL)，每种工作的总薪资，因为ROLLUP是从左往右依次减少的嘛。而如若cube有3列，可组成8种,那么就组成了</p>
+<ul>
+<li>a对应为a,null,null</li>
+<li>b对应为b,null,null</li>
+<li>c对应为c,null,null</li>
+<li>ab对应为a,b,null</li>
+<li>ac对应为a,c,null</li>
+<li>bc对应为b,c,null</li>
+<li>abc对应为a,b,c</li>
+<li>null对应为null,null,null</li>
+</ul>
+<h3 id="与ROLLUP组合的几个函数"><a href="#与ROLLUP组合的几个函数" class="headerlink" title="与ROLLUP组合的几个函数"></a>与ROLLUP组合的几个函数</h3><ol>
+<li>GTOUPING函数</li>
+</ol>
+<p>必须且只能接受一列作为参数。参数列值为NULL则返回1，参数列值非空则返回0。这个在上面的示例中已经证明了。</p>
+<ol start="2">
+<li>GROUP_ID函数</li>
+</ol>
+<p>不接受任何参数，返回值为某个特定的分组出现的重复次数(GROUP BY后和ROLLUP后都有分组列时),重复次数重0开始，第一次出现为0，第二次为1，第n次为N-1。以下三段代码很好的说明了这个函数的作用</p>
+<pre><code>--按group_id分组，不存在重复
+select group_id,sum(salary),group_id() from group_test group by group_id;
+--按group_id分组，且rollup分组，会重复出现上个语句查出的数据
+select group_id,sum(salary),group_id() from group_test group by group_id,rollup(group_id);
+--与前一情况类似
+select group_id,job,sum(salary),group_id() from group_test group by group_id,rollup(group_id,job);</code></pre><ol start="3">
+<li>GROUPING_ID函数</li>
+</ol>
+<p>必须传入一列或多列作为其参数。返回值为按参数排列顺序，依次对各个参数使用grouping()函数，并将结果值依次串成一串二进制数然后再转化为十进制所得到的值。 例如：</p>
+<pre><code>grouping(A) = 0 ; grouping(B) = 1;
+则：grouping_id(A,B)  =  (01)2  = 1;
+grouping_id(B,A)  =  (10)2  =2;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle归档日志管理操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/24/Oracle/Oracle%E5%BD%92%E6%A1%A3%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86%E6%93%8D%E4%BD%9C/"
+    >Oracle归档日志管理操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/24/Oracle/Oracle%E5%BD%92%E6%A1%A3%E6%97%A5%E5%BF%97%E7%AE%A1%E7%90%86%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2018-10-24T03:45:22.000Z" itemprop="datePublished">2018-10-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="归档日志"><a href="#归档日志" class="headerlink" title="归档日志"></a>归档日志</h1><p><strong>查看归档日志存放位置以及空间大小</strong></p>
+<pre><code>select * from v$recovery_file_dest;</code></pre><p><strong>查看你归档日志使用情况,空间占用率,percent_space_used为使用百分比</strong></p>
+<pre><code>select * from v$flash_recovery_area_usage;</code></pre><p><strong>更改归档日志使用空间大小(20_1024_1024*1024)</strong></p>
+<pre><code>alter system set db_recovery_file_dest_size=21474836480;</code></pre><h2 id="归档日志备份操作"><a href="#归档日志备份操作" class="headerlink" title="归档日志备份操作"></a>归档日志备份操作</h2><p><strong>列出归档日志</strong></p>
+<pre><code>list archivelog all;</code></pre><p><strong>列出归档日志的备份</strong></p>
+<pre><code>list backup of archivelog all;</code></pre><p><strong>检查所有归档日志</strong></p>
+<pre><code>crosscheck archivelog all;</code></pre><p><strong>备份所有归档日志</strong></p>
+<pre><code>backup archivelog all;</code></pre><p>删除过期归档日志</p>
+<pre><code>delete expired archivelog all;</code></pre><h2 id="归档日志的删除"><a href="#归档日志的删除" class="headerlink" title="归档日志的删除"></a>归档日志的删除</h2><p><strong>删除当前系统7天前的归档日志</strong>，如果使用闪回功能，则也会删除闪回的数据</p>
+<pre><code>DELETE ARCHIVELOG ALL COMPLETED BEFORE &apos;SYSDATE-7&apos;;</code></pre><p><strong>删除七天前到现在的归档日志</strong></p>
+<pre><code>DELETE ARCHIVELOG FROM TIME &apos;SYSDATE-7&apos;;</code></pre><p><strong>删除所有日志</strong></p>
+<pre><code>delete archivelog until time &apos;sysdate&apos;;</code></pre><p><strong>删除过期日志</strong></p>
+<pre><code>delete expired archivelog all;</code></pre><p>做完操作后建议立即全备份</p>
+<h2 id="备份"><a href="#备份" class="headerlink" title="备份"></a>备份</h2><p>查看过期备份</p>
+<pre><code>report obsolete;</code></pre><p>删除过期备份</p>
+<pre><code>delete obsolete;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle Sqlplus相关操作" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -172,681 +722,13 @@ archive log list;</code></pre><p><strong>查看数据库参数信息</strong></p
 
 </article>
     
-    <article id="post-Oracle/Oracle触发器" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/10/23/Oracle/Oracle%E8%A7%A6%E5%8F%91%E5%99%A8/"
-    >Oracle触发器</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/10/23/Oracle/Oracle%E8%A7%A6%E5%8F%91%E5%99%A8/" class="article-date">
-  <time datetime="2018-10-23T09:26:03.000Z" itemprop="datePublished">2018-10-23</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="简单DML触发器"><a href="#简单DML触发器" class="headerlink" title="简单DML触发器"></a>简单DML触发器</h1><h2 id="DML触发器"><a href="#DML触发器" class="headerlink" title="DML触发器"></a>DML触发器</h2><p>一个DML触发器实在任一个表或视图创建的，并且他的触发器是由DML语句DELETE、INSERT、UPDATE。要创建响应merge语句而触发的触发器。请在操作分解的INSERT和UPDATE语句上创建触发器MERGE。 DML触发器是简单触发器或符合触发器 一个 简单的DML触发器恰好触发其中一个触发器时间点:</p>
-<ul>
-<li>在触发语句运行之前<br>触发器称为BEFORE 语句触发器或语句级 BEFORE 触发器。</li>
-<li>触发语句运行后<br>触发器称为AFTER 语句触发器或语句级 AFTER 触发器。</li>
-<li>在触发语句影响的每一行之前<br>触发器称为BEFORE 每行触发器或行级 BEFORE 触发器。</li>
-<li>在触发语句影响的每一行之后<br>触发器称为AFTER 每行触发器或行级 AFTER 触发器。</li>
-</ul>
-<p>在表或编辑视图上创建的复合DML触发器可以在前一个，一些或所有时间点触发。复合DML触发器有助于编写一种方法，您希望为各种时序点实现的操作共享公共数据。</p>
-<h3 id="触发条件谓词"><a href="#触发条件谓词" class="headerlink" title="触发条件谓词"></a>触发条件谓词</h3><p>条件谓词</p>
-<p>当且仅当</p>
-<p>INSERTING</p>
-<p>一个INSERT声明触发了触发器</p>
-<p>UPDATING</p>
-<p>一个UPDATE声明触发了触发器</p>
-<p>UPDATING(‘column’)</p>
-<p>UPDATE影响指定列的语句触发了触发器。</p>
-<p>DELETING</p>
-<p>一个DELETE声明触发了触发器</p>
-<p>示例1:简单DML触发器</p>
-<pre><code>CREATE OR REPLACE TRIGGER t
-  BEFORE
-    INSERT OR
-    UPDATE OF sal, deptno OR
-    DELETE
-  ON emp
-BEGIN
-  CASE
-    WHEN INSERTING THEN
-      DBMS_OUTPUT.PUT_LINE(&apos;Inserting&apos;);
-    WHEN UPDATING(&apos;sal&apos;) THEN
-      DBMS_OUTPUT.PUT_LINE(&apos;Updating salary&apos;);
-    WHEN UPDATING(&apos;deptno&apos;) THEN
-      DBMS_OUTPUT.PUT_LINE(&apos;Updating department ID&apos;);
-    WHEN DELETING THEN
-      DBMS_OUTPUT.PUT_LINE(&apos;Deleting&apos;);
-  END CASE;
-END;</code></pre><p>sqldeveloper请点击菜单栏【查看】，点击【DBMS 输出】，查看DBMS输出结果。</p>
-<h3 id="触发器的相关名"><a href="#触发器的相关名" class="headerlink" title="触发器的相关名"></a>触发器的相关名</h3><p>在进行<strong>行级简单DML触发器和具有行级别时间点部分的</strong>复合DML触发器时可通过相关名获得操作的原数据。 在一个视图或表上创建触发器，然后使用OLD和NEW来参考原数据，可引用被触发表的当前行。PARENT引用父表的当前行。 OLD，NEW和PARENT也被称为伪记录，因为它们具有记录结构，伪记录的结构是table_name%ROWTYPE，因为是%ROWTYPE,所以可以“.列名” 对于新旧相关名的字段值</p>
-<p>触发声明</p>
-<p>旧字段值</p>
-<p>新字段值</p>
-<p>INSERT</p>
-<p>NULL</p>
-<p>插入后的值</p>
-<p>UPDATE</p>
-<p>更新前的值</p>
-<p>更新后的值</p>
-<p>DELETE</p>
-<p>预删除的值</p>
-<p>NULL</p>
-<p>需要注意的是:</p>
-<ul>
-<li>触发器无法更改OLD字段值。</li>
-<li>如果触发语句是DELETE，则触发器不能更改NEW字段值。</li>
-<li>一个AFTER触发器不能更改NEW字段值，因为触发语句触发器触发之前运行。</li>
-<li>一个BEFORE触发器可以改变NEW触发之前的字段值INSERT或UPDATE语句将它们在表中。</li>
-<li>如果语句同时BEFORE触发触发器和AFTER触发器，并且BEFORE触发器更改了NEW字段值，则AFTER触发器“看到”该更改。</li>
-</ul>
-<p>示例2:使用相关名的行触发器</p>
-<pre><code>DROP TABLE Emp_log;
-CREATE TABLE Emp_log (
-  Emp_id     NUMBER,
-  Log_date   DATE,
-  New_salary NUMBER,
-  Action     VARCHAR2(20));
-
-CREATE OR REPLACE TRIGGER log_salary_increase
-  AFTER UPDATE OF sal ON emp
-  FOR EACH ROW
-BEGIN
-  INSERT INTO Emp_log (Emp_id, Log_date, New_salary, Action)
-  VALUES (:NEW.empno, SYSDATE, :NEW.sal, &apos;New Salary&apos;);
-END;</code></pre><p>此语句表示，创建一个emp的日志表，通过更新触发emp表的sal字段,且为行级触发器,:NEW.empno即表示获得新的empno，那么就是更新后的值，依然是原来的值。 注意，在使用相关名时，触发器<strong>必须是行级别的</strong>触发器，否则无法创建,那么就需要添加for each row语句 示例3:含when语句的行触发器</p>
-<pre><code>----- 触发器，含when条件
-CREATE OR REPLACE TRIGGER print_salary_changes
-  BEFORE DELETE OR INSERT OR UPDATE ON emp
-  FOR EACH ROW
-  WHEN (NEW.job &lt;&gt; &apos;MANAGER&apos;)  -- do not print information about President
-DECLARE
-  sal_diff  NUMBER;
-BEGIN
-  sal_diff  := :NEW.sal  - :OLD.sal;
-  DBMS_OUTPUT.PUT(:NEW.ename || &apos;: &apos;);
-  DBMS_OUTPUT.PUT(&apos;Old salary = &apos; || :OLD.sal || &apos;, &apos;);
-  DBMS_OUTPUT.PUT(&apos;New salary = &apos; || :NEW.sal || &apos;, &apos;);
-  DBMS_OUTPUT.PUT_LINE(&apos;Difference: &apos; || sal_diff);
-END;
-
-UPDATE emp SET sal = sal* 1.05</code></pre><p>该更新语句，在执行后，表中所有数据行都进行了更新，但只有符合when条件的才执行begin end中的语句。 示例4:触发器修改LOB列</p>
-<pre><code>-- 修改lob字段触发器
-DROP TABLE tab1;
-CREATE TABLE tab1 (c1 CLOB);
-INSERT INTO tab1 VALUES (&apos;&lt;h1&gt;HTML Document Fragment&lt;/h1&gt;&lt;p&gt;Some text.&apos;);
-
-CREATE OR REPLACE TRIGGER trg1
-  BEFORE UPDATE ON tab1
-  FOR EACH ROW
-BEGIN
-  DBMS_OUTPUT.PUT_LINE(&apos;Old value of CLOB column: &apos;||:OLD.c1);
-  DBMS_OUTPUT.PUT_LINE(&apos;Proposed new value of CLOB column: &apos;||:NEW.c1);
-
-  :NEW.c1 := :NEW.c1 || TO_CLOB(&apos;&lt;hr&gt;&lt;p&gt;Standard footer paragraph.&apos;);
-
-  DBMS_OUTPUT.PUT_LINE(&apos;Final value of CLOB column: &apos;||:NEW.c1);
-END;
-
-SET SERVEROUTPUT ON;
-UPDATE tab1 SET c1 = &apos;&lt;h1&gt;Different Document Fragment&lt;/h1&gt;&lt;p&gt;Different text.&apos;;
-
-SELECT * FROM tab1;</code></pre><p>LOB类型的，与DML行触发器类似 示例5:当表名与相关名重复时</p>
-<pre><code>CREATE TABLE new (
-  field1  NUMBER,
-  field2  VARCHAR2(20)
-);
-
-CREATE OR REPLACE TRIGGER Print_salary_changes
-BEFORE UPDATE ON new
-REFERENCING new AS newest
-FOR EACH ROW
-BEGIN
-  :newest.Field2 := TO_CHAR (:newest.field1);
-END;</code></pre><p>当表名与相关名重复时，使用REFERENCING关键字重命名相关名，重命名new为newest。</p>
-<h3 id="OBJECT-VALUE-伪列"><a href="#OBJECT-VALUE-伪列" class="headerlink" title="OBJECT_VALUE 伪列"></a>OBJECT_VALUE 伪列</h3><p>对象表上的触发器可以引用SQL伪列 OBJECT_VALUE，返回<strong>对象表的列的系统生成的名称</strong>。触发器还可以调用PL / SQL子程序，该子程序具有IN数据类型为的形式参数OBJECT_VALUE。 示例6:将某表作为object类型，做为表的字段值</p>
-<pre><code>-- object_value
-CREATE OR REPLACE TYPE t AS OBJECT (n NUMBER, m NUMBER);--创建类型
-CREATE TABLE tbl OF t;  --创建表
-BEGIN --设置值
-  FOR j IN 1..5 LOOP
-    INSERT INTO tbl VALUES (t(j, 0));
-  END LOOP;
-END;
-SELECT * FROM tbl ORDER BY n;
-
-CREATE TABLE tbl_history ( d DATE, old_obj t, new_obj t);--创建历史表，包含的数据类型时t
-CREATE OR REPLACE TRIGGER Tbl_Trg --创建触发器,更新，通过相关名OLD,NEW的OBJECT_VALUE将整个对象值插入进来
-  AFTER UPDATE ON tbl
-  FOR EACH ROW
-BEGIN
-  INSERT INTO tbl_history (d, old_obj, new_obj)
-  VALUES (SYSDATE, :OLD.OBJECT_VALUE, :NEW.OBJECT_VALUE);
-END Tbl_Trg;
-
-UPDATE tbl SET tbl.n = tbl.n+1</code></pre><p>OBJECT_VALUE伪列，通过OLD，NEW获得伪列，将自定义object类型值插入。 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/10/20181023160804.png" alt=""> 那么如果tbl表不是自定义的t类型，而是普通表呢？ 经过实验发现，如果将tbl表改为普通数据类型表的话，触发器是失效的,:OLD.OBJECT_VALUE就会报错,所以要想使用它，前提是被触发表必须市自定义类型。</p>
-<h3 id="INSTEAD-OF-DML触发器"><a href="#INSTEAD-OF-DML触发器" class="headerlink" title="INSTEAD OF DML触发器"></a>INSTEAD OF DML触发器</h3><p>一个 INSTEAD OF DML 触发器是在<strong>非编辑视图或非编辑视图的嵌套表列上创建的DML触发器</strong>。数据库触发INSTEAD OF触发器而不是运行触发DML语句。一个INSTEAD OF触发不能是有条件的。</p>
-<ul>
-<li>一个INSTEAD OF触发器始终是一个行级触发器。一个INSTEAD OF触发器可以读取OLD和NEW值，但不能改变它们。</li>
-<li>INSTEAD OF只能用在视图中，或者视图的嵌套表上</li>
-</ul>
-<p>示例7:当向视图插入数据时，基表同时插入，可使用INSTEAD OF触发器</p>
-<pre><code>CREATE OR REPLACE VIEW order_info AS
-   SELECT c.customer_id, c.cust_last_name, c.cust_first_name,
-          o.order_id, o.order_date, o.order_status
-   FROM customers c, orders o
-   WHERE c.customer_id = o.customer_id;
-
-CREATE OR REPLACE TRIGGER order_info_insert
-   INSTEAD OF INSERT ON order_info
-   DECLARE
-     duplicate_info EXCEPTION;
-     PRAGMA EXCEPTION_INIT (duplicate_info, -00001);
-   BEGIN
-     INSERT INTO customers
-       (customer_id, cust_last_name, cust_first_name)
-     VALUES (
-     :new.customer_id,
-     :new.cust_last_name,
-     :new.cust_first_name);
-   INSERT INTO orders (order_id, order_date, customer_id)
-   VALUES (
-     :new.order_id,
-     :new.order_date,
-     :new.customer_id);
-   EXCEPTION
-     WHEN duplicate_info THEN
-       RAISE_APPLICATION_ERROR (
-         num=&gt; -20107,
-         msg=&gt; &apos;Duplicate customer or order ID&apos;);
-   END order_info_insert;</code></pre><p>首先order_info视图表示，两个表为基表创建的视图，一般情况下再多基表创建的视图下插入不太可能。 order_info_insert为order_info的触发器,当视图表执行插入时，执行begin end。当你向视图插入时，:new相关名可直接获得对象列进行插入。 示例8：视图嵌套表的列上的触发器 <a target="_blank" rel="noopener" href="https://docs.oracle.com/cd/E11882_01/appdev.112/e25519/triggers.htm#LNPLS2005">视图嵌套表的列上的触发器</a></p>
-<pre><code>与视图触发器有些许类似
---触发器创建
-CREATE OR REPLACE TRIGGER dept_emplist_tr
-  INSTEAD OF INSERT ON NESTED TABLE emplist OF dept_view --为dept_view视图的嵌套表emplist注册触发器
-  REFERENCING NEW AS Employee       --重命名相关名为Employee
-              PARENT AS Department  --重命名，parent即为父,Department相当于嵌套表的父表dept_view视图
-  FOR EACH ROW</code></pre><h2 id="系统触发器"><a href="#系统触发器" class="headerlink" title="系统触发器"></a>系统触发器</h2><p>基于Oracle系统事件(如LOGON和STARTUP等)所建立的触发器,通过使用系统事件触发器，提供了跟踪系统或数据库变化的机制常用事件属性函数。</p>
-<pre><code>ora_client_ip_address:用于返回客户端的ip地址
-ora_database_name:返回当前数据库的名称
-ora_dict_obj_name:返回DLL操作所对应的数据库对象名
-ora_dict_obj_owner:返回DLL操作所对应的数据库所有者名
-ora_dict_obj_type:返回DLL操作所对应的数据库对象的类型
-ora_instance_num:返回例程号
-ora_login_user:返回登陆用户名
-ora_sysevent:返回触发触发器的系统事件名
-等等
-
-
---只有特权用户才能创建,创建开启数据库触发器,必需使用after
-create or replace trigger tr_startup
-after startup on DATABASE
---只有特权用户才能创建,创建关闭数据库触发器,必需使用begore
-create or replace trigger tr_shudown
-before shutdown on DATABASE
---如果该scott对象上执行了DLL操作将被触发
-create or replace trigger tr_dll
-after DLL on scott.schema</code></pre><h2 id="管理触发器"><a href="#管理触发器" class="headerlink" title="管理触发器"></a>管理触发器</h2><h3 id="查询触发器"><a href="#查询触发器" class="headerlink" title="查询触发器"></a>查询触发器</h3><pre><code>select trigger_name,status from user_triggers where table_name=&apos;EMP&apos;</code></pre><h3 id="启用禁用"><a href="#启用禁用" class="headerlink" title="启用禁用"></a>启用禁用</h3><p>要启用或禁用单个触发器:</p>
-<pre><code>ALTER TRIGGER [ schema.] trigger_name &#123;ENABLE | DISABLE&#125;;</code></pre><p>要启用或禁用在特定表上创建的所有触发器:</p>
-<pre><code>ALTER TABLE table_name &#123; ENABLE | DISABLE &#125; ALL TRIGGERS;</code></pre><h3 id="重新编译，当表结构发生变化时使触发器转为INVALID状态，为使触发器继续生效，要重新编译"><a href="#重新编译，当表结构发生变化时使触发器转为INVALID状态，为使触发器继续生效，要重新编译" class="headerlink" title="重新编译，当表结构发生变化时使触发器转为INVALID状态，为使触发器继续生效，要重新编译"></a>重新编译，当表结构发生变化时使触发器转为INVALID状态，为使触发器继续生效，要重新编译</h3><pre><code>alter trigger trigger_name compile;</code></pre><h3 id="删除触发器：使用drop-trigger，注意：当表上触发器越多，对于DML操作的影响越大"><a href="#删除触发器：使用drop-trigger，注意：当表上触发器越多，对于DML操作的影响越大" class="headerlink" title="删除触发器：使用drop trigger，注意：当表上触发器越多，对于DML操作的影响越大"></a>删除触发器：使用drop trigger，注意：当表上触发器越多，对于DML操作的影响越大</h3><pre><code>drop trigger trigger_name;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle 定时任务Job" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/10/15/Oracle/Oracle%20%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1Job/"
-    >Oracle 定时任务Job</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/10/15/Oracle/Oracle%20%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1Job/" class="article-date">
-  <time datetime="2018-10-15T06:29:31.000Z" itemprop="datePublished">2018-10-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Oracle定时任务"><a href="#Oracle定时任务" class="headerlink" title="Oracle定时任务"></a>Oracle定时任务</h1><p>创建的定时任务都存储在DBMS_JOB中，通过dba_jobs表可以查询。</p>
-<pre><code>select * from dba_jobs;
-select * from user_jobs;</code></pre><ol>
-<li><p>创建语法</p>
-<p>DECLARE<br>  JOB_ID PLS_INTEGER;<br>BEGIN<br>  SYS.DBMS_JOB.SUBMIT(JOB =&gt; JOB_ID, – 自动生成JOB_ID</p>
-<pre><code>WHAT =&gt; &apos;PRO_JOB;&apos;, -- 执行的存储过程或sql语句
-next_date =&gt; sysdate -- 第一次执行时间
-INTERVAL =&gt; &apos;TRUNC(SYSDATE) + 1 + 3 / (24)&apos;);--间隔</code></pre><p>  COMMIT;<br>END;</p>
-</li>
-</ol>
-<p>或物化视图刷新</p>
-<pre><code>begin
-  sys.dbms_job.submit(job =&gt; :job,
-                      what =&gt; &apos;dbms_refresh.refresh(&apos;&apos;&quot;BDCCXTJ&quot;.&quot;MV_QZRQ_DJQK_FWYT_TBLB&quot;&apos;&apos;);&apos;,
-                      next_date =&gt; to_date(&apos;08-09-2018 13:47:40&apos;, &apos;dd-mm-yyyy hh24:mi:ss&apos;),
-                      interval =&gt; &apos;TO_DATE(CONCAT(TO_CHAR(SYSDATE+1,&apos;&apos;DD-MM-YYYY&apos;&apos;),&apos;&apos;13:47:40&apos;&apos;),&apos;&apos;DD-MM-YYYY HH24:MI:SS&apos;&apos;)&apos;);
-  commit;
-end;</code></pre><p>当interval为null时，该job执行结束后，就会被从队列中删除。</p>
-<ol start="2">
-<li><p>手动执行</p>
-<p>begin<br>  DBMS_JOB.RUN(JOB_ID);–手动执行，参数为job_id<br>  COMMIT;<br>end</p>
-</li>
-</ol>
-<ol start="3">
-<li><p>停止job</p>
-<p>begin<br>  DBMS_JOB.broken(JOB_ID,true,next_date);<br>  –job编号，是否停止，停止时间(可以为sysdate)<br>  COMMIT;<br>end;</p>
-</li>
-</ol>
-<ol start="4">
-<li><p>删除job</p>
-<p>begin<br>  dbms_job.remove(JOB_ID); /<em>删除自动执行的job,参数是 job_id</em>/<br>  commit;<br>end;</p>
-</li>
-</ol>
-<ol start="5">
-<li><p>修改job的间隔时间</p>
-<p>begin<br>  dbms_job.interval(job_id，interval);<br>  /<em>参数为job的ID;interval: 计算下一次任务执行的时间表达式</em>/<br>  commit;<br>end;</p>
-</li>
-</ol>
-<ol start="6">
-<li><p>修改job要执行的任务</p>
-<p>begin</p>
-<pre><code>dbms_job.what(&apos;newProcedures();&apos;);
-/*newProcedures(); 要更改的新操作名称*/</code></pre><p>  commit;<br>end;</p>
-</li>
-</ol>
-<p>注意存储过程后的分毫不要遗漏;</p>
-<ol start="7">
-<li>运行时间表达式</li>
-</ol>
-<p>描述</p>
-<p>表达式</p>
-<p>每秒钟执行</p>
-<p>SYSDATE + 1 /(60_24_60)</p>
-<p>每分钟执行</p>
-<p>TRUNC(sysdate,’mi’) + 1/ (24*60)</p>
-<p>每10分钟执行</p>
-<p>SYSDATE+10/(60*24)</p>
-<p>每天0点执行</p>
-<p>select TRUNC(sysdate+ 1)+0/(24)</p>
-<p>每周一0点执行</p>
-<p>TRUNC(next_day(sysdate,’星期一’))+0/24</p>
-<p>每月一日0点执行</p>
-<p>TRUNC(LAST_DAY(SYSDATE))+1+0/24</p>
-<p>注意：如果带trunc函数和参数的话将会执行到某个整点，而不带的话每次以当前日期为准</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle RMAN命令总结" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/10/15/Oracle/Oracle%20RMAN%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93/"
-    >Oracle RMAN命令总结</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/10/15/Oracle/Oracle%20RMAN%E5%91%BD%E4%BB%A4%E6%80%BB%E7%BB%93/" class="article-date">
-  <time datetime="2018-10-15T06:27:50.000Z" itemprop="datePublished">2018-10-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/john2017/p/6364546.html">https://www.cnblogs.com/john2017/p/6364546.html</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle数据库备份及RMAN命令" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/10/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD%E5%8F%8ARMAN%E5%91%BD%E4%BB%A4/"
-    >Oracle数据库备份及RMAN命令</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/10/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD%E5%8F%8ARMAN%E5%91%BD%E4%BB%A4/" class="article-date">
-  <time datetime="2018-10-15T06:25:58.000Z" itemprop="datePublished">2018-10-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Oracle数据库数据备份"><a href="#Oracle数据库数据备份" class="headerlink" title="Oracle数据库数据备份"></a>Oracle数据库数据备份</h1><ol>
-<li><p>数据库归档模式由非归档模式改为归档模式 命令窗口中通过此命令查看</p>
-<p>archive log list;</p>
-</li>
-</ol>
-<p>改为归档模式</p>
-<pre><code>shutdown immediate;-- 关闭数据库
-startup mount;-- 启动数据库到mount状态
-alter database archivelog;-- 修改数据库为归档模式
-alter database open;-- 打开数据库</code></pre><h2 id="实例恢复与介质恢复"><a href="#实例恢复与介质恢复" class="headerlink" title="实例恢复与介质恢复"></a>实例恢复与介质恢复</h2><p>实例的恢复</p>
-<pre><code>startup nomount；--读取pfile，没有实例恢复
-altert mount database;--读取控制文件，没有实例回复
-alter database open;--检查控制文件，数据文件头(检查数据库完整性)，发生实例恢复</code></pre><p>直接startup，将默认执行这三个命令 实例恢复的过程</p>
-<pre><code>--前滚 
-rolling forward
---读取状态为current和active状态的日志(redo log)，将发生crash时，没有来得及写道磁盘上的数据块，使用redo的信息来回复
---打开数据库
-alter database open
---回滚
-rolling back 数据库打开之后做</code></pre><p>当实例恢复无法恢复时，使用介质恢复。基于备份 需要介质恢复:</p>
-<ul>
-<li>数据文件丢失，损坏</li>
-<li>在线日志文件丢失，损坏</li>
-</ul>
-<h2 id="exp-imp导入导出"><a href="#exp-imp导入导出" class="headerlink" title="exp/imp导入导出"></a>exp/imp导入导出</h2><p>导出具体分为：导出表，导出方案，导出数据库三种方式。 导出使用exp命令完成，该命令常用选项有:</p>
-<ul>
-<li>userid:用户名/口令</li>
-<li>tables:导出指定的表名列表</li>
-<li>owner:导出指定的所有者用户名列表</li>
-<li>full:导出全部内容，默认n，可设置为y</li>
-<li>file:输出文件</li>
-<li>ROWS：导出数行，默认y</li>
-<li>INDEXES：导出索引，默认y</li>
-</ul>
-<p>full=y和owner能同时使用，会导致报错，EXP-00026：指定了冲突模式,需要删除full=y full为全库导出，owner=导出指定用户下的所有objects 导出导入命令在cmd中执行，不能在sqlplus中，exp帮助执行命令,exp help=y</p>
-<h2 id="RMAN备份"><a href="#RMAN备份" class="headerlink" title="RMAN备份"></a>RMAN备份</h2><p>在RMAN工具中，同样可以使用sql语句（管理类）,如在rman中开启数据库alter database open; RMAN使用<strong>服务器</strong>会话来完成备份操作，从RMAN客户端连接到服务器将产生一个服务器会话 RMAN备份内容包括：整个数据库,表空间,数据文件,指定的数据文件,控制文件,归档日志文件,参数文件等 RMAN备份类型分为:</p>
-<ul>
-<li>完整备份(full)或增量备份(incremental)</li>
-<li>一致性备份(consistent)或不一致性备份(inconsistent)</li>
-<li>热备份(open)或冷备份(closed)，冷备份时数据库必须处于mount状态，冷备份可以为一致性备份或非一致性备份</li>
-</ul>
-<h3 id="全备份"><a href="#全备份" class="headerlink" title="全备份"></a>全备份</h3><p>一般总是备份数据文件，控制文件，归档日志。参数文件和密码文件可选备份 进入恢复管理器</p>
-<pre><code>rman target sys/password@连接字符串</code></pre><p>备份全库</p>
-<pre><code>backup database;--备份全库，包括数据文件，控制文件，归档文件</code></pre><p>备份完毕后显示文件位置,同时备份了控制文件和SPFILE 表空间备份</p>
-<pre><code>backup tablespace users;--users为表空间名称</code></pre><p>文件备份</p>
-<pre><code>backup datafile 9;--这个数字表示数据文件的文件号</code></pre><p>备份集列表查看</p>
-<pre><code>list backupset;</code></pre><p>归档文件全备份</p>
-<pre><code>backup archivelog all;</code></pre><p>还原备份文件,restore表示还原</p>
-<pre><code>restore database;</code></pre><p>介质恢复(还原备份之后，需要进行介质恢复)</p>
-<pre><code>recover database;</code></pre><p>当介质无法恢复，且报错时，确认是否备份完整(肯定没问题的)rman中还原备份,重新启动oracle服务，此时依然是mounted状态，重新alter database open,查看报错信息，进行介质恢复recover database，然后重新open。 还原表空间</p>
-<pre><code>restore tablespace users;--users</code></pre><p>还原数据文件</p>
-<pre><code>restore datafile 4;--4为文件号</code></pre><p>如果数据文件丢失，那么如果强制启动，不对数据文件表空间做一致性检查，则</p>
-<pre><code>alter database datafile 4 offline;--4表示当前缺失文件的文件号</code></pre><p>如果文件恢复完毕，那么文件依然是offline状态，所以需要进行online</p>
-<pre><code>select file#,status from v$datafile;
-
-alter database datafile 4 online;
-
-
-delete backupset;--删除所有备份集,全部删除
-
-
-delete obsolete;--删除过期的，依据保留策略</code></pre><p>检查数据库文件中出现的物理损坏的数据库</p>
-<pre><code>backup check logical validate database;</code></pre><h4 id="SHOW-ALL配置"><a href="#SHOW-ALL配置" class="headerlink" title="SHOW ALL配置"></a>SHOW ALL配置</h4><pre><code>CONFIGURE RETENTION POLICY TO REDUNDANCY  --配置保留冗余备份集数量
-CONFIGURE RETENTION POLICY TO REDUNDANCY 2;--配置数量为2
-
-CONFIGURE BACKUP OPTIMIZATION OFF;--配置备份优化为关闭,可设置为ON
-
-CONFIGURE CONTROLFILE AUTOBACKUP ON;--配置控制文件自动备份，ON为是，否则为OFF</code></pre><h4 id="控制文件"><a href="#控制文件" class="headerlink" title="控制文件"></a>控制文件</h4><pre><code>list backup of controlfile;--rman查看所有控制文件
-
-
-alter system set control_file_record_keep_time=30;--设置控制文件保存时间天数
-
-
-backup current controlfile;备份当前控制文件</code></pre><h4 id="归档日志"><a href="#归档日志" class="headerlink" title="归档日志"></a>归档日志</h4><pre><code>backup archivelog all;--备份所有归档日志
-
-
-list archivelog all;--列出归档日志
-
-
-list backup of archivelog all;--列出归档日志的备份
-
-
-delete expired archivelog all;--删除过期归档日志
-
-
-select * from v$recovery_file_dest;--查看归档日志存放位置以及空间大小
-
-
-select * from v$flash_recovery_area_usage;--查看你归档日志使用情况,空间占用率,percent_space_used为使用百分比
-
-
-alter system set db_recovery_file_dest_size=21474836480;--更改归档日志使用空间大小(20*1024*1024*1024)</code></pre><h4 id="report命令"><a href="#report命令" class="headerlink" title="report命令"></a>report命令</h4><pre><code>report need backup;--列出需要备份的，依据配置的保留策略
-
-report need backup days 2 database;--列出超过两天没有备份的
-
-report obsolete;--查看过期的，依据保留策略</code></pre><h4 id="crosscheck-检查命令"><a href="#crosscheck-检查命令" class="headerlink" title="crosscheck 检查命令"></a>crosscheck 检查命令</h4><pre><code>crosscheck backup of tablespace tb_name;检查表空间备份
-
-crosscheck archivelog all;--检查所有归档日志
-
-crosscheck backup of database;--检查数据库备份
-
-crosscheck backup of controlfile;--检查控制文件备份
-
-crosscheck backup of spfile；--检查备份spfile</code></pre><h4 id="检查与恢复"><a href="#检查与恢复" class="headerlink" title="检查与恢复"></a>检查与恢复</h4><pre><code>validate backupset 16;--检查备份集16的有效性
-
-restore database validate;--还原并校验
-
-restore database preview;--还原备份文件预览</code></pre><h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>差异增量:节约备份时间，但是恢复时间长 累计增量:多占用磁盘空间，恢复时间短 备份级别:(0,1,2,3) 增量备份 等级为1，0表示全库备份</p>
-<pre><code>backup incremental level 1 database;--默认为差异增量</code></pre><p>当为1时，先全库备份level 0，在备份level 1。首先会检查是否由父备份，也就是level 0，没有就备份level 0，然后再备份level 1；如果有则直接备份level 1 当进行增量后，list backupset时，显示的备份集列表，类型不再时FULL，而是Incr，并且有lv等级。</p>
-<ul>
-<li>还原时，有多少备份集使用多少，最后使用归档。</li>
-<li>原则:最近一次0级备份+最近一次1级备份+最近一次2级备份(如果有)+归档+online redo。</li>
-<li>备份还原和会比归档要快。</li>
-<li>当增量时，restore database会还原备份文件，而recover database则会恢复增量数据，并非之前的介质恢复</li>
-</ul>
-<h4 id="策略配置"><a href="#策略配置" class="headerlink" title="策略配置"></a>策略配置</h4><p>参考网址:<a target="_blank" rel="noopener" href="https://blog.csdn.net/liqfyiyi/article/details/7017087">https://blog.csdn.net/liqfyiyi/article/details/7017087</a> 基于时间备份保留策略</p>
-<pre><code>CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF n DAYS;</code></pre><p>取消备份保留策略</p>
-<pre><code>CONFIGURE RETENTION POLICY TO NONE;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RMAN/" rel="tag">RMAN</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/32/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="page-number" href="/page/32/">32</a><span class="page-number current">33</span><a class="page-number" href="/page/34/">34</a><a class="page-number" href="/page/35/">35</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/">47</a><a class="extend next" rel="next" href="/page/34/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/32/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="page-number" href="/page/32/">32</a><span class="page-number current">33</span><a class="page-number" href="/page/34/">34</a><a class="page-number" href="/page/35/">35</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/34/">下一页</a>
   </nav>
   
 </section>

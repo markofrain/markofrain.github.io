@@ -1,6 +1,62 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>mysql设置</title>
+    <url>/2021/04/30/MySQL/mysql%E8%AE%BE%E7%BD%AE/</url>
+    <content><![CDATA[<p>设置允许所有主机访问</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">GRANT ALL PRIVILEGES ON *.* TO &#39;root&#39;@&#39;%&#39;  IDENTIFIED BY &#39;123456&#39;  WITH GRANT OPTION;</span><br><span class="line">flush privileges;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>MySQL</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>BeanUtil拓展工具类</title>
+    <url>/2021/04/28/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/BeanUtil%E6%8B%93%E5%B1%95%E5%B7%A5%E5%85%B7%E7%B1%BB/</url>
+    <content><![CDATA[<p>BeanUtil，Bean转换</p>
+<ul>
+<li>copyProperties，拓展spring BeanUtil，</li>
+<li>copyPropertiesPart，拷贝部分属性</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> cn.hutool.core.date.DateTime;</span><br><span class="line"><span class="keyword">import</span> cn.hutool.core.date.DateUtil;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.BeanUtils;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.BeansException;</span><br><span class="line"><span class="keyword">import</span> org.springframework.beans.FatalBeanException;</span><br><span class="line"><span class="keyword">import</span> org.springframework.lang.Nullable;</span><br><span class="line"><span class="keyword">import</span> org.springframework.util.Assert;</span><br><span class="line"><span class="keyword">import</span> org.springframework.util.ClassUtils;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.beans.PropertyDescriptor;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Method;</span><br><span class="line"><span class="keyword">import</span> java.lang.reflect.Modifier;</span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.Date;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* Bean工具</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> chen</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2020/11/30</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyBeanUtils</span> <span class="keyword">extends</span> <span class="title">BeanUtils</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> String[] parsePatterns = &#123;</span><br><span class="line">            <span class="string">&quot;yyyy-MM-dd&quot;</span>, <span class="string">&quot;yyyy-MM-dd HH:mm:ss&quot;</span>, <span class="string">&quot;yyyy-MM-dd HH:mm&quot;</span>, <span class="string">&quot;yyyy-MM&quot;</span>,</span><br><span class="line">            <span class="string">&quot;yyyy/MM/dd&quot;</span>, <span class="string">&quot;yyyy/MM/dd HH:mm:ss&quot;</span>, <span class="string">&quot;yyyy/MM/dd HH:mm&quot;</span>, <span class="string">&quot;yyyy/MM&quot;</span>,</span><br><span class="line">            <span class="string">&quot;yyyy.MM.dd&quot;</span>, <span class="string">&quot;yyyy.MM.dd HH:mm:ss&quot;</span>, <span class="string">&quot;yyyy.MM.dd HH:mm&quot;</span>, <span class="string">&quot;yyyy.MM&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">copyProperties</span><span class="params">(Object source, Object target)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        copyProperties(source, target, (Class)<span class="keyword">null</span>, (String[])<span class="keyword">null</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 默认拷贝属性。包括日期类型和timestamp字段</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> source</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> target</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> editable</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> ignoreProperties</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> BeansException</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">copyProperties</span><span class="params">(Object source, Object target, <span class="meta">@Nullable</span> Class&lt;?&gt; editable, <span class="meta">@Nullable</span> String... ignoreProperties)</span> <span class="keyword">throws</span> BeansException </span>&#123;</span><br><span class="line">        Assert.notNull(source, <span class="string">&quot;Source must not be null&quot;</span>);</span><br><span class="line">        Assert.notNull(target, <span class="string">&quot;Target must not be null&quot;</span>);</span><br><span class="line">        Class&lt;?&gt; actualEditable = target.getClass();</span><br><span class="line">        <span class="keyword">if</span> (editable != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (!editable.isInstance(target)) &#123;</span><br><span class="line">                <span class="keyword">throw</span> <span class="keyword">new</span> IllegalArgumentException(<span class="string">&quot;Target class [&quot;</span> + target.getClass().getName() + <span class="string">&quot;] not assignable to Editable class [&quot;</span> + editable.getName() + <span class="string">&quot;]&quot;</span>);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            actualEditable = editable;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        PropertyDescriptor[] targetPds = getPropertyDescriptors(actualEditable);</span><br><span class="line">        List&lt;String&gt; ignoreList = ignoreProperties != <span class="keyword">null</span> ? Arrays.asList(ignoreProperties) : <span class="keyword">null</span>;</span><br><span class="line">        PropertyDescriptor[] var7 = targetPds;</span><br><span class="line">        <span class="keyword">int</span> var8 = targetPds.length;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> var9 = <span class="number">0</span>; var9 &lt; var8; ++var9) &#123;</span><br><span class="line">            PropertyDescriptor targetPd = var7[var9];</span><br><span class="line">            Method writeMethod = targetPd.getWriteMethod();</span><br><span class="line">            <span class="keyword">if</span> (writeMethod != <span class="keyword">null</span> &amp;&amp; (ignoreList == <span class="keyword">null</span> || !ignoreList.contains(targetPd.getName()))) &#123;</span><br><span class="line">                PropertyDescriptor sourcePd = getPropertyDescriptor(source.getClass(), targetPd.getName());</span><br><span class="line">                <span class="keyword">if</span> (sourcePd != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    Method readMethod = sourcePd.getReadMethod();</span><br><span class="line">                    <span class="keyword">if</span> (readMethod != <span class="keyword">null</span> &amp;&amp; (ClassUtils.isAssignable(writeMethod.getParameterTypes()[<span class="number">0</span>], readMethod.getReturnType())) || writeMethod.getParameterTypes()[<span class="number">0</span>]==Date.class) &#123;</span><br><span class="line">                        <span class="keyword">try</span> &#123;</span><br><span class="line">                            <span class="keyword">if</span> (!Modifier.isPublic(readMethod.getDeclaringClass().getModifiers())) &#123;</span><br><span class="line">                                readMethod.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                            &#125;</span><br><span class="line"></span><br><span class="line">                            Object value = readMethod.invoke(source);</span><br><span class="line">                            <span class="keyword">if</span> (!Modifier.isPublic(writeMethod.getDeclaringClass().getModifiers())) &#123;</span><br><span class="line">                                writeMethod.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                            &#125;</span><br><span class="line">                            <span class="keyword">if</span> (targetPd.getPropertyType() == Date.class &amp;&amp; sourcePd.getPropertyType() == String.class)&#123;</span><br><span class="line">                                <span class="keyword">if</span> (value <span class="keyword">instanceof</span> String)&#123;</span><br><span class="line">                                    DateTime parse = DateUtil.parse(value.toString(), parsePatterns);</span><br><span class="line">                                    writeMethod.invoke(target, parse.toJdkDate());</span><br><span class="line">                                    <span class="keyword">continue</span>;</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;<span class="keyword">else</span> <span class="keyword">if</span>(value!=<span class="keyword">null</span> &amp;&amp; targetPd.getName().equals(<span class="string">&quot;timestamp&quot;</span>)</span><br><span class="line">                                    &amp;&amp; sourcePd.getPropertyType().getName().equals(<span class="string">&quot;long&quot;</span>)</span><br><span class="line">                                    &amp;&amp; value.toString().length()==<span class="number">13</span>)&#123;</span><br><span class="line">                                writeMethod.invoke(target, <span class="keyword">new</span> Date(Long.parseLong(value.toString())));</span><br><span class="line">                                <span class="keyword">continue</span>;</span><br><span class="line">                            &#125;</span><br><span class="line">                            writeMethod.invoke(target, value);</span><br><span class="line">                        &#125; <span class="keyword">catch</span> (Throwable var15) &#123;</span><br><span class="line">                            <span class="keyword">throw</span> <span class="keyword">new</span> FatalBeanException(<span class="string">&quot;Could not copy property &#x27;&quot;</span> + targetPd.getName() + <span class="string">&quot;&#x27; from source to target&quot;</span>, var15);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 只替换部分属性</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> source</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> target</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> part 需要替换属性的集合</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">copyPropertiesPart</span><span class="params">(Object source, Object target,String... part)</span></span>&#123;</span><br><span class="line">        Assert.notNull(source, <span class="string">&quot;Source must not be null&quot;</span>);</span><br><span class="line">        Assert.notNull(target, <span class="string">&quot;Target must not be null&quot;</span>);</span><br><span class="line">        Class&lt;?&gt; actualEditable = target.getClass();</span><br><span class="line"></span><br><span class="line">        PropertyDescriptor[] targetPds = getPropertyDescriptors(actualEditable);</span><br><span class="line">        List&lt;String&gt; partList = part != <span class="keyword">null</span> ? Arrays.asList(part) : <span class="keyword">null</span>;</span><br><span class="line">        PropertyDescriptor[] var7 = targetPds;</span><br><span class="line">        <span class="keyword">int</span> var8 = targetPds.length;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">for</span>(<span class="keyword">int</span> var9 = <span class="number">0</span>; var9 &lt; var8; ++var9) &#123;</span><br><span class="line">            PropertyDescriptor targetPd = var7[var9];</span><br><span class="line">            Method writeMethod = targetPd.getWriteMethod();</span><br><span class="line">            <span class="keyword">if</span> (writeMethod != <span class="keyword">null</span> &amp;&amp; (partList == <span class="keyword">null</span> || partList.contains(targetPd.getName()))) &#123;</span><br><span class="line">                PropertyDescriptor sourcePd = getPropertyDescriptor(source.getClass(), targetPd.getName());</span><br><span class="line">                <span class="keyword">if</span> (sourcePd != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    Method readMethod = sourcePd.getReadMethod();</span><br><span class="line">                    <span class="keyword">if</span> (readMethod != <span class="keyword">null</span> &amp;&amp; (ClassUtils.isAssignable(writeMethod.getParameterTypes()[<span class="number">0</span>], readMethod.getReturnType())) || writeMethod.getParameterTypes()[<span class="number">0</span>]==Date.class) &#123;</span><br><span class="line">                        <span class="keyword">try</span> &#123;</span><br><span class="line">                            <span class="keyword">if</span> (!Modifier.isPublic(readMethod.getDeclaringClass().getModifiers())) &#123;</span><br><span class="line">                                readMethod.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                            &#125;</span><br><span class="line"></span><br><span class="line">                            Object value = readMethod.invoke(source);</span><br><span class="line">                            <span class="keyword">if</span> (!Modifier.isPublic(writeMethod.getDeclaringClass().getModifiers())) &#123;</span><br><span class="line">                                writeMethod.setAccessible(<span class="keyword">true</span>);</span><br><span class="line">                            &#125;</span><br><span class="line">                            <span class="keyword">if</span> (targetPd.getPropertyType() == Date.class &amp;&amp; sourcePd.getPropertyType() == String.class)&#123;</span><br><span class="line">                                <span class="keyword">if</span> (value <span class="keyword">instanceof</span> String)&#123;</span><br><span class="line">                                    DateTime parse = DateUtil.parse(value.toString(), parsePatterns);</span><br><span class="line">                                    writeMethod.invoke(target, parse.toJdkDate());</span><br><span class="line">                                    <span class="keyword">continue</span>;</span><br><span class="line">                                &#125;</span><br><span class="line">                            &#125;<span class="keyword">else</span> <span class="keyword">if</span>(value!=<span class="keyword">null</span> &amp;&amp; targetPd.getName().equals(<span class="string">&quot;timestamp&quot;</span>)</span><br><span class="line">                                    &amp;&amp; sourcePd.getPropertyType().getName().equals(<span class="string">&quot;long&quot;</span>)</span><br><span class="line">                                    &amp;&amp; value.toString().length()==<span class="number">13</span>)&#123;</span><br><span class="line">                                writeMethod.invoke(target, <span class="keyword">new</span> Date(Long.parseLong(value.toString())));</span><br><span class="line">                                <span class="keyword">continue</span>;</span><br><span class="line">                            &#125;</span><br><span class="line">                            writeMethod.invoke(target, value);</span><br><span class="line">                        &#125; <span class="keyword">catch</span> (Throwable var15) &#123;</span><br><span class="line">                            <span class="keyword">throw</span> <span class="keyword">new</span> FatalBeanException(<span class="string">&quot;Could not copy property &#x27;&quot;</span> + targetPd.getName() + <span class="string">&quot;&#x27; from source to target&quot;</span>, var15);</span><br><span class="line">                        &#125;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Java</category>
+        <category>toolkit</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>HttpClientUtil工具类</title>
+    <url>/2021/04/28/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/HttpClientUtil%E5%B7%A5%E5%85%B7%E7%B1%BB/</url>
+    <content><![CDATA[<h3 id="POST-request-body"><a href="#POST-request-body" class="headerlink" title="POST request body"></a>POST request body</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * post请求接口 输入输出均为对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> url 请求地址</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> map 传输对象</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> AjaxJson <span class="title">post</span><span class="params">(String url, Map&lt;String,String&gt; map)</span></span>&#123;</span><br><span class="line">    CloseableHttpClient httpclient = HttpClients.createDefault();</span><br><span class="line">    RequestConfig requestConfig = RequestConfig.custom().setConnectTimeout(<span class="number">200000</span>).setSocketTimeout(<span class="number">200000</span>).build();</span><br><span class="line">    CloseableHttpResponse response = <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">        HttpPost httppost = <span class="keyword">new</span> HttpPost(url);</span><br><span class="line">        httppost.addHeader(<span class="string">&quot;Content-Type&quot;</span>,<span class="string">&quot;application/json;charset=utf-8&quot;</span>);</span><br><span class="line">        String data = JSONObject.toJSONString(map);</span><br><span class="line">        log.debug(<span class="string">&quot;发送消息:&#123;&#125;&quot;</span>,data);</span><br><span class="line">        StringEntity stringEntity = <span class="keyword">new</span> StringEntity(data, StandardCharsets.UTF_8);</span><br><span class="line">        httppost.setEntity(stringEntity);</span><br><span class="line">        httppost.setConfig(requestConfig);</span><br><span class="line"></span><br><span class="line">        response = httpclient.execute(httppost);</span><br><span class="line">        log.info(<span class="string">&quot;请求访问结果状态码:&quot;</span> + response.getStatusLine().getStatusCode());</span><br><span class="line">        HttpEntity entity = response.getEntity();</span><br><span class="line">        <span class="keyword">if</span> (entity != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">if</span> (response.getStatusLine().getStatusCode() == HttpStatus.SC_OK) &#123;</span><br><span class="line">                <span class="keyword">return</span> JSONObject.parseObject(entity.getContent(), AjaxJson.class);</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                log.error(EntityUtils.toString(entity));</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">        log.error(<span class="string">&quot;获取接口结果异常&quot;</span>);</span><br><span class="line">        Exceptions.exceptionToLog(e);</span><br><span class="line">    &#125;<span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            response.close();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> AjaxJson.requestError();</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="POST-form-data-upload"><a href="#POST-form-data-upload" class="headerlink" title="POST  form-data upload"></a>POST  form-data upload</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Java</category>
+        <category>toolkit</category>
+      </categories>
+      <tags>
+        <tag>常用代码</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>MapUtil工具类</title>
+    <url>/2021/04/28/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/MapUtil%E5%B7%A5%E5%85%B7%E7%B1%BB/</url>
+    <content><![CDATA[<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> com.google.common.collect.Lists;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> java.util.Arrays;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.List;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * map数据类型工具类</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> chen</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020/12/18</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MapUtil</span> <span class="keyword">extends</span> <span class="title">cn</span>.<span class="title">hutool</span>.<span class="title">core</span>.<span class="title">map</span>.<span class="title">MapUtil</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 将filedNames以奇数位数为键，偶数位数为值进行合并到map中</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> filedNames</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> HashMap&lt;String, String&gt; <span class="title">newHashMap</span><span class="params">(String... filedNames)</span> </span>&#123;</span><br><span class="line">        HashMap&lt;String,String&gt; hashMap = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        <span class="keyword">if</span> (filedNames == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> hashMap;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (filedNames.length % <span class="number">2</span> == <span class="number">0</span>) &#123;</span><br><span class="line">            List&lt;String&gt; stringList = Arrays.asList(filedNames);</span><br><span class="line">            List&lt;List&lt;String&gt;&gt; partition = Lists.partition(stringList, <span class="number">2</span>);</span><br><span class="line">            partition.forEach(item-&gt;&#123;</span><br><span class="line">                hashMap.put(item.get(<span class="number">0</span>),item.get(<span class="number">1</span>));</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> hashMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Java</category>
+        <category>toolkit</category>
+      </categories>
+  </entry>
+  <entry>
     <title>PostgreSQL 导入导出</title>
     <url>/2021/04/23/PostgreSQL/PostgreSQL-%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/</url>
     <content><![CDATA[<p>// 导出<br>pg_dump.exe –dbname=postgres –schema=business –file=C:\Users\chen\postgres_192_168_6_44-2021_04_23_17_49_56-dump.sql –create –username=postgres –host=192.168.6.44 –port=5432<br>// 导入<br>psql.exe -U postgres postgres &lt; C:\Users\chen\postgres_192_168_6_44-2021_04_23_18_13_46-dump.sql</p>
@@ -591,79 +647,6 @@
 ]]></content>
   </entry>
   <entry>
-    <title>Redis命令操作</title>
-    <url>/2021/03/22/Redis/Redis%E5%91%BD%E4%BB%A4%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[]]></content>
-      <categories>
-        <category>Redis</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Redis缓存过期策略与内存淘汰策略</title>
-    <url>/2021/03/22/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/</url>
-    <content><![CDATA[<h2 id="过期策略"><a href="#过期策略" class="headerlink" title="过期策略"></a>过期策略</h2><h3 id="设置过期和移除过期"><a href="#设置过期和移除过期" class="headerlink" title="设置过期和移除过期"></a>设置过期和移除过期</h3><p>expire和persist可分别设置过期和取消过期</p>
-<p><code>expire key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
-<p><code>persist key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
-<p><code>ttl key</code>获取键的剩余时间，如果有过期时间则输出过期时间，没有过期时间则为-1。如果该键不存在则返回-2</p>
-<p>在Redis2.6起，过期时间误差缩小为0-1毫秒</p>
-<p>redis过期时间采用unix时间戳存储，与服务器本机时间有关，如果将数据迁移到未来时间，则会立即过期失效。</p>
-<h3 id="过期方式"><a href="#过期方式" class="headerlink" title="过期方式"></a>过期方式</h3><p>惰性过期：当客户端访问它时，key会被发现并主动过期</p>
-<p>定期过期，redis每10秒操作一下流程，他会一直重复，直到过期的keys的百分比低于25%</p>
-<ol>
-<li>测试随机的20个keys进行相关过期检测。</li>
-<li>删除所有已经过期的keys。</li>
-<li>如果有多于25%的keys过期，重复步骤1。</li>
-</ol>
-<h2 id="删除策略"><a href="#删除策略" class="headerlink" title="删除策略"></a>删除策略</h2><p>当内存达到内存限制时，Redis将尝试删除keys，根据选择的逐出策略<code>maxmemory-policy</code></p>
-<p>该配置项配置了如下几个配置，默认是<code>noeviction</code></p>
-<table>
-<thead>
-<tr>
-<th>item</th>
-<th>desc</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>noeviction</td>
-<td>不移除任何键，当写入数据时会发生错误</td>
-</tr>
-<tr>
-<td>volatile-lru</td>
-<td>在所有设置了过期时间的键中，移除最久没有使用的key</td>
-</tr>
-<tr>
-<td>allkeys-lru</td>
-<td>在所有键中，移除最久没有使用的key</td>
-</tr>
-<tr>
-<td>volatile-lfu</td>
-<td>在所有设置了过期时间的建中，移除使用频率最少的key</td>
-</tr>
-<tr>
-<td>allkeys-lfu</td>
-<td>在所有键中，移除使用频率最少的key</td>
-</tr>
-<tr>
-<td>volatile-random</td>
-<td>在所有设置了过期时间的键中，随机删除任意键</td>
-</tr>
-<tr>
-<td>allkeys-random</td>
-<td>在所有键中，随机删除任意键</td>
-</tr>
-<tr>
-<td>volatile-ttl</td>
-<td>在所有设置过期时间的键中，删除过期时间最近的键</td>
-</tr>
-</tbody></table>
-<p>LRU：长时间未被使用。LFU(Redis4.0)：一定时间内访问次数最少</p>
-<p>配置项<code>maxmemory</code>可设置最大内存数，以字节为单位，默认无限制，可以为其配置最大内存，以便服务器可以留出其他内存用于输出缓冲区，副本同步，网络问题等。</p>
-]]></content>
-      <categories>
-        <category>Redis</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Redis RDB与AOF持久化</title>
     <url>/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/</url>
     <content><![CDATA[<p>持久化操作可分为RDB(Redis DataBase)方式AOF(Append Only File)方式。</p>
@@ -738,6 +721,79 @@
 <p>RDB保存的是最终的结果，AOF保存最终结果之间的过程。</p>
 <h3 id="其他相关配置项"><a href="#其他相关配置项" class="headerlink" title="其他相关配置项"></a>其他相关配置项</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"># 开启该参数后，如果开启了RDB快照（即配置了bgsave指令），并且最近一次快照执行失败，则Redis将停止接收写相关的请求</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 开启该参数后，如果后台正在执行一次RDB快照或者AOF重写，则主进程不再进行fsync操作（即使将appendfsync配置为always或者everysec）</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"># AOF文件以追加日志的方式生成，所以服务端发生故障时可能会有尾部命令不完整的情况。</span><br><span class="line"># 该参数后，在此种情况下，AOF文件会截断尾部不完整的命令然后继续加载，并且会在日志中进行提示。如果不开启该参数，则加载AOF文件时会打印错误日志，然后直接退出</span><br><span class="line"># 在重新启动服务器之前，可以尝试执行bin下的redis-check-AOF工具检查修改AOF</span><br><span class="line">aof-load-truncated yes</span><br></pre></td></tr></table></figure>
 
+]]></content>
+      <categories>
+        <category>Redis</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Redis命令操作</title>
+    <url>/2021/03/22/Redis/Redis%E5%91%BD%E4%BB%A4%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>Redis</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Redis缓存过期策略与内存淘汰策略</title>
+    <url>/2021/03/22/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/</url>
+    <content><![CDATA[<h2 id="过期策略"><a href="#过期策略" class="headerlink" title="过期策略"></a>过期策略</h2><h3 id="设置过期和移除过期"><a href="#设置过期和移除过期" class="headerlink" title="设置过期和移除过期"></a>设置过期和移除过期</h3><p>expire和persist可分别设置过期和取消过期</p>
+<p><code>expire key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
+<p><code>persist key</code>设置成功会返回1，不存在或者不能设置过期时间返回0</p>
+<p><code>ttl key</code>获取键的剩余时间，如果有过期时间则输出过期时间，没有过期时间则为-1。如果该键不存在则返回-2</p>
+<p>在Redis2.6起，过期时间误差缩小为0-1毫秒</p>
+<p>redis过期时间采用unix时间戳存储，与服务器本机时间有关，如果将数据迁移到未来时间，则会立即过期失效。</p>
+<h3 id="过期方式"><a href="#过期方式" class="headerlink" title="过期方式"></a>过期方式</h3><p>惰性过期：当客户端访问它时，key会被发现并主动过期</p>
+<p>定期过期，redis每10秒操作一下流程，他会一直重复，直到过期的keys的百分比低于25%</p>
+<ol>
+<li>测试随机的20个keys进行相关过期检测。</li>
+<li>删除所有已经过期的keys。</li>
+<li>如果有多于25%的keys过期，重复步骤1。</li>
+</ol>
+<h2 id="删除策略"><a href="#删除策略" class="headerlink" title="删除策略"></a>删除策略</h2><p>当内存达到内存限制时，Redis将尝试删除keys，根据选择的逐出策略<code>maxmemory-policy</code></p>
+<p>该配置项配置了如下几个配置，默认是<code>noeviction</code></p>
+<table>
+<thead>
+<tr>
+<th>item</th>
+<th>desc</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>noeviction</td>
+<td>不移除任何键，当写入数据时会发生错误</td>
+</tr>
+<tr>
+<td>volatile-lru</td>
+<td>在所有设置了过期时间的键中，移除最久没有使用的key</td>
+</tr>
+<tr>
+<td>allkeys-lru</td>
+<td>在所有键中，移除最久没有使用的key</td>
+</tr>
+<tr>
+<td>volatile-lfu</td>
+<td>在所有设置了过期时间的建中，移除使用频率最少的key</td>
+</tr>
+<tr>
+<td>allkeys-lfu</td>
+<td>在所有键中，移除使用频率最少的key</td>
+</tr>
+<tr>
+<td>volatile-random</td>
+<td>在所有设置了过期时间的键中，随机删除任意键</td>
+</tr>
+<tr>
+<td>allkeys-random</td>
+<td>在所有键中，随机删除任意键</td>
+</tr>
+<tr>
+<td>volatile-ttl</td>
+<td>在所有设置过期时间的键中，删除过期时间最近的键</td>
+</tr>
+</tbody></table>
+<p>LRU：长时间未被使用。LFU(Redis4.0)：一定时间内访问次数最少</p>
+<p>配置项<code>maxmemory</code>可设置最大内存数，以字节为单位，默认无限制，可以为其配置最大内存，以便服务器可以留出其他内存用于输出缓冲区，副本同步，网络问题等。</p>
 ]]></content>
       <categories>
         <category>Redis</category>
@@ -1050,6 +1106,22 @@
       </categories>
   </entry>
   <entry>
+    <title>Redis安装</title>
+    <url>/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<h3 id="centos-mini下安装redis"><a href="#centos-mini下安装redis" class="headerlink" title="centos mini下安装redis"></a>centos mini下安装redis</h3><p>由于mini安装缺少各种依赖，因此需要新下载依赖。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo yum -y install gcc gcc-c++ libstdc++-devel</span><br><span class="line">sudo yum install centos-release-scl</span><br><span class="line">sudo yum install devtoolset-7-gcc*</span><br><span class="line">scl enable devtoolset-7 bash</span><br><span class="line"></span><br><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;releases&#x2F;redis-6.0.6.tar.gz</span><br><span class="line">tar xzf redis-6.0.6.tar.gz</span><br><span class="line">cd redis-6.0.6</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+
+<p>gui安装可能全部包含，直接下载编译，出现问题可在网上搜索报错信息。</p>
+<h3 id="window安装3-0-503"><a href="#window安装3-0-503" class="headerlink" title="window安装3.0.503"></a>window安装3.0.503</h3><p>github地址:<a href="https://github.com/ServiceStack/redis-windows">https://github.com/ServiceStack/redis-windows</a></p>
+<p>下载地址:<a href="https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip">https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip</a></p>
+<p>版本太老，仅用于缓存的存储使用。其它高级功能需要更高版本的。</p>
+<h3 id="RedisDesktopMange-windows-gui界面版redis"><a href="#RedisDesktopMange-windows-gui界面版redis" class="headerlink" title="RedisDesktopMange-windows gui界面版redis"></a>RedisDesktopMange-windows gui界面版redis</h3><p>下载地址:<a href="https://github.com/lework/RedisDesktopManager-Windows/releases">https://github.com/lework/RedisDesktopManager-Windows/releases</a></p>
+]]></content>
+      <categories>
+        <category>Redis</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Java监听Redis缓存过期事件</title>
     <url>/2021/03/21/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%9B%91%E5%90%AC%E4%BA%8B%E4%BB%B6/</url>
     <content><![CDATA[<p><strong>使用缓存过期监听事件并不能真实意义上的TTL为0时触发过期，只是理论上的。</strong>这意味着只能将过期事件使用在，并不需要严格的业务逻辑掺杂的键上。</p>
@@ -1084,22 +1156,6 @@
 
 <h4 id="使用注解来监听"><a href="#使用注解来监听" class="headerlink" title="使用注解来监听"></a>使用注解来监听</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@EventListener(classes = RedisKeyExpiredEvent.class)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listenerUploadFile</span><span class="params">(RedisKeyExpiredEvent event)</span> </span>&#123;</span><br><span class="line">    String id = <span class="keyword">new</span> String(event.getId());</span><br><span class="line">    String source = <span class="keyword">new</span> String(event.getSource());</span><br><span class="line">    String keyspace = event.getKeyspace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-]]></content>
-      <categories>
-        <category>Redis</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Redis安装</title>
-    <url>/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<h3 id="centos-mini下安装redis"><a href="#centos-mini下安装redis" class="headerlink" title="centos mini下安装redis"></a>centos mini下安装redis</h3><p>由于mini安装缺少各种依赖，因此需要新下载依赖。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo yum -y install gcc gcc-c++ libstdc++-devel</span><br><span class="line">sudo yum install centos-release-scl</span><br><span class="line">sudo yum install devtoolset-7-gcc*</span><br><span class="line">scl enable devtoolset-7 bash</span><br><span class="line"></span><br><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;releases&#x2F;redis-6.0.6.tar.gz</span><br><span class="line">tar xzf redis-6.0.6.tar.gz</span><br><span class="line">cd redis-6.0.6</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-
-<p>gui安装可能全部包含，直接下载编译，出现问题可在网上搜索报错信息。</p>
-<h3 id="window安装3-0-503"><a href="#window安装3-0-503" class="headerlink" title="window安装3.0.503"></a>window安装3.0.503</h3><p>github地址:<a href="https://github.com/ServiceStack/redis-windows">https://github.com/ServiceStack/redis-windows</a></p>
-<p>下载地址:<a href="https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip">https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip</a></p>
-<p>版本太老，仅用于缓存的存储使用。其它高级功能需要更高版本的。</p>
-<h3 id="RedisDesktopMange-windows-gui界面版redis"><a href="#RedisDesktopMange-windows-gui界面版redis" class="headerlink" title="RedisDesktopMange-windows gui界面版redis"></a>RedisDesktopMange-windows gui界面版redis</h3><p>下载地址:<a href="https://github.com/lework/RedisDesktopManager-Windows/releases">https://github.com/lework/RedisDesktopManager-Windows/releases</a></p>
 ]]></content>
       <categories>
         <category>Redis</category>
@@ -2736,6 +2792,7 @@
 ]]></content>
       <categories>
         <category>Java</category>
+        <category>toolkit</category>
       </categories>
   </entry>
   <entry>
@@ -3200,8 +3257,12 @@
 </ol>
 ]]></content>
       <categories>
-        <category>常用代码</category>
+        <category>Java</category>
+        <category>tooltik</category>
       </categories>
+      <tags>
+        <tag>常用代码</tag>
+      </tags>
   </entry>
   <entry>
     <title>执行子查询字段更新语句时更新到数据库无效</title>
@@ -5404,6 +5465,17 @@
 <p><code>docker histroy 镜像id</code>可以查看镜像的构建历史</p>
 <p>mysql容器内备份<br>docker exec 容器id sh -C ‘exec mysqldump –all-databases -uroot -p”123456”‘ &gt; /本地存储文件</p>
 <h2 id="命令操作"><a href="#命令操作" class="headerlink" title="命令操作"></a>命令操作</h2><p>启动完容器后执行docker attach 容器id即可进入交互式容器</p>
+<h2 id="上传镜像包到自己的镜像仓库"><a href="#上传镜像包到自己的镜像仓库" class="headerlink" title="上传镜像包到自己的镜像仓库"></a>上传镜像包到自己的镜像仓库</h2><h3 id="登录自己的DockerHub"><a href="#登录自己的DockerHub" class="headerlink" title="登录自己的DockerHub"></a>登录自己的DockerHub</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]# docker login</span><br><span class="line">Login with your Docker ID to push and pull images from Docker Hub. If you don&#39;t have a Docker ID, head over to https:&#x2F;&#x2F;hub.docker.com to create one.</span><br><span class="line">Username: chenguangqi</span><br><span class="line">Password:</span><br><span class="line">WARNING! Your password will be stored unencrypted in &#x2F;root&#x2F;.docker&#x2F;config.json.</span><br><span class="line">Configure a credential helper to remove this warning. See</span><br><span class="line">https:&#x2F;&#x2F;docs.docker.com&#x2F;engine&#x2F;reference&#x2F;commandline&#x2F;login&#x2F;#credentials-store</span><br><span class="line"></span><br><span class="line">Login Succeeded</span><br></pre></td></tr></table></figure>
+
+<h3 id="为要上传的镜像打一个新标签"><a href="#为要上传的镜像打一个新标签" class="headerlink" title="为要上传的镜像打一个新标签"></a>为要上传的镜像打一个新标签</h3><p>镜像名格式为<code>用户名/镜像名:版本</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]# docker tag xxha&#x2F;jdk:8-alpine chenguangqi&#x2F;jdk:8-alpine</span><br><span class="line">[root@localhost ~]# docker images</span><br><span class="line">REPOSITORY              TAG               IMAGE ID       CREATED         SIZE</span><br><span class="line">chenguangqi&#x2F;jdk         8-alpine          2a3fd1d9cc15   3 weeks ago     145MB</span><br><span class="line">xxha&#x2F;jdk                8-alpine          2a3fd1d9cc15   3 weeks ago     145MB</span><br></pre></td></tr></table></figure>
+
+<h3 id="上传镜像"><a href="#上传镜像" class="headerlink" title="上传镜像"></a>上传镜像</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@localhost ~]# docker push chenguangqi&#x2F;jdk:8-alpine</span><br><span class="line">The push refers to repository [docker.io&#x2F;chenguangqi&#x2F;jdk]</span><br><span class="line">22638eda3603: Pushed</span><br><span class="line">322e97245390: Pushed</span><br><span class="line">1dc20f8e0b36: Pushed</span><br><span class="line">b7d8e6a2a3cd: Pushed</span><br><span class="line">ceaf9e1ebef5: Mounted from library&#x2F;openjdk</span><br><span class="line">9b9b7f3d56a0: Mounted from library&#x2F;tomcat</span><br><span class="line">f1b5933fe4b5: Mounted from library&#x2F;tomcat</span><br><span class="line">8-alpine: digest: sha256:6bca2ce916d9ae3164bb53e1e84175f565133917385a8f5158fedcdc177198ce size: 1788</span><br></pre></td></tr></table></figure>
+
+
+
+
+
 ]]></content>
       <categories>
         <category>Docker</category>
@@ -7454,8 +7526,8 @@ catch (IOException ex) &#123;
         <category>Java</category>
       </categories>
       <tags>
-        <tag>Spring</tag>
         <tag>SpringBoot</tag>
+        <tag>Spring</tag>
       </tags>
   </entry>
   <entry>
