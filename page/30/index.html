@@ -78,6 +78,375 @@
     
     
     
+    <article id="post-Zoopeeker/zookeeper客户端的使用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/"
+    >zookeeper客户端的使用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2018-12-29T13:58:49.000Z" itemprop="datePublished">2018-12-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
+<pre><code>bin/zkCli.sh</code></pre><ol>
+<li><p>查看帮助命令</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 2] help</code></pre></li>
+</ol>
+<ol start="2">
+<li><p>查看znode节点,ls命令</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 3] ls /
+[chen, zookeeper]
+[zk: localhost:2181(CONNECTED) 4] ls /chen
+[]</code></pre></li>
+</ol>
+<ol start="3">
+<li><p>查看节点详细信息ls2</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 6] ls2 /chen
+[]
+cZxid = 0x100000002
+ctime = Thu Dec 27 00:58:04 CST 2018
+mZxid = 0x100000002
+mtime = Thu Dec 27 00:58:04 CST 2018
+pZxid = 0x100000002
+cversion = 0
+dataVersion = 0
+aclVersion = 0
+ephemeralOwner = 0x0
+dataLength = 7
+numChildren = 0</code></pre></li>
+</ol>
+<pre><code>**后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。**</code></pre><ol start="4">
+<li><p>创建普通节点create</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 7] create /name &quot;this is name&quot;
+Created /name
+[zk: localhost:2181(CONNECTED) 8] ls /
+[chen, name, zookeeper]</code></pre></li>
+</ol>
+<ol start="5">
+<li><p>获得节点值get</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 9] get /name
+this is name
+xxxxxx</code></pre></li>
+</ol>
+<ol start="6">
+<li><p>创建暂时节点,然后推出客户端重新登陆查看</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 0] create -e /temp &quot;temp&quot;
+Created /temp
+[zk: localhost:2181(CONNECTED) 1] ls /
+[chen, name, temp, zookeeper]</code></pre></li>
+</ol>
+<pre><code>[zk: localhost:2181(CONNECTED) 2] quit
+Quitting...
+2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002
+2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed
+ubuntu1@ubuntu1:~/zookeeper/bin$ ./zkCli.sh
+Connecting to localhost:2181
+
+[zk: localhost:2181(CONNECTED) 1] ls /
+[chen, name, zookeeper]</code></pre><ol start="7">
+<li><p>创建带序号节点</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 9] create /app &quot;app&quot;
+Created /app
+[zk: localhost:2181(CONNECTED) 10] create -s /app/sun &quot;sun&quot;
+Created /app/sun0000000000
+[zk: localhost:2181(CONNECTED) 11] ls /app
+[sun0000000000]
+
+[zk: localhost:2181(CONNECTED) 12] create -s /app/sun &quot;sun2&quot;
+Created /app/sun0000000001
+[zk: localhost:2181(CONNECTED) 13] ls /app
+[sun0000000000, sun0000000001]</code></pre></li>
+</ol>
+<pre><code>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.
+
+    [zk: localhost:2181(CONNECTED) 14] ls /
+    [chen, name, app, zookeeper]
+    [zk: localhost:2181(CONNECTED) 15] create /sum &quot;sum&quot;
+    Created /sum
+    [zk: localhost:2181(CONNECTED) 16] create /sum/test &quot;sumtest1&quot;
+    Created /sum/test
+    [zk: localhost:2181(CONNECTED) 17] create -s /sum/test &quot;sumtest1&quot;
+    Created /sum/test0000000001
+    [zk: localhost:2181(CONNECTED) 18] ls /sum
+    [test0000000001, test]
+
+
+尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</code></pre><ol start="8">
+<li><p>修改节点数据值set</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 19] ls /
+[chen, name, app, sum, zookeeper]
+[zk: localhost:2181(CONNECTED) 20] get /chen
+guangqi
+xxxxxx
+[zk: localhost:2181(CONNECTED) 21] set /chen &quot;chenguangqi&quot;
+xxxxxx
+[zk: localhost:2181(CONNECTED) 22] get /chen
+chenguangqi
+xxxxx</code></pre></li>
+</ol>
+<ol start="9">
+<li><p>节点值的变化监听get path watch</p>
+<pre><code>--1号机器
+[zk: localhost:2181(CONNECTED) 24] get /chen watch
+chenguangqi
+xxxx
+
+-- 2号机器
+[zk: localhost:2181(CONNECTED) 0] set /chen &quot;chen&quot;
+xxxx
+
+[zk: localhost:2181(CONNECTED) 25]
+WATCHER::
+--1号机器
+WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></li>
+</ol>
+<pre><code>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</code></pre><ol start="10">
+<li><p>节点的子节点监听(路径变化)ls path watch</p>
+<p>   [zk: localhost:2181(CONNECTED) 25] ls / watch<br>   [chen, name, app, sum, zookeeper]</p>
+<p>   [zk: localhost:2181(CONNECTED) 1] create /test “testwatch”<br>   Created /test</p>
+<p>   [zk: localhost:2181(CONNECTED) 26]<br>   WATCHER::<br>   WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/</p>
+</li>
+</ol>
+<pre><code>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</code></pre><ol start="11">
+<li><p>删除节点与递归删除节点delete/rmr</p>
+<p>   [zk: localhost:2181(CONNECTED) 26] ls /<br>   [chen, name, app, sum, zookeeper, test]<br>   [zk: localhost:2181(CONNECTED) 27] delete /test<br>   [zk: localhost:2181(CONNECTED) 29] ls /<br>   [chen, name, app, sum, zookeeper]<br>   [zk: localhost:2181(CONNECTED) 34] delete /sum<br>   Node not empty: /sum<br>   [zk: localhost:2181(CONNECTED) 35] rmr /sum<br>   [zk: localhost:2181(CONNECTED) 36] ls /<br>   [chen, name, app, zookeeper]</p>
+</li>
+</ol>
+<ol start="12">
+<li><p>查看节点状态信息stat</p>
+<p>   [zk: localhost:2181(CONNECTED) 39] stat /chen<br>   cZxid = 0x200000021<br>   ctime = Sat Dec 29 21:53:30 CST 2018<br>   mZxid = 0x200000021<br>   mtime = Sat Dec 29 21:53:30 CST 2018<br>   pZxid = 0x200000021<br>   cversion = 0<br>   dataVersion = 0<br>   aclVersion = 0<br>   ephemeralOwner = 0x0<br>   dataLength = 4<br>   numChildren = 0</p>
+</li>
+</ol>
+<pre><code>对于stat的信息分别如下:
+*   cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。
+*   ctime:节点被创建的时间
+*   mZxid:节点最后更新zxid
+*   mtime:节点最后更新的时间
+*   pZxid:最后更新的子节点zxid
+*   cversion:子节点变化号，子节点修改次数
+*   dataVersion:节点数据变化号
+*   aclVersion:节点访问控制列表的变化号
+*   ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
+*   dataLength:节点值的长度。(重要)
+*   numChildren:子节点数目。(重要)</code></pre><ol start="13">
+<li><p>历史命令history,查看之前使用过的命令</p>
+<p>   [zk: localhost:2181(CONNECTED) 42] history<br>   32 - rmr /chen<br>   33 - ls /<br>   34 - delete /sum<br>   35 - rmr /sum<br>   36 - ls /<br>   37 - ls /<br>   38 - create /chen “chen”<br>   39 - stat /chen<br>   40 - help<br>   41 - histor<br>   42 - history</p>
+</li>
+</ol>
+<p>还有其他的命令请查看Zookeeper文档。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/"
+    >Zookeeper分布式搭建及选举机制和节点类型介绍</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-date">
+  <time datetime="2018-12-28T16:17:59.000Z" itemprop="datePublished">2018-12-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="Zookeeper分布式搭建"><a href="#Zookeeper分布式搭建" class="headerlink" title="Zookeeper分布式搭建"></a>Zookeeper分布式搭建</h2><ol>
+<li><p>到<a target="_blank" rel="noopener" href="https://archive.apache.org/dist/zookeeper/">apache zookeeper归档</a>处下载tar包。</p>
+</li>
+<li><p>将包分别拷贝到各自的user下,使用tar -zxf zookeeper-x.x.x.tar.gz解压。注意解压后的目录需要是当前用户组当前用户。传递tar包时使用当前用户登录ftp远程。</p>
+</li>
+<li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
+<pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
+</ol>
+<ol start="4">
+<li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
+<pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
+</ol>
+<ol start="5">
+<li><p>在对应zookeeper目录下创建zkData目录即可</p>
+</li>
+<li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
+<pre><code>bin/zkServer.sh start //启动
+jps //查看jps进程
+bin/zkServer.sh satus //状态
+bin/zkServer.sh stop //停止</code></pre></li>
+</ol>
+<ol start="7">
+<li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
+<pre><code>server.1=192.168.56.11:2888:3888
+server.2=192.168.56.11:2888:3888
+server.3=192.168.56.11:2888:3888</code></pre></li>
+</ol>
+<pre><code>这是三台机子的配置。那么其格式为server.A=B:C:D。
+*   A是一个数字，表示机器的序号，是唯一的，标识着某台机子，这个值要在myid文件中指定，myid文件要放在zkData目录下。
+*   B是服务器地址，可以是IP，也可以是主机名(需要配置host)。
+*   C是这个服务器与集群中的Leader服务器交换数据信息的结构。
+*   D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。
+*   就把这个拷贝到每个机子的zoo.cfg中，把IP地址改一下，机子序号按顺序不重复即可。</code></pre><ol start="8">
+<li><p>在集群模式下的而这个myid文件标识一个机子，Zookeeper启动时读取此文件，拿到里面的数据与zoo.cfg配置信息比较而判断到底是哪个server。那么在zkData下创建myid文件，使用vi或vim命令来编辑</p>
+<pre><code>cd zkData
+touch myid
+vim myid
+对应的机子添加1或2或3就好</code></pre></li>
+</ol>
+<ol start="9">
+<li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
+<pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+ubuntu1@ubuntu1:~/zookeeper$ **jps**
+7522 Jps
+7498 QuorumPeerMain
+ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh status**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Error contacting service. It is probably not running.</code></pre></li>
+</ol>
+<pre><code>可以看到在查看status状态时，说Error contacting service.It is probably not running.此时并不是错误。在单机时可以正常运行。此处因为集群原因，在选举还没选举完成时，就会启动而不运行。当启动第二台机子时
+
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh start**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Starting zookeeper ... STARTED
+    ubuntu2@ubuntu2:~/zookeeper$ **jps**
+    24704 Jps
+    24652 QuorumPeerMain
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh status**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Mode: leader
+
+
+此时，发现Model:leader,这时，选举机制就完毕了，Leader已经选举出来。此时再看机子1的status状态，已经变成Mode:follower。当然这是随机投票的。启动第三台机子时，状态也是mode:follower. OK，这样三台机子都启动起来了。</code></pre><h2 id="Zookeeper选举机制说明"><a href="#Zookeeper选举机制说明" class="headerlink" title="Zookeeper选举机制说明"></a>Zookeeper选举机制说明</h2><p>选举很简单，<strong>每机一票，当某台机子得票数超过总数的一半以上时即可当选leader，必须一半以上</strong>。 机子的id最大则被投票率最高，若1-5台机子都是最新启动的，没有任何历史数据，按顺序进行启动。 服务器1开始启动，只有当前一台机器启动，则处于Looking状态，没有任何选举结果。等待其他机子启动。 服务器2开始启动，互相交换选举结果，由于两者都没有历史数据,所以id大的胜出，但依然不大于总数的一半，所以依然Looking状态 服务器3开始启动，若有三票投给某个机器，则成为Leader，其他机器状态变为follower。 服务器4，5，<strong>虽然id大，但leader已经被选举出来，所以只能作为follower</strong>.</p>
+<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>节点时客户端连接服务器的标识，因为实际集群操作，所以在任意一个机器上操作，其他机器都能看到。 节点有两种类型:</p>
+<ul>
+<li>持久型:客户端和服务器断开连接后，创建的节点不删除</li>
+<li>暂时型:客户端和服务器断开连接后，创建的节点被删除</li>
+</ul>
+<p>节点有四种目录形式的节点:</p>
+<ul>
+<li>持久化目录节点:客户端断开后这个节点依然存在</li>
+<li>持久化顺序编号目录节点:客户端断开后这个节点依然存在，只是<strong>给该节点名称进行顺序编号</strong>。</li>
+<li>临时目录节点:客户端点开后节点被删除</li>
+<li>临时顺序编号目录节点:客户端断开连接后，节点被删除，只是Zookeeper会给该节点进行顺序编号。</li>
+</ul>
+<p>顺序号时单调的递增，由父节点进行维护 在分布式系统中，顺序号可以被用于为所有的事件进行全局排序，这样客户端可以通过顺序号推断事件的顺序。 关于节点的创建在下一节说明，会自然的了解节点的持久和暂时型。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Java/记录工作中某些表的某些字段为空的数量并按行政区形成excel表格" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -569,179 +938,13 @@ ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
 
 </article>
     
-    <article id="post-Javascript/关于使用Editor.md的一些问题，尤其是方法的调用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/"
-    >关于使用Editor.md的一些问题，尤其是方法的调用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
-  <time datetime="2018-12-02T12:00:12.000Z" itemprop="datePublished">2018-12-02</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="关于使用Editor-md的一些问题"><a href="#关于使用Editor-md的一些问题" class="headerlink" title="关于使用Editor.md的一些问题"></a>关于使用Editor.md的一些问题</h2><h3 id="testEditor无法调用该编译器的previewing-方法"><a href="#testEditor无法调用该编译器的previewing-方法" class="headerlink" title="testEditor无法调用该编译器的previewing()方法"></a>testEditor无法调用该编译器的previewing()方法</h3><p>我想用以下方法来预览全部和取消预览全部，所以需要watch属性和previewing方法，试了好多次，都说没有toggle方法或什么的，然后我就取editormd.js去看，发现调用这个方法需要好多对象支持，尤其是codeMirror,但是我看页面，这写js都已经在lib包里导入了。而且使用testEditor打印为undefined。只有在onload里使用this才能调用所有方法。 然后下载源码看，拷贝了老半天，才发现，需要使用方法调用才能使用testEditor执行方法，于是试了试，发现可以，然后就把没用的删了，把height改为autoHeight，因为这样更美观。之后再试，不行。 弄着弄着发现黑主题能显示出来，default主题出不来，于是又试，发现能出来，最后又改了改，又不行了。 最后后，一一的排查，发现是autoHeight搞得，一使用这个属性，就不能preview预览。于是只能改为height才行。 最终的问题，一个是需要使用function方法或事件来调用方法，另一个是autoHeight的坑爹之处。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringBoot中启动项目报错URL没有设置属性" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/30/SpringBoot/SpringBoot%E4%B8%AD%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99URL%E6%B2%A1%E6%9C%89%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7/"
-    >SpringBoot中启动项目报错URL没有设置属性</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/30/SpringBoot/SpringBoot%E4%B8%AD%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99URL%E6%B2%A1%E6%9C%89%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7/" class="article-date">
-  <time datetime="2018-11-30T15:53:04.000Z" itemprop="datePublished">2018-11-30</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="SpringBoot中启动项目报错URL失败"><a href="#SpringBoot中启动项目报错URL失败" class="headerlink" title="SpringBoot中启动项目报错URL失败"></a>SpringBoot中启动项目报错URL失败</h1><p>Failed to configure a DataSource: ‘url’ attribute is not specified and no embedded datasource could be configured. Reason: Failed to determine a suitable driver class 通常这个情况是首次接触SpringbBoot时，犯的错误。</p>
-<ul>
-<li>一般网上说没有配置spring.database.url配置</li>
-<li>或者使用注解去除DataSource的Bean</li>
-<li>或者是url错误</li>
-</ul>
-<p>但是如果你url配置了，而且是正确的。 那么很可能是加了这个</p>
-<pre><code>&lt;resources&gt;
-    &lt;resource&gt;
-        &lt;directory&gt;src/main/java&lt;/directory&gt;
-        &lt;includes&gt;
-            &lt;include&gt;**/*.properties&lt;/include&gt;
-            &lt;include&gt;**/*.xml&lt;/include&gt;
-        &lt;/includes&gt;
-        &lt;filtering&gt;false&lt;/filtering&gt;
-    &lt;/resource&gt;
-    &lt;resource&gt;
-        &lt;directory&gt;src/main/resources&lt;/directory&gt;
-        &lt;includes&gt;
-            &lt;include&gt;**/*.properties&lt;/include&gt;
-            &lt;include&gt;**/*.xml&lt;/include&gt;
-        &lt;/includes&gt;
-        &lt;filtering&gt;false&lt;/filtering&gt;
-    &lt;/resource&gt;
-&lt;/resources&gt;</code></pre><p>这串代码放在maven的pom.xml的build标签里。一般在SpringMVC中用于properties,xml文件在resources目录中，放置这个标签，就可以在编译的时候读到resources里的这两种文件，不然无法读到，所以就需要加这个代码。 但SpringBoot中使用yml或properties，不需要这个配置，如果需要编写properties，可以通过yml里的属性配置，然后classpath:/xxx.properties。 所以，去掉这个代码，就完全OK了。 这只是一种情况，还有其他各种各样的情况。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/29/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><span class="page-number current">30</span><a class="page-number" href="/page/31/">31</a><a class="page-number" href="/page/32/">32</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/31/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/29/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><span class="page-number current">30</span><a class="page-number" href="/page/31/">31</a><a class="page-number" href="/page/32/">32</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/31/">下一页</a>
   </nav>
   
 </section>

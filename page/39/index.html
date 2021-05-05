@@ -78,6 +78,483 @@
     
     
     
+    <article id="post-XML/XML Schema技术笔记" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/14/XML/XML%20Schema%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"
+    >XML Schema技术笔记</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/14/XML/XML%20Schema%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/" class="article-date">
+  <time datetime="2018-09-14T03:12:32.000Z" itemprop="datePublished">2018-09-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Schemas教程"><a href="#Schemas教程" class="headerlink" title="Schemas教程"></a>Schemas教程</h1><p>XML Schema 是基于 XML 的 DTD 替代者。 XML Schema 可描述 XML 文档的结构。 XML Schema 语言也可作为 XSD（XML Schema Definition）来引用。</p>
+<h3 id="schema元素"><a href="#schema元素" class="headerlink" title="schema元素"></a>schema元素</h3><pre><code>&lt;?xml version=&quot;1.0&quot;?&gt;
+
+&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;
+targetNamespace=&quot;http://www.runoob.com&quot;
+xmlns=&quot;http://www.runoob.com&quot;
+elementFormDefault=&quot;qualified&quot;&gt;
+...
+...
+&lt;/xs:schema&gt;</code></pre><ul>
+<li>xmlns:xs:显示schema中用到的元素和数据类型来自此命名空间，同时规定应该使用xs前缀</li>
+<li>targetNamespace:显示被此schema定义的元素来自命名空间</li>
+<li>xmlns:默认命名空间</li>
+<li>elementFormDefault=“qualified“:指出任何XML实例必须被命名空间限定</li>
+</ul>
+<p>在XML中引用schema</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot;?&gt;
+
+&lt;note xmlns=&quot;http://www.runoob.com&quot;
+xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+xsi:schemaLocation=&quot;http://www.runoob.com note.xsd&quot;&gt;
+
+&lt;to&gt;Tove&lt;/to&gt;
+&lt;from&gt;Jani&lt;/from&gt;
+&lt;heading&gt;Reminder&lt;/heading&gt;
+&lt;body&gt;Don&apos;t forget me this weekend!&lt;/body&gt;
+&lt;/note&gt;</code></pre><h2 id="元素"><a href="#元素" class="headerlink" title="元素"></a>元素</h2><h3 id="简易元素"><a href="#简易元素" class="headerlink" title="简易元素"></a>简易元素</h3><p>仅包含文本的元素，不包含任何其他元素或属性。</p>
+<ol>
+<li><p><strong>语法:</strong></p>
+<p>&lt;xs:element name=”xxx” type=”yyy”/&gt;</p>
+</li>
+</ol>
+<p>name定义元素的名称，type定义元素的数据类型</p>
+<ol start="2">
+<li><strong>常用的类型:</strong></li>
+</ol>
+<ul>
+<li>xs:string</li>
+<li>xs:decimal</li>
+<li>xs:integer</li>
+<li>xs:boolean</li>
+<li>xs:date</li>
+<li>xs:time</li>
+</ul>
+<ol start="3">
+<li><p><strong>示例:</strong></p>
+<p>&lt;xs:element name=”lastname” type=”xs:string”/&gt;<br>&lt;xs:element name=”age” type=”xs:integer”/&gt;<br>&lt;xs:element name=”dateborn” type=”xs:date”/&gt;<br>对应实例<br><lastname>Refsnes</lastname><br><age>36</age><br><dateborn>1970-03-27</dateborn></p>
+</li>
+</ol>
+<ol start="4">
+<li><strong>定义默认值和固定值</strong></li>
+</ol>
+<p>当没有其他值被规定时，默认值就会自动分配给元素</p>
+<pre><code>&lt;xs:element name=&quot;color&quot; type=&quot;xs:string&quot; default=&quot;red&quot;/&gt;</code></pre><p>如果name值未定义，省缺值为red。 固定值同样会自动分配给元素，并且无法定义另外的值</p>
+<pre><code>&lt;xs:element name=&quot;color&quot; type=&quot;xs:string&quot; fixed=&quot;red&quot;/&gt;</code></pre><h4 id="元素属性定义"><a href="#元素属性定义" class="headerlink" title="元素属性定义"></a>元素属性定义</h4><p>简易元素无法拥有属性。假如某个元素拥有属性，它就会被当作某种复合类型。但是属性本身总是作为简易类型被声明的。</p>
+<ol>
+<li><p><strong>语法:</strong></p>
+<p>&lt;xs:attribute name=”xxx” type=”yyy”/&gt;</p>
+</li>
+</ol>
+<ol start="2">
+<li><p>示例</p>
+<p>&lt;xs:attribute name=”lang” type=”xs:string”/&gt;<br>实例<br><lastname lang="EN">Smith</lastname></p>
+</li>
+</ol>
+<ol start="3">
+<li>默认值固定值和必须属性</li>
+</ol>
+<p>同样可以使用default设置默认值，fixed设置固定值。 如需规定必须属性,使用use</p>
+<pre><code>&lt;xs:attribute name=&quot;lang&quot; type=&quot;xs:string&quot; use=&quot;required&quot;/&gt;</code></pre><h4 id="对值的限定-Facets"><a href="#对值的限定-Facets" class="headerlink" title="对值的限定/Facets"></a>对值的限定/Facets</h4><p>为xml元素或者属性定义可接受的值。 也就是说可以定义男和女，数字大于多少小于多少，相当于一个校验。 在xs:element元素中使用<strong>xs:simpleType元素</strong>，然后在<strong>xs:restriction元素</strong>下定义每一类的限定。 而元素的type值类型将不在element中定义，而是在限定元素标签中定义，通过base来定义类型。如果你在element中定义了，那就会编译不通过。 <strong>1. 特定值的限定</strong> 限定元素的值，如男|女,使用元素<strong>xs:enumeration</strong>,前面有个enum，也就类似java的枚举类型。 该示例中，car的值仅接受Audi，Golf和BMW。否则编译不通过</p>
+<pre><code>&lt;xs:element name=&quot;car&quot;&gt;
+  &lt;xs:simpleType&gt;
+    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
+      &lt;xs:enumeration value=&quot;Audi&quot;/&gt;
+      &lt;xs:enumeration value=&quot;Golf&quot;/&gt;
+      &lt;xs:enumeration value=&quot;BMW&quot;/&gt;
+    &lt;/xs:restriction&gt;
+  &lt;/xs:simpleType&gt;
+&lt;/xs:element&gt;</code></pre><p><strong>2. 对区间范围限定</strong> 对数字进行限定，如限定身高最大多少最小多少，使用<strong>xs:minInclusive和xs:maxInclusive</strong>元素。 该示例中age元素只接受值为0到120</p>
+<pre><code>&lt;xs:element name=&quot;age&quot;&gt;
+  &lt;xs:simpleType&gt;
+    &lt;xs:restriction base=&quot;xs:integer&quot;&gt;
+      &lt;xs:minInclusive value=&quot;0&quot;/&gt;
+      &lt;xs:maxInclusive value=&quot;120&quot;/&gt;
+    &lt;/xs:restriction&gt;
+  &lt;/xs:simpleType&gt;
+&lt;/xs:element&gt;</code></pre><p><strong>3. 正则限定</strong> 使用正则表达式来限定取值。 使用<strong>xs:pattern</strong>元素来定义。该正则表达式与其他一样，包括[],{0,1},|,+等等，但不需要前符号和后符号。 该示例中letter值允许值为a-z</p>
+<pre><code>&lt;xs:element name=&quot;letter&quot;&gt;
+  &lt;xs:simpleType&gt;
+    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
+      &lt;xs:pattern value=&quot;[a-z]&quot;/&gt;
+    &lt;/xs:restriction&gt;
+  &lt;/xs:simpleType&gt;
+&lt;/xs:element&gt;</code></pre><p><strong>4. 对空白字符的限定</strong> 使用<strong>xs:whiteSpace</strong>元素指定 该值有3个，preserve，replace，collapse。标志着XML处理器对空白字符的处理</p>
+<ul>
+<li><p>preserve:不会移除任何空白字符</p>
+</li>
+<li><p>replace:移除所有空白字符（换行、回车、空格以及制表符）</p>
+</li>
+<li><p>collapse:移除所有空白字符（换行、回车、空格以及制表符会被替换为空格，开头和结尾的空格会被移除，而多个连续的空格会被缩减为一个单一的空格）</p>
+<p>&lt;xs:element name=”address”&gt;<br>  <a href="xs:simpleType">xs:simpleType</a></p>
+<pre><code>&lt;xs:restriction base=&quot;xs:string&quot;&gt;
+  &lt;xs:whiteSpace value=&quot;preserve&quot;/&gt;
+&lt;/xs:restriction&gt;</code></pre><p>  </xs:simpleType><br></xs:element></p>
+</li>
+</ul>
+<p><strong>5. 对长度的限定</strong> 使用<strong>xs:length,xs:minLength,xs:maxLength</strong>这三个元素定义</p>
+<pre><code>&lt;xs:element name=&quot;password&quot;&gt;
+  &lt;xs:simpleType&gt;
+    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
+      &lt;xs:length value=&quot;8&quot;/&gt;
+    &lt;/xs:restriction&gt;
+  &lt;/xs:simpleType&gt;
+&lt;/xs:element&gt;
+
+&lt;xs:element name=&quot;password&quot;&gt;
+  &lt;xs:simpleType&gt;
+    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
+      &lt;xs:minLength value=&quot;5&quot;/&gt;
+      &lt;xs:maxLength value=&quot;8&quot;/&gt;
+    &lt;/xs:restriction&gt;
+  &lt;/xs:simpleType&gt;
+&lt;/xs:element&gt;</code></pre><p><strong>6. 其他限定</strong></p>
+<ul>
+<li>xs:maxExclusive:定义数值的上限，所有允许的值都必须小于此值</li>
+<li>xs:maxInclusive:定义数值的上限，所有允许的值都必须小于或等于此值</li>
+<li>xs:minExclusive:定义数值的下限，所有允许的值都必须大于此值</li>
+<li>xs:minInclusive:定义数值的下限，所有允许的值都必须大约或等于此值</li>
+<li>xs:totalDigits:定义所允许的阿拉伯数字的精确位数，必须大于0</li>
+</ul>
+<p><strong>7. 对于多个元素都想使用这个限定获取后面的元素的定义</strong> 可以定义一个type，并让element来引用它</p>
+<pre><code>&lt;xs:element name=&quot;password&quot; type=&quot;tsinfo&quot;&gt;
+&lt;xs:element name=&quot;username&quot; type=&quot;tsinfo&quot;&gt;
+
+&lt;xs:simpleType name=&quot;tsinfo&quot;&gt;
+    &lt;xs:restriction base=&quot;xs:string&quot;&gt;
+      &lt;xs:minLength value=&quot;6&quot;/&gt;
+      &lt;xs:maxLength value=&quot;10&quot;/&gt;
+    &lt;/xs:restriction&gt;
+  &lt;/xs:simpleType&gt;</code></pre><p>定义了之后，可以通过type来引用name属性的值，两个element都使用同一个限定，当然后面的符合元素等等都可以这样做，只需要把element后的那个标签元素拿出来即可。</p>
+<h4 id="复合元素"><a href="#复合元素" class="headerlink" title="复合元素"></a>复合元素</h4><p>只有单个元素，它是简易元素，而如果有子元素，那么它就是复合元素。</p>
+<ul>
+<li>xs:complexType用于定义复杂类型</li>
+<li>xs:simpleType用于定义简易类型</li>
+<li>xs:extension拓展已有的simpleType和complexType元素</li>
+<li>element中使用type属性引用一个complexType</li>
+<li>attribute中使用type属性来引用一个simpleType</li>
+<li>simpleType用于定义限定，注解等，属性base表示引用一个类型</li>
+<li>complexType用于各种，name表示当前名称，用于被type引用</li>
+</ul>
+<p><strong>1. 示例:仅包含元素</strong></p>
+<pre><code>&lt;xs:element name=&quot;employee&quot;&gt;
+  &lt;xs:complexType&gt;
+    &lt;xs:sequence&gt;
+      &lt;xs:element name=&quot;firstname&quot; type=&quot;xs:string&quot;/&gt;
+      &lt;xs:element name=&quot;lastname&quot; type=&quot;xs:string&quot;/&gt;
+    &lt;/xs:sequence&gt;
+  &lt;/xs:complexType&gt;
+&lt;/xs:element&gt;</code></pre><p>对employee元素进行声明，包含两个子元素，并且顺序是按照声明的先后顺序。 <strong>2. 在已有的复合元素之上以某个复合元素为基础</strong></p>
+<pre><code>&lt;xs:element name=&quot;employee&quot; type=&quot;fullpersoninfo&quot;/&gt;
+
+&lt;xs:complexType name=&quot;personinfo&quot;&gt;
+  &lt;xs:sequence&gt;
+    &lt;xs:element name=&quot;firstname&quot; type=&quot;xs:string&quot;/&gt;
+    &lt;xs:element name=&quot;lastname&quot; type=&quot;xs:string&quot;/&gt;
+  &lt;/xs:sequence&gt;
+&lt;/xs:complexType&gt;
+
+&lt;xs:complexType name=&quot;fullpersoninfo&quot;&gt;
+  &lt;xs:complexContent&gt;
+    &lt;xs:extension base=&quot;personinfo&quot;&gt;
+      &lt;xs:sequence&gt;
+        &lt;xs:element name=&quot;address&quot; type=&quot;xs:string&quot;/&gt;
+        &lt;xs:element name=&quot;city&quot; type=&quot;xs:string&quot;/&gt;
+        &lt;xs:element name=&quot;country&quot; type=&quot;xs:string&quot;/&gt;
+      &lt;/xs:sequence&gt;
+    &lt;/xs:extension&gt;
+  &lt;/xs:complexContent&gt;
+&lt;/xs:complexType&gt;</code></pre><p>该示例首先是employee引用了类型为fullpersoninfo的xs:complexType ，而fullpersoninfo内部又延伸引用了personinfo。</p>
+<ol start="3">
+<li>带有混合内容的复合类型</li>
+</ol>
+<p>为了使字符数据可以出现在 “letter” 的子元素之间，<strong>mixed 属性必须被设置为 “true”</strong></p>
+<pre><code>&lt;xs:element name=&quot;letter&quot;&gt;
+  &lt;xs:complexType mixed=&quot;true&quot;&gt;
+    &lt;xs:sequence&gt;
+      &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
+      &lt;xs:element name=&quot;orderid&quot; type=&quot;xs:positiveInteger&quot;/&gt;
+      &lt;xs:element name=&quot;shipdate&quot; type=&quot;xs:date&quot;/&gt;
+    &lt;/xs:sequence&gt;
+  &lt;/xs:complexType&gt;
+&lt;/xs:element&gt;</code></pre><h4 id="指示器"><a href="#指示器" class="headerlink" title="指示器"></a>指示器</h4><p>通过指示器，我们可以控制在文档中使用元素的方式。 <strong>Order指示器:定义元素的顺序。</strong></p>
+<ul>
+<li>All:规定子元素可以按照任意顺序出现,且每个子元素必须只出现一次</li>
+<li>Chioce:规定可出现任意一个元素</li>
+<li>Sequence:子元素必须按照特定的顺序出现</li>
+</ul>
+<p><strong>Occurrence 指示器：用于定义某个元素出现的频率。(作为element属性)</strong></p>
+<ul>
+<li><p>maxOccurs 以及 minOccurs 的默认值均为 1。</p>
+</li>
+<li><p>maxOccurs:可规定某个元素可出现的最大次数</p>
+</li>
+<li><p>minOccurs：某个元素能够出现的最小次数：</p>
+<p>&lt;xs:element name=”person”&gt;<br>  <a href="xs:complexType">xs:complexType</a></p>
+<pre><code>&lt;xs:sequence&gt;
+  &lt;xs:element name=&quot;full_name&quot; type=&quot;xs:string&quot;/&gt;
+  &lt;xs:element name=&quot;child_name&quot; type=&quot;xs:string&quot;
+  maxOccurs=&quot;10&quot; minOccurs=&quot;0&quot;/&gt;
+&lt;/xs:sequence&gt;</code></pre><p>  </xs:complexType><br></xs:element></p>
+</li>
+</ul>
+<p><strong>Group 指示器：定义相关的组，可以引用</strong></p>
+<ul>
+<li><p>Group name:定义一组元素，在内部声明 all、choice 或者 sequence 元素，和一个name属性，则可通过group元素的ref属性调用这个group</p>
+<p>&lt;xs:group name=”persongroup”&gt;<br>  <a href="xs:sequence">xs:sequence</a></p>
+<pre><code>&lt;xs:element name=&quot;firstname&quot; type=&quot;xs:string&quot;/&gt;
+&lt;xs:element name=&quot;lastname&quot; type=&quot;xs:string&quot;/&gt;
+&lt;xs:element name=&quot;birthday&quot; type=&quot;xs:date&quot;/&gt;</code></pre><p>  </xs:sequence><br></xs:group></p>
+<p>&lt;xs:element name=”person” type=”personinfo”/&gt;</p>
+<p>&lt;xs:complexType name=”personinfo”&gt;<br>  <a href="xs:sequence">xs:sequence</a></p>
+<pre><code>&lt;xs:group ref=&quot;persongroup&quot;/&gt;
+&lt;xs:element name=&quot;country&quot; type=&quot;xs:string&quot;/&gt;</code></pre><p>  </xs:sequence><br></xs:complexType></p>
+</li>
+</ul>
+<ul>
+<li><p>attributeGroup name:定义一组属性</p>
+<p>&lt;xs:attributeGroup name=”personattrgroup”&gt;<br>  &lt;xs:attribute name=”firstname” type=”xs:string”/&gt;<br>  &lt;xs:attribute name=”lastname” type=”xs:string”/&gt;<br>  &lt;xs:attribute name=”birthday” type=”xs:date”/&gt;<br></xs:attributeGroup></p>
+<p>&lt;xs:element name=”person”&gt;<br>  <a href="xs:complexType">xs:complexType</a></p>
+<pre><code>&lt;xs:attributeGroup ref=&quot;personattrgroup&quot;/&gt;</code></pre><p>  </xs:complexType><br></xs:element></p>
+</li>
+</ul>
+<h4 id="元素替换"><a href="#元素替换" class="headerlink" title="元素替换"></a>元素替换</h4><p>举例说明：我们的用户来自英国和挪威。我们希望有能力让用户选择在 XML 文档中使用挪威语的元素名称还是英语的元素名称。 可以在element中定义<strong>substitutionGroup属性</strong>此属性声明当前元素为次元素，而值为需要被替换主元素的name属性的值。</p>
+<pre><code>&lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
+&lt;xs:element name=&quot;navn&quot; substitutionGroup=&quot;name&quot;/&gt;
+
+&lt;xs:complexType name=&quot;custinfo&quot;&gt;
+  &lt;xs:sequence&gt;
+    &lt;xs:element ref=&quot;name&quot;/&gt;
+  &lt;/xs:sequence&gt;
+&lt;/xs:complexType&gt;
+
+&lt;xs:element name=&quot;customer&quot; type=&quot;custinfo&quot;/&gt;
+&lt;xs:element name=&quot;kunde&quot; substitutionGroup=&quot;customer&quot;/&gt;</code></pre><p>在示例中，complexType元素被引用的是customer元素，所以customer是根元素，子元素序列中element引用了name，所以子元素为name元素。 而name属性为navn的element中，定义了substitutionGroup为name，所以此次元素可以替代name子元素。 name属性为kunde的element中，定义了substitutionGroup为customer，所以此次元素可以替代customer元素。 所以可以有的值为</p>
+<pre><code>&lt;customer&gt;
+  &lt;name&gt;John Smith&lt;/name&gt;
+&lt;/customer&gt;
+或
+&lt;kunde&gt;
+  &lt;navn&gt;John Smith&lt;/navn&gt;
+&lt;/kunde&gt;</code></pre><p>其实这种方式也可以使用Chioce指示器，可以任选一个。</p>
+<h4 id="混合内容"><a href="#混合内容" class="headerlink" title="混合内容"></a>混合内容</h4><p>复合类型中，子元素前后带有其他文本 可在xs:complexType元素设置属性mixed=”true”</p>
+<pre><code>&lt;xs:element name=&quot;letter&quot;&gt;
+  &lt;xs:complexType mixed=&quot;true&quot;&gt;
+    &lt;xs:sequence&gt;
+      &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
+      &lt;xs:element name=&quot;orderid&quot; type=&quot;xs:positiveInteger&quot;/&gt;
+      &lt;xs:element name=&quot;shipdate&quot; type=&quot;xs:date&quot;/&gt;
+    &lt;/xs:sequence&gt;
+  &lt;/xs:complexType&gt;
+&lt;/xs:element&gt;
+xml中
+&lt;letter&gt;
+  Dear Mr.&lt;name&gt;John Smith&lt;/name&gt;.
+  Your order &lt;orderid&gt;1032&lt;/orderid&gt;
+  will be shipped on &lt;shipdate&gt;2001-07-13&lt;/shipdate&gt;.
+&lt;/letter&gt;</code></pre><h4 id="数据类型"><a href="#数据类型" class="headerlink" title="数据类型"></a>数据类型</h4><ol>
+<li>字符型</li>
+</ol>
+<ul>
+<li>string:包含字符串</li>
+<li>token:不包含换行符、回车或制表符、开头或结尾空格或者多个连续空格的字符串</li>
+<li>normalizedString:不包含换行符、回车或制表符的字符串</li>
+</ul>
+<ol start="2">
+<li>日期类型</li>
+</ol>
+<ul>
+<li>date:日期,可在日期后加上Z，使用世界调整时间UTC</li>
+<li>time:时间</li>
+<li>dateTime:日期时间</li>
+</ul>
+<ol start="3">
+<li>数值型</li>
+</ol>
+<ul>
+<li>decimal：十进制数</li>
+<li>int:有正负的32位整数</li>
+<li>integer:整数值</li>
+<li>long:有正负的64位整数</li>
+<li>nonNegativeInteger：仅包含非负值</li>
+<li>nonPositiveInteger:仅包含非正值</li>
+<li>negativeInteger：仅包含负值</li>
+</ul>
+<ol start="4">
+<li>其他数据类型</li>
+</ol>
+<ul>
+<li>boolean:可用值位true,false,1,0</li>
+<li>hexBinary:二进制数据</li>
+<li>anyURI:规定的UIR，如果有空格使用%20替换</li>
+</ul>
+<h4 id="其他XSD元素"><a href="#其他XSD元素" class="headerlink" title="其他XSD元素"></a>其他XSD元素</h4><ul>
+<li><p>list元素:定义单个 simpleType 定义的集合。</p>
+<p>&lt;xs:element name=”person” type=”valuelist”/&gt;</p>
+<p>&lt;xs:simpleType name=”valuelist”&gt;</p>
+<pre><code>&lt;xs:list itemType=&quot;xs:integer&quot;/&gt;</code></pre><p></xs:simpleType><br>xml</p>
+<person>
+  -1  <!-- 或 -234 234一起(中间需要空格分割) -->
+</person>
+
+
+</li>
+</ul>
+<p>该元素定义simpleType，其中list元素中itemType类型位integer，那么person中的值将只接受integer类型的数据,可以为1，-123，等整数。</p>
+<ul>
+<li><p>include:向一个文档添加带有相同目标命名空间的多个 schema。</p>
+</li>
+<li><p>import :向一个文档添加带有不同目标命名空间的多个 schema。</p>
+<p>&lt;xs:include schemaLocation=”<a target="_blank" rel="noopener" href="http://www.w3cschool.cc/schema/customer.xsd&quot;/&gt;">http://www.w3cschool.cc/schema/customer.xsd&quot;/&gt;</a><br>&lt;xs:include schemaLocation=”<a target="_blank" rel="noopener" href="http://www.w3cschool.cc/schema/company.xsd&quot;/&gt;">http://www.w3cschool.cc/schema/company.xsd&quot;/&gt;</a></p>
+<p>&lt;xs:import namespace=”<a target="_blank" rel="noopener" href="http://www.w3cschool.cc/schema&quot;/&gt;">http://www.w3cschool.cc/schema&quot;/&gt;</a></p>
+</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle非正常关闭数据库" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/12/Oracle/Oracle%E9%9D%9E%E6%AD%A3%E5%B8%B8%E5%85%B3%E9%97%AD%E6%95%B0%E6%8D%AE%E5%BA%93/"
+    >Oracle非正常关闭数据库，ORA-01034:ORACLE not available,Oracle-27101:shared memory realm does not exists</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/12/Oracle/Oracle%E9%9D%9E%E6%AD%A3%E5%B8%B8%E5%85%B3%E9%97%AD%E6%95%B0%E6%8D%AE%E5%BA%93/" class="article-date">
+  <time datetime="2018-09-12T10:23:05.000Z" itemprop="datePublished">2018-09-12</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle"><a href="#当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle" class="headerlink" title="当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle"></a>当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle</h2><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180912180430.png" alt=""> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180912180543.png" alt=""> 网上的处理方法: 登陆时，谈给你错误的 ORA-01034:ORACLE not available,Oracle-27101:shared memory realm does not exists 后面由进程ID，回话ID，序列号。 去D:\app\cgq_r\diag\rdbms\orcl\orcl\trace位置找到你进程id对应的文件,orcl_ora_1460.trc 这个时错误日志，发现 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180912180948.png" alt=""> ORA-19815: 警告: db_recovery_file_dest_size 字节 (共 4102029312 字节) 已使用 100.00%, 尚有 0 字节可用。 ORA-19809: 超出了恢复文件数的限制 ORA-19804: 无法回收 42810368 字节磁盘空间 (从 4102029312 限制中) ORA-16038: 日志 1 sequence# 316 无法归档 <strong>db_recovery_file_dest_size也叫归档日志空间不足导致的。</strong> 解决途径:</p>
+<ol>
+<li><p>删除归档日志</p>
+<p>在服务中启动oracle服务，或startup mount</p>
+<p>rman target sys/orcl<br>delete archivelog until time ‘sysdate’; –删除所有日志<br>delete expired archivelog all;–删除过期日志</p>
+</li>
+</ol>
+<p>重新关闭数据库服务，再开启</p>
+<ol start="2">
+<li><p>设置归档日志大小</p>
+<p>select * from v$recovery_file_dest; —查询归档日志<br>db_recovery_file_dest_size=10737418240; –设置归档日志空间为10G</p>
+</li>
+</ol>
+<p>参考： <a target="_blank" rel="noopener" href="https://blog.csdn.net/zwk626542417/article/details/39667999">https://blog.csdn.net/zwk626542417/article/details/39667999</a> <a target="_blank" rel="noopener" href="http://www.cnblogs.com/xwdreamer/p/3804509.html">http://www.cnblogs.com/xwdreamer/p/3804509.html</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-XML/XML定义Schema，定义xsd文件并使用xml文件引用它" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -431,195 +908,13 @@ $(&apos;#table&apos;).bootstrapTable(&apos;refresh&apos;);</code></pre><h3 id="�
 
 </article>
     
-    <article id="post-Arcgis/关于在Windows Server 2008中安装arcgis server的小问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/27/Arcgis/%E5%85%B3%E4%BA%8E%E5%9C%A8Windows%20Server%202008%E4%B8%AD%E5%AE%89%E8%A3%85arcgis%20server%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/"
-    >关于在Windows Server 2008中安装arcgis server的小问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/27/Arcgis/%E5%85%B3%E4%BA%8E%E5%9C%A8Windows%20Server%202008%E4%B8%AD%E5%AE%89%E8%A3%85arcgis%20server%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2018-08-27T09:09:06.000Z" itemprop="datePublished">2018-08-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="分配的是一个全新的虚拟机windows-server-2008"><a href="#分配的是一个全新的虚拟机windows-server-2008" class="headerlink" title="分配的是一个全新的虚拟机windows server 2008"></a>分配的是一个全新的虚拟机windows server 2008</h3><ol>
-<li>外部无法ping通问题</li>
-</ol>
-<p>计算机右击【管理】，左侧栏找到【高级安全Windows防火墙】，【入站规则】，【文件和打印机共享(回显请求ICMPv4-In)】，右击【属性】，勾选【启用】</p>
-<ol start="2">
-<li>进行tomcat访问8080时，出现的问题</li>
-</ol>
-<p>首先，1.可能是端口未开放，2.可能是路径有问题 先说路径这个问题：路径有问题不是说ip有问题，而是外部浏览器无法监测到这个ip，解决：找到系统的hosts文件，添加对应信息,文件路径C:\Windows\System32\drivers\etc\hosts,添加如下，局域网ip改为你自己的</p>
-<pre><code>127.0.0.1       localhost
-192.168.0.65    localhost</code></pre><p>其次，如果第二中还没解决的话参考这个。可能是外部无法访问服务器端口，你需要在防火墙开启端口，打开【防火墙】，【入站规则】，右边【新建规则】，选择【端口】，【允许连接】，填写规则名称，如port8080。另外把出站规则也开开吧，尝试一下。为了安全起见你可以先尝试，需要哪个规则使用哪个规则，不需要就删了规则。</p>
-<ol start="3">
-<li>安装arcgis server时，出现需要安装.NET Framework 3.5</li>
-</ol>
-<p>这个在官网下载后，放到服务器里安装的话，是无法安装的，需要直接在服务器里操作，不用去官网下包 【计算机】右击，【管理】，【功能】，右侧【添加功能】，选择.NET Framework 3.5.1勾选，下一步，安装。无需重启服务器</p>
-<ol start="4">
-<li>安装arcgis server时，设置arcgis账号密码时，密码校验复杂度，总导致密码不符合复杂度，不让下一步</li>
-</ol>
-<p>win徽标+R，打开运行窗口，输入secpol.msc，进入【本地安全策略】，选择【账户策略】，【密码策略】，右侧【密码必须符合复杂性要求】，右击禁用</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Arcgis/" rel="tag">Arcgis</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle数据库expdp,impdp命令数据库导入导出" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/18/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93expdp,impdp%E5%91%BD%E4%BB%A4%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/"
-    >Oracle数据库expdp,impdp命令数据库导入导出</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/18/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93expdp,impdp%E5%91%BD%E4%BB%A4%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/" class="article-date">
-  <time datetime="2018-08-18T07:23:55.000Z" itemprop="datePublished">2018-08-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="导入导出示例"><a href="#导入导出示例" class="headerlink" title="导入导出示例"></a>导入导出示例</h3><ol>
-<li><p>查看管理理员目录（同时查看操作系统是否存在，因为Oracle并不关心该目录是否存在，如果不存在，则出错）</p>
-<p>select * from dba_directories;</p>
-</li>
-<li><p>给你需要导入的用户赋予指定目录的操作权限</p>
-<p>grant read,write on directory DATA_PUMP_DIR to 用户名;</p>
-</li>
-</ol>
-<p>DATA_PUMP_DIR目录名默认值为当前oracle安装目录/orcl/dpdump/,DIRECTORY参数表示dmp文件放置的位置。导入导出的dmp文件都放在此目录下。</p>
-<ol>
-<li><p>导出用户数据(包含表结构，数据等)</p>
-<p>expdp 用户名/密码@数据库实例名称 schemas=用户名 dumpfile=要导出的dmp文件名.dmp DIRECTORY=目录名称;<br>expdp scott/tiger@orcl schemas=scott dumpfile=scott.dmp DIRECTORY=DATA_PUMP_DIR;</p>
-</li>
-<li><p>导入用户</p>
-<p>impdp 用户名/密码@orcl  DUMPFILE=dmp名称.dmp SCHEMAS=要导入库的用户名，逗号隔开 DIRECTORY=目录名称</p>
-</li>
-</ol>
-<p>导入前，dmp文件放置在directory目录路径下。impdp和expdp命令后面的用户名密码为连接数据库的用户名密码，可以不和schemas用户名一样，但一定具有读写目录的权限。 数据导出可以设置只导出的数据，可以是表结构，或表空间 CONTENT=METADATA_ONLY 参数表示，导出时只导出所有指定用户下的表结构及其他视图，包，存储过程等对象，但不包括数据内容。 expdp -help和impdp-help可以查看参数。</p>
-<ol start="3">
-<li>只导出表</li>
-</ol>
-<p>如果要导出表，就是用tables属性，tables=(T1:P1)，T1指表名，P1指表的分区；多个表使用逗号分割。如果使用tables属性就能不使用schemas属性 对于导入的话，只需要库中存在这些表，不需要指定tables属性</p>
-<h3 id="创建表空间用户示例"><a href="#创建表空间用户示例" class="headerlink" title="创建表空间用户示例"></a>创建表空间用户示例</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">--登录sqlplus</span></span><br><span class="line">sqlplus sys/sys@smbdc as sysdba</span><br><span class="line"></span><br><span class="line"><span class="comment">--创建表空间</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcsde  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\sm\bdcsde.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> xxch  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\xxch.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> archives   </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\archives.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> sde  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\sde.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcbiz  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcbiz.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcqj  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcqj.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcgx  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcgx.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="comment">--创建临时表空间</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcsde_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcsde_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> xxch_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\xxch_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> sde_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\sde_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcbiz_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcbiz_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcqj_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcqj_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> newarchives_temp_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\newarchives_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--创建用户并指定表空间（在新建的tb及 tmp-tb上建库）：</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcsde PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCSDE&quot;</span>  <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span> ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> xxch PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;XXCH&quot;</span> <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> archives PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;NEWARCHIVES&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcbiz PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCBIZ&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcqj PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCQJ&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcgx PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCGX&quot;</span>  <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span> ;</span><br><span class="line"></span><br><span class="line"><span class="comment">--给新建的用户授权</span></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcsde;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> xxch;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> archives;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcqj;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcgx;</span><br><span class="line"></span><br><span class="line"><span class="comment">--CMD直接导入数据库dmp文件</span></span><br><span class="line">imp bdcsde/123456@localhost/orcl file=&quot;C:\db\1126按用户执行备份\1126按用户备份\exp_backup\bdcsde_bf.dmp&quot; full=y ignore=y; </span><br><span class="line">imp xxch/123456@localhost/orcl file=&quot;C:\db\1126按用户执行备份\1126按用户备份\exp_backup\xxch_bf.dmp&quot; full=y ignore=y;</span><br><span class="line"></span><br><span class="line"><span class="comment">--数据泵导入</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">directory</span> dpdata1 <span class="keyword">as</span> <span class="string">&#x27;D:\db\jz\dump_dir&#x27;</span>;（数据库放置目录如:D:\DBback\sanheDB\dump_dir）(ok)</span><br><span class="line"><span class="keyword">Grant</span> <span class="keyword">read</span>,write <span class="keyword">on</span> <span class="keyword">directory</span> dpdata1 <span class="keyword">to</span> <span class="keyword">system</span>;(ok)</span><br><span class="line">impdp system/123456@smbdc DIRECTORY=dpdata1 DUMPFILE=20190329_FULLDP.DMP FULL=y log=impdpsmbdc.log;(ap不是数据泵导出的，所以不能用,三和可以)</span><br><span class="line">impdp system/system@smbdc DIRECTORY=dpdata1 DUMPFILE=QLFULLDB.DMP FULL=y log=qldb.log ignore=y;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--删除用户及级联关系也删除掉</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> xxch <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> bdcsde <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> archives <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> bdcbiz <span class="keyword">cascade</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">--删除表空间及物理文件（需要先删除用户）</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> XXCH <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> BDCSDE <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> ARCHIVES <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> BDCBIZ <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">--修改用户名密码</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> bdcsde <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> xxch <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> archives <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> bdcbiz <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> sde <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--无法分发客户机session或process数量不够用</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> v$process; <span class="comment">--取得数据库目前的进程数。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">from</span> v$parameter <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">&#x27;processes&#x27;</span>;     <span class="comment">--取得进程数的上限。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> v$<span class="keyword">session</span>; <span class="comment">--取得数据库目前的会话数。 </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">from</span> v$parameter <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">&#x27;sessions&#x27;</span>; <span class="comment">--取得会话数的上限。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">set</span> processes=<span class="number">1000</span> <span class="keyword">scope</span>=<span class="keyword">spfile</span>;   <span class="comment">--将process值改为1000</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">set</span> sessions=<span class="number">1105</span> <span class="keyword">scope</span>=<span class="keyword">spfile</span>;    <span class="comment">--将sessions值改为1105</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> pfile <span class="keyword">from</span> <span class="keyword">spfile</span>;   <span class="comment">--从spfile（运行时配置）创建pfile（系统配置）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">--重启oracle</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/38/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/37/">37</a><a class="page-number" href="/page/38/">38</a><span class="page-number current">39</span><a class="page-number" href="/page/40/">40</a><a class="page-number" href="/page/41/">41</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/40/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/38/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/37/">37</a><a class="page-number" href="/page/38/">38</a><span class="page-number current">39</span><a class="page-number" href="/page/40/">40</a><a class="page-number" href="/page/41/">41</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/40/">下一页</a>
   </nav>
   
 </section>

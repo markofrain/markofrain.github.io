@@ -78,6 +78,317 @@
     
     
     
+    <article id="post-SpringBoot/SpringBoot国际化及接管SpringMVC拦截器格式化配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/01/09/SpringBoot/SpringBoot%E5%9B%BD%E9%99%85%E5%8C%96%E5%8F%8A%E6%8E%A5%E7%AE%A1SpringMVC%E6%8B%A6%E6%88%AA%E5%99%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E9%85%8D%E7%BD%AE/"
+    >SpringBoot国际化及接管SpringMVC拦截器格式化配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/01/09/SpringBoot/SpringBoot%E5%9B%BD%E9%99%85%E5%8C%96%E5%8F%8A%E6%8E%A5%E7%AE%A1SpringMVC%E6%8B%A6%E6%88%AA%E5%99%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2019-01-09T14:35:30.000Z" itemprop="datePublished">2019-01-09</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="页面国际化配置"><a href="#页面国际化配置" class="headerlink" title="页面国际化配置"></a>页面国际化配置</h2><h3 id="默认依据浏览器国际化"><a href="#默认依据浏览器国际化" class="headerlink" title="默认依据浏览器国际化"></a>默认依据浏览器国际化</h3><p>依据浏览器的默认首选语言作为国家语言显示。首先我们使用的渲染模板是thymeleaf，其提供的页面显示#{}方式显示数据，为message显示，可以设置国际化变量。而再使用Spring MVC时</p>
+<ul>
+<li>首先要配置国际化properties文件</li>
+<li>然后要配置ResourceBundleMessageSource这个Bean来管理国际化</li>
+<li>然后jsp使用fmt:message</li>
+</ul>
+<p>这里SpringBoot已经将国际化做了自动配置，不需要设置这些bean。我们只需要配置国际化资源文件和配置国际化资源文件基础名称。 <strong>我们以登录为例:</strong></p>
+<ol>
+<li>资源文件配置,在resource下创建i18n的文件夹并创建message.properties,message_en_US,message_zh_CN</li>
+</ol>
+<p>使用IDEA创建properties，点击编辑器下边的Resource Bundle,使用可视化编辑</p>
+<ol start="2">
+<li>然后在application.yml配置spring.messages.basename为i18n.message</li>
+</ol>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/01/20190109220532.png" alt=""> 国际化的默认文件名时message，且位置在系统classpath下，也就是resource下，那么如果包含文件名或包名，则使用 包名.基础名。</p>
+<ol start="3">
+<li><p>页面配置，部分</p>
+<div class="layui-form-item">
+    <input type="checkbox" name="rememberMe" title="记住我" lay-skin="primary" th:title="#{login.remember}">
+    <a class="layui-layout-right forget-password" href="javascript:alert('请联系超级管理员！')">[[#{login.forget}]]</a>
+</div>
+<button type="submit" class="layui-btn layui-btn-fluid ajax-login"><i class="fa fa-sign-in fa-lg fa-fw"></i>[[#{login.btn}]]</button>
+
+
+</li>
+</ol>
+<p>若页面出现??login.tip_zh_CN??这种两个问号的，看你的国际化文件名字配置对了没。</p>
+<h3 id="点击中英文按钮切换国际化"><a href="#点击中英文按钮切换国际化" class="headerlink" title="点击中英文按钮切换国际化"></a>点击中英文按钮切换国际化</h3><p>首先默认浏览器的国际化也是和http请求有关的，浏览器设置中英文默认或中文前英文后。再http请求时header-language中包含了语言了编码zh_CN和en_US,哪个在前就显示那个语言，那么就请求哪各语言。那么我们就可以变更这个编码。 你可以查看，某个请求，请求头里有这个显示，那么我们只需要重新配置一下要请求的国际化。将请求编码作为参数给后台，并设置国际化的语言。我们来自定义覆盖Locale配置。</p>
+<ol>
+<li><p>新建LocaleResolver</p>
+<p>/**</p>
+<ul>
+<li><p>创建自定义Locale解析器</p>
+</li>
+<li><p>/<br>public class MyLocaleResolver implements LocaleResolver {<br>  @Override<br>  public Locale resolveLocale(HttpServletRequest httpServletRequest) {</p>
+<pre><code>Locale locale = Locale.getDefault();
+String language = httpServletRequest.getParameter(&quot;l&quot;);
+if (!StringUtils.isEmpty(language))&#123;
+    String[] str = language.split(&quot;_&quot;);
+    locale = new Locale(str[0],str[1]);
+&#125;
+return locale;</code></pre><p>  }</p>
+<p>  @Override<br>  public void setLocale(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Locale locale) {</p>
+<p>  }<br>}</p>
+</li>
+</ul>
+</li>
+<li><p>在配置中配置这个解析器</p>
+<p>@Configuration<br>public class MyMvcConfiguration  extends WebMvcConfigurationSupport {</p>
+<pre><code>/**
+ * 配置自定义的Locale国际化配置
+ * @return
+ */
+@Bean
+public LocaleResolver localeResolver()&#123;
+    return new MyLocaleResolver();
+&#125;</code></pre><p>}</p>
+</li>
+</ol>
+<h2 id="SpringBoot-configuration配置的WebMvcConfigurationSupport-WebMvcConfigrationer已弃用"><a href="#SpringBoot-configuration配置的WebMvcConfigurationSupport-WebMvcConfigrationer已弃用" class="headerlink" title="SpringBoot @configuration配置的WebMvcConfigurationSupport (WebMvcConfigrationer已弃用)"></a>SpringBoot @configuration配置的WebMvcConfigurationSupport (WebMvcConfigrationer已弃用)</h2><p>算了，不写了。默认配置的都在这个里面，只需要重写add就好，SpringBoot会自动将配置的追加到容器中。 也可以自己定义Bean，并标注上@Bean注解即可注入容器中，就像上面的Locale国际化一样。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Hadoop/hadoop搭建本机模式和伪分布式并执行案例" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/"
+    >hadoop搭建本机模式和伪分布式并执行案例</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/" class="article-date">
+  <time datetime="2018-12-31T11:10:22.000Z" itemprop="datePublished">2018-12-31</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="单节点Hadoop运行-本地模式"><a href="#单节点Hadoop运行-本地模式" class="headerlink" title="单节点Hadoop运行(本地模式)"></a>单节点Hadoop运行(本地模式)</h2><p><a target="_blank" rel="noopener" href="http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SingleCluster.html">官网步骤地址</a> 必备条件:安装java及配置java环境变量，安装hadoop及配置hadoop环境变量</p>
+<pre><code>export JAVA_HOME=/home/ubuntu1/jdk1.8
+export PATH=$JAVA_HOME/bin:$PATH
+
+export HADOOP_HOME=/home/ubuntu1/hadoop-2.7.7
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin</code></pre><p>配置hadoop根目录下etc下hadoop下的hadoop-env.sh文件中的JAVA_HOME地址</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd etc/hadoop/
+ubuntu1@ubuntu1:~/hadoop-2.7.7/etc/hadoop$ vim hadoop-env.sh
+export JAVA_HOME=/home/ubuntu1/jdk1.8</code></pre><p>当前本地local模式只有当前一台机器，可以不安装ssh，而分布式需要ssh。那么配置完成之后，bin目录下的hadoop命令可以执行。 <strong>非分布式模式运行:grep程序</strong> grep程序用来检索intpu目录下所有符合指定参数的文件。</p>
+<pre><code>$ mkdir input
+$ cp etc/hadoop/*.xml input
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar grep input output &apos;dfs[a-z.]+&apos;
+$ cat output/*</code></pre><p>表示在hadoop根目录下创建input文件夹，将etc/hadoop下所有xml文件拷贝到input目录下，执行hadoop命令。执行完成后，进入output目录，这个output目录是程序运行后自动生成的，不能直接创建。目录下有两个文件：</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd output/
+ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ ls
+part-r-00000  _SUCCESS</code></pre><p>一个是执行结果存放，一个是成功标识。 <strong>非分布式模式运行:wordcount程序</strong> wordcount程序用来查询文件下单词每个重复的次数。</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ rm -rf output/
+ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ rm -rf *
+ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ vim testhello.txt
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount input output</code></pre><p>​    </p>
+<p>删除output目录，删除input目录下所有文件，并创建testhello.txt文件，在文件内填多个单词，每个单词用空格分开，保存。然后执行命令。</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ cat part-r-00000 
+and 2
+cehn    1
+chen    2
+name    1
+where   1
+with    1
+xiaoxing    1</code></pre><h2 id="伪分布式配置"><a href="#伪分布式配置" class="headerlink" title="伪分布式配置"></a>伪分布式配置</h2><p>即单节点配置HDFS和YARN,可正常使用功能。</p>
+<ol>
+<li><p>配置core-site.xml</p>
+<pre><code>&lt;!-- 指定HDFS中的NameNode地址 --&gt;
+&lt;property&gt;
+     &lt;name&gt;fs.defaultFS&lt;/name&gt;
+     &lt;value&gt;hdfs://ubuntu1:9000&lt;/value&gt;
+&lt;/property&gt;
+&lt;!-- 指定hadoop运行时产生的临时文件 --&gt;
+&lt;property&gt;
+     &lt;name&gt;hadoop.temp.dir&lt;/name&gt;
+     &lt;value&gt;/home/ubuntu1/hadoop-2.7.7/data/tmp&lt;/value&gt;
+&lt;/property&gt;</code></pre></li>
+<li><p>配置hdfs-site.xml</p>
+<pre><code> &lt;!-- 指定HDFS副本数量 --&gt;
+&lt;proerpty&gt;
+    &lt;name&gt;dfs.replication&lt;/name&gt;
+    &lt;value&gt;1&lt;/value&gt;
+&lt;/proerpty&gt;</code></pre></li>
+<li><p>配置完成后一定要将hdfs进行首次格式化</p>
+<pre><code>hdfs namenode -format</code></pre></li>
+<li><p>启动守护进程</p>
+<pre><code>sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
+sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
+jps  //查看进程
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ jps
+6889 Jps
+6683 NameNode
+6813 DataNode</code></pre></li>
+<li><p>WEB浏览器访问 配置服务IP:50070进入HDFS文件系统。界面显示 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181231184929.png" alt=""> 其中Utilities菜单栏下的Browse the file system可以查看HDFS结构。</p>
+</li>
+<li><p>使用HDFS并运行wordcount</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -mkdir -p /user/ubuntu1/input
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -put input/testhello.txt  /user/ubuntu1/input/
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount /user/ubuntu1/input /user/ubuntu1/output</code></pre></li>
+</ol>
+<pre><code>以上命令分别表示创建一个多级目录到hdfs，并将本地input/testhello.txt上传到hdfs的intpu目录下。然后执行wordcount案例，指定hdfs中的文件和目录。执行完毕后，无错误则进入web查看结果，或使用如下命令:
+
+    ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -cat /user/ubuntu1/output/par*
+    and  2
+    cehn 1
+    chen 2
+    name 1
+    where    1
+    with 1
+    xiaoxing 1</code></pre><ol start="7">
+<li><p>查看HDFS,及命令</p>
+<ol>
+<li><p>查看文件系统</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /
+Found 1 items
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
+
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls -R /
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input
+-rw-r--r--   1 ubuntu1 supergroup         50 2018-12-31 18:47 /user/ubuntu1/input/testhello.txt
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output
+-rw-r--r--   1 ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output/_SUCCESS
+-rw-r--r--   1 ubuntu1 supergroup         53 2018-12-31 18:53 /user/ubuntu1/output/part-r-00000</code></pre></li>
+<li><p>下载文件到本地</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -get /user/ubuntu1/output/par* ./
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ cat ./part-r-00000 
+and   2
+cehn  1
+chen  2
+name  1
+where 1
+with  1
+xiaoxing  1</code></pre></li>
+<li><p>删除HDFS中文件或文件夹</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -rm -r /user/ubuntu1/output
+18/12/31 19:04:14 INFO fs.TrashPolicyDefault: Namenode trash configuration: Deletion interval = 0 minutes, Emptier interval = 0 minutes.
+Deleted /user/ubuntu1/output
+
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /user/ubuntu1
+Found 1 items
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input</code></pre></li>
+</ol>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Zoopeeker/Zookeeper集群服务器注册动态上下线" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -522,382 +833,13 @@ public void setData() throws KeeperException, InterruptedException &#123;
 
 </article>
     
-    <article id="post-Zoopeeker/zookeeper客户端的使用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/"
-    >zookeeper客户端的使用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
-  <time datetime="2018-12-29T13:58:49.000Z" itemprop="datePublished">2018-12-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
-<pre><code>bin/zkCli.sh</code></pre><ol>
-<li><p>查看帮助命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] help</code></pre></li>
-</ol>
-<ol start="2">
-<li><p>查看znode节点,ls命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 3] ls /
-[chen, zookeeper]
-[zk: localhost:2181(CONNECTED) 4] ls /chen
-[]</code></pre></li>
-</ol>
-<ol start="3">
-<li><p>查看节点详细信息ls2</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 6] ls2 /chen
-[]
-cZxid = 0x100000002
-ctime = Thu Dec 27 00:58:04 CST 2018
-mZxid = 0x100000002
-mtime = Thu Dec 27 00:58:04 CST 2018
-pZxid = 0x100000002
-cversion = 0
-dataVersion = 0
-aclVersion = 0
-ephemeralOwner = 0x0
-dataLength = 7
-numChildren = 0</code></pre></li>
-</ol>
-<pre><code>**后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。**</code></pre><ol start="4">
-<li><p>创建普通节点create</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 7] create /name &quot;this is name&quot;
-Created /name
-[zk: localhost:2181(CONNECTED) 8] ls /
-[chen, name, zookeeper]</code></pre></li>
-</ol>
-<ol start="5">
-<li><p>获得节点值get</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] get /name
-this is name
-xxxxxx</code></pre></li>
-</ol>
-<ol start="6">
-<li><p>创建暂时节点,然后推出客户端重新登陆查看</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 0] create -e /temp &quot;temp&quot;
-Created /temp
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, temp, zookeeper]</code></pre></li>
-</ol>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] quit
-Quitting...
-2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002
-2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed
-ubuntu1@ubuntu1:~/zookeeper/bin$ ./zkCli.sh
-Connecting to localhost:2181
-
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, zookeeper]</code></pre><ol start="7">
-<li><p>创建带序号节点</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] create /app &quot;app&quot;
-Created /app
-[zk: localhost:2181(CONNECTED) 10] create -s /app/sun &quot;sun&quot;
-Created /app/sun0000000000
-[zk: localhost:2181(CONNECTED) 11] ls /app
-[sun0000000000]
-
-[zk: localhost:2181(CONNECTED) 12] create -s /app/sun &quot;sun2&quot;
-Created /app/sun0000000001
-[zk: localhost:2181(CONNECTED) 13] ls /app
-[sun0000000000, sun0000000001]</code></pre></li>
-</ol>
-<pre><code>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.
-
-    [zk: localhost:2181(CONNECTED) 14] ls /
-    [chen, name, app, zookeeper]
-    [zk: localhost:2181(CONNECTED) 15] create /sum &quot;sum&quot;
-    Created /sum
-    [zk: localhost:2181(CONNECTED) 16] create /sum/test &quot;sumtest1&quot;
-    Created /sum/test
-    [zk: localhost:2181(CONNECTED) 17] create -s /sum/test &quot;sumtest1&quot;
-    Created /sum/test0000000001
-    [zk: localhost:2181(CONNECTED) 18] ls /sum
-    [test0000000001, test]
-
-
-尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</code></pre><ol start="8">
-<li><p>修改节点数据值set</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 19] ls /
-[chen, name, app, sum, zookeeper]
-[zk: localhost:2181(CONNECTED) 20] get /chen
-guangqi
-xxxxxx
-[zk: localhost:2181(CONNECTED) 21] set /chen &quot;chenguangqi&quot;
-xxxxxx
-[zk: localhost:2181(CONNECTED) 22] get /chen
-chenguangqi
-xxxxx</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>节点值的变化监听get path watch</p>
-<pre><code>--1号机器
-[zk: localhost:2181(CONNECTED) 24] get /chen watch
-chenguangqi
-xxxx
-
--- 2号机器
-[zk: localhost:2181(CONNECTED) 0] set /chen &quot;chen&quot;
-xxxx
-
-[zk: localhost:2181(CONNECTED) 25]
-WATCHER::
---1号机器
-WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></li>
-</ol>
-<pre><code>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</code></pre><ol start="10">
-<li><p>节点的子节点监听(路径变化)ls path watch</p>
-<p>   [zk: localhost:2181(CONNECTED) 25] ls / watch<br>   [chen, name, app, sum, zookeeper]</p>
-<p>   [zk: localhost:2181(CONNECTED) 1] create /test “testwatch”<br>   Created /test</p>
-<p>   [zk: localhost:2181(CONNECTED) 26]<br>   WATCHER::<br>   WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/</p>
-</li>
-</ol>
-<pre><code>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</code></pre><ol start="11">
-<li><p>删除节点与递归删除节点delete/rmr</p>
-<p>   [zk: localhost:2181(CONNECTED) 26] ls /<br>   [chen, name, app, sum, zookeeper, test]<br>   [zk: localhost:2181(CONNECTED) 27] delete /test<br>   [zk: localhost:2181(CONNECTED) 29] ls /<br>   [chen, name, app, sum, zookeeper]<br>   [zk: localhost:2181(CONNECTED) 34] delete /sum<br>   Node not empty: /sum<br>   [zk: localhost:2181(CONNECTED) 35] rmr /sum<br>   [zk: localhost:2181(CONNECTED) 36] ls /<br>   [chen, name, app, zookeeper]</p>
-</li>
-</ol>
-<ol start="12">
-<li><p>查看节点状态信息stat</p>
-<p>   [zk: localhost:2181(CONNECTED) 39] stat /chen<br>   cZxid = 0x200000021<br>   ctime = Sat Dec 29 21:53:30 CST 2018<br>   mZxid = 0x200000021<br>   mtime = Sat Dec 29 21:53:30 CST 2018<br>   pZxid = 0x200000021<br>   cversion = 0<br>   dataVersion = 0<br>   aclVersion = 0<br>   ephemeralOwner = 0x0<br>   dataLength = 4<br>   numChildren = 0</p>
-</li>
-</ol>
-<pre><code>对于stat的信息分别如下:
-*   cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。
-*   ctime:节点被创建的时间
-*   mZxid:节点最后更新zxid
-*   mtime:节点最后更新的时间
-*   pZxid:最后更新的子节点zxid
-*   cversion:子节点变化号，子节点修改次数
-*   dataVersion:节点数据变化号
-*   aclVersion:节点访问控制列表的变化号
-*   ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
-*   dataLength:节点值的长度。(重要)
-*   numChildren:子节点数目。(重要)</code></pre><ol start="13">
-<li><p>历史命令history,查看之前使用过的命令</p>
-<p>   [zk: localhost:2181(CONNECTED) 42] history<br>   32 - rmr /chen<br>   33 - ls /<br>   34 - delete /sum<br>   35 - rmr /sum<br>   36 - ls /<br>   37 - ls /<br>   38 - create /chen “chen”<br>   39 - stat /chen<br>   40 - help<br>   41 - histor<br>   42 - history</p>
-</li>
-</ol>
-<p>还有其他的命令请查看Zookeeper文档。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/"
-    >Zookeeper分布式搭建及选举机制和节点类型介绍</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-date">
-  <time datetime="2018-12-28T16:17:59.000Z" itemprop="datePublished">2018-12-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Zookeeper分布式搭建"><a href="#Zookeeper分布式搭建" class="headerlink" title="Zookeeper分布式搭建"></a>Zookeeper分布式搭建</h2><ol>
-<li><p>到<a target="_blank" rel="noopener" href="https://archive.apache.org/dist/zookeeper/">apache zookeeper归档</a>处下载tar包。</p>
-</li>
-<li><p>将包分别拷贝到各自的user下,使用tar -zxf zookeeper-x.x.x.tar.gz解压。注意解压后的目录需要是当前用户组当前用户。传递tar包时使用当前用户登录ftp远程。</p>
-</li>
-<li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
-<pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
-</ol>
-<ol start="4">
-<li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
-<pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
-</ol>
-<ol start="5">
-<li><p>在对应zookeeper目录下创建zkData目录即可</p>
-</li>
-<li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
-<pre><code>bin/zkServer.sh start //启动
-jps //查看jps进程
-bin/zkServer.sh satus //状态
-bin/zkServer.sh stop //停止</code></pre></li>
-</ol>
-<ol start="7">
-<li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
-<pre><code>server.1=192.168.56.11:2888:3888
-server.2=192.168.56.11:2888:3888
-server.3=192.168.56.11:2888:3888</code></pre></li>
-</ol>
-<pre><code>这是三台机子的配置。那么其格式为server.A=B:C:D。
-*   A是一个数字，表示机器的序号，是唯一的，标识着某台机子，这个值要在myid文件中指定，myid文件要放在zkData目录下。
-*   B是服务器地址，可以是IP，也可以是主机名(需要配置host)。
-*   C是这个服务器与集群中的Leader服务器交换数据信息的结构。
-*   D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。
-*   就把这个拷贝到每个机子的zoo.cfg中，把IP地址改一下，机子序号按顺序不重复即可。</code></pre><ol start="8">
-<li><p>在集群模式下的而这个myid文件标识一个机子，Zookeeper启动时读取此文件，拿到里面的数据与zoo.cfg配置信息比较而判断到底是哪个server。那么在zkData下创建myid文件，使用vi或vim命令来编辑</p>
-<pre><code>cd zkData
-touch myid
-vim myid
-对应的机子添加1或2或3就好</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
-<pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
-ZooKeeper JMX enabled by default
-Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
-Starting zookeeper ... STARTED
-ubuntu1@ubuntu1:~/zookeeper$ **jps**
-7522 Jps
-7498 QuorumPeerMain
-ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh status**
-ZooKeeper JMX enabled by default
-Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
-Error contacting service. It is probably not running.</code></pre></li>
-</ol>
-<pre><code>可以看到在查看status状态时，说Error contacting service.It is probably not running.此时并不是错误。在单机时可以正常运行。此处因为集群原因，在选举还没选举完成时，就会启动而不运行。当启动第二台机子时
-
-    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh start**
-    ZooKeeper JMX enabled by default
-    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
-    Starting zookeeper ... STARTED
-    ubuntu2@ubuntu2:~/zookeeper$ **jps**
-    24704 Jps
-    24652 QuorumPeerMain
-    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh status**
-    ZooKeeper JMX enabled by default
-    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
-    Mode: leader
-
-
-此时，发现Model:leader,这时，选举机制就完毕了，Leader已经选举出来。此时再看机子1的status状态，已经变成Mode:follower。当然这是随机投票的。启动第三台机子时，状态也是mode:follower. OK，这样三台机子都启动起来了。</code></pre><h2 id="Zookeeper选举机制说明"><a href="#Zookeeper选举机制说明" class="headerlink" title="Zookeeper选举机制说明"></a>Zookeeper选举机制说明</h2><p>选举很简单，<strong>每机一票，当某台机子得票数超过总数的一半以上时即可当选leader，必须一半以上</strong>。 机子的id最大则被投票率最高，若1-5台机子都是最新启动的，没有任何历史数据，按顺序进行启动。 服务器1开始启动，只有当前一台机器启动，则处于Looking状态，没有任何选举结果。等待其他机子启动。 服务器2开始启动，互相交换选举结果，由于两者都没有历史数据,所以id大的胜出，但依然不大于总数的一半，所以依然Looking状态 服务器3开始启动，若有三票投给某个机器，则成为Leader，其他机器状态变为follower。 服务器4，5，<strong>虽然id大，但leader已经被选举出来，所以只能作为follower</strong>.</p>
-<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>节点时客户端连接服务器的标识，因为实际集群操作，所以在任意一个机器上操作，其他机器都能看到。 节点有两种类型:</p>
-<ul>
-<li>持久型:客户端和服务器断开连接后，创建的节点不删除</li>
-<li>暂时型:客户端和服务器断开连接后，创建的节点被删除</li>
-</ul>
-<p>节点有四种目录形式的节点:</p>
-<ul>
-<li>持久化目录节点:客户端断开后这个节点依然存在</li>
-<li>持久化顺序编号目录节点:客户端断开后这个节点依然存在，只是<strong>给该节点名称进行顺序编号</strong>。</li>
-<li>临时目录节点:客户端点开后节点被删除</li>
-<li>临时顺序编号目录节点:客户端断开连接后，节点被删除，只是Zookeeper会给该节点进行顺序编号。</li>
-</ul>
-<p>顺序号时单调的递增，由父节点进行维护 在分布式系统中，顺序号可以被用于为所有的事件进行全局排序，这样客户端可以通过顺序号推断事件的顺序。 关于节点的创建在下一节说明，会自然的了解节点的持久和暂时型。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/28/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><span class="page-number current">29</span><a class="page-number" href="/page/30/">30</a><a class="page-number" href="/page/31/">31</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/30/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/28/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><span class="page-number current">29</span><a class="page-number" href="/page/30/">30</a><a class="page-number" href="/page/31/">31</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/30/">下一页</a>
   </nav>
   
 </section>

@@ -78,6 +78,323 @@
     
     
     
+    <article id="post-Oracle/Oracle数据库备份及RMAN命令" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD%E5%8F%8ARMAN%E5%91%BD%E4%BB%A4/"
+    >Oracle数据库备份及RMAN命令</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/15/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%A4%87%E4%BB%BD%E5%8F%8ARMAN%E5%91%BD%E4%BB%A4/" class="article-date">
+  <time datetime="2018-10-15T06:25:58.000Z" itemprop="datePublished">2018-10-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Oracle数据库数据备份"><a href="#Oracle数据库数据备份" class="headerlink" title="Oracle数据库数据备份"></a>Oracle数据库数据备份</h1><ol>
+<li><p>数据库归档模式由非归档模式改为归档模式 命令窗口中通过此命令查看</p>
+<p>archive log list;</p>
+</li>
+</ol>
+<p>改为归档模式</p>
+<pre><code>shutdown immediate;-- 关闭数据库
+startup mount;-- 启动数据库到mount状态
+alter database archivelog;-- 修改数据库为归档模式
+alter database open;-- 打开数据库</code></pre><h2 id="实例恢复与介质恢复"><a href="#实例恢复与介质恢复" class="headerlink" title="实例恢复与介质恢复"></a>实例恢复与介质恢复</h2><p>实例的恢复</p>
+<pre><code>startup nomount；--读取pfile，没有实例恢复
+altert mount database;--读取控制文件，没有实例回复
+alter database open;--检查控制文件，数据文件头(检查数据库完整性)，发生实例恢复</code></pre><p>直接startup，将默认执行这三个命令 实例恢复的过程</p>
+<pre><code>--前滚 
+rolling forward
+--读取状态为current和active状态的日志(redo log)，将发生crash时，没有来得及写道磁盘上的数据块，使用redo的信息来回复
+--打开数据库
+alter database open
+--回滚
+rolling back 数据库打开之后做</code></pre><p>当实例恢复无法恢复时，使用介质恢复。基于备份 需要介质恢复:</p>
+<ul>
+<li>数据文件丢失，损坏</li>
+<li>在线日志文件丢失，损坏</li>
+</ul>
+<h2 id="exp-imp导入导出"><a href="#exp-imp导入导出" class="headerlink" title="exp/imp导入导出"></a>exp/imp导入导出</h2><p>导出具体分为：导出表，导出方案，导出数据库三种方式。 导出使用exp命令完成，该命令常用选项有:</p>
+<ul>
+<li>userid:用户名/口令</li>
+<li>tables:导出指定的表名列表</li>
+<li>owner:导出指定的所有者用户名列表</li>
+<li>full:导出全部内容，默认n，可设置为y</li>
+<li>file:输出文件</li>
+<li>ROWS：导出数行，默认y</li>
+<li>INDEXES：导出索引，默认y</li>
+</ul>
+<p>full=y和owner能同时使用，会导致报错，EXP-00026：指定了冲突模式,需要删除full=y full为全库导出，owner=导出指定用户下的所有objects 导出导入命令在cmd中执行，不能在sqlplus中，exp帮助执行命令,exp help=y</p>
+<h2 id="RMAN备份"><a href="#RMAN备份" class="headerlink" title="RMAN备份"></a>RMAN备份</h2><p>在RMAN工具中，同样可以使用sql语句（管理类）,如在rman中开启数据库alter database open; RMAN使用<strong>服务器</strong>会话来完成备份操作，从RMAN客户端连接到服务器将产生一个服务器会话 RMAN备份内容包括：整个数据库,表空间,数据文件,指定的数据文件,控制文件,归档日志文件,参数文件等 RMAN备份类型分为:</p>
+<ul>
+<li>完整备份(full)或增量备份(incremental)</li>
+<li>一致性备份(consistent)或不一致性备份(inconsistent)</li>
+<li>热备份(open)或冷备份(closed)，冷备份时数据库必须处于mount状态，冷备份可以为一致性备份或非一致性备份</li>
+</ul>
+<h3 id="全备份"><a href="#全备份" class="headerlink" title="全备份"></a>全备份</h3><p>一般总是备份数据文件，控制文件，归档日志。参数文件和密码文件可选备份 进入恢复管理器</p>
+<pre><code>rman target sys/password@连接字符串</code></pre><p>备份全库</p>
+<pre><code>backup database;--备份全库，包括数据文件，控制文件，归档文件</code></pre><p>备份完毕后显示文件位置,同时备份了控制文件和SPFILE 表空间备份</p>
+<pre><code>backup tablespace users;--users为表空间名称</code></pre><p>文件备份</p>
+<pre><code>backup datafile 9;--这个数字表示数据文件的文件号</code></pre><p>备份集列表查看</p>
+<pre><code>list backupset;</code></pre><p>归档文件全备份</p>
+<pre><code>backup archivelog all;</code></pre><p>还原备份文件,restore表示还原</p>
+<pre><code>restore database;</code></pre><p>介质恢复(还原备份之后，需要进行介质恢复)</p>
+<pre><code>recover database;</code></pre><p>当介质无法恢复，且报错时，确认是否备份完整(肯定没问题的)rman中还原备份,重新启动oracle服务，此时依然是mounted状态，重新alter database open,查看报错信息，进行介质恢复recover database，然后重新open。 还原表空间</p>
+<pre><code>restore tablespace users;--users</code></pre><p>还原数据文件</p>
+<pre><code>restore datafile 4;--4为文件号</code></pre><p>如果数据文件丢失，那么如果强制启动，不对数据文件表空间做一致性检查，则</p>
+<pre><code>alter database datafile 4 offline;--4表示当前缺失文件的文件号</code></pre><p>如果文件恢复完毕，那么文件依然是offline状态，所以需要进行online</p>
+<pre><code>select file#,status from v$datafile;
+
+alter database datafile 4 online;
+
+
+delete backupset;--删除所有备份集,全部删除
+
+
+delete obsolete;--删除过期的，依据保留策略</code></pre><p>检查数据库文件中出现的物理损坏的数据库</p>
+<pre><code>backup check logical validate database;</code></pre><h4 id="SHOW-ALL配置"><a href="#SHOW-ALL配置" class="headerlink" title="SHOW ALL配置"></a>SHOW ALL配置</h4><pre><code>CONFIGURE RETENTION POLICY TO REDUNDANCY  --配置保留冗余备份集数量
+CONFIGURE RETENTION POLICY TO REDUNDANCY 2;--配置数量为2
+
+CONFIGURE BACKUP OPTIMIZATION OFF;--配置备份优化为关闭,可设置为ON
+
+CONFIGURE CONTROLFILE AUTOBACKUP ON;--配置控制文件自动备份，ON为是，否则为OFF</code></pre><h4 id="控制文件"><a href="#控制文件" class="headerlink" title="控制文件"></a>控制文件</h4><pre><code>list backup of controlfile;--rman查看所有控制文件
+
+
+alter system set control_file_record_keep_time=30;--设置控制文件保存时间天数
+
+
+backup current controlfile;备份当前控制文件</code></pre><h4 id="归档日志"><a href="#归档日志" class="headerlink" title="归档日志"></a>归档日志</h4><pre><code>backup archivelog all;--备份所有归档日志
+
+
+list archivelog all;--列出归档日志
+
+
+list backup of archivelog all;--列出归档日志的备份
+
+
+delete expired archivelog all;--删除过期归档日志
+
+
+select * from v$recovery_file_dest;--查看归档日志存放位置以及空间大小
+
+
+select * from v$flash_recovery_area_usage;--查看你归档日志使用情况,空间占用率,percent_space_used为使用百分比
+
+
+alter system set db_recovery_file_dest_size=21474836480;--更改归档日志使用空间大小(20*1024*1024*1024)</code></pre><h4 id="report命令"><a href="#report命令" class="headerlink" title="report命令"></a>report命令</h4><pre><code>report need backup;--列出需要备份的，依据配置的保留策略
+
+report need backup days 2 database;--列出超过两天没有备份的
+
+report obsolete;--查看过期的，依据保留策略</code></pre><h4 id="crosscheck-检查命令"><a href="#crosscheck-检查命令" class="headerlink" title="crosscheck 检查命令"></a>crosscheck 检查命令</h4><pre><code>crosscheck backup of tablespace tb_name;检查表空间备份
+
+crosscheck archivelog all;--检查所有归档日志
+
+crosscheck backup of database;--检查数据库备份
+
+crosscheck backup of controlfile;--检查控制文件备份
+
+crosscheck backup of spfile；--检查备份spfile</code></pre><h4 id="检查与恢复"><a href="#检查与恢复" class="headerlink" title="检查与恢复"></a>检查与恢复</h4><pre><code>validate backupset 16;--检查备份集16的有效性
+
+restore database validate;--还原并校验
+
+restore database preview;--还原备份文件预览</code></pre><h3 id="增量备份"><a href="#增量备份" class="headerlink" title="增量备份"></a>增量备份</h3><p>差异增量:节约备份时间，但是恢复时间长 累计增量:多占用磁盘空间，恢复时间短 备份级别:(0,1,2,3) 增量备份 等级为1，0表示全库备份</p>
+<pre><code>backup incremental level 1 database;--默认为差异增量</code></pre><p>当为1时，先全库备份level 0，在备份level 1。首先会检查是否由父备份，也就是level 0，没有就备份level 0，然后再备份level 1；如果有则直接备份level 1 当进行增量后，list backupset时，显示的备份集列表，类型不再时FULL，而是Incr，并且有lv等级。</p>
+<ul>
+<li>还原时，有多少备份集使用多少，最后使用归档。</li>
+<li>原则:最近一次0级备份+最近一次1级备份+最近一次2级备份(如果有)+归档+online redo。</li>
+<li>备份还原和会比归档要快。</li>
+<li>当增量时，restore database会还原备份文件，而recover database则会恢复增量数据，并非之前的介质恢复</li>
+</ul>
+<h4 id="策略配置"><a href="#策略配置" class="headerlink" title="策略配置"></a>策略配置</h4><p>参考网址:<a target="_blank" rel="noopener" href="https://blog.csdn.net/liqfyiyi/article/details/7017087">https://blog.csdn.net/liqfyiyi/article/details/7017087</a> 基于时间备份保留策略</p>
+<pre><code>CONFIGURE RETENTION POLICY TO RECOVERY WINDOW OF n DAYS;</code></pre><p>取消备份保留策略</p>
+<pre><code>CONFIGURE RETENTION POLICY TO NONE;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/RMAN/" rel="tag">RMAN</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle修改表空间大小、表空间查询" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/15/Oracle/Oracle%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F%E3%80%81%E8%A1%A8%E7%A9%BA%E9%97%B4%E6%9F%A5%E8%AF%A2/"
+    >Oracle修改表空间大小、表空间查询</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/15/Oracle/Oracle%E4%BF%AE%E6%94%B9%E8%A1%A8%E7%A9%BA%E9%97%B4%E5%A4%A7%E5%B0%8F%E3%80%81%E8%A1%A8%E7%A9%BA%E9%97%B4%E6%9F%A5%E8%AF%A2/" class="article-date">
+  <time datetime="2018-10-15T03:25:29.000Z" itemprop="datePublished">2018-10-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Oracle修改表空间大小"><a href="#Oracle修改表空间大小" class="headerlink" title="Oracle修改表空间大小"></a>Oracle修改表空间大小</h1><p>对于创建表空间时，设置表空间过大或表空间过小已占满最大大小,对表空间进行修改大小操作，以节省磁盘空间</p>
+<ol>
+<li><p>查看所有表空间及表空间数据文件位置</p>
+<p>select tablespace_name,file_name from dba_data_files;</p>
+</li>
+</ol>
+<ol start="2">
+<li><p>查看所有表空间及表空间大小</p>
+<p>select tablespace_name ,sum(bytes) / 1024 / 1024 as MB　from dba_data_files group by tablespace_name;</p>
+</li>
+</ol>
+<ol start="3">
+<li><p>查看表空间使用情况</p>
+<p>SELECT tbs 表空间名,</p>
+<pre><code>sum(totalM) 总共大小M,
+sum(usedM) 已使用空间M,
+sum(remainedM) 剩余空间M,
+sum(usedM)/sum(totalM)*100 已使用百分比,
+sum(remainedM)/sum(totalM)*100 剩余百分比
+FROM(
+ SELECT b.file_id ID,
+ b.tablespace_name tbs,
+ b.file_name name,
+ b.bytes/1024/1024 totalM,
+ (b.bytes-sum(nvl(a.bytes,0)))/1024/1024 usedM,
+ sum(nvl(a.bytes,0)/1024/1024) remainedM,
+ sum(nvl(a.bytes,0)/(b.bytes)*100),
+ (100 - (sum(nvl(a.bytes,0))/(b.bytes)*100))
+ FROM dba_free_space a,dba_data_files b
+ WHERE a.file_id = b.file_id
+ GROUP BY b.tablespace_name,b.file_name,b.file_id,b.bytes
+ ORDER BY b.tablespace_name
+)
+GROUP BY tbs;</code></pre></li>
+</ol>
+<ol start="4">
+<li><p>修改表空间大小</p>
+<p>alter database datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN.DBF’ RESIZE 10240M;</p>
+</li>
+</ol>
+<ol start="5">
+<li><p>设置自增长</p>
+<p>alter database datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN.DBF’ autoextend on next 50m maxsize 500m;</p>
+</li>
+</ol>
+<ol start="6">
+<li><p>增加数据文件</p>
+<p>alter tablespace BAOWEN add datafile ‘D:\APP\CGQ_R\ORADATA\ORCL\BAOWEN2.DBF’ size 500m;</p>
+</li>
+</ol>
+<ol start="7">
+<li><p>查询当前用户中表所属表空间</p>
+<p>select table_name,tablespace_name from user_tables;</p>
+</li>
+</ol>
+<ol start="8">
+<li><p>查询表空间所属文件</p>
+<p>select * from dba_data_files where tablespace_name=’BAOWEN’;</p>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%A1%A8%E7%A9%BA%E9%97%B4/" rel="tag">表空间</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Java/使用javax.mail包操作邮箱发送邮件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -460,273 +777,13 @@
 
 </article>
     
-    <article id="post-Javascript/easypoi操作excel导入导出" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/27/Javascript/easypoi%E6%93%8D%E4%BD%9Cexcel%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/"
-    >easypoi操作excel导入导出</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/27/Javascript/easypoi%E6%93%8D%E4%BD%9Cexcel%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/" class="article-date">
-  <time datetime="2018-09-27T09:17:59.000Z" itemprop="datePublished">2018-09-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Excel/">Excel</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="easypoi"><a href="#easypoi" class="headerlink" title="easypoi"></a>easypoi</h1><p>easypoi是简易的excel导入导出等多项操作，MIT开源。封装了POI，使用注解方式更简洁的操作。 <a target="_blank" rel="noopener" href="https://http://www.afterturn.cn/doc/easypoi.html">文档</a> Excel自适应xls和xlsx两种格式,word只支持docx模式。</p>
-<h2 id="注解"><a href="#注解" class="headerlink" title="注解"></a>注解</h2><ol>
-<li>@Excel:简单的注解，用于简单基本属性，其内容设置包括基础，图片处理，事件处理，合并处理。</li>
-<li>@ExcelTarget:限定实体,3.3.0里好像没啥意思，但在集合的导出时需要设置到实体类上并设置name值，与类名相同就好</li>
-<li>@ExcelEntity:该注解标注在属性对象上，如果对象内属性设置了导出，则依次每属性导出。</li>
-<li>@ExcelCollection:该注解标注在属性集合上，常为list集合,设置name值表示对该集合的标题</li>
-</ol>
-<h2 id="导出示例"><a href="#导出示例" class="headerlink" title="导出示例"></a>导出示例</h2><h3 id="简单对象示例"><a href="#简单对象示例" class="headerlink" title="简单对象示例"></a>简单对象示例</h3><pre><code>//这是Student类的属性，这里我不复制getter/setter和构造
-private String id;
-@Excel(name = &quot;学生姓名&quot;,height = 10,width = 20,isImportField = &quot;true&quot;)
-private String name;
-@Excel(name = &quot;性别&quot;,height = 10,width = 20,isImportField = &quot;true&quot;)
-private String sex;
-@Excel(name = &quot;出生日期&quot;,height = 10,width = 20,format = &quot;yyyy-MM-dd&quot;)
-private Date date;
-
-
-Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;学生列表&quot;,&quot;学生&quot;),
-        Teacher.class, list);
-OutputStream outputStream = new FileOutputStream(new File(&quot;D:/a.xls&quot;));
-workbook.write(outputStream);</code></pre><p>只需要在Main测试中，设置list，然后指定一个地址，即可输出 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926181440.png" alt="图示"> 简单的导出，只不过标题和列名没有类似加粗和背景色以及宽高并非自适应，而需要在注解中设置。</p>
-<h3 id="集合定义"><a href="#集合定义" class="headerlink" title="集合定义"></a>集合定义</h3><pre><code>//teacher，我们把teacher的属性设置的和student一样，同样是id，name，sex，date
-//并且为stuent类和teacher类上添加@ExcelTarget(&quot;teacher&quot;)，@ExcelTarget(&quot;student&quot;)注解,并且实现Serializable
-
-//Course中,也要添加@ExcelTarget(&quot;course&quot;)注解
-private String id;
-@Excel(name = &quot;课程名称&quot;,orderNum = &quot;1&quot;,width = 15)
-private String courseName;
-@ExcelEntity private Teacher teacher;
-@ExcelCollection(name=&quot;学生&quot;,orderNum = &quot;4&quot;)
-private List&lt;Student&gt; student;
-
-
-List stuList = new ArrayList();
-stuList.add(new Student(&quot;1&quot;,&quot;学生1&quot;,&quot;男&quot;,new Date()));
-stuList.add(new Student(&quot;2&quot;,&quot;学生2&quot;,&quot;女&quot;,new Date()));
-stuList.add(new Student(&quot;3&quot;,&quot;学生3&quot;,&quot;女&quot;,new Date()));
-stuList.add(new Student(&quot;4&quot;,&quot;学生4&quot;,&quot;男&quot;,new Date()));
-List list = new ArrayList();
-list.add(new Course(&quot;1&quot;,&quot;生物&quot;,new Teacher(&quot;1&quot;,&quot;老师1&quot;,&quot;男&quot;,new Date()),stuList));
-
-Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;课程表&quot;,  &quot;课程表&quot;),
-        Course.class, list);
-OutputStream outputStream = new FileOutputStream(new File(&quot;D:/a.xls&quot;));
-workbook.write(outputStream);</code></pre><p>同样，以同种方式导出，在ExportParams类中设置导出参数，如标题之类的，而个参数的构造表示标题和sheet名称，三个参数表示标题，副标题，sheet名称。 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926181629.png" alt="图示"> 这样看来，对于老师与学生并不能合并对应，可以添加needMessage为ture设置合并单元格,但是他的坏处是，并不能在@ExcelEntity上设置属性，而只能在@Excel上设置。那么我们为教师类的每个属性设置,以及courseName上 <strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926182009.png" alt="图示"></p>
-<h3 id="图片导出"><a href="#图片导出" class="headerlink" title="图片导出"></a>图片导出</h3><ol>
-<li><p>图片的导出，需要设置@Excel的两个参数,type和imageType。</p>
-</li>
-<li><p>type表示导出类型，设置为2是图片。imageType表示图片类型，是通过1:file还是2:数据库流读取，如果是1则String类型设置地址，2则设置类型为byte数组。</p>
-</li>
-<li><p>要设置width和height，图片会依据设置的宽高来百分之百缩放，并不会理会图片自身的分辨率大小。</p>
-<p>@Excel(name = “照片”,type = 2,width = 40,height = 40,imageType = 1)<br>private String photo;</p>
-<p>list.add(new Teacher(“1”,”你”,”男”,new Date(),”IMG_20171209_091639.jpg”));</p>
-</li>
-</ol>
-<p><strong>图示:</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180926183615.png" alt="图示"> 图片较大，可能加载缓慢</p>
-<h2 id="导入示例"><a href="#导入示例" class="headerlink" title="导入示例"></a>导入示例</h2><h3 id="导入excel"><a href="#导入excel" class="headerlink" title="导入excel"></a>导入excel</h3><pre><code>ImportParams importParams = new ImportParams();
-importParams.setTitleRows(1);
-importParams.setHeadRows(1);
-List&lt;Teacher&gt; list = ExcelImportUtil.importExcel(new File(&quot;a.xlsx&quot;),Teacher.class,importParams);
-for (Teacher t:list) &#123;
-    System.out.println(t.toString());
-&#125;</code></pre><p>注意模板中列名一定要和属性值段上设置的name值相同，否则报模板错误</p>
-<ol>
-<li>@Excel的isImportField属性表示检测这个字段在导入时模板中是否有，目前3.3.0版本是false。一些取值具体还是需要看源码的，因为文档可能更新并不及时。那么为false的话就不检测模板中是否有没有，即使没有也不会报错，而有的话会自动导入到对象中。</li>
-<li>ImportParams导入参数对象的设置</li>
-</ol>
-<ul>
-<li>titleRows:表格标题的行数，标题为跨列的，几行就是几行</li>
-<li>headRows：表头行数，就是列名，默认为1</li>
-<li>startRows：字段真正值和列标题之间的距离 默认0</li>
-<li>startSheetIndex：开始sheet索引，默认0</li>
-<li>sheetNum：导入时，默认导入的数量，1，也就是只有第一个</li>
-<li>readRows：手动控制读取行数，默认0,以0开始</li>
-<li>lastOfInvalidRow：最后无效的行数，不读的行数</li>
-<li>importFields:检验合法模板，字符串数组，为每个属性名,至少包含的字段</li>
-<li>needSave：是否需要保存导入的excel，默认false,默认保存的路径为upload/excelUpload/Test/yyyyMMddHHmss_***** 保存名称上传时间_五位随机数。所以你需要设置SaveUrl属性，表示保存的位置。</li>
-</ul>
-<p>其他的看文档或源码。</p>
-<h3 id="图片导入"><a href="#图片导入" class="headerlink" title="图片导入"></a>图片导入</h3><p>图片导入需要在excel中，图片与单元格绑定，否则无法获取到该单元格。 在ImportParam对象设置属性</p>
-<ul>
-<li>saveUrl属性设置上传excel文件保存位置</li>
-<li>needSave表示是否保存</li>
-<li>图片保存，3.3.0默认在/excel/upload/img，可以在@Excel中的savePath中设置保存路径</li>
-</ul>
-<p>其他的就没什么设置，只要图片和单元格绑定，就能成功读取。否则是读不到的。一定要选中单元格，但后再点插入图片，然后设置大小。 如果项目不是web项目的话，/excel/upload/img这种路径无法获取到，如果测试使用junit，则将地址改为某个盘符的固定目录。 如果你的图片属性是字节数组，则读出后直接是字节数组。</p>
-<h2 id="使用ExcelExportEntity自由导出"><a href="#使用ExcelExportEntity自由导出" class="headerlink" title="使用ExcelExportEntity自由导出"></a>使用ExcelExportEntity自由导出</h2><p>该类表示对某Cell的设置，如名称，是否合并，等等,一个对象表示一个列，而一个列对应一个属性。</p>
-<pre><code>List&lt;ExcelExportEntity&gt; list = new ArrayList&lt;ExcelExportEntity&gt;();
-
-list.add(new ExcelExportEntity(&quot;教师姓名&quot;,&quot;name&quot;));//如需设置Cell的其他属性，必须使用该对象.属性 
-list.add(new ExcelExportEntity(&quot;性别&quot;, &quot;sex&quot;));
-list.add(new ExcelExportEntity(&quot;出生日期&quot;, &quot;date&quot;));
-
-List&lt;Teacher&gt; dataList = new ArrayList&lt;Teacher&gt;();
-dataList.add(new Teacher(&quot;1&quot;,&quot;你&quot;,&quot;男&quot;,new Date()));
-dataList.add(new Teacher(&quot;2&quot;,&quot;我&quot;,&quot;男&quot;,new Date()));
-dataList.add(new Teacher(&quot;3&quot;,&quot;它&quot;,&quot;男&quot;,new Date()));
-dataList.add(new Teacher(&quot;4&quot;,&quot;他&quot;,&quot;男&quot;,new Date()));
-dataList.add(new Teacher(&quot;5&quot;,&quot;她&quot;,&quot;女&quot;,new Date()));
-
-Workbook workbook = ExcelExportUtil.exportExcel(new ExportParams(&quot;教师列表&quot;, &quot;教师列表&quot;), list,dataList);
-FileOutputStream fos = new FileOutputStream(&quot;D:/a.xls&quot;);
-workbook.write(fos);
-fos.close();</code></pre><p>该案例可能有问题，官方文档中，示例没有数据，是空的，而插入了数据则导致失败,报错具体位置在ExportCommonService类的getCellValue方法中，entity.getMethod()获取为空,导致失败。这个以后再说把，先不使用。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/poi/" rel="tag">poi</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-帆软/帆软报表简单非完整记录" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/26/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E6%8A%A5%E8%A1%A8%E7%AE%80%E5%8D%95%E9%9D%9E%E5%AE%8C%E6%95%B4%E8%AE%B0%E5%BD%95/"
-    >帆软报表简单非完整记录</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/26/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E6%8A%A5%E8%A1%A8%E7%AE%80%E5%8D%95%E9%9D%9E%E5%AE%8C%E6%95%B4%E8%AE%B0%E5%BD%95/" class="article-date">
-  <time datetime="2018-09-26T08:33:26.000Z" itemprop="datePublished">2018-09-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%8A%A5%E8%A1%A8/">报表</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>父子格，(左父格，上父格，自定义父格)，跟对父格拓展 拓展方向 报表类型（分组，自由，交叉，多源，主子） 多源:需要设置过滤 首次进入激活码:f7d8b945-732d44d2c-87e3-cee441db2168</p>
-<h2 id="快速入门，第一张模板"><a href="#快速入门，第一张模板" class="headerlink" title="快速入门，第一张模板"></a>快速入门，第一张模板</h2><p>查看文档</p>
-<h2 id="设计思路"><a href="#设计思路" class="headerlink" title="设计思路"></a>设计思路</h2><p>新建数据 新建模板与数据集 模板设计—报表设计—参数设计—图标设计—填报设计 模板预览</p>
-<h3 id="报表设计"><a href="#报表设计" class="headerlink" title="报表设计"></a>报表设计</h3><p>四种基础模板:网格式报表，分组报表，交叉报表，自由报表</p>
-<h4 id="单元格拓展"><a href="#单元格拓展" class="headerlink" title="单元格拓展"></a>单元格拓展</h4><p>单元格内左上角的灰色箭头表示拓展方向，分为不拓展，横向拓展和纵向拓展。在界面右下角的单元格属性表，拓展方向</p>
-<h4 id="父子格设置"><a href="#父子格设置" class="headerlink" title="父子格设置"></a>父子格设置</h4><p>当报表中绑定了多个单元格的时候，单元格间会天然存在某种关系，使单元格间存在过滤关系或跟随关系，这就是父子格。前面的单元格称为父格，后面的单元格称为子格。也就是说子格的数据会根据父格的数据进行过滤分组显示，并且还会跟随父格的扩展方向而扩展。 <strong>1. 父子格关系</strong> 父子格关系包括两种：过滤关系和跟随关系 过滤关系是指_子格会默认将父格的数据作为过滤条件进行过滤，使<strong>父子格之间的数据能对应的显示出来</strong>_。但是这个默认的过滤关系仅限于两个单元格的字段均来自同一格数据集。当来自同一数据集时，子格会根据父格过滤或者说条件来显示，而当不同数据集的两个字段，子格会将跟随父格将所有数据重复显示。 <strong>2. 跟随关系</strong> 跟随关系是指子格会根据父格的拓展方向进行分组，即父格纵向扩展，子格跟随父格默认纵向扩展。单元格中数据集的字段都是默认纵向拓展。 <strong>3. 父子格分类</strong> 父子格包括左父格和上父格，以及自定义父格。 1) 左父格 是指跟随父格单元格纵向拓展，即表示父格是纵向拓展，一般来说，左父格均在单元格的左侧，单元格将其相邻的左侧纵向单元格默认为左父格，并且当鼠标选中子单元格时，左父格会显示一个蓝色向下的箭头。 2)上父格 上父格是指跟随父格单元格横向扩展，即表示其父格是横向扩展，一般来说，上父格均在单元格的上方，单元格将其相邻的上方横向扩展单元格默认为上父格，并且当鼠标选中子单元格时，上父格会显示一个蓝色向右的箭头 <strong>4. 父子格设置</strong> 三种设置：不设置，默认和自定义 无：表示该单元格没有父格 默认：将数据列拖拽至单元格中时，该单元格会默认将其相邻上方横向扩展或者左侧纵向扩展的单元格当做上父格或者左父格。 自定义：自己指定那个单元格为该单元格的父格。 填报报表 ，首先设置自由模板，设置控件，报表填报属性(关联数据库表),模板web属性–&gt;填报页面设置–&gt;为该模板单独设置</p>
-<h4 id="报表样式设计"><a href="#报表样式设计" class="headerlink" title="报表样式设计"></a>报表样式设计</h4><p><strong>1. 数据显示方式</strong> 单元格数据设置:分组，列表，汇总(求和，平均等)。默认分组</p>
-<ol start="2">
-<li>改变显示值</li>
-</ol>
-<p>当数据显示时，关联显示的往往是id编号，如订单中的客户，存储是id，那么要显示成客户名称的话，就需要改变其形态。 选中被引用的客户编号单元格，右下角单元格属性——形态，形态设置为数据字典。设置数据库和数据库表，表为客户，设置实际值和显示值。</p>
-<ol start="3">
-<li>数据显示格式，样式</li>
-</ol>
-<p>右下角的单元格属性，样式，可为单元格可是格式，日期，货币等格式</p>
-<h3 id="参数入门"><a href="#参数入门" class="headerlink" title="参数入门"></a>参数入门</h3><p>种类与区别： 范围划分为：模板参数和全局参数 使用方式划分：模板参数和数据集参数 单元格条件属性 动态格间运算 单元格超级链接 新增：点击新增按钮，进入模板，路径不传入id参数,随后点击提交将进行增加记录 修改：点击修改按钮，进入模板，路径传入id参数，并且模板已经绑定了数据集的引用，当有参数传来时，sql将会查询，并将结果显示在模板中,点击修改，会根据id值进行修改，前提是该模板必须在报表填报属性中设置了主键字段，且值为参数类型，并选择参数。 如果想要在新增时，自动添加id，那么需要将报表填报属性的id的值设置为公式，那么就需要新增和修改操作是两个模板了。 一个新增模板设置id为uuid，一个修改设置id为参数。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%86%E8%BD%AF/" rel="tag">帆软</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8/" rel="tag">报表</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/34/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="page-number current">35</span><a class="page-number" href="/page/36/">36</a><a class="page-number" href="/page/37/">37</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/36/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/34/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="page-number current">35</span><a class="page-number" href="/page/36/">36</a><a class="page-number" href="/page/37/">37</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/36/">下一页</a>
   </nav>
   
 </section>

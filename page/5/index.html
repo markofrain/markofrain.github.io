@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Redis/Redis-RDB与AOF持久化" class="article article-type-post" itemscope
+    <article id="post-MySQL/mysql常见问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/"
-    >Redis RDB与AOF持久化</a
+  <a class="article-title" href="/2021/03/30/MySQL/mysql%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/"
+    >mysql常见问题</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/" class="article-date">
-  <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
+      <a href="/2021/03/30/MySQL/mysql%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2021-03-30T04:00:00.000Z" itemprop="datePublished">2021-03-30</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Redis/">Redis</a>
+    <a class="article-category-link" href="/categories/MySQL/">MySQL</a>
   </div>
 
       
@@ -119,78 +119,67 @@
       
 
       
-      <p>持久化操作可分为RDB(Redis DataBase)方式AOF(Append Only File)方式。</p>
-<h2 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h2><p>RDB文件用于保存和还原Redis服务器所有数据库中的所有键值对，它会在指定时间段内按规则进行一次全量保存。</p>
-<p>RDB文件是一个经过压缩的二进制文件，由多个部分组成。</p>
-<p><strong>指令</strong></p>
-<ul>
-<li>save   直接阻塞服务器进程，服务器不能处理任何请求，等待直到RDB创建完毕</li>
-<li>bgsave   派生出一个子进程，由子进程负责创建RDB文件，父进程继续处理请求</li>
-</ul>
-<p><strong>创建</strong></p>
-<p>创建RDB文件实际由rdb.c/rdbSave函数完成,两个命令则以不同的方式调用这个函数。</p>
-<p><strong>载入</strong></p>
-<p>redis没有直接载入RDB文件的命令，只要redis服务启动，则自动 载入RDB文件，服务器会一直处以阻塞状态，直到载入工作完成。</p>
-<p>载入文件的实际工作由rdb.c/rdbLoad函数完成</p>
-<h3 id="客户端save指令保存"><a href="#客户端save指令保存" class="headerlink" title="客户端save指令保存"></a>客户端save指令保存</h3><p>当SAVE执行时，Redis服务器会被阻塞，客户端发送的请求都会被拒绝</p>
-<p>只有执行完SAVE命令后，才能重新开始接收命令请求，客户端发送的命令才会被处理</p>
-<h3 id="间隔性保存-bgsave"><a href="#间隔性保存-bgsave" class="headerlink" title="间隔性保存 bgsave"></a>间隔性保存 bgsave</h3><p>redis <code>bgsave</code>执行命令会在后台子进程执行，所以redis允许用户设置服务器配置save选项，让服务器每隔一段时间bgsave一次。该命令并不会阻塞服务器</p>
-<p>在redis.conf的<code>SNAPSHOTTING</code>注释模块是rdb的配置。其中注释了三行数据</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># save &lt;seconds&gt; &lt;changes&gt;</span><br><span class="line"># Unless specified otherwise, by default Redis will save the DB:</span><br><span class="line">#   * After 3600 seconds (an hour) if at least 1 key changed</span><br><span class="line">#   * After 300 seconds (5 minutes) if at least 100 keys changed</span><br><span class="line">#   * After 60 seconds if at least 10000 keys changed</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># save 3600 1</span><br><span class="line"># save 300 100</span><br><span class="line"># save 60 10000</span><br></pre></td></tr></table></figure>
+      <h3 id="Error-executing-DDL-type-MyISAM-via-JDBC-Statement"><a href="#Error-executing-DDL-type-MyISAM-via-JDBC-Statement" class="headerlink" title="Error executing DDL type=MyISAM via JDBC Statement"></a><a target="_blank" rel="noopener" href="https://blog.csdn.net/shandeai520/article/details/103955014">Error executing DDL type=MyISAM via JDBC Statement</a></h3><p>异常:</p>
+<p>2020-01-09 19:22:42.347 WARN 13276 — [ main] o.h.t.s.i.ExceptionHandlerLoggedImpl : GenerationTarget encountered exception accepting command : Error executing DDL “create table Rfe (id bigint not null, reference varchar(255), title varchar(255), primary key (id)) type=MyISAM” via JDBC Statement</p>
+<p>org.hibernate.tool.schema.spi.CommandAcceptanceException: Error executing DDL “create table Rfe (id bigint not null, reference varchar(255), title varchar(255), primary key (id)) type=MyISAM” via JDBC Statement</p>
+<p>at org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase.accept(GenerationTargetToDatabase.java:67) ~[hibernate-core-5.4.9.Final.jar:5.4.9.Final]</p>
+<p>解决: org.hibernate.dialect.MySQLDialect 改为 org.hibernate.dialect.MySQL5Dialect</p>
 
-<ul>
-<li>900秒内，至少对数据库执行1次命令</li>
-<li>300秒内，至少对数据库执行10次命令</li>
-<li>60秒内，至少对数据库执行10000次命令</li>
-</ul>
-<p>以上为默认配置，可以进行修改和增加。</p>
-<p>满足以上三个任意的条件将会自动触发bgsave命令，Redis调用bgsaveCommand函数，该函数fork一个子进程执行rdbSave函数进行实际的快照存储工作，而父进程可以继续处理客户端请求。当子进程退出后，父进程调用相关回调函数进行后续处理。</p>
-<p><strong>BGSAVE命令执行时服务器状态</strong></p>
-<ul>
-<li>保存工作有子进程执行，redis服务器仍可以处理命令请求</li>
-<li>在bgsave执行期间，客户端发送save命令会被服务器拒绝。禁止父子进程同时执行rdbSave函数，防止产生竞争</li>
-<li>在bgsave执行期间 ，客户端发送bgsave会被拒绝，防止产生竞争条件</li>
-<li>bgrewriteraof和bgsave不能同时执行<ul>
-<li>如果bgsave正在执行，那么bgrewriteraof会被延迟到在bgsave执行完毕后执行</li>
-<li>如果bgrewriteraof正在执行，那么bgsave会被拒绝</li>
-<li>这两个命令都是由子进程执行，两者并没有冲突的地方，不能同时执行，只是因为性能方面的考虑，因为这个两个子进程都会执行大量磁盘写入操作</li>
-</ul>
-</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h2 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h2><p>AOF持久化是通过保存Redis服务器所执行的<strong>写的命令</strong>来记录的。</p>
-<p>当aof持久化打开时，服务器会以Redis协议格式将被执行的命令追加到服务器状态的aof_buf缓冲区末尾，之后再定期写入并同步到AOF文件中。</p>
-<p>默认不开启AOF，可修改<code>appendonly</code>的值为<code>yes</code>；<code>appendfilename</code>可指定持久化文件名称，默认可不修改。</p>
-<p>AOF保存的是一条条命令，理论上可以做到发生故障时只丢失一条命令。但由于操作系统中执行写文件操作代价很大，Redis提供了配置参数，通过对安全性和性能的折中，我们可以设置不同的策略。</p>
-<p><code>appendfsync</code>配置项配置了策略，可用值分别为:</p>
-<ul>
-<li>always：同步持久化，每次发生改变立即记录到磁盘。性能查数据完整性好</li>
-<li>everysec：默认，每秒触发一次，将aof_buf缓存区中的内容写到aof文件中，这个同步操作由一个线程专门负责</li>
-<li>no：不进行操作</li>
-</ul>
-<h3 id="AOF重写"><a href="#AOF重写" class="headerlink" title="AOF重写"></a>AOF重写</h3><p>随着aof文件越来越大，可能会造成影响，使用AOF还原数据的时间也就越多，因此Redis提供了重写功能。</p>
-<p>假如客户端向服务器执行了5条<code>lpush mylist xxx</code>语句，因此，就要向aof中写入这五条记录，然而重写可以将这5条变成一条，即<code>lpush mylist xxx xxx xxx xxx xxx</code>，这样5条命令就变成了一条，用着一条代替之前记录的多条命令。</p>
-<p>AOF重写会产生一个新的AOF文件，这个新的AOF文件和原有的AOF文件所保存的数据库状态一样，但体积更小。</p>
-<p>重写触发机制会执行<code>bgrewriteaof</code>命令，Redis服务器会维护一个AOF重写缓冲区，该缓冲区会在子进程中创建新AOF文件期间，记录服务器执行的所有命令。当子进程完成创建新的AOF文件之后，服务器会将重写缓冲区的所有内容追加到新的AOF文件中，使得新旧两个AOF文件所保存的数据状态一致。最后服务器用新的AOF文件替换旧的AOF文件。</p>
-<p><strong>重写配置</strong></p>
-<p>Redis会记录上次重写时的AOF大小，当AOF文件大小是上次rewriter后大小的一倍且文件大于64MB时触发</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 是否开启重写机制</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"># 百分比</span><br><span class="line">uto-aof-rewrite-percentage 100</span><br><span class="line"># 大小</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
 
-<blockquote>
-<p>注意：在处理重写时,在列表，哈希，集合可能会带有多个元素的键时，会先检查键所包含的数量，超过一定数量后会用多条命令处理重写触发机制=</p>
-</blockquote>
-<h3 id="混合持久化"><a href="#混合持久化" class="headerlink" title="混合持久化"></a>混合持久化</h3><p>混合持久化指进行AOF重写时子进程将当前时间点的数据快照保存为RDB文件格式，而后将父进程累积命令保存为AOF格式。</p>
-<p>加载时，首先会识别AOF文件是否以REDIS字符串开头，如果是，就按RDB格式加载，加载完RDB后继续按AOF格式加载剩余部分。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aof-use-rdb-preamble yes</span><br></pre></td></tr></table></figure>
+    </footer>
 
+  </div>
 
+  
 
-<h2 id="RDB与AOF区别"><a href="#RDB与AOF区别" class="headerlink" title="RDB与AOF区别"></a>RDB与AOF区别</h2><p>AOF更新频率会比RDB高</p>
-<p>如果服务其启动了AOF，则优先通过AOF还原数据，只有在AOF关闭的情况下才使用RDB文件来还原数据库状态</p>
-<p>AOF在载入数据库时会比RDB载入慢很多</p>
-<p>RDB数据可能会出现丢失，比AOF安全性低。</p>
-<p>RDB保存的是最终的结果，AOF保存最终结果之间的过程。</p>
-<h3 id="其他相关配置项"><a href="#其他相关配置项" class="headerlink" title="其他相关配置项"></a>其他相关配置项</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 开启该参数后，如果开启了RDB快照（即配置了bgsave指令），并且最近一次快照执行失败，则Redis将停止接收写相关的请求</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 开启该参数后，如果后台正在执行一次RDB快照或者AOF重写，则主进程不再进行fsync操作（即使将appendfsync配置为always或者everysec）</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"># AOF文件以追加日志的方式生成，所以服务端发生故障时可能会有尾部命令不完整的情况。</span><br><span class="line"># 该参数后，在此种情况下，AOF文件会截断尾部不完整的命令然后继续加载，并且会在日志中进行提示。如果不开启该参数，则加载AOF文件时会打印错误日志，然后直接退出</span><br><span class="line"># 在重新启动服务器之前，可以尝试执行bin下的redis-check-AOF工具检查修改AOF</span><br><span class="line">aof-load-truncated yes</span><br></pre></td></tr></table></figure>
+  
+  
+  
 
+  
+
+</article>
+    
+    <article id="post-mysql" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/30/mysql/" class="article-date">
+  <time datetime="2021-03-30T01:10:21.923Z" itemprop="datePublished">2021-03-30</time>
+</a>
+      
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h4 id="技巧"><a href="#技巧" class="headerlink" title="技巧"></a>技巧</h4><p>避免使用blob和text进行排序，否则使用substring(column,length)截取为字符串进行排序，尽量截取的足够短，不会使临时表的大小超过max_heap_table_size或temp_table_size。或mysql默认的max_sort_length配置，并可以减小此配置的值。</p>
+<p>如果explain执行计划中的Extra包含“Using temporay”，说明这个查询使用了隐式临时表。</p>
+<p>枚举数据类型存储常用的字符串类型，应避免枚举值为数字，且排序是按照枚举出的值的先后顺序排序的，与本身枚举值无关。</p>
 
       
       <!-- reward -->
@@ -411,7 +400,7 @@
 
 </article>
     
-    <article id="post-Redis/缓存穿透、缓存击穿、缓存雪崩" class="article article-type-post" itemscope
+    <article id="post-Redis/Redis-RDB与AOF持久化" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -419,8 +408,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/03/22/Redis/%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E3%80%81%E7%BC%93%E5%AD%98%E5%87%BB%E7%A9%BF%E3%80%81%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9/"
-    >缓存穿透、缓存击穿、缓存雪崩</a
+  <a class="article-title" href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/"
+    >Redis RDB与AOF持久化</a
   >
 </h2>
   
@@ -430,7 +419,7 @@
 
     
     <div class="article-meta">
-      <a href="/2021/03/22/Redis/%E7%BC%93%E5%AD%98%E7%A9%BF%E9%80%8F%E3%80%81%E7%BC%93%E5%AD%98%E5%87%BB%E7%A9%BF%E3%80%81%E7%BC%93%E5%AD%98%E9%9B%AA%E5%B4%A9/" class="article-date">
+      <a href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/" class="article-date">
   <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
 </a>
       
@@ -452,364 +441,78 @@
       
 
       
-      <p>link: <a target="_blank" rel="noopener" href="https://www.imooc.com/article/283986"><strong>阿里一面：关于【缓存穿透、缓存击穿、缓存雪崩、热点数据失效】问题的解决方案</strong></a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Redis/Redis集群模式" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/22/Redis/Redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F/"
-    >Redis集群模式</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/22/Redis/Redis%E9%9B%86%E7%BE%A4%E6%A8%A1%E5%BC%8F/" class="article-date">
-  <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Redis/">Redis</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>Docker Redis version=6.2.1</p>
-<h2 id="指令与命令"><a href="#指令与命令" class="headerlink" title="指令与命令"></a>指令与命令</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> redis-cli指令</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看主从关系</span></span><br><span class="line">info replication</span><br><span class="line"><span class="meta">#</span><span class="bash"> 集群信息</span></span><br><span class="line">cluster nodes</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 命令</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> 查看cluster集群的相关命令</span></span><br><span class="line">redis-cli --cluster help</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="主从复制"><a href="#主从复制" class="headerlink" title="主从复制"></a>主从复制</h2><p>一主多从，master可进行读写操作，slave服务只能进行读操作，否则将引发<code>(error) READONLY You can&#39;t write against a read only replica.</code></p>
-<p>以6379作为master，6380，6381作为slave。可以使用docker创建多个容器（连接ip使用宿主机ip，否则slave有反应，master无法反应）</p>
-<p>使用如下命令可将当前服务作为指定服务的从节点</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">slaveof 127.0.0.1 6379</span><br></pre></td></tr></table></figure>
-
-<p>slaveof命令流程:</p>
-<p>1）从服务器127.0.0.1:6380向主服务器127.0.0.1:6379发送sync命令，请求同步数据。<br>2）主服务器127.0.0.1:6379接收到sync命令请求，开始执行bgsave命令持久化数据到RDB文件，并且在持久化数据期间会将所有新执行的写入命令都保存到一个缓冲区。<br>3）当持久化数据执行完毕后，主服务器127.0.0.1:6379将该RDB文件发送给从服务器127.0.0.1:6380，从服务器接收该RDB文件，并将文件中的数据加载到内存。<br>4）主服务器127.0.0.1:6379将缓冲区中的命令请求发送给从服务器127.0.0.1:6380。<br>5）每当主服务器127.0.0.1:6379接收到写命令请求时，都会将该命令请求按照Redis协议格式发送给从服务器127.0.0.1:6380，从服务器接收并处理主服务器发送过来的命令请求。</p>
-<p>同步数据有全面复制和增量复制。</p>
-<p>当执行此slaveof命令时，不管父服务器在此之前都写了什么，子服务器都会全面复制。slave 启动成功连接到master后会发送一个sync命令。</p>
-<p>当主服务器挂了：所属从服务器会原地待命，角色依然是slave,父服务器依然是原来的。</p>
-<p>当某个从服务器挂了：再重新启动时，角色将更改为master，再次执行slaveof后，依然是立即全面复制</p>
-<p>命令<code>slaveof no one</code>可以将当前从服务器关闭复制，将该服务器变为master，就是退出主从同步。</p>
-<p>如果slaveof 指向新的主服务器地址，则会放弃旧的主服务器同步。</p>
-<h2 id="哨兵模式"><a href="#哨兵模式" class="headerlink" title="哨兵模式"></a>哨兵模式</h2><p>哨兵用于自动监听各节点信息，并切换各节点的master和slave。</p>
-<p>基本架构为一主多从+3个及以上的奇数哨兵节点</p>
-<h3 id="含义"><a href="#含义" class="headerlink" title="含义"></a>含义</h3><ul>
-<li>sentinel模式是建立在主从模式的基础上，如果只有一个Redis节点，sentinel就没有任何意义</li>
-<li>当master挂了以后，sentinel会在slave中选择一个做为master，并修改它们的配置文件，其他slave的配置文件也会被修改，比如slaveof属性会指向新的master</li>
-<li>当master重新启动后，它将不再是master而是做为slave接收新的master的同步数据</li>
-<li>sentinel因为也是一个进程有挂掉的可能，所以sentinel也会启动多个形成一个sentinel集群</li>
-<li>多sentinel配置的时候，sentinel之间也会自动监控</li>
-<li>当主从模式配置密码时，sentinel也会同步将配置信息修改到配置文件中，不需要担心</li>
-<li>一个sentinel或sentinel集群可以管理多个主从Redis，多个sentinel也可以监控同一个redis</li>
-<li>sentinel最好不要和Redis部署在同一台机器，不然Redis的服务器挂了以后，sentinel也挂了</li>
-</ul>
-<h3 id="工作机制"><a href="#工作机制" class="headerlink" title="工作机制"></a>工作机制</h3><ul>
-<li>每个sentinel以每秒钟一次的频率向它所知的master，slave以及其他sentinel实例发送一个 PING 命令 </li>
-<li>如果一个实例距离最后一次有效回复 PING 命令的时间超过 down-after-milliseconds 选项所指定的值， 则这个实例会被sentinel标记为主观下线。 </li>
-<li>如果一个master被标记为主观下线，则正在监视这个master的所有sentinel要以每秒一次的频率确认master的确进入了主观下线状态</li>
-<li>当有足够数量的sentinel（大于等于配置文件指定的值）在指定的时间范围内确认master的确进入了主观下线状态， 则master会被标记为客观下线 </li>
-<li>在一般情况下， 每个sentinel会以每 10 秒一次的频率向它已知的所有master，slave发送 INFO 命令 </li>
-<li>当master被sentinel标记为客观下线时，sentinel向下线的master的所有slave发送 INFO 命令的频率会从 10 秒一次改为 1 秒一次 </li>
-<li>若没有足够数量的sentinel同意master已经下线，master的客观下线状态就会被移除；<br>若master重新向sentinel的 PING 命令返回有效回复，master的主观下线状态就会被移除</li>
-</ul>
-<h3 id="事件"><a href="#事件" class="headerlink" title="事件"></a>事件</h3><ul>
-<li>+reset-master ：主服务器已被重置。</li>
-<li>+slave ：一个新的从服务器已经被 Sentinel 识别并关联。</li>
-<li>+failover-state-reconf-slaves ：故障转移状态切换到了 reconf-slaves 状态。</li>
-<li>+failover-detected ：另一个 Sentinel 开始了一次故障转移操作，或者一个从服务器转换成了主服务器。</li>
-<li>+slave-reconf-sent ：领头（leader）的 Sentinel 向实例发送了 <a href="/commands/slaveof.html">SLAVEOF</a> 命令，为实例设置新的主服务器。</li>
-<li>+slave-reconf-inprog ：实例正在将自己设置为指定主服务器的从服务器，但相应的同步过程仍未完成。</li>
-<li>+slave-reconf-done ：从服务器已经成功完成对新主服务器的同步。</li>
-<li>-dup-sentinel ：对给定主服务器进行监视的一个或多个 Sentinel 已经因为重复出现而被移除 —— 当 Sentinel 实例重启的时候，就会出现这种情况。</li>
-<li>+sentinel ：一个监视给定主服务器的新 Sentinel 已经被识别并添加。</li>
-<li>+sdown ：给定的实例现在处于主观下线状态。</li>
-<li>-sdown ：给定的实例已经不再处于主观下线状态。</li>
-<li>+odown ：给定的实例现在处于客观下线状态。</li>
-<li>-odown ：给定的实例已经不再处于客观下线状态。</li>
-<li>+new-epoch ：当前的纪元（epoch）已经被更新。</li>
-<li>+try-failover ：一个新的故障迁移操作正在执行中，等待被大多数 Sentinel 选中（waiting to be elected by the majority）。</li>
-<li>+elected-leader ：赢得指定纪元的选举，可以进行故障迁移操作了。</li>
-<li>+failover-state-select-slave ：故障转移操作现在处于 select-slave 状态 —— Sentinel 正在寻找可以升级为主服务器的从服务器。</li>
-<li>no-good-slave ：Sentinel 操作未能找到适合进行升级的从服务器。Sentinel 会在一段时间之后再次尝试寻找合适的从服务器来进行升级，又或者直接放弃执行故障转移操作。</li>
-<li>selected-slave ：Sentinel 顺利找到适合进行升级的从服务器。</li>
-<li>failover-state-send-slaveof-noone ：Sentinel 正在将指定的从服务器升级为主服务器，等待升级功能完成。</li>
-<li>failover-end-for-timeout ：故障转移因为超时而中止，不过最终所有从服务器都会开始复制新的主服务器</li>
-<li>failover-end ：故障转移操作顺利完成。所有从服务器都开始复制新的主服务器了。</li>
-<li>+switch-master ：配置变更，主服务器的 IP 和地址已经改变。 这是绝大多数外部用户都关心的信息。</li>
-<li>+tilt ：进入 tilt 模式。</li>
-<li>-tilt ：退出 tilt 模式。</li>
-</ul>
-<h3 id="部署"><a href="#部署" class="headerlink" title="部署"></a>部署</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 下载sentinel.conf</span></span><br><span class="line">wget http://download.redis.io/redis-stable/sentinel.conf</span><br></pre></td></tr></table></figure>
-
-
-
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name sentinel -v /home/mini/docker/sentinel/:/etc/redis/ redis redis-sentinel /etc/redis/sentinel.conf</span><br></pre></td></tr></table></figure>
-
-<p>使用docker的方式启动redis和sentinel可能会会导致集群无法正常。如果不进行设置redis master中的slave都是172.17.0.1:6379。master中slave信息会如下展示</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">slave0:ip&#x3D;172.17.0.1,port&#x3D;6380,state&#x3D;online,offset&#x3D;14,lag&#x3D;1</span><br></pre></td></tr></table></figure>
-
-<p>这在主从复制的情况下能正常操作访问，但是有哨兵之后，哨兵会从master中获取salve的信息，然后拿到了不是宿主机的ip，如果sentinel设置的mater地址是宿主机地址，则ip对不上，master连同之前的slave都会变成slave指向宿主机的master。</p>
-<p>原因就在于docker中的ip获取拿到的不是192.168.38.140，而是docker的网络ip，但是因为有映射，对外访问服务是没问题的。</p>
-<p>使用<code>--network=host</code>的方式，不存在端口映射,-p端口映射将会失效，容器端口直接关联宿主机端口，或者使用bridge桥接模式(必须用户自定义，默认docker限制很多,可在最后查看创建方式)</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name redis --restart always -p 6379:6379 --network host -v /home/mini/docker/redis/config:/etc/redis -v /home/mini/docker/redis/data:/data redis redis-server /etc/redis/redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis2 --restart always -p 6380:6380 --network host -v /home/mini/docker/redis2/config:/etc/redis -v /home/mini/docker/redis2/data:/data redis redis-server /etc/redis/redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis3 --restart always -p 6381:6381 --network host -v /home/mini/docker/redis3/config:/etc/redis -v /home/mini/docker/redis3/data:/data redis redis-server /etc/redis/redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:6379&gt; info replication                                  </span><br><span class="line"><span class="meta">#</span><span class="bash"> Replication</span>                                                     </span><br><span class="line">role:master                                                       </span><br><span class="line">connected_slaves:2                                                </span><br><span class="line">slave0:ip=192.168.38.140,port=6380,state=online,offset=1260,lag=1 </span><br><span class="line">slave1:ip=192.168.38.140,port=6381,state=online,offset=1260,lag=1 </span><br><span class="line">master_failover_state:no-failover                                 </span><br><span class="line">master_replid:e48196914a3953ac0a2024e155150ff14e068f81            </span><br><span class="line">master_replid2:0000000000000000000000000000000000000000           </span><br><span class="line">master_repl_offset:1260                                           </span><br><span class="line">second_repl_offset:-1                                             </span><br><span class="line">repl_backlog_active:1                                             </span><br><span class="line">repl_backlog_size:1048576                                         </span><br><span class="line">repl_backlog_first_byte_offset:1                                  </span><br><span class="line">repl_backlog_histlen:1260                                         </span><br></pre></td></tr></table></figure>
-
-<p>三台sentinel配置一样，但是使用的不是同一个配置文件，不需要进行network host的配置，也不需要-p映射，内部即可，只要能访问宿主机ip即可。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">bind 0.0.0.0</span><br><span class="line">port 26379</span><br><span class="line">daemonize no</span><br><span class="line">sentinel monitor mymaster 192.168.38.140 6379 2</span><br><span class="line"></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>在配置文件的#Generated by CONFIG REWRITE处，senintel会自动编辑这个配置文件，将从slave的节点信息追加到下面。包括sentinel myid这行也要注释，同样会自动生成，避免多个sentinel的id一样。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 现在的</span><br><span class="line">sentinel known-replica mymaster 192.168.38.140 6381</span><br><span class="line"># 之前没有设置--network&#x3D;host的docker容器内情况</span><br><span class="line">sentinel known-replica mymaster 172.17.0.1 6381</span><br><span class="line"># 每个sentinel配置文件都应该不一样</span><br><span class="line">#sentinel myid 135b0151b412cd460efee0eff874703a9967813c</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name sentinel -v /home/mini/docker/sentinel/:/etc/redis/ redis redis-sentinel /etc/redis/sentinel.conf</span><br><span class="line"></span><br><span class="line">docker run -d --name sentinel2 -v /home/mini/docker/sentinel2/:/etc/redis/ redis redis-sentinel /etc/redis/sentinel.conf</span><br><span class="line"></span><br><span class="line">docker run -d --name sentinel3 -v /home/mini/docker/sentinel3/:/etc/redis/ redis redis-sentinel /etc/redis/sentinel.conf</span><br></pre></td></tr></table></figure>
-
-
-
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">1:X 24 Mar 2021 01:44:31.394 # Redis version&#x3D;6.2.1, bits&#x3D;64, commit&#x3D;00000000, modified&#x3D;0, pid&#x3D;1, just started</span><br><span class="line">1:X 24 Mar 2021 01:44:31.394 # Configuration loaded</span><br><span class="line">1:X 24 Mar 2021 01:44:31.395 * monotonic clock: POSIX clock_gettime</span><br><span class="line">1:X 24 Mar 2021 01:44:31.396 * Running mode&#x3D;sentinel, port&#x3D;26379.</span><br><span class="line">1:X 24 Mar 2021 01:44:31.396 # WARNING: The TCP backlog setting of 511 cannot be enforced because &#x2F;proc&#x2F;sys&#x2F;net&#x2F;core&#x2F;somaxconn is set to the lower value of 128.</span><br><span class="line">1:X 24 Mar 2021 01:44:31.396 # Sentinel ID is 135b0151b412cd460efee0eff874703a9967813c</span><br><span class="line">1:X 24 Mar 2021 01:44:31.396 # +monitor master mymaster 192.168.38.140 6379 quorum 2</span><br><span class="line">1:X 24 Mar 2021 01:44:31.401 * +slave slave 192.168.38.140:6380 192.168.38.140 6380 @ mymaster 192.168.38.140 6379</span><br><span class="line">1:X 24 Mar 2021 01:44:31.406 * +slave slave 192.168.38.140:6381 192.168.38.140 6381 @ mymaster 192.168.38.140 6379</span><br></pre></td></tr></table></figure>
-
-<p>redis master 6379停止后sentinel会打印如下消息</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">1:X 24 Mar 2021 02:29:50.611 # +sdown master mymaster 192.168.38.140 6379</span><br><span class="line">1:X 24 Mar 2021 02:29:50.671 # +new-epoch 1</span><br><span class="line">1:X 24 Mar 2021 02:29:50.672 # +vote-for-leader 78a361c40e1e9fd86f4384b4b4ee61e52ebf02ed 1</span><br><span class="line">1:X 24 Mar 2021 02:29:50.674 # +odown master mymaster 192.168.38.140 6379 #quorum 3&#x2F;2</span><br><span class="line">1:X 24 Mar 2021 02:29:50.674 # Next failover delay: I will not start a failover before Wed Mar 24 02:35:51 2021</span><br><span class="line">1:X 24 Mar 2021 02:29:51.328 # +config-update-from sentinel 78a361c40e1e9fd86f4384b4b4ee61e52ebf02ed 172.17.0.3 26379 @ mymaster 192.168.38.140 6379</span><br><span class="line">1:X 24 Mar 2021 02:29:51.328 # +switch-master mymaster 192.168.38.140 6379 192.168.38.140 6381</span><br><span class="line">1:X 24 Mar 2021 02:29:51.328 * +slave slave 192.168.38.140:6380 192.168.38.140 6380 @ mymaster 192.168.38.140 6381</span><br><span class="line">1:X 24 Mar 2021 02:29:51.328 * +slave slave 192.168.38.140:6379 192.168.38.140 6379 @ mymaster 192.168.38.140 6381</span><br><span class="line">1:X 24 Mar 2021 02:29:56.337 # +sdown slave 192.168.38.140:6379 192.168.38.140 6379 @ mymaster 192.168.38.140 6381</span><br></pre></td></tr></table></figure>
-
-<p>可见选举出了6381作为master，并将6379和6380改为其slave，主观下线的6379变成slave的主观下线。</p>
-<p>当redis6379服务再次启动后，则不再处于主观下线状态，info replication也变成slave指向master6381。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">1:X 24 Mar 2021 02:44:12.269 # -sdown slave 192.168.38.140:6379 192.168.38.140 6379 @ mymaster 192.168.38.140 6381</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="集群模式"><a href="#集群模式" class="headerlink" title="集群模式"></a>集群模式</h2><p>参考中文官网<a target="_blank" rel="noopener" href="http://www.redis.cn/topics/cluster-tutorial.html">http://www.redis.cn/topics/cluster-tutorial.html</a> 教程较老，基于3.x版本，有些命令操作已经更换，如启动集群命令。</p>
-<p>可参考英文官网<a target="_blank" rel="noopener" href="https://redis.io/topics/cluster-tutorial/">https://redis.io/topics/cluster-tutorial/</a></p>
-<p>基本架构为3个及以上奇数的主从模式。横向拓展，主从模式复制多个。当数据量增多时一主多从放不下那么多数据。</p>
-<p>背后理论思想是将数据通过某种算法分布到不同的服务节点，这样当节点越多，单台节点所需提供服务的数据就越少。很显然，集群首先需要解决如下问题</p>
-<p>1）分槽（slot）：即如何决定某条数据应该由哪个节点提供服务；<br>2）端如何向集群发起请求（客户端并不知道某个数据应该由哪个节点提供服务，并且如果扩容或者节点发生故障后，不应该影响客户端的访问）？<br>3）某个节点发生故障之后，该节点服务的数据该如何处理？<br>4）扩容，即向集群中添加新节点该如何操作？<br>5）同一条命令需要处理的key分布在不同的节点中（如Redis中集合取并集、交集的相关命令），如何操作？</p>
-<h3 id="1-分槽Slot"><a href="#1-分槽Slot" class="headerlink" title="1. 分槽Slot"></a>1. 分槽Slot</h3><p>Redis将键空间分为16384个slot，通过如下算法计算出每个key所属的slot。客户端可以请求任意一个节点，每个节点都会保存所有16384个slot对应那个节点的信息。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HASH_SLOT&#x3D;CRC16(key) mod 16384</span><br></pre></td></tr></table></figure>
-
-<p>集群会分配这16384个slot到各个master上，如</p>
+      <p>持久化操作可分为RDB(Redis DataBase)方式AOF(Append Only File)方式。</p>
+<h2 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h2><p>RDB文件用于保存和还原Redis服务器所有数据库中的所有键值对，它会在指定时间段内按规则进行一次全量保存。</p>
+<p>RDB文件是一个经过压缩的二进制文件，由多个部分组成。</p>
+<p><strong>指令</strong></p>
 <ul>
-<li>节点 A 包含 0 到 5500号哈希槽.</li>
-<li>节点 B 包含5501 到 11000 号哈希槽.</li>
-<li>节点 C 包含11001 到 16384号哈希槽.</li>
+<li>save   直接阻塞服务器进程，服务器不能处理任何请求，等待直到RDB创建完毕</li>
+<li>bgsave   派生出一个子进程，由子进程负责创建RDB文件，父进程继续处理请求</li>
 </ul>
-<h3 id="2-如何向集群发起请求"><a href="#2-如何向集群发起请求" class="headerlink" title="2. 如何向集群发起请求"></a>2. 如何向集群发起请求</h3><p>如果一个key所属的slot正好由被请求的节点提供服务，则直接处理并返回结果，否则返回MOVED重定向信息</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">GET key</span><br><span class="line">-MOVED slot IP:PORT</span><br></pre></td></tr></table></figure>
-
-<p>客户端应该处理该重定向信息，并且向拥有该key的节点发起请求。实际应用中，Redis客户端可以通过向集群请求slot和节点的映射关系并缓存，然后通过本地计算要操作的key所属的slot，查询映射关系，直接向正确的节点发起请求，这样可以获得几乎等价于单节点部署的性能</p>
-<h3 id="某个节点发生故障之后，该节点服务的数据该如何处理"><a href="#某个节点发生故障之后，该节点服务的数据该如何处理" class="headerlink" title="某个节点发生故障之后，该节点服务的数据该如何处理"></a>某个节点发生故障之后，该节点服务的数据该如何处理</h3><p>当集群由于节点故障或者扩容导致重新分片后，客户端先通过重定向获取到数据，每次发生重定向后，客户端可以将新的映射关系进行缓存，下次仍然可以直接向正确的节点发起请求</p>
-<p>集群中的数据分片之后由不同的节点提供服务，即每个主节点的数据都不相同，此种情况下，<strong>为了确保没有单点故障，主服务必须挂载至少一个从服务</strong>。客户端请求时可以向任意一个主节点或者从节点发起，<u>当向从节点发起请求时，从节点会返回MOVED信息重定向到相应的主节点</u>。</p>
-<p>Redis集群中，<u>客户端只能在主节点执行读写操作</u>。如果需要在从节点中进行读操作，需要满足如下条件：</p>
-<p>①首先在客户端中执行readonly命令；<br>②如果一个key所属的slot由主节点A提供服务，则请求该key时可以向A所属的从节点发起读请求。该请求不会被重定向。<br><strong>当一个主节点发生故障后，其挂载的从节点会切换为主节点继续提供服务</strong>。<br>最后，当一条命令需要操作的key分属于不同的节点时，Redis会报错。Redis提供了一种称为hash tags的机制，由业务方保证当需要进行多个key的处理时，将所有key分布到同一个节点，该机制实现原理如下：<br>如果一个key包括{substring}这种模式，则计算slot时只计算“{”和“}”之间的子字符串。即keys{sub}1、keys{sub}2、keys{sub}3计算slot时都会按照sub串进行。这样保证这3个字符串会分布到同一个节点。</p>
-<h3 id="部署-1"><a href="#部署-1" class="headerlink" title="部署"></a>部署</h3><p>首先创建7000,70001,7002,7003,7004,7005六个目录，配置redis.conf，启动实例，分为三组主从节点，奇数为master，偶数slave</p>
-<p>以下是最少选项的集群配置文件</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">port 7000 #更改各文件的端口号</span><br><span class="line">cluster-enabled yes # 启用集群</span><br><span class="line">cluster-config-file nodes.conf # 保存节点配置文件的路径</span><br><span class="line">cluster-node-timeout 5000 # 节点超时时间</span><br><span class="line">appendonly yes # 开启aof持久化</span><br></pre></td></tr></table></figure>
-
-<p>此处依然使用了<code>--network host</code>模式，或者你应该使用下面的桥接模式，否则直接映射的话，ip的原因，会一直卡在<code>Waiting for the cluster to join...........</code>。跟哨兵集群的情况是一样的</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name redis7000 --restart always -p 7000:7000 --network host -v /home/mini/docker/redis7000/config:/etc/redis redis redis-server /etc/redis/redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis7001 --restart always -p 7001:7001  --network host -v /home/mini/docker/redis7001/config:/etc/redis redis redis-server /etc/redis/redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis7002 --restart always -p 7002:7002 --network host -v /home/mini/docker/redis7002/config:/etc/redis redis redis-server /etc/redis/redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis7003 --restart always -p 7003:7003 --network host -v /home/mini/docker/redis7003/config:/etc/redis redis redis-server /etc/redis/redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis7004 --restart always -p 7004:7004 --network host -v /home/mini/docker/redis7004/config:/etc/redis redis redis-server /etc/redis/redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis7005 --restart always -p 7005:7005 --network host -v /home/mini/docker/redis7005/config:/etc/redis redis redis-server /etc/redis/redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
-
-<p>启动完成后，不需要slaveof命令手动关联主从，下面的命令会自动分配。且此时处于集群未启动状态，所有写操作会被拒绝。</p>
-<p>执行官网的命令<code>./redis-trib.rb create --replicas 1 192.168.38.140:7000 192.168.38.140:7001 192.168.38.140:7002 192.168.38.140:7003 192.168.38.140:7004 192.168.38.140:7005</code>将会出现提示<code>redis-trib.rb is not longer available</code>，表示不再支持，并提示出使用redis-cli来执行，避免了使用redis-trib.rb还需要安装ruby的问题。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost src]# redis-cli --cluster create 192.168.38.140:7000 192.168.38.140:7001 192.168.38.140:7002 192.168.38.140:7003 192.168.38.140:7004 192.168.38.140:7005 --cluster-replicas 1</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Performing <span class="built_in">hash</span> slots allocation on 6 nodes...</span></span><br><span class="line">Master[0] -&gt; Slots 0 - 5460</span><br><span class="line">Master[1] -&gt; Slots 5461 - 10922</span><br><span class="line">Master[2] -&gt; Slots 10923 - 16383</span><br><span class="line">Adding replica 192.168.38.140:7004 to 192.168.38.140:7000</span><br><span class="line">Adding replica 192.168.38.140:7005 to 192.168.38.140:7001</span><br><span class="line">Adding replica 192.168.38.140:7003 to 192.168.38.140:7002</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Trying to optimize slaves allocation <span class="keyword">for</span> anti-affinity</span></span><br><span class="line">[WARNING] Some slaves are in the same host as their master</span><br><span class="line">M: ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000</span><br><span class="line">   slots:[0-5460] (5461 slots) master</span><br><span class="line">M: 7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001</span><br><span class="line">   slots:[5461-10922] (5462 slots) master</span><br><span class="line">M: bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002</span><br><span class="line">   slots:[10923-16383] (5461 slots) master</span><br><span class="line">S: 463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003</span><br><span class="line">   replicates ff444f0436d1cf64a18e8cf843066cd30d8b7c12</span><br><span class="line">S: 4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004</span><br><span class="line">   replicates 7ca1df6f191129d02c0908216c4e4728fd585f35</span><br><span class="line">S: 30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005</span><br><span class="line">   replicates bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">Can I set the above configuration? (type &#x27;yes&#x27; to accept): yes # 此处一定要输入yes，不能输入其他的。</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Nodes configuration updated</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Assign a different config epoch to each node</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Sending CLUSTER MEET messages to join the cluster</span></span><br><span class="line">Waiting for the cluster to join</span><br><span class="line">.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Performing Cluster Check (using node 192.168.38.140:7000)</span></span><br><span class="line">M: ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000</span><br><span class="line">   slots:[0-5460] (5461 slots) master</span><br><span class="line">   1 additional replica(s)</span><br><span class="line">S: 30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005</span><br><span class="line">   slots: (0 slots) slave</span><br><span class="line">   replicates bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">S: 463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003</span><br><span class="line">   slots: (0 slots) slave</span><br><span class="line">   replicates ff444f0436d1cf64a18e8cf843066cd30d8b7c12</span><br><span class="line">M: bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002</span><br><span class="line">   slots:[10923-16383] (5461 slots) master</span><br><span class="line">   1 additional replica(s)</span><br><span class="line">M: 7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001</span><br><span class="line">   slots:[5461-10922] (5462 slots) master</span><br><span class="line">   1 additional replica(s)</span><br><span class="line">S: 4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004</span><br><span class="line">   slots: (0 slots) slave</span><br><span class="line">   replicates 7ca1df6f191129d02c0908216c4e4728fd585f35</span><br><span class="line">[OK] All nodes agree about slots configuration.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check <span class="keyword">for</span> open slots...</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check slots coverage...</span></span><br><span class="line">[OK] All 16384 slots covered.</span><br></pre></td></tr></table></figure>
-
-<p>知道打印出<code>[OK] All 16384 slots covered.</code>便完成集群</p>
-<p>此处集群主从分为</p>
-<table>
-<thead>
-<tr>
-<th>master</th>
-<th>slave</th>
-<th>slot</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>7000</td>
-<td>7003</td>
-<td>[0-5460]</td>
-</tr>
-<tr>
-<td>7001</td>
-<td>7004</td>
-<td>[5461-10922]</td>
-</tr>
-<tr>
-<td>7002</td>
-<td>7005</td>
-<td>[10923-16383]</td>
-</tr>
-</tbody></table>
-<h3 id="使用集群"><a href="#使用集群" class="headerlink" title="使用集群"></a>使用集群</h3><p>使用<code>redis-cli -c</code>命令启动</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost src]# redis-cli -c -p 7000                  </span><br><span class="line">127.0.0.1:7000&gt; set foo bar                                 </span><br><span class="line">-&gt; Redirected to slot [12182] located at 192.168.38.140:7002</span><br><span class="line">OK                                                          </span><br><span class="line">192.168.38.140:7002&gt; set hello world                      </span><br><span class="line">-&gt; Redirected to slot [866] located at 192.168.38.140:7000</span><br><span class="line">OK                                                        </span><br></pre></td></tr></table></figure>
-
-<p>与官网一样，设置名称为<code>foo</code>的键计算的slot值为12182，按照上面集群的结果处于7002master处。</p>
-<p>通过命令<code>cluster nodes</code>获取所有节点信息</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost src]# redis-cli -p 7000 cluster nodes</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave bc32418802f9221a43f3c040ad6dbceb03786b3b 0 1616572503205 3 connected</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616572505000 1 connected</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616572506255 3 connected 10923-16383</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 master - 0 1616572505236 2 connected 5461-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616572504224 2 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 myself,master - 0 1616572504000 1 connected 0-5460</span><br></pre></td></tr></table></figure>
+<p><strong>创建</strong></p>
+<p>创建RDB文件实际由rdb.c/rdbSave函数完成,两个命令则以不同的方式调用这个函数。</p>
+<p><strong>载入</strong></p>
+<p>redis没有直接载入RDB文件的命令，只要redis服务启动，则自动 载入RDB文件，服务器会一直处以阻塞状态，直到载入工作完成。</p>
+<p>载入文件的实际工作由rdb.c/rdbLoad函数完成</p>
+<h3 id="客户端save指令保存"><a href="#客户端save指令保存" class="headerlink" title="客户端save指令保存"></a>客户端save指令保存</h3><p>当SAVE执行时，Redis服务器会被阻塞，客户端发送的请求都会被拒绝</p>
+<p>只有执行完SAVE命令后，才能重新开始接收命令请求，客户端发送的命令才会被处理</p>
+<h3 id="间隔性保存-bgsave"><a href="#间隔性保存-bgsave" class="headerlink" title="间隔性保存 bgsave"></a>间隔性保存 bgsave</h3><p>redis <code>bgsave</code>执行命令会在后台子进程执行，所以redis允许用户设置服务器配置save选项，让服务器每隔一段时间bgsave一次。该命令并不会阻塞服务器</p>
+<p>在redis.conf的<code>SNAPSHOTTING</code>注释模块是rdb的配置。其中注释了三行数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># save &lt;seconds&gt; &lt;changes&gt;</span><br><span class="line"># Unless specified otherwise, by default Redis will save the DB:</span><br><span class="line">#   * After 3600 seconds (an hour) if at least 1 key changed</span><br><span class="line">#   * After 300 seconds (5 minutes) if at least 100 keys changed</span><br><span class="line">#   * After 60 seconds if at least 10000 keys changed</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># save 3600 1</span><br><span class="line"># save 300 100</span><br><span class="line"># save 60 10000</span><br></pre></td></tr></table></figure>
 
 <ul>
-<li>节点id</li>
-<li>ip:端口</li>
-<li>标志:master,slave,myself,fail</li>
-<li>如果是个从节点, 这里是它的主节点的NODE ID</li>
-<li>集群最近一次向节点发送 PING 命令之后， 没收到响应的时间</li>
-<li>节点最近一次返回 PING 回复的时间</li>
-<li>节点的配置纪元（configuration epoch）</li>
-<li>本节点的网络连接情况：例如 connected</li>
-<li>节点目前包含的槽</li>
+<li>900秒内，至少对数据库执行1次命令</li>
+<li>300秒内，至少对数据库执行10次命令</li>
+<li>60秒内，至少对数据库执行10000次命令</li>
 </ul>
-<h3 id="3-主从切换-故障转移"><a href="#3-主从切换-故障转移" class="headerlink" title="3. 主从切换 (故障转移)"></a>3. 主从切换 (故障转移)</h3><h4 id="手动故障转移"><a href="#手动故障转移" class="headerlink" title="手动故障转移"></a>手动故障转移</h4><p>在从节点处执行，如slave7003客户端执行<code>cluster failover</code>命令可手动进行故障转移，此时当前角色已经变为master，原来的7000master变为slave。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">127.0.0.1:7003&gt; cluster failover</span><br><span class="line">OK</span><br><span class="line">127.0.0.1:7003&gt; info replication</span><br><span class="line"><span class="meta">#</span><span class="bash"> Replication</span></span><br><span class="line">role:master</span><br><span class="line">connected_slaves:1</span><br><span class="line">slave0:ip=192.168.38.140,port=7000,state=online,offset=22136,lag=1</span><br><span class="line">master_failover_state:no-failover</span><br><span class="line">master_replid:6fdfe1683507a8c20ec19c91c35e8ad4522f3d01</span><br><span class="line">master_replid2:7979887f6a6549eba0ef99b69923bcc1ec2656c3</span><br><span class="line">master_repl_offset:22136</span><br><span class="line">second_repl_offset:22137</span><br><span class="line">repl_backlog_active:1</span><br><span class="line">repl_backlog_size:1048576</span><br><span class="line">repl_backlog_first_byte_offset:1</span><br><span class="line">repl_backlog_histlen:22136</span><br></pre></td></tr></table></figure>
+<p>以上为默认配置，可以进行修改和增加。</p>
+<p>满足以上三个任意的条件将会自动触发bgsave命令，Redis调用bgsaveCommand函数，该函数fork一个子进程执行rdbSave函数进行实际的快照存储工作，而父进程可以继续处理客户端请求。当子进程退出后，父进程调用相关回调函数进行后续处理。</p>
+<p><strong>BGSAVE命令执行时服务器状态</strong></p>
+<ul>
+<li>保存工作有子进程执行，redis服务器仍可以处理命令请求</li>
+<li>在bgsave执行期间，客户端发送save命令会被服务器拒绝。禁止父子进程同时执行rdbSave函数，防止产生竞争</li>
+<li>在bgsave执行期间 ，客户端发送bgsave会被拒绝，防止产生竞争条件</li>
+<li>bgrewriteraof和bgsave不能同时执行<ul>
+<li>如果bgsave正在执行，那么bgrewriteraof会被延迟到在bgsave执行完毕后执行</li>
+<li>如果bgrewriteraof正在执行，那么bgsave会被拒绝</li>
+<li>这两个命令都是由子进程执行，两者并没有冲突的地方，不能同时执行，只是因为性能方面的考虑，因为这个两个子进程都会执行大量磁盘写入操作</li>
+</ul>
+</li>
+</ul>
+<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h2 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h2><p>AOF持久化是通过保存Redis服务器所执行的<strong>写的命令</strong>来记录的。</p>
+<p>当aof持久化打开时，服务器会以Redis协议格式将被执行的命令追加到服务器状态的aof_buf缓冲区末尾，之后再定期写入并同步到AOF文件中。</p>
+<p>默认不开启AOF，可修改<code>appendonly</code>的值为<code>yes</code>；<code>appendfilename</code>可指定持久化文件名称，默认可不修改。</p>
+<p>AOF保存的是一条条命令，理论上可以做到发生故障时只丢失一条命令。但由于操作系统中执行写文件操作代价很大，Redis提供了配置参数，通过对安全性和性能的折中，我们可以设置不同的策略。</p>
+<p><code>appendfsync</code>配置项配置了策略，可用值分别为:</p>
+<ul>
+<li>always：同步持久化，每次发生改变立即记录到磁盘。性能查数据完整性好</li>
+<li>everysec：默认，每秒触发一次，将aof_buf缓存区中的内容写到aof文件中，这个同步操作由一个线程专门负责</li>
+<li>no：不进行操作</li>
+</ul>
+<h3 id="AOF重写"><a href="#AOF重写" class="headerlink" title="AOF重写"></a>AOF重写</h3><p>随着aof文件越来越大，可能会造成影响，使用AOF还原数据的时间也就越多，因此Redis提供了重写功能。</p>
+<p>假如客户端向服务器执行了5条<code>lpush mylist xxx</code>语句，因此，就要向aof中写入这五条记录，然而重写可以将这5条变成一条，即<code>lpush mylist xxx xxx xxx xxx xxx</code>，这样5条命令就变成了一条，用着一条代替之前记录的多条命令。</p>
+<p>AOF重写会产生一个新的AOF文件，这个新的AOF文件和原有的AOF文件所保存的数据库状态一样，但体积更小。</p>
+<p>重写触发机制会执行<code>bgrewriteaof</code>命令，Redis服务器会维护一个AOF重写缓冲区，该缓冲区会在子进程中创建新AOF文件期间，记录服务器执行的所有命令。当子进程完成创建新的AOF文件之后，服务器会将重写缓冲区的所有内容追加到新的AOF文件中，使得新旧两个AOF文件所保存的数据状态一致。最后服务器用新的AOF文件替换旧的AOF文件。</p>
+<p><strong>重写配置</strong></p>
+<p>Redis会记录上次重写时的AOF大小，当AOF文件大小是上次rewriter后大小的一倍且文件大于64MB时触发</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 是否开启重写机制</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"># 百分比</span><br><span class="line">uto-aof-rewrite-percentage 100</span><br><span class="line"># 大小</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br></pre></td></tr></table></figure>
 
-<p>强制手动故障转移比自动故障转移更加安全，因为手动故障转移时客户端的切换是在确保新的主节点完全复制了失败的旧的主节点数据的前提下下发生的，所以避免了数据的丢失。可以用于升级主节点的master进程。</p>
-<p>在7003的打印消息如下</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">1:S 25 Mar 2021 00:26:48.618 # Manual failover user request accepted.</span><br><span class="line">1:S 25 Mar 2021 00:26:48.619 # Received replication offset for paused master manual failover: 22136</span><br><span class="line">1:S 25 Mar 2021 00:26:48.619 # All master replication stream processed, manual failover can start.</span><br><span class="line">1:S 25 Mar 2021 00:26:48.619 # Start of election delayed for 0 milliseconds (rank #0, offset 22136).</span><br><span class="line">1:S 25 Mar 2021 00:26:48.619 # Starting a failover election for epoch 7.</span><br><span class="line">1:S 25 Mar 2021 00:26:48.634 # Failover election won: I&#x27;m the new master.</span><br><span class="line">1:S 25 Mar 2021 00:26:48.634 # configEpoch set to 7 after successful failover</span><br><span class="line">1:M 25 Mar 2021 00:26:48.634 # Connection with master lost.</span><br><span class="line">1:M 25 Mar 2021 00:26:48.634 * Caching the disconnected master state.</span><br><span class="line">1:M 25 Mar 2021 00:26:48.634 * Discarding previously cached master state.</span><br><span class="line">1:M 25 Mar 2021 00:26:48.634 # Setting secondary replication ID to 7979887f6a6549eba0ef99b69923bcc1ec2656c3, valid up to offset: 22137. New replication ID is 6fdfe1683507a8c20ec19c91c35e8ad4522f3d01</span><br><span class="line">1:M 25 Mar 2021 00:26:48.668 * Replica 192.168.38.140:7000 asks for synchronization</span><br><span class="line">1:M 25 Mar 2021 00:26:48.668 * Partial resynchronization request from 192.168.38.140:7000 accepted. Sending 0 bytes of backlog starting from offset 22137.</span><br></pre></td></tr></table></figure>
+<blockquote>
+<p>注意：在处理重写时,在列表，哈希，集合可能会带有多个元素的键时，会先检查键所包含的数量，超过一定数量后会用多条命令处理重写触发机制=</p>
+</blockquote>
+<h3 id="混合持久化"><a href="#混合持久化" class="headerlink" title="混合持久化"></a>混合持久化</h3><p>混合持久化指进行AOF重写时子进程将当前时间点的数据快照保存为RDB文件格式，而后将父进程累积命令保存为AOF格式。</p>
+<p>加载时，首先会识别AOF文件是否以REDIS字符串开头，如果是，就按RDB格式加载，加载完RDB后继续按AOF格式加载剩余部分。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aof-use-rdb-preamble yes</span><br></pre></td></tr></table></figure>
 
-<p>其基本过程如下：客户端不再链接我们淘汰的主节点，同时主节点向从节点发送复制偏移量,从节点得到复制偏移量后故障转移开始,接着通知主节点进行配置切换,当客户端在旧的master上解锁后重新连接到新的主节点上。</p>
-<p>7001打印日志如下</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">1:M 25 Mar 2021 00:26:48.619 # Manual failover requested by replica 463977abfab278f6c7225cfae26a72f800b07e9f.</span><br><span class="line">1:M 25 Mar 2021 00:26:48.634 # Connection with replica 192.168.38.140:7003 lost.</span><br><span class="line">1:M 25 Mar 2021 00:26:48.663 # Failover auth granted to 463977abfab278f6c7225cfae26a72f800b07e9f for epoch 7</span><br><span class="line">1:M 25 Mar 2021 00:26:48.664 # Configuration change detected. Reconfiguring myself as a replica of 463977abfab278f6c7225cfae26a72f800b07e9f</span><br><span class="line">1:S 25 Mar 2021 00:26:48.664 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.</span><br><span class="line">1:S 25 Mar 2021 00:26:48.664 * Connecting to MASTER 192.168.38.140:7003</span><br><span class="line">1:S 25 Mar 2021 00:26:48.664 * MASTER &lt;-&gt; REPLICA sync started</span><br><span class="line">1:S 25 Mar 2021 00:26:48.665 * Non blocking connect for SYNC fired the event.</span><br><span class="line">1:S 25 Mar 2021 00:26:48.668 * Master replied to PING, replication can continue...</span><br><span class="line">1:S 25 Mar 2021 00:26:48.668 * Trying a partial resynchronization (request 7979887f6a6549eba0ef99b69923bcc1ec2656c3:22137).</span><br><span class="line">1:S 25 Mar 2021 00:26:48.668 * Successful partial resynchronization with master.</span><br><span class="line">1:S 25 Mar 2021 00:26:48.668 # Master replication ID changed to 6fdfe1683507a8c20ec19c91c35e8ad4522f3d01</span><br><span class="line">1:S 25 Mar 2021 00:26:48.668 * MASTER &lt;-&gt; REPLICA sync: Master accepted a Partial Resynchronization.</span><br></pre></td></tr></table></figure>
 
-<h4 id="自动故障转移"><a href="#自动故障转移" class="headerlink" title="自动故障转移"></a>自动故障转移</h4><p>尝试直接关闭主节点服务，刚才7000已变成slave，现在关闭master7003服务，让7000重升为master。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# docker stop 433e547b3e35</span><br><span class="line">433e547b3e35</span><br><span class="line">[root@localhost ~]# redis-cli -c -p 7001 cluster nodes</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616633076363 3 connected 10923-16383</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 master,fail - 1616633061144 1616633056099 7 disconnected 0-5460</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 myself,master - 0 1616633076000 2 connected 5461-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616633074336 2 connected</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave bc32418802f9221a43f3c040ad6dbceb03786b3b 0 1616633075000 3 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 slave 463977abfab278f6c7225cfae26a72f800b07e9f 0 1616633075351 7 connected</span><br><span class="line">[root@localhost ~]# redis-cli -c -p 7001 cluster nodes</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616633085503 3 connected 10923-16383</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 master,fail - 1616633061144 1616633056099 7 disconnected</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 myself,master - 0 1616633083000 2 connected 5461-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616633084485 2 connected</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave bc32418802f9221a43f3c040ad6dbceb03786b3b 0 1616633084000 3 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 master - 0 1616633084000 8 connected 0-5460</span><br></pre></td></tr></table></figure>
 
-<p>这是关闭7003后两次查看集群信息，可见两次信息中对于7000slave转master并没有非常及时，可能会有写命令丢失的情况</p>
-<p>再次启动后发现查看集群信息已经连接上并称为7000的slave。以下是7003启动后打印的日志：</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line">1:C 25 Mar 2021 01:13:31.578 # Redis version=6.2.1, bits=64, commit=00000000, modified=0, pid=1, just started</span><br><span class="line">1:C 25 Mar 2021 01:13:31.578 # Configuration loaded</span><br><span class="line">1:M 25 Mar 2021 01:13:31.578 * monotonic clock: POSIX clock_gettime</span><br><span class="line">1:M 25 Mar 2021 01:13:31.579 * Node configuration loaded, I&#x27;m 463977abfab278f6c7225cfae26a72f800b07e9f</span><br><span class="line">1:M 25 Mar 2021 01:13:31.580 * Running mode=cluster, port=7003.</span><br><span class="line">1:M 25 Mar 2021 01:13:31.580 # WARNING: The TCP backlog setting of 511 cannot be enforced because /proc/sys/net/core/somaxconn is set to the lower value of 128.</span><br><span class="line">1:M 25 Mar 2021 01:13:31.580 # Server initialized</span><br><span class="line">1:M 25 Mar 2021 01:13:31.580 # WARNING overcommit_memory is set to 0! Background save may fail under low memory condition. To fix this issue add &#x27;vm.overcommit_memory = 1&#x27; to /etc/sysctl.conf and then reboot or run the command &#x27;sysctl vm.overcommit_memory=1&#x27; for this to take effect.</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * Reading RDB preamble from AOF file...</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * Loading RDB produced by version 6.2.1</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * RDB age 64092 seconds</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * RDB memory usage when created 2.50 Mb</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * RDB has an AOF tail</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * Reading the remaining AOF tail...</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * DB loaded from append only file: 0.000 seconds</span><br><span class="line">1:M 25 Mar 2021 01:13:31.581 * Ready to accept connections</span><br><span class="line">1:M 25 Mar 2021 01:13:31.582 # Configuration change detected. Reconfiguring myself as a replica of ff444f0436d1cf64a18e8cf843066cd30d8b7c12</span><br><span class="line">1:S 25 Mar 2021 01:13:31.582 * Before turning into a replica, using my own master parameters to synthesize a cached master: I may be able to synchronize with the new master with just a partial transfer.</span><br><span class="line">1:S 25 Mar 2021 01:13:31.582 * Connecting to MASTER 192.168.38.140:7000</span><br><span class="line">1:S 25 Mar 2021 01:13:31.582 * MASTER &lt;-&gt; REPLICA sync started</span><br><span class="line">1:S 25 Mar 2021 01:13:31.582 # Cluster state changed: ok</span><br><span class="line">1:S 25 Mar 2021 01:13:31.584 * Non blocking connect for SYNC fired the event.</span><br><span class="line">1:S 25 Mar 2021 01:13:31.584 * Master replied to PING, replication can continue...</span><br><span class="line">1:S 25 Mar 2021 01:13:31.584 * Trying a partial resynchronization (request 032daf539cf041be78bb575c6d19bcd6fc72cf69:1).</span><br><span class="line">1:S 25 Mar 2021 01:13:31.586 * Full resync from master: ea91c3bc4ea55da0a10115af943607da1f1c44db:23564</span><br><span class="line">1:S 25 Mar 2021 01:13:31.586 * Discarding previously cached master state.</span><br><span class="line">1:S 25 Mar 2021 01:13:31.651 * MASTER &lt;-&gt; REPLICA sync: receiving 194 bytes from master to disk</span><br><span class="line">1:S 25 Mar 2021 01:13:31.651 * MASTER &lt;-&gt; REPLICA sync: Flushing old data</span><br><span class="line">1:S 25 Mar 2021 01:13:31.651 * MASTER &lt;-&gt; REPLICA sync: Loading DB in memory</span><br><span class="line">1:S 25 Mar 2021 01:13:31.652 * Loading RDB produced by version 6.2.1</span><br><span class="line">1:S 25 Mar 2021 01:13:31.652 * RDB age 0 seconds</span><br><span class="line">1:S 25 Mar 2021 01:13:31.652 * RDB memory usage when created 2.53 Mb</span><br><span class="line">1:S 25 Mar 2021 01:13:31.652 * MASTER &lt;-&gt; REPLICA sync: Finished with success</span><br><span class="line">1:S 25 Mar 2021 01:13:31.652 * Background append only file rewriting started by pid 17</span><br><span class="line">1:S 25 Mar 2021 01:13:31.722 * AOF rewrite child asks to stop sending diffs.</span><br><span class="line">17:C 25 Mar 2021 01:13:31.722 * Parent agreed to stop sending diffs. Finalizing AOF...</span><br><span class="line">17:C 25 Mar 2021 01:13:31.722 * Concatenating 0.00 MB of AOF diff received from parent.</span><br><span class="line">17:C 25 Mar 2021 01:13:31.722 * SYNC append only file rewrite performed</span><br><span class="line">17:C 25 Mar 2021 01:13:31.722 * AOF rewrite: 0 MB of memory used by copy-on-write</span><br><span class="line">1:S 25 Mar 2021 01:13:31.786 * Background AOF rewrite terminated with success</span><br><span class="line">1:S 25 Mar 2021 01:13:31.786 * Residual parent diff successfully flushed to the rewritten AOF (0.00 MB)</span><br><span class="line">1:S 25 Mar 2021 01:13:31.786 * Background AOF rewrite finished successfully</span><br></pre></td></tr></table></figure>
+<h2 id="RDB与AOF区别"><a href="#RDB与AOF区别" class="headerlink" title="RDB与AOF区别"></a>RDB与AOF区别</h2><p>AOF更新频率会比RDB高</p>
+<p>如果服务其启动了AOF，则优先通过AOF还原数据，只有在AOF关闭的情况下才使用RDB文件来还原数据库状态</p>
+<p>AOF在载入数据库时会比RDB载入慢很多</p>
+<p>RDB数据可能会出现丢失，比AOF安全性低。</p>
+<p>RDB保存的是最终的结果，AOF保存最终结果之间的过程。</p>
+<h3 id="其他相关配置项"><a href="#其他相关配置项" class="headerlink" title="其他相关配置项"></a>其他相关配置项</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 开启该参数后，如果开启了RDB快照（即配置了bgsave指令），并且最近一次快照执行失败，则Redis将停止接收写相关的请求</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 开启该参数后，如果后台正在执行一次RDB快照或者AOF重写，则主进程不再进行fsync操作（即使将appendfsync配置为always或者everysec）</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"># AOF文件以追加日志的方式生成，所以服务端发生故障时可能会有尾部命令不完整的情况。</span><br><span class="line"># 该参数后，在此种情况下，AOF文件会截断尾部不完整的命令然后继续加载，并且会在日志中进行提示。如果不开启该参数，则加载AOF文件时会打印错误日志，然后直接退出</span><br><span class="line"># 在重新启动服务器之前，可以尝试执行bin下的redis-check-AOF工具检查修改AOF</span><br><span class="line">aof-load-truncated yes</span><br></pre></td></tr></table></figure>
 
-<p>首先加载RDB和AOF恢复数据，然后连接master，同步数据，变更集群状态为ok，同步刷新数据等等。</p>
-<h3 id="4-添加一个新节点"><a href="#4-添加一个新节点" class="headerlink" title="4. 添加一个新节点"></a>4. 添加一个新节点</h3><p>添加新的节点的基本过程就是添加一个空的节点然后移动一些数据给它，有两种情况，添加一个主节点和添加一个从节点（添加从节点时需要将这个新的节点设置为集群中某个节点的复制）</p>
-<p>两种情况的第一步都是先创建一个空节点。</p>
-<h4 id="添加一个主节点"><a href="#添加一个主节点" class="headerlink" title="添加一个主节点"></a>添加一个主节点</h4><p>创建7006，作为master。直接拷贝7000的配置目录为7006，更换配置文件的端口即可。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name redis7006 --restart always -p 7006:7006 --network host -v /home/mini/docker/redis7006/config:/etc/redis redis redis-server /etc/redis/redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
-
-<p>使用以下命令将节点添加到集群，其中192.168.38.140:700为新增的主节点地址，192.168.38.140:7000为任意一个可连接的集群地址。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost redis-stable]# redis-cli --cluster add-node 192.168.38.140:7006 192.168.38.140:7000</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Adding node 192.168.38.140:7006 to cluster 192.168.38.140:7000</span>                                 </span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Performing Cluster Check (using node 192.168.38.140:7000)</span>                                      </span><br><span class="line">M: ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000                                    </span><br><span class="line">   slots:[0-5460] (5461 slots) master                                                              </span><br><span class="line">   1 additional replica(s)                                                                         </span><br><span class="line">S: 30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005                                    </span><br><span class="line">   slots: (0 slots) slave                                                                          </span><br><span class="line">   replicates bc32418802f9221a43f3c040ad6dbceb03786b3b                                             </span><br><span class="line">S: 463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003                                    </span><br><span class="line">   slots: (0 slots) slave                                                                          </span><br><span class="line">   replicates ff444f0436d1cf64a18e8cf843066cd30d8b7c12                                             </span><br><span class="line">M: bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002                                    </span><br><span class="line">   slots:[10923-16383] (5461 slots) master                                                         </span><br><span class="line">   1 additional replica(s)                                                                         </span><br><span class="line">M: 7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001                                    </span><br><span class="line">   slots:[5461-10922] (5462 slots) master                                                          </span><br><span class="line">   1 additional replica(s)                                                                         </span><br><span class="line">S: 4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004                                    </span><br><span class="line">   slots: (0 slots) slave                                                                          </span><br><span class="line">   replicates 7ca1df6f191129d02c0908216c4e4728fd585f35                                             </span><br><span class="line">[OK] All nodes agree about slots configuration.                                                    </span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check <span class="keyword">for</span> open slots...</span>                                                                        </span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check slots coverage...</span>                                                                        </span><br><span class="line">[OK] All 16384 slots covered.                                                                      </span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Send CLUSTER MEET to node 192.168.38.140:7006 to make it join the cluster.</span>                     </span><br><span class="line">[OK] New node added correctly.                                                                     </span><br></pre></td></tr></table></figure>
-
-<p>查看集群信息可以看到已经添加进去了。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost redis-stable]# redis-cli -c -p 7000 cluster nodes</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave bc32418802f9221a43f3c040ad6dbceb03786b3b 0 1616636240500 3 connected</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616636241512 8 connected</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616636240000 3 connected 10923-16383</span><br><span class="line">4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006@17006 master - 0 1616636239482 0 connected</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 master - 0 1616636238000 2 connected 5461-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616636239000 2 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 myself,master - 0 1616636237000 8 connected 0-5460</span><br></pre></td></tr></table></figure>
-
-<p>但是虽然是主节点，但其中并没有包含任何数据，因为没有任何hash槽。使用如下命令可进行slot迁移</p>
-<h4 id="slot分配"><a href="#slot分配" class="headerlink" title="slot分配"></a>slot分配</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli --cluster reshard 192.168.38.140:7000</span><br></pre></td></tr></table></figure>
-
-<p>以下命令中因为已经执行过一次了，没有拷贝打印，因此再添加一次，默认第一次的话7006master的slots会显示<code>slots: (0 slots) master</code>。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost redis-stable]# redis-cli --cluster reshard 192.168.38.140:7000</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Performing Cluster Check (using node 192.168.38.140:7000)</span>                </span><br><span class="line">M: ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000              </span><br><span class="line">   slots:[999-5460] (4462 slots) master                                      </span><br><span class="line">   1 additional replica(s)                                                   </span><br><span class="line">S: 30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005              </span><br><span class="line">   slots: (0 slots) slave                                                    </span><br><span class="line">   replicates bc32418802f9221a43f3c040ad6dbceb03786b3b                       </span><br><span class="line">S: 463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003              </span><br><span class="line">   slots: (0 slots) slave                                                    </span><br><span class="line">   replicates ff444f0436d1cf64a18e8cf843066cd30d8b7c12                       </span><br><span class="line">M: bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002              </span><br><span class="line">   slots:[11922-16383] (4462 slots) master                                   </span><br><span class="line">   1 additional replica(s)                                                   </span><br><span class="line">M: 4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006              </span><br><span class="line">   slots:[0-998],[5461-6461],[10923-11921] (2999 slots) master               </span><br><span class="line">M: 7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001              </span><br><span class="line">   slots:[6462-10922] (4461 slots) master                                    </span><br><span class="line">   1 additional replica(s)                                                   </span><br><span class="line">S: 4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004              </span><br><span class="line">   slots: (0 slots) slave                                                    </span><br><span class="line">   replicates 7ca1df6f191129d02c0908216c4e4728fd585f35                       </span><br><span class="line">[OK] All nodes agree about slots configuration.                              </span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check <span class="keyword">for</span> open slots...</span>                                                  </span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check slots coverage...</span>                                                  </span><br><span class="line">[OK] All 16384 slots covered.                                                </span><br><span class="line">How many slots do you want to move (from 1 to 16384)? # 此处输入要迁移的数量   </span><br><span class="line">What is the receiving node ID?  # 此处输入新增加master节点的id</span><br><span class="line">Please enter all the source node IDs.</span><br><span class="line">  Type &#x27;all&#x27; to use all the nodes as source nodes for the hash slots.</span><br><span class="line">  Type &#x27;done&#x27; once you entered all the source nodes IDs.</span><br><span class="line">Source node #1:  # 此处输入all将选中数量的slot添加到源节点</span><br><span class="line">Do you want to proceed with the proposed reshard plan (yes/no)? # 此处输入yes确认转移</span><br><span class="line">Moving slot 11980 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 11981 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 11982 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 11983 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 11984 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 11985 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 11986 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 11987 from 192.168.38.140:7002 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 6524 from 192.168.38.140:7001 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 6525 from 192.168.38.140:7001 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 6526 from 192.168.38.140:7001 to 192.168.38.140:7006:</span><br><span class="line">Moving slot 6527 from 192.168.38.140:7001 to 192.168.38.140:7006:</span><br><span class="line">.....</span><br></pre></td></tr></table></figure>
-
-<p>我们再次查看节点信息可以看到，新增的如下</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 第一次没记录日志时增加3000</span></span><br><span class="line">[root@localhost redis-stable]# redis-cli -c -p 7000 cluster nodes</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave bc32418802f9221a43f3c040ad6dbceb03786b3b 0 1616637182132 3 connected</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616637186193 8 connected</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616637184000 3 connected 11922-16383</span><br><span class="line">4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006@17006 master - 0 1616637185176 9 connected 0-998 5461-6461 10923-11921</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 master - 0 1616637183000 2 connected 6462-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616637184164 2 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 myself,master - 0 1616637182000 8 connected 999-5460</span><br><span class="line"><span class="meta">#</span><span class="bash"> 第二次增加200</span></span><br><span class="line">[root@localhost redis-stable]# redis-cli -c -p 7000 cluster nodes</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave bc32418802f9221a43f3c040ad6dbceb03786b3b 0 1616637580567 3 connected</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616637580000 8 connected</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616637581587 3 connected 11988-16383</span><br><span class="line">4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006@17006 master - 0 1616637582000 9 connected 0-1065 5461-6527 10923-11987</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 master - 0 1616637582600 2 connected 6528-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616637583610 2 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 myself,master - 0 1616637578000 8 connected 1066-5460</span><br></pre></td></tr></table></figure>
-
-<p>由此可见，新迁移的slot会从其他主节点各自拿一些slot分配到当前被增加节点中，因此会出现了断层，三块的情况。</p>
-<p>客户端在连接到原来的节点slot会重定向到新的主节点获取slot中的键，客户端并缓存到本地。</p>
-<h4 id="添加一个从节点"><a href="#添加一个从节点" class="headerlink" title="添加一个从节点"></a>添加一个从节点</h4><p>创建7007容器作为slave</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name redis7007 --restart always -p 7007:7007 --network host -v &#x2F;home&#x2F;mini&#x2F;docker&#x2F;redis7007&#x2F;config:&#x2F;etc&#x2F;redis redis redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
-
-<p>添加到任意master节点</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli --cluster add-node 127.0.0.1:7007 127.0.0.1:7000 --cluster-slave</span><br></pre></td></tr></table></figure>
-
-<p>添加从节点到指定master节点</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost config]# redis-cli --cluster add-node 192.168.38.140:7007 192.168.38.140:7000 --cluster-slave --cluster-master-id ff444f0436d1cf64a18e8cf843066cd30d8b7c12</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Adding node 192.168.38.140:7007 to cluster 192.168.38.140:7000</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Performing Cluster Check (using node 192.168.38.140:7000)</span></span><br><span class="line">M: ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000</span><br><span class="line">   slots:[1066-5460] (4395 slots) master</span><br><span class="line">   1 additional replica(s)</span><br><span class="line">S: 30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005</span><br><span class="line">   slots: (0 slots) slave</span><br><span class="line">   replicates bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">S: 463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003</span><br><span class="line">   slots: (0 slots) slave</span><br><span class="line">   replicates ff444f0436d1cf64a18e8cf843066cd30d8b7c12</span><br><span class="line">M: bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002</span><br><span class="line">   slots:[11988-16383] (4396 slots) master</span><br><span class="line">   1 additional replica(s)</span><br><span class="line">M: 4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006</span><br><span class="line">   slots:[0-1065],[5461-6527],[10923-11987] (3198 slots) master</span><br><span class="line">M: 7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001</span><br><span class="line">   slots:[6528-10922] (4395 slots) master</span><br><span class="line">   1 additional replica(s)</span><br><span class="line">S: 4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004</span><br><span class="line">   slots: (0 slots) slave</span><br><span class="line">   replicates 7ca1df6f191129d02c0908216c4e4728fd585f35</span><br><span class="line">[OK] All nodes agree about slots configuration.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check <span class="keyword">for</span> open slots...</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Check slots coverage...</span></span><br><span class="line">[OK] All 16384 slots covered.</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Send CLUSTER MEET to node 192.168.38.140:7007 to make it join the cluster.</span></span><br><span class="line">Waiting for the cluster to join</span><br><span class="line"></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Configure node as replica of 192.168.38.140:7000.</span></span><br><span class="line">[OK] New node added correctly.</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost config]# redis-cli -p 7000 cluster nodes</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave bc32418802f9221a43f3c040ad6dbceb03786b3b 0 1616640112259 3 connected</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 slave 4dd72c4c8e11723a53e7960c03a8c592b50a6e81 0 1616640110224 9 connected</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616640109000 3 connected 11988-16383</span><br><span class="line">4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006@17006 master - 0 1616640108000 9 connected 0-1065 5461-6527 10923-11987</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 master - 0 1616640109000 2 connected 6528-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616640110000 2 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 myself,master - 0 1616640106000 8 connected 1066-5460</span><br><span class="line">78ae56d814b19a4210ea8814be6ca087fb702bbb 192.168.38.140:7007@17007 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616640111240 8 connected</span><br></pre></td></tr></table></figure>
-
-<p>或者在redis-cli中将当前节点作为某个主节点的从属节点。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis 127.0.0.1:7007&gt; cluster replicate 3c3a0c74aae0b56170ccb03a76b60cfe7dc1912e</span><br></pre></td></tr></table></figure>
-
-<p>3c3a0c74aae0b56170ccb03a76b60cfe7dc1912e为要加入master节点的nodeid</p>
-<h4 id="删除节点"><a href="#删除节点" class="headerlink" title="删除节点"></a>删除节点</h4><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis-cli --cluster del-node 127.0.0.1:7000 `&lt;node-id&gt;`</span><br></pre></td></tr></table></figure>
-
-<p>第一个参数是任意一个节点的地址,第二个参数是你想要移除的节点id。</p>
-<p>使用同样的方法移除主节点,不过在移除主节点前，需要<strong>确保这个主节点是空的</strong>. 如果不是空的,需要将这个节点的数据重新分片到其他主节点上.</p>
-<p>假设我们要删除master7002 <code>bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616641444000 3 connected 11988-16383</code></p>
-<p>则我们要先迁移master7002里的所有slot，我们将7002的slot都迁移到master7000，则执行以下命令</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost config]# redis-cli --cluster reshard 192.168.38.140:7000 --cluster-from bc32418802f9221a43f3c040ad6dbceb03786b3b --cluster-to ff444f0436d1cf64a18e8cf843066cd30d8b7c12</span><br><span class="line">.....</span><br><span class="line">    Moving slot 16373 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16374 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16375 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16376 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16377 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16378 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16379 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16380 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16381 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16382 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line">    Moving slot 16383 from bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line"> Do you want to proceed with the proposed reshard plan (yes/no)? yes</span><br><span class="line"> ......</span><br><span class="line"> Moving slot 16376 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br><span class="line"> Moving slot 16377 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br><span class="line"> Moving slot 16378 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br><span class="line"> Moving slot 16379 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br><span class="line"> Moving slot 16380 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br><span class="line"> Moving slot 16381 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br><span class="line"> Moving slot 16382 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br><span class="line"> Moving slot 16383 from 192.168.38.140:7002 to 192.168.38.140:7000:</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost config]# redis-cli -p 7000 cluster nodes</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616641730748 10 connected</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 slave 4dd72c4c8e11723a53e7960c03a8c592b50a6e81 0 1616641728718 9 connected</span><br><span class="line">bc32418802f9221a43f3c040ad6dbceb03786b3b 192.168.38.140:7002@17002 master - 0 1616641729733 3 connected</span><br><span class="line">4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006@17006 master - 0 1616641728000 9 connected 0-1065 5461-6527 10923-11987</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 master - 0 1616641730000 2 connected 6528-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616641728000 2 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 myself,master - 0 1616641727000 10 connected 1066-5460 11988-16383</span><br><span class="line">78ae56d814b19a4210ea8814be6ca087fb702bbb 192.168.38.140:7007@17007 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616641728000 10 connected</span><br></pre></td></tr></table></figure>
-
-<p>此时master7002的slot为空了，7000的slot增加了[11988-16383]，从最开始的 [10923-16383]，再分给新master7006的一部分，剩下的就是现在看到的。</p>
-<p>此时我们再删除master7002节点</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost config]# redis-cli --cluster del-node 192.168.38.140:7000 bc32418802f9221a43f3c040ad6dbceb03786b3b</span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Removing node bc32418802f9221a43f3c040ad6dbceb03786b3b from cluster 192.168.38.140:7000</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Sending CLUSTER FORGET messages to the cluster...</span></span><br><span class="line"><span class="meta">&gt;</span><span class="bash">&gt;&gt; Sending CLUSTER RESET SOFT to the deleted node.</span></span><br></pre></td></tr></table></figure>
-
-<p>此时只是移除集群，再查看集群信息</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost config]# redis-cli -p 7000 cluster nodes</span><br><span class="line">30e88e1699bca088056b4e16a68f15dc3eda54b4 192.168.38.140:7005@17005 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616642003000 10 connected</span><br><span class="line">463977abfab278f6c7225cfae26a72f800b07e9f 192.168.38.140:7003@17003 slave 4dd72c4c8e11723a53e7960c03a8c592b50a6e81 0 1616642003618 9 connected</span><br><span class="line">4dd72c4c8e11723a53e7960c03a8c592b50a6e81 192.168.38.140:7006@17006 master - 0 1616642003000 9 connected 0-1065 5461-6527 10923-11987</span><br><span class="line">7ca1df6f191129d02c0908216c4e4728fd585f35 192.168.38.140:7001@17001 master - 0 1616642004635 2 connected 6528-10922</span><br><span class="line">4cf2662f48b2f94316c9af3d91cd68237e53ee5e 192.168.38.140:7004@17004 slave 7ca1df6f191129d02c0908216c4e4728fd585f35 0 1616642002000 2 connected</span><br><span class="line">ff444f0436d1cf64a18e8cf843066cd30d8b7c12 192.168.38.140:7000@17000 myself,master - 0 1616642004000 10 connected 1066-5460 11988-16383</span><br><span class="line">78ae56d814b19a4210ea8814be6ca087fb702bbb 192.168.38.140:7007@17007 slave ff444f0436d1cf64a18e8cf843066cd30d8b7c12 0 1616642002000 10 connected</span><br></pre></td></tr></table></figure>
-
-<p>master7002的数据都给7000了。它的slave7005也成了master7000的slave。其实早在7002移除slot之后，7005就临阵倒戈了。此时进入7002的redis-cli查看info replication</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost config]# redis-cli -p 7002             </span><br><span class="line">127.0.0.1:7002&gt; info replication                       </span><br><span class="line"><span class="meta">#</span><span class="bash"> Replication</span>                                          </span><br><span class="line">role:master                                            </span><br><span class="line">connected_slaves:0                                     </span><br><span class="line">master_failover_state:no-failover                      </span><br><span class="line">master_replid:d5928ee393634e5cac85c840ecb9d68c798e11a6 </span><br><span class="line">master_replid2:0000000000000000000000000000000000000000</span><br><span class="line">master_repl_offset:35384                               </span><br><span class="line">second_repl_offset:-1                                  </span><br><span class="line">repl_backlog_active:1                                  </span><br><span class="line">repl_backlog_size:1048576                              </span><br><span class="line">repl_backlog_first_byte_offset:1                       </span><br><span class="line">repl_backlog_histlen:35384                             </span><br></pre></td></tr></table></figure>
-
-<p>看一下slave7005的日志，最新的消息</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">1:S 25 Mar 2021 03:07:30.922 * 1 changes in 3600 seconds. Saving...</span><br><span class="line">1:S 25 Mar 2021 03:07:30.923 * Background saving started by pid 19</span><br><span class="line">19:C 25 Mar 2021 03:07:30.926 * DB saved on disk</span><br><span class="line">19:C 25 Mar 2021 03:07:30.927 * RDB: 0 MB of memory used by copy-on-write</span><br><span class="line">1:S 25 Mar 2021 03:07:31.023 * Background saving terminated with success</span><br><span class="line">1:S 25 Mar 2021 03:07:40.906 # Configuration change detected. Reconfiguring myself as a replica of ff444f0436d1cf64a18e8cf843066cd30d8b7c12</span><br><span class="line">1:M 25 Mar 2021 03:07:40.907 # Connection with master lost.</span><br><span class="line">1:M 25 Mar 2021 03:07:40.907 * Caching the disconnected master state.</span><br><span class="line">1:S 25 Mar 2021 03:07:40.907 * Connecting to MASTER 192.168.38.140:7000</span><br><span class="line">1:S 25 Mar 2021 03:07:40.907 * MASTER &lt;-&gt; REPLICA sync started</span><br><span class="line">1:S 25 Mar 2021 03:07:40.908 * Non blocking connect for SYNC fired the event.</span><br><span class="line">1:S 25 Mar 2021 03:07:40.908 * Master replied to PING, replication can continue...</span><br><span class="line">1:S 25 Mar 2021 03:07:40.908 * Trying a partial resynchronization (request d5928ee393634e5cac85c840ecb9d68c798e11a6:35385).</span><br><span class="line">1:S 25 Mar 2021 03:07:40.909 * Full resync from master: ea91c3bc4ea55da0a10115af943607da1f1c44db:33077</span><br><span class="line">1:S 25 Mar 2021 03:07:40.909 * Discarding previously cached master state.</span><br><span class="line">1:S 25 Mar 2021 03:07:40.955 * MASTER &lt;-&gt; REPLICA sync: receiving 192 bytes from master to disk</span><br><span class="line">1:S 25 Mar 2021 03:07:40.955 * MASTER &lt;-&gt; REPLICA sync: Flushing old data</span><br><span class="line">1:S 25 Mar 2021 03:07:40.955 * MASTER &lt;-&gt; REPLICA sync: Loading DB in memory</span><br><span class="line">1:S 25 Mar 2021 03:07:40.956 * Loading RDB produced by version 6.2.1</span><br><span class="line">1:S 25 Mar 2021 03:07:40.956 * RDB age 0 seconds</span><br><span class="line">1:S 25 Mar 2021 03:07:40.956 * RDB memory usage when created 2.62 Mb</span><br><span class="line">1:S 25 Mar 2021 03:07:40.956 * MASTER &lt;-&gt; REPLICA sync: Finished with success</span><br><span class="line">1:S 25 Mar 2021 03:07:40.956 * Background append only file rewriting started by pid 20</span><br><span class="line">1:S 25 Mar 2021 03:07:40.982 * AOF rewrite child asks to stop sending diffs.</span><br><span class="line">20:C 25 Mar 2021 03:07:40.982 * Parent agreed to stop sending diffs. Finalizing AOF...</span><br><span class="line">20:C 25 Mar 2021 03:07:40.982 * Concatenating 0.00 MB of AOF diff received from parent.</span><br><span class="line">20:C 25 Mar 2021 03:07:40.982 * SYNC append only file rewrite performed</span><br><span class="line">20:C 25 Mar 2021 03:07:40.983 * AOF rewrite: 0 MB of memory used by copy-on-write</span><br><span class="line">1:S 25 Mar 2021 03:07:41.043 * Background AOF rewrite terminated with success</span><br><span class="line">1:S 25 Mar 2021 03:07:41.043 * Residual parent diff successfully flushed to the rewritten AOF (0.00 MB)</span><br><span class="line">1:S 25 Mar 2021 03:07:41.044 * Background AOF rewrite finished successfully</span><br></pre></td></tr></table></figure>
-
-<h3 id="节点迁移-副本漂移"><a href="#节点迁移-副本漂移" class="headerlink" title="节点迁移(副本漂移)"></a>节点迁移(副本漂移)</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">redis 127.0.0.1:7007&gt; cluster replicate 3c3a0c74aae0b56170ccb03a76b60cfe7dc1912e</span><br></pre></td></tr></table></figure>
-
-<p>将当前节点设置为其他master节点的从节点。</p>
-<p>在特定的场景下，不需要系统管理员的协助下，自动将一个从节点从当前的主节点切换到另一个主节 的自动重新配置的过程叫做复制迁移（从节点迁移），从节点的迁移能够提高整个Redis集群的可用性.。</p>
-<p>假如MasterA有三个从节点，MasterB有一个从节点，假如MasterB节点断开，只剩下MasterB1从节点，为保证不单点故障，则会从masterA的从节点中分离一个到MasterB中。使用了一个clusterCron的周期调度函数来定期检测。</p>
-<p>1）是否存在单点的主节点，即主节点没有任何一台可用的从节点；<br>2）是否存在有两台及以上可用从节点的主节点。<br>如果以上两个条件都满足，则从有最多可用从节点的主节点中选择一台从节点执行副本漂移。选择标准为按节点名称的字母序从小到大，选择最靠前的一台从节点执行漂移。漂移具体过程如下<br>1）从C的记录中将C1移除；<br>2）将C1所记录的主节点更改为A1；<br>3）在A1中添加C1为从节点；<br>4）将C1的数据同步源设置为A1。<br>可以看到，漂移过程只是更改一些节点所记录的信息，之后会通过心跳包将该信息同步到所有的集群节点。</p>
-<h2 id="使用自建桥接网络搭建集群"><a href="#使用自建桥接网络搭建集群" class="headerlink" title="使用自建桥接网络搭建集群"></a>使用自建桥接网络搭建集群</h2><p>首先使用桥接是可以的，默认使用的就是docker的名称为bridge的桥接网络，但是限制很多，而且宿主机还ping不同容器ip。假如使用默认的桥接,可能会出现以下错误。并且如果不指定ip创建，然后使用slaveof，看到master的状态是down，master里也看不到salve。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker: Error response from daemon: user specified IP address is supported on user defined networks only.</span><br></pre></td></tr></table></figure>
-
-<p>因此手动创建一个桥接网络。创建一个名称为redis的桥接网络，网卡段为192.168.10.0</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create --driver bridge redis --subnet 192.168.10.0/24</span><br></pre></td></tr></table></figure>
-
-<p>查看所有的网络网卡</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
-
-<p>查看网络信息</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network inspect redis</span><br></pre></td></tr></table></figure>
-
-<p>创建完成后会在ifconfig中看到一个新建的桥接虚拟网卡</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">br-3e66bee493f5: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500      </span><br><span class="line">        inet 192.168.10.1  netmask 255.255.255.0  broadcast 192.168.10.255 </span><br><span class="line">        inet6 fe80::42:99ff:febc:d3b5  prefixlen 64  scopeid 0x20&lt;link&gt;    </span><br><span class="line">        ether 02:42:99:bc:d3:b5  txqueuelen 0  (Ethernet)                  </span><br><span class="line">        RX packets 2138152  bytes 423610052 (403.9 MiB)                    </span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0                        </span><br><span class="line">        TX packets 1952205  bytes 543173540 (518.0 MiB)                    </span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0         </span><br></pre></td></tr></table></figure>
-
-<p>创建redis容器 增加 <code>--net redis --ip 192.168.10.10</code>，在宿主机上，可直接ping通这个ip,且其他192.168.10.10与192.168.10.11也能互相ping通</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name redis --restart always -p 6379:6379 --net redis --ip 192.168.10.10 -v &#x2F;home&#x2F;mini&#x2F;docker&#x2F;redis&#x2F;config:&#x2F;etc&#x2F;redis -v &#x2F;home&#x2F;mini&#x2F;docker&#x2F;redis&#x2F;data:&#x2F;data redis redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf --appendonly yes</span><br><span class="line"></span><br><span class="line">docker run -d --name redis2 --restart always -p 6380:6380 --net redis --ip 192.168.10.11 -v &#x2F;home&#x2F;mini&#x2F;docker&#x2F;redis2&#x2F;config:&#x2F;etc&#x2F;redis -v &#x2F;home&#x2F;mini&#x2F;docker&#x2F;redis2&#x2F;data:&#x2F;data redis redis-server &#x2F;etc&#x2F;redis&#x2F;redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
-
-<h2 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker ps -a|grep redis7|awk &#39;&#123;print $1&#125;&#39;</span><br></pre></td></tr></table></figure>
-
-<p>docker ps -a获取docker所有启动和停止的容器信息，grep可进行筛选字符串，awk用于打印第一列</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker rm $(docker ps -a|grep redis7|awk &#39;&#123;print $1&#125;&#39;)</span><br></pre></td></tr></table></figure>
-
-<p>此命令可以将过滤出来的数据一起删除</p>
 
       
       <!-- reward -->
@@ -843,7 +546,7 @@
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/4/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/6/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/4/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/3/">3</a><a class="page-number" href="/page/4/">4</a><span class="page-number current">5</span><a class="page-number" href="/page/6/">6</a><a class="page-number" href="/page/7/">7</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/6/">下一页</a>
   </nav>
   
 </section>

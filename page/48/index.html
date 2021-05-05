@@ -78,6 +78,283 @@
     
     
     
+    <article id="post-Vue/Vue2.0Ajax，JSONP跨域" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/"
+    >Vue2.0Ajax，JSONP跨域</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/" class="article-date">
+  <time datetime="2018-05-28T14:02:16.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="Ajax实现"><a href="#Ajax实现" class="headerlink" title="Ajax实现"></a>Ajax实现</h3><p>vue本身不支持发送AJAX请求，需要使用vue-resource、axios等插件实现。 axios是一个基于Promise的HTTP请求客户端，用来发送请求，也是vue2.0官方推荐的，同时不再对vue-resource进行更新和维护。 参考GitHub上的<a target="_blank" rel="noopener" href="https://github.com/axios/axios">axios</a>,dist目录下的文件就是axios.min.js。 语法:</p>
+<pre><code>axios([options])
+axios.get(url[,options])
+    传参方式:
+        1.通过url传参
+        2.通过params选项传参</code></pre><h4 id="案例-axios-options"><a href="#案例-axios-options" class="headerlink" title="案例:axios([options])"></a>案例:axios([options])</h4><pre><code>data:&#123;
+            id:1001
+        &#125;,
+    methods:&#123;
+            sendAjax()&#123;
+                axios(&#123;
+                    method:&apos;get&apos;,
+                    url:&apos;https://api.github.com/users/&apos; + vm.id
+                &#125;).then(function(resp)&#123; //表示请求成功，将执行的回调函数
+                    console.log(resp.data);
+                    vm.user=resp.data;
+                &#125;).catch(function()&#123;  //请求失败，将执行的回调函数
+                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+                &#125;);
+            &#125;
+        &#125;</code></pre><p>在这个代码中，github是一个开源网站，所以可以访问到用户的信息。 1.vm.id表示vm引用当前Vue实例的属性，在后面Vue实例中说明。 2.axios表示执行ajax请求，method选项表示请求方式，url表示请求路径。 3..then回调函数，表示请求成功将被执行,resp为请求成功返回的数据。 4.catch表示请求失败将被执行的回调函数。。</p>
+<h4 id="axiso-get-url-options"><a href="#axiso-get-url-options" class="headerlink" title="axiso.get(url[,options])"></a>axiso.get(url[,options])</h4><p>与其类似，但需要注意，第一个参数为url，后面才是选项。</p>
+<pre><code>sendAjaxGet()&#123;
+                axios.get(&apos;/user&apos;,&#123;
+                    params:&#123;
+                        id:1001
+                    &#125;
+                &#125;).then(function(resp)&#123;
+                    console.log(resp.data);
+                    vm.user=resp.data;
+                &#125;).catch(function()&#123;
+                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+                &#125;);
+            &#125;</code></pre><h4 id="axios-post-url-data-options"><a href="#axios-post-url-data-options" class="headerlink" title="axios.post(url,data,[options])"></a>axios.post(url,data,[options])</h4><p>post方式请求，第一个参数为请求路径，第二个参数直接就是需要传递的数据，格式为json格式，后面的为选项。</p>
+<pre><code>sendAjaxPost()&#123;
+    axios.post(&apos;server.php&apos;,&#123;
+        name:&apos;KaiEr&apos;,
+        age:19
+    &#125;).then(function(resp)&#123;
+        console.log(resp.data);
+    &#125;).catch(function()&#123;
+        console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+    &#125;);
+&#125;</code></pre><p>还有其他的Request Config请求配置 如:<strong>transformRequest</strong></p>
+<pre><code>transformRequest: [function (data, headers) &#123;
+    // Do whatever you want to transform the data
+    return data;
+  &#125;],</code></pre><p>按照文档的意思是说，在请求数据发到服务器之前对其进行更改，仅适用于’PUT’,’POST’和’PATCH’。 该值为数组， 数组中最后一个函数应返回一个字符串或Buffer，ArrayBuffer实例。其实返回字符串就可以。 该函数接收的data参数表示传递的数据，即post方式请求的第二个参数。<br>还有如 + timeout：表示请求超时的毫秒数 + heads：自定义头部文件 + responseType：响应类型 + responseEncoding：响应编码格式 等等，都可以在Github的axios项目的README.md文件中查看文档。 <a target="_blank" rel="noopener" href="https://github.com/axios/axios">GitHub的axios开源项目</a></p>
+<h3 id="JSONP跨域请求"><a href="#JSONP跨域请求" class="headerlink" title="JSONP跨域请求"></a>JSONP跨域请求</h3><p>axios本身并不支持发送跨域的请求，没有提供相应的API。 尽管vue-resource不再维护，但是还可以使用它来进行跨域请求。 您可以考虑使用Jquery.js来进行跨域请求和Ajax请求。然而还有其他使用ajax跨域的更好方法。我们只是说明Vue也可以支持此功能，但如果需要，你任然可以选择。 引入vue-resource.js文件,可以访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> <strong>文档语法</strong>:</p>
+<pre><code>this.$http.jsonp(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);
+this.$http.get(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);</code></pre><ul>
+<li>get(url, [config])</li>
+<li>head(url, [config])</li>
+<li>delete(url, [config])</li>
+<li>jsonp(url, [config])</li>
+<li>post(url, [body], [config])</li>
+<li>put(url, [body], [config])</li>
+<li>patch(url, [body], [config])</li>
+</ul>
+<p><strong>Example</strong>:</p>
+<pre><code>&#123;
+  // GET /someUrl
+  this.$http.get(&apos;/someUrl&apos;).then(response =&gt; &#123;
+    // get body data
+    this.someData = response.body;
+  &#125;, response =&gt; &#123;
+    // error callback
+  &#125;);
+&#125;</code></pre><p>案例: 通过跨域请求Baidu的搜索,打开百度，F12，输入a字符，搜索，Ajax请求，network中找到这样一条请求。 <a href="#">https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=a&amp;json=1&amp;p=3&amp;sid=1444_12897_21084_26182_22158&amp;req=2&amp;csor=1&amp;cb=jQuery110209410333632536945_1523889174484&amp;_=1523889174489</a> wd代表搜索的单词a,我们只需要前边的。 另外我们可以在heads中看到百度使用的jsonp参数名为cb，所以需要修改。</p>
+<pre><code>sendJsonp()&#123;
+    this.$http.jsonp(&apos;https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su&apos;,&#123;
+        params:&#123;
+            wd:&apos;a&apos;
+        &#125;,
+        jsonp:&apos;cb&apos; //百度使用的jsonp参数名为cb，所以需要修改
+        &#125;).then(resp =&gt; &#123;
+            console.log(resp.data.s);
+        &#125;);
+&#125;</code></pre><p>通过测试，发现可以得到结果</p>
+<pre><code>(10) [&quot;爱奇艺&quot;, &quot;阿里云&quot;, &quot;安居客&quot;, &quot;阿里巴巴&quot;, &quot;阿里巴巴批发网&quot;, &quot;爱奇艺网&quot;, &quot;阿里云邮箱&quot;, &quot;安卓模拟器&quot;, &quot;爱思助手&quot;, &quot;acfun&quot;]</code></pre><p>文档访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> 另外，我也不怎么建议使用这个跨域，况且也不是经常用到。 可以使用<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000011145364">Jquery，document.domain + iframe跨域以及nodejs中间件代理跨域</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0{{}}模板与自定义过滤器" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/"
+    >Vue2.0{{}}模板与自定义过滤器</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/" class="article-date">
+  <time datetime="2018-05-28T13:59:06.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="模板语法"><a href="#模板语法" class="headerlink" title="模板语法"></a>模板语法</h3><p>让我们回到最开始</p>
+<pre><code>    &lt;div id=&quot;app&quot;&gt;
+        &lt;h1&gt;&#123; &#123;message&#125;&#125;&lt;/h1&gt;
+    &lt;/div&gt;
+&lt;script&gt;
+    var vm = new Vue(&#123;
+        el:&apos;#app&apos;,
+        data:&#123;
+            message:&apos;HelloWorld&apos;
+        &#125;
+    &#125;)
+&lt;/script&gt;</code></pre><p>这是一个HelloWorld，简单的通过模板输出。我们称之为数据绑定，而最常见的就是“Mustache”语法 (双大括号) 。 <strong>v-once</strong>指令，前面介绍过，一次性绑定，数据改变时，绑定的值是不会改变的。</p>
+<pre><code>&lt;span v-once&gt;这个将不会改变&#123; &#123;message&#125;&lt;/span&gt;</code></pre><h4 id="原始HTML"><a href="#原始HTML" class="headerlink" title="原始HTML"></a>原始HTML</h4><p>使用{ {}}语法，输出时普通文本，而如果要输出带有HTML的，则要使用<strong>v-html</strong>指令</p>
+<pre><code>data:&#123;
+    message:&apos;HelloWorld&apos;,
+    htmlText:&apos;&lt;h2&gt;这是一个标题,h2的标题&lt;/h2&gt;&apos;
+&#125;
+
+&#123; &#123;htmlText&#125;&#125;&lt;br/&gt;
+&lt;span v-html=&quot;htmlText&quot;&gt;&lt;/span&gt;</code></pre><p>这个 span 的内容将会被替换成为属性值 htmlText</p>
+<h4 id="不编译模板"><a href="#不编译模板" class="headerlink" title="不编译模板"></a>不编译模板</h4><p><strong>v-pre</strong>指令，可以跳过该元素和它子元素的编译过程，来显示原始的Mustache标签</p>
+<pre><code>&lt;span v-pre&gt;&#123; &#123;message&#125;&#125;&lt;/span&gt;</code></pre><p>输出的结果是{ {message}}，不对其进行编译。</p>
+<h4 id="延缓显示"><a href="#延缓显示" class="headerlink" title="延缓显示"></a>延缓显示</h4><p><strong>v-cloak</strong>指令保持在元素上直到关联实例结束编译。 CSS 规则如 [v-cloak] { display: none } 一起用时，这个指令可以隐藏未编译的 Mustache 标签直到实例准备完毕。</p>
+<pre><code> &lt;div v-cloak&gt;
+    &#123; &#123;message&#125;&#125;
+&lt;/div&gt;
+
+
+    [v-cloak]&#123;
+        display:none;
+    &#125;</code></pre><p>当DOM运行到此处时，该模板还未编译，所以将其隐藏，等实例准备完毕后，显示。</p>
+<h3 id="自定义过滤器"><a href="#自定义过滤器" class="headerlink" title="自定义过滤器"></a>自定义过滤器</h3><p>在Vue2.0中已经除去了1.0的过滤器，但是可以自定义。分为局部的和全局的。 过滤器可以用在两个地方，双花括号插值和v-bind表达式。 语法为:</p>
+<pre><code>&lt;!-- 在双花括号中 --&gt;
+&#123; &#123; message | capitalize &#125;&#125;
+&lt;!-- 在 `v-bind` 中 --&gt;
+&lt;div v-bind:id=&quot;rawId | formatId&quot;&gt;&lt;/div&gt;</code></pre><p>“|”符号 左侧为需要过滤的数据，右侧为过滤器名称。 <strong>另外注意,使用过滤器后，需要返回值，才能正常显示。</strong></p>
+<h4 id="局部过滤器定义"><a href="#局部过滤器定义" class="headerlink" title="局部过滤器定义"></a>局部过滤器定义</h4><p>局部过滤器定义在实例中的filters选项中。 示例:过滤数字，四舍五入。</p>
+<pre><code>filters:&#123;    //局部过滤器，仅当前Vue实例可用
+    number:(data,n) =&gt; &#123;
+        return data.toFixed(n);  //四舍五入,参数为保留的位数
+    &#125;
+&#125;
+
+&#123; &#123;12.356 | number(2)&#125;&#125;</code></pre><p>过滤器方法声明，第一个参数始终未为传递来的数据，后面的参数一次为方法传递的参数。</p>
+<h4 id="全局过滤器"><a href="#全局过滤器" class="headerlink" title="全局过滤器"></a>全局过滤器</h4><p>语法：Vue.filter( id, [definition] )</p>
+<pre><code>// 注册
+Vue.filter(&apos;my-filter&apos;, function (value) &#123;
+  // 返回处理后的值
+&#125;)
+
+// getter，返回已注册的过滤器
+var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
+<pre><code>Vue.filter(&apos;formatDate&apos;,function(val)&#123;
+        var d = new Date(val);
+        return d.getFullYear() + &apos;-&apos; + (d.getMonth()+1) + &apos;-&apos; + d.getDate() + &apos; &apos; + d.getHours() + &apos;:&apos; + d.getMinutes();
+    &#125;);
+
+&lt;h3&gt;时间:&lt;span&gt;&#123; &#123;currentDate | formatDate&#125;&#125;&lt;/span&gt;&lt;/h3&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0属性绑定和Class与Style绑定" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -461,101 +738,13 @@ methods:&#123;
 
 </article>
     
-    <article id="post-Vue/Vue2.0起步" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E8%B5%B7%E6%AD%A5/"
-    >Vue2.0起步</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%E8%B5%B7%E6%AD%A5/" class="article-date">
-  <time datetime="2018-05-28T13:16:16.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="起步"><a href="#起步" class="headerlink" title="起步"></a>起步</h3><p>同其他jquery一样，Vue也是需要引用的通过\<script>标签引入js文件</p>
-<pre><code>&lt;script src=&quot;js/vue.js&quot;&gt;&lt;/script&gt;</code></pre><p>你可以去github下载，也可以直接引用Vue的js</p>
-<pre><code>https://github.com/vuejs/vue/releases
-或
-&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vue&quot;&gt;&lt;/script&gt;</code></pre><h3 id="声明式渲染"><a href="#声明式渲染" class="headerlink" title="声明式渲染"></a>声明式渲染</h3><p>一个简单的HelloWorld 1.创建html，引入vue.js，只需要在script中编写如下代码</p>
-<pre><code>var vm = new Vue(&#123;
-    el:&apos;#app&apos;,
-    data:&#123;
-        message:&apos;HelloWorld&apos;
-    &#125;
-&#125;)</code></pre><p>2.然后在body中添加div标签，并添加id为app,如下代码:</p>
-<pre><code>&lt;div id=&apos;app&apos;&gt;
-    &#123; &#123;message&#125;&#125;
-&lt;div&gt;</code></pre><p>3.注意DOM编译顺序，按需添加windows.onload方法。 Vue 在背后做了大量工作。现在数据和 DOM 已经被建立了关联，所有东西都是响应式的</p>
-<blockquote>
-<p>new Vue({})即表示一个实例对象，el选项为Vue实例挂载的目标，实例挂载后，元素可用vm.$el访问。具体更多选项在后篇文章。</p>
-</blockquote>
-<p>接下来，我将一篇篇的写下自己的笔记。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/47/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/46/">46</a><a class="page-number" href="/page/47/">47</a><span class="page-number current">48</span>
+    <a class="extend prev" rel="prev" href="/page/47/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/46/">46</a><a class="page-number" href="/page/47/">47</a><span class="page-number current">48</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/49/">下一页</a>
   </nav>
   
 </section>

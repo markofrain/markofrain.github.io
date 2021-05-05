@@ -78,6 +78,322 @@
     
     
     
+    <article id="post-NodeJS/NodeJS——文件操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/04/28/NodeJS/NodeJS%E2%80%94%E2%80%94%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/"
+    >NodeJS——文件操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/04/28/NodeJS/NodeJS%E2%80%94%E2%80%94%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2019-04-28T01:59:43.000Z" itemprop="datePublished">2019-04-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Node-JS/">Node JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="1-文件监听"><a href="#1-文件监听" class="headerlink" title="1. 文件监听"></a>1. 文件监听</h3><pre><code>//严格模式
+&apos;use strict&apos;;
+//引入fs模块
+const fs = require(&apos;fs&apos;);
+//使用模块watch函数，并使用箭头函数作为回调函数
+fs.watch(&apos;target.txt&apos;,()=&gt;console.log(&apos;File changed!&apos;));
+console.log(&apos;Now watching target.txt for changes...&apos;);</code></pre><h3 id="2-接受一个文件作为监听文件"><a href="#2-接受一个文件作为监听文件" class="headerlink" title="2. 接受一个文件作为监听文件"></a>2. 接受一个文件作为监听文件</h3><pre><code>const fs = require(&apos;fs&apos;);
+//process全局对象，argv表示参数，第一第二分别为node和当前文件的路径，第三个参数则是传递的第一个参数
+const filename = process.argv[2];
+if(!filename)&#123;
+    throw Error(&apos;A file to watch must be specified!&apos;);
+&#125;
+//输出，反引号(`)表示模板字符串，可以使用$&#123;&#125;，将变量放进去，也可使用表达式
+fs.watch(filename,()=&amp;gt;console.log(`File $&#123;filename&#125; changed!`));
+console.log(`Now watching $&#123;filename&#125; for changes...`);
+
+$ node watcher-argv.js target.txt</code></pre><h3 id="3-使用子进程打印ls"><a href="#3-使用子进程打印ls" class="headerlink" title="3. 使用子进程打印ls"></a>3. 使用子进程打印ls</h3><pre><code>const fs = require(&apos;fs&apos;);
+//拿到子模块的spawn函数
+const spawn = require(&apos;child_process&apos;).spawn;
+const filename = process.argv[2];
+if (!filename) &#123;
+    throw Error(&apos;A file to watch must be specified!&apos;);
+&#125;
+fs.watch(filename, () =&amp;gt; &#123;
+    //使用该函数，第一个参数为命令，第二个参数为命令参数，其中最后一个为文件名
+    const ls = spawn(&apos;ls&apos;, [&apos;-l&apos;, &apos;-h&apos;, filename]);
+    //stdout为Stream，作为输入输出，使用pipe方法把子进程的输出内容传送到标准输出流
+    ls.stdout.pipe(process.stdout);
+&#125;);
+console.log(`Now watching $&#123;filename&#125; for changes...`);</code></pre><h3 id="4-通过EventEmitter获得数据，即通过触发事件或响应事件的方式"><a href="#4-通过EventEmitter获得数据，即通过触发事件或响应事件的方式" class="headerlink" title="4. 通过EventEmitter获得数据，即通过触发事件或响应事件的方式"></a>4. 通过EventEmitter获得数据，即通过触发事件或响应事件的方式</h3><pre><code>//监听文件
+fs.watch(filename, () =&amp;gt; &#123;
+    //spawn函数设置命令
+    const ls = spawn(&apos;ls&apos;, [&apos;-l&apos;, &apos;-h&apos;, filename]);
+    let output = &apos;&apos;;
+    //执行绑定data事件，将结果存储output
+    ls.stdout.on(&apos;data&apos;, chuck =&amp;gt; output += chuck);
+    //监听ls的close事件
+    ls.on(&apos;close&apos;, () =&amp;gt; &#123;
+        const parts = output.split(/\s+/);
+        console.log([parts[0], parts[4], parts[8]]);
+    &#125;);
+&#125;);</code></pre><h3 id="5-异步读写文件"><a href="#5-异步读写文件" class="headerlink" title="5. 异步读写文件"></a>5. 异步读写文件</h3><pre><code>&apos;use strict&apos;;
+const fs = require(&apos;fs&apos;);
+fs.readFile(&apos;target.txt&apos;, (err, data) =&amp;gt; &#123;
+    if (err) &#123;
+        throw err;
+    &#125;
+    console.log(data.toString());
+&#125;);
+
+&apos;use strict&apos;;
+const fs = require(&apos;fs&apos;);
+fs.writeFile(&apos;target.txt&apos;, &apos;HelloWorld&apos;, (err) =&amp;gt; &#123;
+    if (err) &#123;
+        throw err;
+    &#125;
+    console.log(&apos;File saved!&apos;);
+&#125;)</code></pre><h3 id="6-创建读-写流"><a href="#6-创建读-写流" class="headerlink" title="6. 创建读/写流"></a>6. 创建读/写流</h3><pre><code>&apos;use strict&apos;;
+require(&apos;fs&apos;).createReadStream(process.argv[2])
+    .on(&apos;data&apos;, chunk =&amp;gt; process.stdout.write(chunk))
+    .on(&apos;error&apos;, err =&amp;gt; process.stderr.write(`ERROR:$&#123;err.message&#125;\n`));</code></pre><h3 id="7-可执行的js文件，将数据流传输到标准输出"><a href="#7-可执行的js文件，将数据流传输到标准输出" class="headerlink" title="7.可执行的js文件，将数据流传输到标准输出"></a>7.可执行的js文件，将数据流传输到标准输出</h3><pre><code>#!/usr/bin/env node
+&apos;use strict&apos;;
+require(&apos;fs&apos;).createReadStream(process.argv[2]).pipe(process.stdout);
+
+$ chmod +x cat.js
+$ ./cat.js target.txt</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/SpringBoot Mybatis多数据源配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/"
+    >SpringBoot Mybatis多数据源配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2019-04-09T17:02:27.000Z" itemprop="datePublished">2019-04-10</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="SpringBoot-Mybatis多数据源配置"><a href="#SpringBoot-Mybatis多数据源配置" class="headerlink" title="SpringBoot Mybatis多数据源配置"></a>SpringBoot Mybatis多数据源配置</h2><ol>
+<li><p>依赖:</p>
+<dependency>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>2.0.1</version>
+</dependency>
+</li>
+<li><p>再yml配置两个数据库的连接字符串</p>
+<p>spring:</p>
+<pre><code>datasource:
+    primary:  # first database
+      driver-class-name: oracle.jdbc.driver.OracleDriver
+      jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:btbdc
+      username: sjbdc
+      password: sjbdc
+    secondary:
+      driver-class-name: com.mysql.jdbc.Driver
+      jdbcUrl: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;characterEncoding=utf-8
+      username: root
+      password: root</code></pre></li>
+<li><p>配置主从数据源，分两个配置类，主要就是配置DataSource，SqlSessionFactory和SqlSessionTemplate</p>
+<p>package com.fsats.dbanalysis.config;</p>
+<p>import org.apache.ibatis.session.SqlSessionFactory;<br>import org.mybatis.spring.SqlSessionFactoryBean;<br>import org.mybatis.spring.SqlSessionTemplate;<br>import org.mybatis.spring.annotation.MapperScan;<br>import org.springframework.beans.factory.annotation.Autowired;<br>import org.springframework.beans.factory.annotation.Qualifier;<br>import org.springframework.boot.context.properties.ConfigurationProperties;<br>import org.springframework.boot.jdbc.DataSourceBuilder;<br>import org.springframework.context.annotation.Bean;<br>import org.springframework.context.annotation.Configuration;<br>import org.springframework.context.annotation.Primary;<br>import org.springframework.core.env.Environment;<br>import org.springframework.core.io.support.PathMatchingResourcePatternResolver;</p>
+<p>import javax.sql.DataSource;</p>
+<p>@Configuration<br>@MapperScan(basePackages = “com.fsats.**.oracle”,sqlSessionFactoryRef = “sqlSessionFactory”,sqlSessionTemplateRef = “sqlSessionTemplate”)<br>public class PrimaryConfig {</p>
+<pre><code>@Autowired
+private Environment env;
+
+@Primary
+@Qualifier(&quot;primaryDataSource&quot;)
+@Bean(name = &quot;primaryDataSource&quot;)
+@ConfigurationProperties(prefix = &quot;spring.datasource.primary&quot;)
+public DataSource primaryDataSource()&#123;
+    return DataSourceBuilder.create().build();
+&#125;</code></pre></li>
+</ol>
+<pre><code>    @Primary
+    @Bean(name = &quot;sqlSessionFactory&quot;)
+    public SqlSessionFactory sqlSessionFactory(@Qualifier(&quot;primaryDataSource&quot;) DataSource datasource)
+            throws Exception &#123;
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setDataSource(datasource);
+        bean.setMapperLocations(
+                // 设置mybatis的xml所在位置
+                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
+        return bean.getObject();
+    &#125;
+
+    // 表示这个数据源是默认数据源
+    @Bean(&quot;sqlSessionTemplate&quot;)
+    @Primary
+    public SqlSessionTemplate sqlSessionTemplate(
+            @Qualifier(&quot;sqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
+        return new SqlSessionTemplate(sessionfactory);
+    &#125;
+
+&#125;
+
+
+
+package com.fsats.dbanalysis.config;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import javax.sql.DataSource;
+
+
+@Configuration
+@MapperScan(basePackages = &quot;com.fsats.**.mysql&quot;,sqlSessionFactoryRef = &quot;mySqlSqlSessionFactory&quot;,sqlSessionTemplateRef = &quot;mySqlSqlSessionTemplate&quot;)
+public class SecondaryConfig &#123;
+
+    @Bean(name = &quot;secondaryDataSource&quot;)
+    @Qualifier(&quot;secondaryDataSource&quot;)
+    @ConfigurationProperties(prefix = &quot;spring.datasource.secondary&quot;)
+    public DataSource secondaryDataSource() &#123;
+
+        return DataSourceBuilder.create().build();
+    &#125;
+
+    @Bean(name = &quot;mySqlSqlSessionFactory&quot;)
+    public SqlSessionFactory mySqlSqlSessionFactory(@Qualifier(&quot;secondaryDataSource&quot;) DataSource datasource)
+            throws Exception &#123;
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setDataSource(datasource);
+        bean.setMapperLocations(
+                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
+        return bean.getObject();
+    &#125;
+    @Bean(&quot;mySqlSqlSessionTemplate&quot;)
+    public SqlSessionTemplate mySqlSqlSessionTemplate(
+            @Qualifier(&quot;mySqlSqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
+        return new SqlSessionTemplate(sessionfactory);
+    &#125;
+&#125;</code></pre><ol start="4">
+<li>在代码中，先看方法，两个类里，除了方法Bean的名字不一样，之外，在PrimaryConfig里每个方法多了@Primary注解，标识多数据源时默认使用的Bean。</li>
+</ol>
+<p>然后ConfigurationProperties注解的值就是application.yml配置的。 SqlSessionFactory方法里，配置MapperLocations，注意，目录要提前创建。 然后是类上的注解MapperScan，填写，当前数据源所扫描的对应的Dao包位置，以及sqlSessionFactory和sqlsessionTemplate。</p>
+<ol start="5">
+<li><p>配置显示打印sql语句</p>
+<p>logging:<br>  level:</p>
+<pre><code>com.fsats: DEBUG</code></pre></li>
+</ol>
+<p>com.fsats标识包名</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle数据库字符集更改" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -561,252 +877,13 @@ org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting fo
 
 </article>
     
-    <article id="post-SpringBoot/使用JDK1.6构建SpringBoot发布jar和war" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/"
-    >使用JDK1.6构建SpringBoot发布jar和war</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/" class="article-date">
-  <time datetime="2019-02-28T16:05:10.000Z" itemprop="datePublished">2019-03-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="使用jdk1-6和springboot部署程序"><a href="#使用jdk1-6和springboot部署程序" class="headerlink" title="使用jdk1.6和springboot部署程序"></a>使用jdk1.6和springboot部署程序</h3><h4 id="jar包部署程序及没有主清单属性的问题"><a href="#jar包部署程序及没有主清单属性的问题" class="headerlink" title="jar包部署程序及没有主清单属性的问题"></a>jar包部署程序及没有主清单属性的问题</h4><ol>
-<li><p>在使用JDK1.6时，网上普遍的搭配是，JDK1.6+tomcat7.0.59+springboot1.3.5。我用的也是这个。关于springboot和JDK的版本匹配，可以到网上查看一下，搜一下是有的。一般SpringBoot建议是JDK8及以上版本，对应的应该是1.5以上的2.x以上的SpringBoot版本。</p>
-</li>
-<li><p>在·pom.xml文件中，properties标签内指定tomcat-version版本为7.0.59,java版本为1.6</p>
-<pre><code>&lt;properties&gt;
-   &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
-   &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
-   &lt;maven.compiler.source&gt;1.6&lt;/maven.compiler.source&gt;
-   &lt;maven.compiler.target&gt;1.6&lt;/maven.compiler.target&gt;
-   &lt;tomcat.version&gt;7.0.59&lt;/tomcat.version&gt;
-   &lt;java.version&gt;1.6&lt;/java.version&gt;
-   &lt;axis.version&gt;1.7.9&lt;/axis.version&gt;
-   &lt;commons-lang3.version&gt;3.2.1&lt;/commons-lang3.version&gt;
-   &lt;lombok.version&gt;1.16.18&lt;/lombok.version&gt;
-&lt;/properties&gt;</code></pre></li>
-</ol>
-<pre><code>在以上jar包版本中，所有的依赖尽量都不是最新的。因为服务器上报jdk师1.6低版本的，而如果依赖的jar包是1.8编译打包的，很可能在使用的时候出现版本不兼容问题，因为1.6和1.8的编译方式可能有些差异，所以将1.8编译的版本放在1.6上运行，在使用某些类时就会报把本不兼容错误，报错信息中的49,，50，51分别为1.6，1.7，1.8版本，所以若出现版本情况，就降低版本依赖。</code></pre><ol start="3">
-<li><p>随后是IDE的编译版本设置，以IDEA为例，需要设置Project Structure的project的选项中选择java sdk为1.6，language level为6，在settings中搜索java compiler，设置当前项目Traget bytecode version为1.6。</p>
-</li>
-<li><p>另外关于打包jar后，使用java -jar命令运行显示没有主清单属性。这种情况，都说是加spring-boot-maven-plugin，没错，就是加他，但是一定要加正确。</p>
-<pre><code>&lt;build&gt;
-   &lt;plugins&gt;
-       &lt;plugin&gt;
-           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-           &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
-       &lt;/plugin&gt;
-   &lt;/plugins&gt;
-   &lt;defaultGoal&gt;compile&lt;/defaultGoal&gt;
-&lt;/build&gt;</code></pre></li>
-</ol>
-<pre><code>这种情况下才是正确的。但有时创建项目的时候，或其他时候会在plugins外面包裹一个pluginManagement标签，这时，可要注意了。当外面有pluginManagement标签时，插件时无法加载进来的，这个可以在右侧的Maven管理器的Plugins中看到，名称为spring-boot的插件，如果没有，则说明，插件没有下载并引用依赖。 另外出现没有主清单属性的问题，不要修改MANIFEST.MF文件，正常编译通过的情况，里面有很多配置，时没办法写全的，况且也可能不准确。</code></pre><h4 id="发布war包程序"><a href="#发布war包程序" class="headerlink" title="发布war包程序"></a>发布war包程序</h4><ol>
-<li><p>修改pom.xml文件的打包方式为war</p>
-<pre><code>&lt;groupId&gt;com.xxha&lt;/groupId&gt;
-&lt;artifactId&gt;logservice&lt;/artifactId&gt;
-&lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
-&lt;packaging&gt;war&lt;/packaging&gt;</code></pre></li>
-<li><p>去除spring-boot-starter-web依赖包的tomcat依赖</p>
-<pre><code>&lt;dependency&gt;
-   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-   &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-   &lt;!-- 移除嵌入式tomcat插件 --&gt;
-   &lt;exclusions&gt;
-       &lt;exclusion&gt;
-           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-           &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
-       &lt;/exclusion&gt;
-   &lt;/exclusions&gt;
-&lt;/dependency&gt;
-&lt;!-- 若要使用servlet api则引入 --&gt;
-&lt;dependency&gt;
-   &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
-   &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
-   &lt;version&gt;3.1.0&lt;/version&gt;
-   &lt;scope&gt;provided&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre></li>
-</ol>
-<pre><code>如果，项目中需要用到tomcat中关于servlet或http相关的类，需要手动依赖servlet-api包</code></pre><ol start="3">
-<li><p>修改启动类，使用控制启动类变为Web启动类，继承SpringBootServletInitializer类，并重写configure方法</p>
-<pre><code>/**
-* 修改启动类，继承 SpringBootServletInitializer 并重写 configure 方法
-*/
-public class SpringBootStartApplication extends SpringBootServletInitializer &#123;
-
-   @Override
-   protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) &#123;
-       // 注意这里要指向原先用main方法执行的Application启动类
-       return builder.sources(Application.class);
-   &#125;
-&#125;</code></pre></li>
-<li><p>随后使用Maven命令，clean package，打成war包，直接放到tomcat webapps下就好。若要修改内容，需要先停止tomcat，然后修改对应文件，然后需要移除webapps里的war，否则重新启动tomcat会重新解压覆盖。</p>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringBoot异步任务定时任务邮件任务" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/"
-    >SpringBoot异步任务定时任务邮件任务</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/" class="article-date">
-  <time datetime="2019-01-20T16:48:41.000Z" itemprop="datePublished">2019-01-21</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="异步任务"><a href="#异步任务" class="headerlink" title="异步任务"></a>异步任务</h3><p>SpringBoot简单集成的异步，可<strong>使用@EnableAsync和@Async注解</strong>来开启和标注异步任务,<strong>将@EnableAysnc标注在启动类上</strong>，@Async标注在要执行的方法上，则该方法在被调用是不阻塞线程，以异步方式执行。 关于再2.0中，仅仅这个俩个注解是不行的,需要额外注入bean</p>
-<pre><code>@Bean(name = &quot;threadPoolTaskExecutor&quot;)
-public Executor threadPoolTaskExecutor() &#123;
-    return new ThreadPoolTaskExecutor();
-&#125;</code></pre><h3 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h3><p>SpringBoot也简单的继承了定时任务，可以在方法上<strong>标注@Scheduled注解</strong>，指定cron表达式，这个表达式和quartz任务调度的cron都是一样的，quartz是完整的，可继承SpringBoot并持久化到数据库，并可使用是API进行相关增改，暂停等。 而SpringBoot内置的比较简单，使用@Scheduled，并且需要在启动类上<strong>标注@EnableScheduling注解</strong>。则只要将该类注入到容器，即可默认根据cron表达式进行执行。关于quartz的可以看官网或quartz标签归档及Spring的整合quartz。</p>
-<h3 id="邮件任务"><a href="#邮件任务" class="headerlink" title="邮件任务"></a>邮件任务</h3><p>SpringBoot开发了与邮件相关的依赖。引入依赖包，再进行配置即可进行使用。之前Spring使用javax的mail的话，需要依赖mail的jar包，然后依据邮件服务商的配置等进行开发。 这里SpringBoot依赖的mail可自动配置。自动引入了javax的mail并自动配置。虽然需要邮箱服务器账号的授权码，但仍然省去了很多的麻烦。</p>
-<ol>
-<li><p>添加依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-mail</artifactId>
-</dependency>
-</li>
-<li><p>yml配置</p>
-<p>spring:<br>  mail:</p>
-<pre><code>host: stmp.163.com
-username: cgq_rain@163.com
-##此为客户端授权码
-password: xxxxxxx
-properties:
-  mail.smtp.enable: true</code></pre></li>
-<li><p>注入JavaMailSenderimpl，用户发送,并编写简单邮件和带附件的邮件</p>
-</li>
-</ol>
-<p>此为带附件的消息，不带附件的可以使用SimpleMailMessage</p>
-<pre><code>@Autowired
-private JavaMailSenderImpl javaMailSender;</code></pre><p>​<br>​    MimeMessage mailMessage = javaMailSender.createMimeMessage();<br>​    try {<br>​        MimeMessageHelper messageHelper = new MimeMessageHelper(mailMessage,true);<br>​        messageHelper.setFrom(mail.getSender());<br>​        messageHelper.setTo(mail.getAccepter());<br>​        messageHelper.setSubject(mail.getSubject());<br>​        messageHelper.setText(mail.getText(),true);<br>​        for (Object key:hashMap.keySet()) {<br>​            String o = hashMap.get(key).toString();<br>​            byte[] bytes = new BASE64Decoder().decodeBuffer(o);<br>​            messageHelper.addAttachment(key.toString(),new ByteArrayResource(bytes));<br>​        }<br>​        javaMailSender.send(mailMessage);<br>​        log.info(“发送成功”);<br>​    } catch (MessagingException e) {<br>​        e.printStackTrace();<br>​    } catch (IOException e) {<br>​        e.printStackTrace();<br>​    }</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/26/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="page-number" href="/page/26/">26</a><span class="page-number current">27</span><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/28/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/26/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="page-number" href="/page/26/">26</a><span class="page-number current">27</span><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/28/">下一页</a>
   </nav>
   
 </section>

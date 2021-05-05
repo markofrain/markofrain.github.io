@@ -78,6 +78,260 @@
     
     
     
+    <article id="post-Spring/Spring批量文件下载，ZIP包" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/"
+    >Spring批量文件下载，ZIP包</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/" class="article-date">
+  <time datetime="2019-09-18T01:33:36.000Z" itemprop="datePublished">2019-09-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>核心方法，递归写文件到Zip流中</p>
+<pre><code>private static void compress(File sourceFile, ZipOutputStream zos, String name,
+                                 boolean KeepDirStructure) throws Exception &#123;
+        byte[] buf = new byte[1024];
+        if (sourceFile.isFile()) &#123;
+            if (!sourceFile.getName().contains(&quot;.zip&quot;)) &#123;
+                // 向zip输出流中添加一个zip实体，构造器中name为zip实体的文件的名字
+                zos.putNextEntry(new ZipEntry(name));
+                // copy文件到zip输出流中
+                int len;
+                FileInputStream in = new FileInputStream(sourceFile);
+                while ((len = in.read(buf)) != -1) &#123;
+                    zos.write(buf, 0, len);
+                &#125;
+                // Complete the entry
+                zos.closeEntry();
+                in.close();
+            &#125;
+        &#125; else &#123;
+            File[] listFiles = sourceFile.listFiles();
+            if (listFiles == null || listFiles.length == 0) &#123;
+
+                // 需要保留原来的文件结构时,需要对空文件夹进行处理
+                if (KeepDirStructure) &#123;
+                    // 空文件夹的处理
+                    zos.putNextEntry(new ZipEntry(name + &quot;/&quot;));
+                    // 没有文件，不需要文件的copy
+                    zos.closeEntry();
+                &#125;
+            &#125; else &#123;
+                for (File file : listFiles) &#123;
+                    // 判断是否需要保留原来的文件结构
+                    if (KeepDirStructure) &#123;
+                        // 注意：file.getName()前面需要带上父文件夹的名字加一斜杠,
+                        // 不然最后压缩包中就不能保留原来的文件结构,即：所有文件都跑到压缩包根目录下了
+                        compress(file, zos, name + &quot;/&quot; + file.getName(), KeepDirStructure);
+                    &#125; else &#123;
+                        compress(file, zos, file.getName(), KeepDirStructure);
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;</code></pre><p>文件下载</p>
+<pre><code>//压缩文件zip到服务器
+ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipPath));
+compress(ywhFiles,out, ywhFiles.getName(),true);
+
+out.close();
+//下载文件
+try &#123;
+    // 以流的形式下载文件。
+    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(zipFile.getPath()));
+    byte[] buffer = new byte[fis.available()];
+    fis.read(buffer);
+    fis.close();
+    // 清空response
+    response.reset();
+    OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
+    response.setContentType(&quot;application/octet-stream&quot;);
+    response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment;filename=&quot; + new String(zipFile.getName().getBytes(&quot;UTF-8&quot;),&quot;ISO-8859-1&quot;));
+    toClient.write(buffer);
+    toClient.flush();
+    toClient.close();
+    zipFile.delete();        //是否将生成的服务器端文件删除
+&#125;
+catch (IOException ex) &#123;
+    ex.printStackTrace();
+&#125;</code></pre><p>此处使用response将流写出。如果使用springmvc的ResponseEntity返回，可能出现下载后zip包打不开的情况。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/Springboot2.x打jar包本地部署https访问" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/"
+    >Springboot2.x打jar包本地部署https访问</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2019-09-15T08:03:27.000Z" itemprop="datePublished">2019-09-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>首先我的环境是springboot2.x的，可能配置不一样，这个可以去网上找一下。这个是我真实搭建使用的。</p>
+<p>首先具备条件：有一个域名是必须的。</p>
+<p>去域名的注册商，比如阿里或腾讯，去控制台找SSL证书配置，此处以阿里云为例，注册SSL</p>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/09/image.png?x-oss-process=image/resize,m_fill,h_392,w_1024" alt=""></p>
+<p>点击购买证书，选择最后一项，选择DV免费证书，提交订单。订单完成后，操作刚才的证书，填写绑定域名，免费证书只能绑定一个域名，所以填写你需要访问的一级或二级域名。填写信息等。然后会让你将txt记录解析到域名，点击验证按钮自动配置域名解析。然后等待审核给你发送邮箱消息。</p>
+<p>审核完成后，SSL已经成功了。点击下载，下载tomcat版本的就可以。解压会有一个pfx文件，和txt密码文件。将pfx拷贝到项目resources下。</p>
+<p>配置application.yml</p>
+<pre><code>server:
+  port: 443
+  ssl:
+    key-store: classpath:2812584_xxx.xxx.cn.pfx
+    key-store-password: 
+    key-store-type: PKCS12
+    enabled: true</code></pre><p>填写你的pfx路径，填写密码，密码就是txt文件里面的。</p>
+<p>然后创建配置类:</p>
+<pre><code>@Configuration
+public class HttpsConfig &#123;
+
+    @Bean
+    public TomcatServletWebServerFactory servletContainer() &#123;
+        TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() &#123;
+            @Override
+            protected void postProcessContext(Context context) &#123;
+                SecurityConstraint securityConstraint = new SecurityConstraint();
+                securityConstraint.setUserConstraint(&quot;CONFIDENTIAL&quot;);
+                SecurityCollection collection = new SecurityCollection();
+                collection.addPattern(&quot;/*&quot;);
+                securityConstraint.addCollection(collection);
+                context.addConstraint(securityConstraint);
+            &#125;
+        &#125;;
+        tomcat.addAdditionalTomcatConnectors(getHttpConnector());
+        return tomcat;
+    &#125;
+
+    private Connector getHttpConnector() &#123;
+        Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
+        connector.setScheme(&quot;http&quot;);
+        connector.setPort(8080);
+        connector.setSecure(false);
+        connector.setRedirectPort(443);
+        return connector;
+    &#125;
+
+&#125;</code></pre><p>以上就完成了。如果你在本地，直接使用localhost访问，不加http前缀的话是直接https访问8080不管用，默认https访问80端口然后转发到443端口中。</p>
+<p>首先我说一下上面的问题：首先我是内网映射，映射本地8080，所以如果本地localhost访问8080的话是有问题的，必须是80，因为你输入地址后直接是以https形式访问了。那么使用域名的话，内网穿透8080，访问443使用https。</p>
+<p>但是如果使用的直接是云产品，将服务部署在云服务器上，则域名绑定服务器后，域名可直接使用服务的端口访问，然后转发到443端口上,如果服务端口是80，那么么直接可访问。</p>
+<p>我的系统使用了内网映射natapp。只要在配置中开启https即可。花生壳等也是如此。云服务器使用的话，在阿里云文档有说明，也可以使用这种方式直接配置。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-开源/JFinal搭建后jar的部署" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -439,244 +693,13 @@ public class DemoController extends Controller &#123;
 
 </article>
     
-    <article id="post-Javascript/jExcel web交互式电子表格" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/"
-    >jExcel web交互式电子表格</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/" class="article-date">
-  <time datetime="2019-08-05T08:28:12.000Z" itemprop="datePublished">2019-08-05</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p><a target="_blank" rel="noopener" href="https://bossanova.uk/jexcel/v3/"><strong>jExcel</strong></a>是一个轻量级的vanilla javascript插件，用于创建与Excel或任何其他电子表格软件兼容的基于Web的交互式表格和电子表格。可以从JS数组，JSON，CSV或XSLX文件创建在线电子表格表 。 可以从excel复制并直接粘贴到jExcel电子表格，反之亦然 。 可以创建自己的自定义列，自定义编辑器，并在应用程序中自定义任何功能 。</p>
-<p>以上官方介绍的话。并且也真的可以实现。而且仅需要进入两个js和两个css即可。</p>
-<p>可以访问gihub的地址<a target="_blank" rel="noopener" href="https://github.com/paulhodel/jexcel">https://github.com/paulhodel/jexcel</a></p>
-<p>或码云的镜像地址:<a target="_blank" rel="noopener" href="https://gitee.com/mirrors/jExcel/tree/master">https://gitee.com/mirrors/jExcel/tree/master</a></p>
-<h3 id="basic"><a href="#basic" class="headerlink" title="basic"></a>basic</h3><p>首先可以看一下官方基础的实例</p>
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-&lt;head&gt;
-    &lt;meta charset=&quot;UTF-8&quot;&gt;
-    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
-    &lt;script src=&quot;https://bossanova.uk/jexcel/v3/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;title&gt;Document&lt;/title&gt;
-&lt;/head&gt;
-
-&lt;body&gt;
-    &lt;div id=&quot;mytable&quot;&gt;&lt;/div&gt;
-    &lt;script&gt;
-        data = [
-            [&apos;Google&apos;, 1998, 807.80],
-            [&apos;Apple&apos;, 1976, 116.52],
-            [&apos;Yahoo&apos;, 1994, 38.66],
-        ];
-
-        jexcel(document.getElementById(&apos;mytable&apos;), &#123;
-            data: data,
-            colWidths: [300, 80, 100]
-        &#125;);
-    &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre><p>访问这个页面，会出现一个web表格。</p>
-<ul>
-<li>选中列，右击可以进行一些列操作，导出，新增行，删除行，修改列名等</li>
-<li>选中列拷贝，可拷贝到当前表格和office excel表格中。</li>
-<li>双击列排序</li>
-<li>选中表格，右击save as可保存为cvs文件</li>
-<li>选中表格，右下角的点可以和office一样拉伸填充</li>
-<li>列宽度可以直接拉伸</li>
-<li>双击单元格可直接修改值</li>
-</ul>
-<h3 id="列类型"><a href="#列类型" class="headerlink" title="列类型"></a>列类型</h3><p>在此web电子表格中，首先与office excel不同的一点是，office的类型为单元格设置类型，而jexcel中为更简易，设置为每列为一类型，称之为列类型。作用相类似于前端table数据展示的那种，每列都是同一个属性或同一个列类型。</p>
-<pre><code>&lt;html&gt;
-    &lt;script src=&quot;jexcel-master/dist/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-
-    &lt;div id=&quot;spreadsheet&quot;&gt;&lt;/div&gt;
-
-    &lt;script&gt;
-        var data = [
-            [&apos;Jazz&apos;, &apos;Honda&apos;, &apos;2019-02-12&apos;, &apos;&apos;, true, &apos;$ 2.000,00&apos;, &apos;#777700&apos;],
-            [&apos;Civic&apos;, &apos;Honda&apos;, &apos;2018-07-11&apos;, &apos;&apos;, true, &apos;$ 4.000,01&apos;, &apos;#007777&apos;],
-        ];
-
-        jexcel(document.getElementById(&apos;spreadsheet&apos;), &#123;
-            data:data,
-            columns: [
-                &#123; type: &apos;text&apos;, title:&apos;Car&apos;, width:120 &#125;,
-                &#123; type: &apos;dropdown&apos;, title:&apos;Make&apos;, width:200, source:[ &quot;Alfa Romeo&quot;, &quot;Audi&quot;, &quot;Bmw&quot;,&apos;Honda&apos; ] &#125;,
-                &#123; type: &apos;calendar&apos;, title:&apos;Available&apos;, width:200 &#125;,
-                &#123; type: &apos;image&apos;, title:&apos;Photo&apos;, width:120 &#125;,
-                &#123; type: &apos;checkbox&apos;, title:&apos;Stock&apos;, width:80 &#125;,
-                &#123; type: &apos;numeric&apos;, title:&apos;Price&apos;, width:100, mask:&apos;$ #.##,00&apos;, decimal:&apos;,&apos; &#125;,
-                &#123; type: &apos;color&apos;, width:100, render:&apos;circle&apos;, &#125;
-                ]
-        &#125;);
-    &lt;/script&gt;
-&lt;/html&gt;</code></pre><p>以上官方示例，表示配置columns类型，按顺序进行配置，包括</p>
-<ul>
-<li>text:表示文本类型</li>
-<li>dropdown:表示下拉类型，需要设置source属性，列表</li>
-<li>calendar:表示日期类型，该日期格式可在js的323行处修改日期格式</li>
-<li>image:为图片，点击列，双击弹出的框，可选择图片，选择后，点击表格可关闭弹框并填充图片</li>
-<li>numberic:为数字类型，mask为数字格式，decimal为分隔符</li>
-<li>color:表示为颜色框，width为绘制宽度，render为为形状</li>
-</ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/bootstrap table列行都有滚动条造成查看不便" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/"
-    >bootstrap table列行都有滚动条造成查看不便</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/" class="article-date">
-  <time datetime="2019-08-05T01:00:08.000Z" itemprop="datePublished">2019-08-05</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>bootstrap table在显示数据的时候，由于列过多导致出现的横向滚动条。而页面高度又很低，所以分页时，纵向也有一个滚动条，必须滚到最下面才能拉动横向滚动条。否则只能按左右键查看数据。</p>
-<p>因此有需求取消纵向滚动条，将bootstrap table整体高度缩小到页面剩余高度，让分页框也显示在页面上。</p>
-<pre><code>$(window).resize(function () &#123;
-    //重置表格
-    $(&quot;#fwdyDetailTable&quot;).bootstrapTable(&apos;resetView&apos;);
-    initBootstrapTableHeight();
-&#125;);
-//初始化表格高度
-function initBootstrapTableHeight()&#123;
-    var total = $(window).height();//窗口高度
-    var page = $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).parent(&apos;.fixed-table-container&apos;).parent(&apos;.bootstrap-table&apos;).next(&apos;.clearfix&apos;).height();
-    $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,(total-page-100)+&quot;px&quot;);//100为固定的弹框的上标题和底部按钮高度之和。
-&#125;
-$(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,($(window).height()-125)+&quot;px&quot;);</code></pre><p>我们设置其高度，只能设置class为fixed-table-body的div高度才有效。只需要给它一个合适的高度。在这里，我用的是弹框显示，所以窗口较小。需要用总高度减去分页高度和弹框标题高度和弹框底部高度。</p>
-<p>在弹出框放大缩小时，监听window.resize。刷新bootstrap table视图。并重新设置表格高度</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/24/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="page-number" href="/page/24/">24</a><span class="page-number current">25</span><a class="page-number" href="/page/26/">26</a><a class="page-number" href="/page/27/">27</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/26/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/24/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/23/">23</a><a class="page-number" href="/page/24/">24</a><span class="page-number current">25</span><a class="page-number" href="/page/26/">26</a><a class="page-number" href="/page/27/">27</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/26/">下一页</a>
   </nav>
   
 </section>

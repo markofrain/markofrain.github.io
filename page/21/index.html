@@ -78,6 +78,486 @@
     
     
     
+    <article id="post-MongoDB/MongoDB笔记" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/03/24/MongoDB/MongoDB%E7%AC%94%E8%AE%B0/"
+    >MongoDB笔记</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/03/24/MongoDB/MongoDB%E7%AC%94%E8%AE%B0/" class="article-date">
+  <time datetime="2020-03-24T00:52:12.000Z" itemprop="datePublished">2020-03-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%95%B0%E6%8D%AE%E5%BA%93/">数据库</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>Windows安装mongodb，去官网下载windows最新msi版本，在安装时。取消勾选左下角的Install Mongodb compass选项。改选项是数据库的客户端功能句，在安装时会非常非常慢。<br>安装后服务已经默认安装过了，开发服务即可，cmd输入mongo即可进入mongo命令行</p>
+<h2 id="概念"><a href="#概念" class="headerlink" title="概念"></a>概念</h2><ol>
+<li>数据库<br>数据仓库，一个mongodb有多个数据库</li>
+<li>文档document<br>K-V键值对，类似关系数据库的行，文档中的键/值对顺序是有序的，区分类型和大小写，文档不能有重复的键。<br>键不能有\0(空字符),这个字符表示键的结尾;“.”和$有特别意义，只有在特定环境下才能使用；以下划线”_”开头的键是保留的(不是严格要求的)</li>
+<li>集合collection<br>类似关系数据库的表。当第一行文档插入后，集合就被创建。</li>
+</ol>
+<ul>
+<li>集合名不能是空字符串””</li>
+<li>集合名不能有\0</li>
+<li>集合名不能以system.开头</li>
+<li>集合名不能有保留字符</li>
+</ul>
+<ol start="3">
+<li>元数据<br>数据库的信息，存储在集合中，通过<code>数据库名.system.*</code>的方式</li>
+</ol>
+<ul>
+<li>dbname.system.namespaces:列出所有命名空间</li>
+<li>dbname.system.indexes:列出所有索引</li>
+<li>dbname.system.profile:包含数据库概要(profile)信息</li>
+<li>dbname.system.users:列出所有可访问数据库的用户</li>
+<li>dbname.local.sources:包含复制对端（slave）的服务器信息和状态</li>
+</ul>
+<ol start="4">
+<li>ObjectId<br>类似为唯一主键，可以很快的生成和排序，包含12bytes<br>存储文档必须要有一个_id键，可以是任何类型，默认是ObjectId，在插入不指定_id时自动生成</li>
+</ol>
+<h2 id="相关命令"><a href="#相关命令" class="headerlink" title="相关命令"></a>相关命令</h2><ul>
+<li>查看所有数据库(<strong>show dbs</strong>)</li>
+<li>使用数据库,不存在则会创建(<strong>use <DATABASE_NAME></strong>)</li>
+<li>查看当前使用的数据库(<strong>db</strong>)</li>
+<li>查看所有集合(<strong>show collections</strong>)</li>
+<li>删除集合(<strong>db.collection.drop()</strong>)</li>
+<li>删除数据库(<strong>db.dropDatabase()</strong>)</li>
+</ul>
+<p>CURD操作:</p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.<collection_name>.insert()</td>
+<td>db.student.insert({“name”:”名称”,”age”:18})</td>
+<td></td>
+</tr>
+<tr>
+<td>db.<collection_name>.insertOne()</td>
+<td>db.student.insertOne({“name”:”名称”,”age”:18})</td>
+<td></td>
+</tr>
+<tr>
+<td>db.<collection_name>.insertMany()</td>
+<td>db.student.insertMany([{“name”:”名称”,”age”:20},{“name”:”名2”,”age”:22}])</td>
+<td></td>
+</tr>
+</tbody></table>
+<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/query-documents.html">查询</a></strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.<collection_name>.find(,)</td>
+<td>db.student.find();<br/>db.student.find({name:”名称”});<br/>db.student.findOne({name:”名称”});<br/>db.student.find({name:”名称”}).count();<br/>db.student.find({name:{ $in: [“名称”,”名2”]}});<br/> db.student.find({name:”名称”,age:{ $gt: 19}});<br/>db.student.find({ $or: [{name:”名称”},{age:{ $gt:19 }}]});</td>
+<td>查询所有<br/>指定属性名精确查询<br/>匹配第一个<br/>查询结果数量<br/>使用in表达式匹配<br/>使用and，逗号就相当于and，age大于($lt小于)19的<br/>or表达式数组，逗号为或，name为名称,age大于19的</td>
+</tr>
+</tbody></table>
+<p><strong>数组上的查询，即字段的值为数组</strong>,<code>name:[&quot;chen&quot;,&quot;xiao chen&quot;]</code></p>
+<ul>
+<li><p>db.users.find( { badges: [ “blue”, “black” ] } ):精确匹配</p>
+</li>
+<li><p>db.users.find( { badges: “black” } ):包含某个元素</p>
+</li>
+<li><p>db.users.find( { “badges.0”: “black” } ):匹配第一元素是black的</p>
+</li>
+<li><p><code>db.users.find( &#123; finished: &#123; $elemMatch: &#123; $gt: 15, $lt: 20 &#125; &#125; &#125; ): $elemMatch</code>为数组提供的，需要至少满足一个条件</p>
+</li>
+<li><p>db.users.find( { finished: { $gt: 15, $lt: 20 } } ):满足多条件</p>
+</li>
+<li><p>db.student.find({name:/^小/}):查询出name以小开头的数据</p>
+</li>
+<li><p>db.student.find({name:/刚$/}):查询name以刚结尾的数据</p>
+</li>
+<li><p>$lt:&lt;</p>
+</li>
+<li><p>$gt:&gt;</p>
+</li>
+<li><p>$lte:&lt;=</p>
+</li>
+<li><p>$gte:&gt;=</p>
+</li>
+<li><p>$net:!=</p>
+</li>
+<li><p>$eq:=</p>
+</li>
+</ul>
+<p>嵌入文档数组查询:</p>
+<ul>
+<li>db.users.find( { ‘points.0.points’: { $lte: 55 } } ):查询points属性的第一个文档的points属性匹配</li>
+</ul>
+<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/update-documents.html">更新</a></strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.collection.updateOne()</td>
+<td>db.student.updateOne({name:”名2”},{$set:{address:”丰台”,name:”小刚”},$currentDate: {lastModifyDate:true}});</td>
+<td>方法第一个参数为查询需要修改的数据，第二个参数为修改，$set表示需要修改的属性或要添加的属性(没有的时候),$currentDate表示为数据添加一个当前日期，lastModifyDate字段为自定义字段，若没有则创建。该方法只修改一条</td>
+</tr>
+<tr>
+<td>db.collection.updateMany()</td>
+<td>同上</td>
+<td>该方法可匹配多个数据进行更改</td>
+</tr>
+<tr>
+<td>db.collection.update()</td>
+<td>db.student.update({name:”名2”},{$set:{address:”丰台”}},{multi:true})</td>
+<td>该方法默认只修改一条数据，若设置multi:true，则修改多条数据</td>
+</tr>
+<tr>
+<td>db.collection.replaceOne()</td>
+<td>db.student.replaceOne({name:”小明”},{name:”小飞”,address:”大马士革”});</td>
+<td>表示替换一条匹配的文档称为新文档</td>
+</tr>
+<tr>
+<td>db.collection.update()</td>
+<td>db.student.update({name:”小刚”},{$unset: {lastModifyDate: “” }});</td>
+<td>删除匹配数据的某个属性</td>
+</tr>
+</tbody></table>
+<p><strong><a target="_blank" rel="noopener" href="http://www.mongoing.com/docs/tutorial/remove-documents.html">删除</a></strong></p>
+<table>
+<thead>
+<tr>
+<th>命令</th>
+<th>示例</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>db.collection.deleteOne()</td>
+<td>db.student.deleteOne({name:”小飞”});</td>
+<td>仅删除匹配的第一条数据</td>
+</tr>
+<tr>
+<td>db.collection.deleteMany()</td>
+<td>db.users.deleteMany({name:”小飞”})</td>
+<td>删除所有名称为小飞的数据,若传入参数为空参，则清空所有数据</td>
+</tr>
+<tr>
+<td>db.collection.remove()</td>
+<td>db.users.remove({name:”小飞”})</td>
+<td>删除所有name为小飞的数据</td>
+</tr>
+<tr>
+<td>db.collection.remove()</td>
+<td>db.users.remove({name:”小飞”},1)</td>
+<td>仅删除第一条名称为小飞的数据,第二个参数为justOne,bollean类型</td>
+</tr>
+<tr>
+<td>db.collection.remove()</td>
+<td>db.users.remove({name:”小飞”},{justOne:true})</td>
+<td>remove默认删除所有，使用justOne为true表示仅第一条</td>
+</tr>
+</tbody></table>
+<p><strong>操作符</strong></p>
+<p>$type操作符:检索集合中匹配的数据类型。Mongodb中众多数据类型都有对应的数子，查询是可以通过一下查询</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.student.find(&#123;name:&#123;$type:&quot;string&quot;&#125;&#125;)</span><br><span class="line">或</span><br><span class="line">db.student.find(&#123;name:&#123;$type:2&#125;&#125;)</span><br></pre></td></tr></table></figure>
+
+<p><strong>limit()与skip()方法，sort()</strong><br>limit(number)表示从结果集中读取指定数量的数据,默认不填查询全部<br>skip(number)表示从结果集中跳过指定数量,默认为0，即跳过0行<br><strong>但是如果要将limit和skip同时使用，放置顺序不管如何。其mongodb的解析顺序是固定的，先skip()再limit()，如果有sort()，则sort()在最前</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">db.student.find().skip(1).limit(2)</span><br><span class="line">与下面是相同的</span><br><span class="line">db.student.find().limit(2).skip(1)</span><br></pre></td></tr></table></figure>
+<p>sort方法，-1表示降序，-1表示升序</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.student.find().sort(&#123;age:1,address:-1&#125;);</span><br></pre></td></tr></table></figure>
+
+<h2 id="索引"><a href="#索引" class="headerlink" title="索引"></a>索引</h2><h3 id="单键索引创建"><a href="#单键索引创建" class="headerlink" title="单键索引创建"></a>单键索引创建</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;name:1&#125;)</span><br></pre></td></tr></table></figure>
+<p>以上表示，创建name字段的索引，1表示升序，-1表示降序</p>
+<p>嵌入式文档的属性单键索引创建</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;&quot;class.address&quot;:-1&#125;)</span><br></pre></td></tr></table></figure>
+<p>使用点的方式，表示学生所在班级地址字段的索引。</p>
+<p>在嵌入式文档创建索引，若要使用需要在查询时写全部字段</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.collection.createIndex(&#123;class:-1&#125;)</span><br></pre></td></tr></table></figure>
+
+<h3 id="复合索引创建"><a href="#复合索引创建" class="headerlink" title="复合索引创建"></a>复合索引创建</h3><p>db.collection.createIndex({name:1,class:1})<br>复合索引的排序<br><strong>索引以升序（1）或降序（-1）排序顺序存储对字段的引用。对于单字段索引，键的排序无关紧要，对于复合索引，排序顺序决定索引是否支持排序操作</strong></p>
+<p>建立复合索引后的排序，如果要想索引可以使用</p>
+<ul>
+<li>索引字段<strong>前后顺序一致</strong>且<strong>数量一致</strong>，查询顺序与索引匹配或相反</li>
+<li>复合索引定义数量与查询排序数量不一致，则以复合索引字段前置优先规则<br>如上规则创立索引:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">db.student.createIndex(&#123;age:-1,name:1&#125;);</span><br><span class="line">以上索引,以下可用</span><br><span class="line">db.student.find().sort(&#123;age:-1,name:1&#125;);</span><br><span class="line">db.student.find().sort(&#123;age:1,name:-1&#125;);</span><br><span class="line">db.student.find().sort(&#123;age:-1&#125;);</span><br><span class="line">但下面这个不可用</span><br><span class="line">db.student.find().sort(&#123;age:-1,name:-1&#125;);</span><br></pre></td></tr></table></figure>
+对于查询时使用索引，只要数量一致，与顺序无关,或使用复合索引的前置字段。</li>
+</ul>
+<p><strong>多键索引</strong>:为数组键创建的索引是多键索引，它为数组中每个元素添加一个索引项。<br><strong>文本索引</strong>:一个集合只能创建创建一个文本索引。为了索引一个存储字符串或字符串数组的键，可以创建文本索引。也可以为文本索引索引多个字段，即复合文本索引。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">db.reviews.createIndex( &#123; comments: &quot;text&quot; &#125; )</span><br><span class="line">db.reviews.createIndex( &#123; subject: &quot;text&quot;, comments: &quot;text&quot; &#125; )</span><br></pre></td></tr></table></figure>
+
+<p><strong>索引的第二个参数为可选参数</strong>:</p>
+<ul>
+<li>background:Boolean:建索引为阻塞其他数据库操作，所以若键索引的键数据过多，可设置为true，后台建立索引。默认为false</li>
+<li>unique:Boolean:建立的索引是否是唯一索引,默认false</li>
+<li>name:string:索引的名称</li>
+<li>sparse:Boolean:对文档中不存在的字段数据不启用索引。如果设置为true的话，在索引字段中不会查询出不包含对应字段的文档。默认false</li>
+<li>expireAfterSeconds:integer:指定一个以秒为单位的数值，设定集合的生存时间。</li>
+</ul>
+<p>获得所有索引:db.student.getIndexes();<br>获得索引总大小:db.student.totalIndexSize()<br>获得表数据总大小:db.student.totalSize()<br>删除所有索引:db.student.dropIndexs()<br>删除指定名称索引:db.student.dropIndex(“索引名”)</p>
+<h2 id="聚合"><a href="#聚合" class="headerlink" title="聚合"></a>聚合</h2><p>即聚合方法，类似count，sum等</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.COLLECTION_NAME.aggregate(AGGREGATE_OPERATION)  </span><br></pre></td></tr></table></figure>
+<p>示例<br>db.mycol.aggregate([{$group : {_id : “$by_user”, num_tutorial : {$sum : 1}}}])<br>以上结果类似于select by_user, count(<em>) from mycol group by by_user;<br>首先<code>_id</code>表示要分组的字段,值需要使用键前面加$符号。后面的num_tutorial表示结果集列名，里面的$sum是重点，1说明是1倍，相当于count(</em>),若为2,则其查询的值为count(*) * 2。这个至应该是要进行计算操作的键名。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">db.mycol.aggregate([&#123;$group : &#123;_id : &quot;$by_user&quot;, likes : &#123;$sum : &quot;$likes&quot;&#125;&#125;&#125;]) </span><br></pre></td></tr></table></figure>
+<p>以上的查询表示，以by_user键进行分组，求likes字段的所有和。注意键前需要$符号<br>类似:select by_user,sum(likes) from mycol group by by_user;</p>
+<p>表达式有:</p>
+<ul>
+<li>$sum:求和或数量</li>
+<li>$avg:求平均数</li>
+<li>$min:求最小值</li>
+<li>$max:求最大值</li>
+<li>$push:将结果文档中插入值到数组中。也就是说不是求数量和求和，而是将分组的结果放到倍分组列里，这个列变成了数组类型</li>
+<li>$addToSet:将结果文档中插入值到数组中，但是set，所以会去重。</li>
+<li>$first:根据资源文档的排序获取第一个文档数据。查询出所有的数据，取第一个值组成分组</li>
+<li>$last:根据资源文档的排序获取第一个文档数据。查询出所有的数据，取最后一个值组成分组</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb/" rel="tag">mongodb</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Java/JVM虚拟机原理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/03/24/Java/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8E%9F%E7%90%86/"
+    >JVM虚拟机原理</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/03/24/Java/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8E%9F%E7%90%86/" class="article-date">
+  <time datetime="2020-03-24T00:46:12.000Z" itemprop="datePublished">2020-03-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="JVM-Java虚拟机原理"><a href="#JVM-Java虚拟机原理" class="headerlink" title="JVM Java虚拟机原理"></a>JVM Java虚拟机原理</h1><h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>类加载器子系统负责从文件系统或网络中加载Class文件，class文件在文件开头有特定的文件标识。</p>
+<p>ClassLoader只负责加载，是否可以运行由Execution Engine决定。</p>
+<p>加载类信息存放在方法区的内存空间。除了类信息，还有运行时常量信息，字符串字面量和数字常量(这部分常量是Class文件中的常量池信息部分的内存映射)。</p>
+<p><strong>环节</strong></p>
+<p>Loading加载—&gt;链接(Verification验证—&gt;Preparation准备—&gt;Resolution解析)—&gt;Initialzation初始化</p>
+<p><strong>加载.class文件的方式。</strong></p>
+<ul>
+<li>本地直接加载</li>
+<li>通过网络获取:Web Applet</li>
+<li>从zip，jar，war中获取</li>
+<li>动态代理</li>
+<li>其他文件生成,JSP</li>
+<li>加密文件中获取，防Class文件被反编译措施</li>
+</ul>
+<p><strong>验证</strong></p>
+<p>确保Class文件字节流中包含信息符合当前虚拟机要求，保证被加载类的正确性。包括验证，文件格式验证、元数据、字节码、符号引用。</p>
+<p><strong>准备</strong></p>
+<p>为变量分配内存并设置该类变量的默认初始值，即零值。</p>
+<ul>
+<li>不包含final修饰的static变量，final在编译的时候就分配了，准备阶段会显示初始化。</li>
+<li><u>不会为实例变量分配初始值</u>，类变量会分配在方法区中，而实例变量会随着对象一起分配到Java堆中。</li>
+</ul>
+<p><strong>解析</strong></p>
+<p>将常量池内的符号引用转换为直接引用的过程。</p>
+<p>符号引用就是一组符号来描述所引用的目标。</p>
+<p>直接引用就是直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄。</p>
+<p>解析动作主要针对类或接口、字段、方法、类方法、接口方法、方法类型等。</p>
+<p><strong>初始化</strong></p>
+<p>初始化阶段就是执行类构造器方法&lt;clinit&gt;()的过程。</p>
+<ul>
+<li><p>此方法不需要定义，是javac编译器自动收集类中的所有类变量的赋值动作和静态代码块中的语句合并而来。</p>
+</li>
+<li><p>构造器方法中指令按语句在源文件中出现的顺序执行。</p>
+</li>
+<li><p>&lt;clinit&gt;()不同于类的构造器(&lt;init&gt;–&gt;bytecode viewer工具可以看到)</p>
+</li>
+<li><p>若该类具有父类,JVM会保证子类的clinit执行前执行父类的clinit</p>
+</li>
+<li><p>虚拟机必须保证一个类的&lt;clinit&gt;()方法在多线程下被同步加锁。</p>
+</li>
+</ul>
+<h3 id="类加载器分类"><a href="#类加载器分类" class="headerlink" title="类加载器分类"></a>类加载器分类</h3><p>分为引导类加载器(BootStrap ClassLoader)和自定义加载器(所有派生于ClassLoader的加载器都是自定义加载器)。</p>
+<p>拓展类加载器(ExtClassLoader)、系统类加载器间接的继承了ClassLoader。</p>
+<h3 id="引导类加载器"><a href="#引导类加载器" class="headerlink" title="引导类加载器"></a>引导类加载器</h3><ul>
+<li>这个类加载使用C/C++语言实现，嵌套在JVM内部。</li>
+<li>用来加载核心库rt.jar，resources.jar，sun.boot.class.path路径下的内容，用于提供JVM自身需要的类。</li>
+<li>并不继承自java.lang.ClassLoader，没有父加载器</li>
+<li>加载拓展类和应用程序类加载器，并指定为他们的父类加载器</li>
+<li>出于安全考虑，BootStrap启动类加载器只加载包含包名为java、javax、sun开头的类</li>
+</ul>
+<h3 id="应用程序类加载器"><a href="#应用程序类加载器" class="headerlink" title="应用程序类加载器"></a>应用程序类加载器</h3><ul>
+<li><p>有sum.misc.launcher$AppClassLoader实现，派生于ClassLoader类，父加载器为拓展类加载器。</p>
+</li>
+<li><p>负责加载环境变量classpath或系统属性java.class.path指定路径下的类库。</p>
+</li>
+<li><p>是程序的默认类加载器，一般来说，Java应用的类都是由它完成的。</p>
+</li>
+<li><p>通过ClassLoader#getSystemClassLoader方法获取到该类加载器。</p>
+</li>
+</ul>
+<h3 id="拓展类加载器"><a href="#拓展类加载器" class="headerlink" title="拓展类加载器"></a>拓展类加载器</h3><p>Java语言编写，有sum.misc.Launcher$ExtClassLoader实现，派生于ClassLoader类，父加载器为启动类加载器。</p>
+<p>从java.ext.dirs系统属性所指定的目录中加载类库，或从jdk目录的rt/lib/ext/子目录下加载类库。如果用户创建的jar放在此目录，也由它加载。</p>
+<h3 id="用户自定义加载类"><a href="#用户自定义加载类" class="headerlink" title="用户自定义加载类"></a>用户自定义加载类</h3><p>为什么要自定义加载类？</p>
+<ul>
+<li>隔离加载类。当引用中间件时，确保框架jar使用的加载和中间件jar加载的分开，自定义加载类隔离</li>
+<li>修改类的加载方式</li>
+<li>拓展加载源</li>
+<li>防止源码泄露</li>
+</ul>
+<p><strong>步骤</strong></p>
+<ul>
+<li><p>用户通过集成java.lang.ClassLoader类的方式，实现自己的类加载器，以满足特殊需求。</p>
+</li>
+<li><p>建议把自定义逻辑卸载findClass方法中</p>
+</li>
+</ul>
+<h3 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h3><p>Java虚拟机对class文件采用的时按需加载的方式，也就是说当需要使用该类时才会将他的class文件加载到内存生成class对象。而且加载某个类的class文件时，java虚拟机采用的时双亲委派机制，<strong>即把请求交由父类处理，它是一种任务委派模式</strong>。</p>
+<p><strong>工作原理</strong></p>
+<ol>
+<li>如果一个类加载器收到了类加载请求,它并不会自己先去加载,而是把这个请求委托给父类的加载器去执行;</li>
+<li>如果父类加载器还存在其父类加载器,则进一步向上委托,依次递归,请求最终将到达顶层的启动类加载器;</li>
+<li>如果父类加载器可以完成类加载任务,就成功返回,倘若父类加载器无法完成此加载任务,子加载器才会尝试自己去加载,这就是双亲委派模式。</li>
+</ol>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200315214250.png" alt=""></p>
+<p>例子：假如有一个自定义完全相同的完全限定名的String类，那么，该类会从appClassLoader向上委托，然后引导类会加载java.lang.String,也就是他自己能扫描到类库下的jdk 的String类。加载的是核心类库的String类。</p>
+<p>而如果自定义的String类执行main方法，则报错，在类java.lang.String中找不到main方法。此时类加载器一直委托到引导类加载器，会加载核心API的String，但它没有main方法，因此会报错。</p>
+<blockquote>
+<p> <strong>沙箱安全机制</strong></p>
+</blockquote>
+<p><strong>优势</strong></p>
+<ul>
+<li><p>防止新API被篡改</p>
+</li>
+<li><p>避免类重复加载</p>
+</li>
+</ul>
+<h3 id="类的主动使用和被动使用"><a href="#类的主动使用和被动使用" class="headerlink" title="类的主动使用和被动使用"></a>类的主动使用和被动使用</h3><p>在JVM中表示两个class对象是否为同一对象存在的另两个必要条件:</p>
+<ul>
+<li>类的完整类名完全相同，包括包名</li>
+<li>加载这个类的ClassLoader(指ClassLoader实例对象)必须相同</li>
+</ul>
+<p>只要加载他们的类加载器不一样，两个类的对象也不一样。</p>
+<p>如果一个类型由用户类加载器加载，那么JVM会将这个类加载器的一个引用作为类型信息的一部分保存在方法区中。</p>
+<p>当解析一个类型到另一个类型的引用的时候，JVM需要保证这两个类型的类加载器是相同的。</p>
+<p><strong>Java程序对类的使用方式分为:主动使用和被动使用</strong><br>主动使用,又分为七种情况:<br>创建类的实例</p>
+<ul>
+<li>访问某个类或接口的静态变量,或者对该静态变量赋值</li>
+<li>调用类的静态方法</li>
+<li>反射(比如: Class. forName(“com. atguigu.test”))</li>
+<li>初始化一个类的子类</li>
+<li>Java虚拟机启动时被标明为启动类的类</li>
+<li>JDK7开始提供的动态语言支持:<br>java.lang. invoke. MethodHandle实例的解析结果<br> REF getStatic、 REF putStatic REF invokeStatic句柄对<br>应的类没有初始化,则初始化</li>
+</ul>
+<p>除了以上七种情况,其他使用Java类的方式都被看作是对类的被动使用,<br>都不会导致类的初始化。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Java/Java8新特性" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -510,291 +990,13 @@
 
 </article>
     
-    <article id="post-Hadoop/Docker部署完全分布式Hadoop" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/22/Hadoop/Docker%E9%83%A8%E7%BD%B2%E5%AE%8C%E5%85%A8%E5%88%86%E5%B8%83%E5%BC%8FHadoop/"
-    >Docker部署完全分布式Hadoop</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/22/Hadoop/Docker%E9%83%A8%E7%BD%B2%E5%AE%8C%E5%85%A8%E5%88%86%E5%B8%83%E5%BC%8FHadoop/" class="article-date">
-  <time datetime="2020-03-22T07:42:52.000Z" itemprop="datePublished">2020-03-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Docker部署完全分布式Hadoop"><a href="#Docker部署完全分布式Hadoop" class="headerlink" title="Docker部署完全分布式Hadoop"></a>Docker部署完全分布式Hadoop</h1><h2 id="编写镜像文件构建镜像"><a href="#编写镜像文件构建镜像" class="headerlink" title="编写镜像文件构建镜像"></a>编写镜像文件构建镜像</h2><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> centos</span><br><span class="line"><span class="keyword">MAINTAINER</span> cgq_rain@<span class="number">163</span>.com</span><br><span class="line"><span class="comment"># 切换工作目录</span></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> /usr</span></span><br><span class="line"><span class="comment"># 执行命令创建目录</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> mkdir jdk</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> mkdir hadoop</span></span><br><span class="line"><span class="comment"># 添加本地文件到镜像中</span></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> jdk1.8 /usr/jdk</span></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> hadoop /usr/hadoop</span></span><br><span class="line"><span class="comment"># 配置环境变量</span></span><br><span class="line"><span class="keyword">ENV</span> JAVA_HOME=/usr/jdk</span><br><span class="line"><span class="keyword">ENV</span> HADOOP_HOME=/usr/hadoop</span><br><span class="line"><span class="keyword">ENV</span> PATH=$JAVA_HOME/bin:$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH</span><br><span class="line"><span class="comment"># 安装依赖</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yum -y install net-tools</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yum -y install openssh-server</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yum -y install openssh-clients</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> yum -y install passwd</span></span><br></pre></td></tr></table></figure>
-
-<p>要添加文件，jdk1.8和hadoop都是目录，而<code>ADD jdk1.8 /usr/jdk</code>表示将当前dockerfile同目录下的jdk1.8目录下所有数据添加到容器的/usr/jdk目录中。</p>
-<p>使用命令构建镜像，执行命令完成后，镜像会出现在docker images中</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build -f Dockerfile -t chen/base-hadoop:0.1 .</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>-f参数表示dockerfile文件</li>
-<li>-t表示镜像名和版本</li>
-<li>最后的 . 表示当前目录</li>
-</ul>
-<p>确保dockerfile所属目录尽量是干净的目录。</p>
-<h2 id="配置自定义网络"><a href="#配置自定义网络" class="headerlink" title="配置自定义网络"></a>配置自定义网络</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create --subnet=192.168.0.0/24 hadoop</span><br></pre></td></tr></table></figure>
-
-<p>自定义网络，192.168.0.0网段，网络名为hadoop，默认为桥接网络。</p>
-<p>在创建完成后在<code>ifconfig</code>中会看到定义的网络</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">br-3c0945ebc199: flags=4163&lt;UP,BROADCAST,RUNNING,MULTICAST&gt;  mtu 1500</span><br><span class="line">        inet 192.168.0.1  netmask 255.255.255.0  broadcast 192.168.0.255</span><br><span class="line">        inet6 fe80::42:67ff:fee6:b900  prefixlen 64  scopeid 0x20&lt;link&gt;</span><br><span class="line">        ether 02:42:67:e6:b9:00  txqueuelen 0  (Ethernet)</span><br><span class="line">        RX packets 19586  bytes 4595681 (4.3 MiB)</span><br><span class="line">        RX errors 0  dropped 0  overruns 0  frame 0</span><br><span class="line">        TX packets 14136  bytes 3194964 (3.0 MiB)</span><br><span class="line">        TX errors 0  dropped 0 overruns 0  carrier 0  collisions 0</span><br></pre></td></tr></table></figure>
-
-<p>此时，如果容器已经配置好ip，则虚拟机和容器是可以互相ping通的。</p>
-<h2 id="启动容器"><a href="#启动容器" class="headerlink" title="启动容器"></a>启动容器</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run --name hadoop1  --network=hadoop --ip=192.168.0.11 -dit --privileged chen/base-hadoop:0.1 /usr/sbin/init</span><br></pre></td></tr></table></figure>
-
-<p>执行此命令，需要注意顺序问题，否则启动会出错。另外因为如果要是用centos的systemctl命令则需要 –privileged 和/usr/sbin/init 参数。</p>
-<p>分别启动三个容器命名为hadoop1，hadoop2，hadoop3，指定ip为11,12,13</p>
-<h2 id="修改root密码"><a href="#修改root密码" class="headerlink" title="修改root密码"></a>修改root密码</h2><p>这个在配置免密登录是需要用到密码</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">passwd root</span><br></pre></td></tr></table></figure>
-
-<p>passwd命令默认没有，在构建镜像是已经安装了passwd依赖。</p>
-<h2 id="配置hosts文件"><a href="#配置hosts文件" class="headerlink" title="配置hosts文件"></a>配置hosts文件</h2><p>三个容器都配置,修改/etc/hosts文件</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">192.168.0.11	centos1</span><br><span class="line">192.168.0.12	centos2</span><br><span class="line">192.168.0.13	centos3</span><br></pre></td></tr></table></figure>
-
-<h2 id="免密登录配置"><a href="#免密登录配置" class="headerlink" title="免密登录配置"></a>免密登录配置</h2><p>三个容器都执行这三条命令。执行<code>ssh-copy-id</code>命令时输入root密码就是修改的root密码。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa</span><br><span class="line">ssh-copy-id 192.168.0.11</span><br><span class="line">ssh-copy-id 192.168.0.12</span><br><span class="line">ssh-copy-id 192.168.0.13</span><br></pre></td></tr></table></figure>
-
-<h2 id="集群配置"><a href="#集群配置" class="headerlink" title="集群配置"></a>集群配置</h2><table>
-<thead>
-<tr>
-<th></th>
-<th>centos1</th>
-<th>centos2</th>
-<th>centos3</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>HDFS</td>
-<td>NameNode<br/>DataNode</td>
-<td>DataNode</td>
-<td>SecondaryNameNode<br/>DataNode</td>
-</tr>
-<tr>
-<td>YARN</td>
-<td>NodeManager</td>
-<td>NodeManager ResourceManager</td>
-<td>NodeManager</td>
-</tr>
-</tbody></table>
-<p>以上是集群规划。</p>
-<p>每个DataNode一定是有个NodeManager的。NameNode是比较重要的，管理所有的节点，所以一般是单独占一个服务器，但是只有三台机器又要做三个机器的数据存储。</p>
-<p><strong>修改配置文件</strong></p>
-<ol>
-<li>配置hadoop-env.sh，找到被注释的JAVA_HOME与HADOOP_HOME，解开注释，修改为对应位置。</li>
-<li>修改core-site.xml,添加如下</li>
-</ol>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 指定HDFS中的NameNode地址 --&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">&lt;name&gt;fs.defaultFS&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;hdfs:&#x2F;&#x2F;centos1:9000&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;!-- 指定hadoop运行时产生的临时文件 --&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">&lt;name&gt;hadoop.tmp.dir&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;&#x2F;usr&#x2F;hadoop&#x2F;data&#x2F;hadoopdata&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
-<ol start="3">
-<li>修改hdfs-site.xml，添加如下<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">	&lt;name&gt;dfs.namenode.secondary.http-address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos3:50090&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;secondarynamenode运行节点的信息,和namenode不同节点&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.replication&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;3&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;HDFS的数据块副本存储个数&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">	&lt;name&gt;dfs.namenode.http-address&lt;&#x2F;name&gt;</span><br><span class="line">	&lt;value&gt;centos1:50070&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.namenode.name.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;usr&#x2F;hadoop&#x2F;data&#x2F;name&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;namenode的数据存储目录&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.datanode.data.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;usr&#x2F;hadoop&#x2F;data&#x2F;data&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;datanode的数据存储目录&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
-<li>修改yarn-site.xml，添加如下<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.resourcemanager.hostname&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos2&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.nodemanager.aux-services&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;mapreduce_shuffle&lt;&#x2F;value&gt;</span><br><span class="line">        &lt;description&gt;yarn集群为mapreduce程序提供的shuffle服务&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
-有时候，有的yarn还是什么日志报错，具体问题忘了，是需要配置<code>yarn.application.classpath</code>的属性，它的值通过<code>hadoop classpath</code>命令打出来。hadoop是直接添加到镜像里的，所以要想不改必须此处配置的和环境变量一致。建议进入容器更改这个值。<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">&lt;name&gt;yarn.application.classpath&lt;&#x2F;name&gt;</span><br><span class="line">&lt;value&gt;&#x2F;usr&#x2F;hadoop&#x2F;etc&#x2F;hadoop:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;lib&#x2F;*:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;*:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;hdfs:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;hdfs&#x2F;lib&#x2F;*:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;hdfs&#x2F;*:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;mapreduce&#x2F;lib&#x2F;*:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;mapreduce&#x2F;*:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;yarn:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;yarn&#x2F;lib&#x2F;*:&#x2F;usr&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;yarn&#x2F;*&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
-<li>修改mapred-site.xml，添加如下<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.framework.name&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;yarn&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.jobhistory.address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos1:10020&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.jobhistory.webapp.address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos1:19888&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
-<blockquote>
-<p><strong>建议在构建镜像前把hadoop配置好，确定好环境变量，把hadoop配置文件配置的和环境变量确定一致。</strong></p>
-</blockquote>
-<h2 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h2><h3 id="修改启动脚本配置"><a href="#修改启动脚本配置" class="headerlink" title="修改启动脚本配置"></a>修改启动脚本配置</h3><p>启动集群前需要配置一下start-dfs.sh文件。因为容器默认用户是root，而启动start-dfs.sh会报错</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">ERROR: Attempting to operate on hdfs namenode as root</span><br><span class="line">ERROR: but there is no HDFS_NAMENODE_USER defined. Aborting operation.</span><br><span class="line">Stopping datanodes</span><br><span class="line">ERROR: Attempting to operate on hdfs datanode as root</span><br><span class="line">ERROR: but there is no HDFS_DATANODE_USER defined. Aborting operation.</span><br><span class="line">Stopping secondary namenodes [centos3]</span><br><span class="line">ERROR: Attempting to operate on hdfs secondarynamenode as root</span><br><span class="line">ERROR: but there is no HDFS_SECONDARYNAMENODE_USER defined. Aborting operation.</span><br></pre></td></tr></table></figure>
-
-<p>这个问题在三台虚拟机上，使用普通用户处理是没有问题的。</p>
-<p>错误说没有配置HDFS_NAMENODE_USER和HDFS_SECONDARYNAMENODE_USER，因此需要进行配置。</p>
-<p>因此，在启动集群之前配置start-dfs.sh和stop-dfs.sh</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">HDFS_DATANODE_USER=root</span><br><span class="line">HDFS_NAMENODE_USER=root</span><br><span class="line">HDFS_SECONDARYNAMENODE_USER=root</span><br></pre></td></tr></table></figure>
-
-<p>以及start-yarn.sh和stop-yarn.sh</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">YARN_RESOURCEMANAGER_USER=root</span><br><span class="line">YARN_NODEMANAGER_USER=root</span><br></pre></td></tr></table></figure>
-
-<p>以上配置每台机器都需要。且需要把配置放在第二行，bin bash声明后面</p>
-<h3 id="格式化并启动集群"><a href="#格式化并启动集群" class="headerlink" title="格式化并启动集群"></a>格式化并启动集群</h3><p>格式化,在namenode中,就是centos1</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hdfs namenode -format</span><br></pre></td></tr></table></figure>
-
-
-
-<p>在hadoop1的机器执行命令，也就是centos1,必须在namenode中启动hdfs</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start-dfs.sh</span><br></pre></td></tr></table></figure>
-
-<p>在hadoop2的机器上执行命令，也就是centos2,必须在resourceManager中启动yarn,这也是强制的</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">start-yarn.sh</span><br></pre></td></tr></table></figure>
-
-<h3 id="启动结果"><a href="#启动结果" class="headerlink" title="启动结果"></a>启动结果</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">[root@901ae10904fb usr]# jps</span><br><span class="line">7012 Jps</span><br><span class="line">6393 DataNode</span><br><span class="line">6732 NodeManager</span><br><span class="line">6253 NameNode</span><br><span class="line"></span><br><span class="line">[root@9550b16ec82d hadoop]# jps</span><br><span class="line">3952 Jps</span><br><span class="line">3602 NodeManager</span><br><span class="line">3465 ResourceManager</span><br><span class="line">3278 DataNode</span><br><span class="line"></span><br><span class="line">[root@59d708cc0206 hadoop]# jps</span><br><span class="line">2384 SecondaryNameNode</span><br><span class="line">2466 NodeManager</span><br><span class="line">2275 DataNode</span><br><span class="line">2631 Jps</span><br></pre></td></tr></table></figure>
-
-<p>从上至下分别为centos1到centos3的输出进程。必须满足此种情况才能正常使用。如果nameNode无法正常启动，首先检查配置文件，其次重新格式化一次，在执行<code>hdfs namenode -format</code>之前，先把三台机器的data目录和logs目录全部删除，再执行格式化命令，确保centos1先启动dfs，如果namenode没有问题，再centos2执行yarn。否则需要在centos1中查找namenode的日志记录,查找namenode没有正常启动的原因。</p>
-<h3 id="关闭集群"><a href="#关闭集群" class="headerlink" title="关闭集群"></a>关闭集群</h3><p>首先在centos2上关闭stop-yarn.sh，再在centos1上stop-dfs.sh</p>
-<h2 id="测试hdfs并访问50070"><a href="#测试hdfs并访问50070" class="headerlink" title="测试hdfs并访问50070"></a>测试hdfs并访问50070</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">hdfs dfs -mkdir -p &#x2F;user&#x2F;input</span><br><span class="line">hdfs dfs -put a.txt &#x2F;user&#x2F;input</span><br></pre></td></tr></table></figure>
-
-<p>在虚拟机上访问，192.168.0.11:50070就可以看到了。可以查看文件系统目录。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/代码开发常用方法说明" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/22/Javascript/%E4%BB%A3%E7%A0%81%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95%E8%AF%B4%E6%98%8E/"
-    >代码开发常用方法说明</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/22/Javascript/%E4%BB%A3%E7%A0%81%E5%BC%80%E5%8F%91%E5%B8%B8%E7%94%A8%E6%96%B9%E6%B3%95%E8%AF%B4%E6%98%8E/" class="article-date">
-  <time datetime="2020-03-22T04:12:51.000Z" itemprop="datePublished">2020-03-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%B8%B8%E7%94%A8/">常用</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="代码开发常用方法说明"><a href="#代码开发常用方法说明" class="headerlink" title="代码开发常用方法说明"></a>代码开发常用方法说明</h1><h2 id="Java篇"><a href="#Java篇" class="headerlink" title="Java篇"></a>Java篇</h2><h2 id="JavaScript篇"><a href="#JavaScript篇" class="headerlink" title="JavaScript篇"></a>JavaScript篇</h2><h3 id="常用方法"><a href="#常用方法" class="headerlink" title="常用方法"></a>常用方法</h3><ol>
-<li><p>$(“form”).serialize()：返回一个以form内所有包含name的表单元素的值，通过&amp;连接</p>
-</li>
-<li><p>$(“#form”).serializeArray()：返回一个将每个包含name的表单元素组成json，并将所有json形成一个数组</p>
-<blockquote>
-<p>如果元素中包含多选值的元素，可能造成每个值都添加一次name，select2插件中多选就是如此。</p>
-</blockquote>
-</li>
-</ol>
-<h3 id="常用操作"><a href="#常用操作" class="headerlink" title="常用操作"></a>常用操作</h3><h4 id="阻止表单提交"><a href="#阻止表单提交" class="headerlink" title="阻止表单提交"></a>阻止表单提交</h4><ol>
-<li>可以在form标签中添加onSubmit属性，并返回一个函数，可在函数中控制返回true为提交，false为不提交</li>
-<li>监听表单submit事件，并使用event.preventDefault();阻止元素发生默认行为。</li>
-<li>在form中btn按钮中点击事件e.preventDefault();可阻止默认提交</li>
-</ol>
-<h3 id="常用插件"><a href="#常用插件" class="headerlink" title="常用插件"></a>常用插件</h3><h4 id="select2选择框插件"><a href="#select2选择框插件" class="headerlink" title="select2选择框插件"></a>select2选择框插件</h4><p>此处为<a target="_blank" rel="noopener" href="https://github.com/select2/select2">Github地址</a>，此处可以查看<a target="_blank" rel="noopener" href="http://select2.github.io/select2/#documentation">官方文档</a></p>
-<p>详细的使用方法在文档已经说明。避免看文档麻烦。此处简要说明使用过程。</p>
-<ol>
-<li><p>直接按照官网，<code>$(&quot;select[name=&#39;unit&#39;]&quot;).select2(&#123;width:&#39;50%&#39;,placeholder:&#39;请选择&#39;&#125;);</code>，即可初始化一个下拉，html依然只是一个select标签，如果多选需要在标签上添加<code>multiple</code>属性。</p>
-</li>
-<li><p>在使用placeholder或其他特定属性显示时，必须在原有option的基础上添加一个空的option值，否则placeholder等属性不会显示。</p>
-</li>
-<li><p>属性值的回显问题，回显一般使用``$(“select[name=’unit’]”).val(值).trigger(‘change’)`的方式赋值，对于多选，需要在val中防止一个数组才可以，而且如果在val中赋值一个option中没有的值，其值是不会显示的。且值的回显必须等到select2初始化方法渲染完才可以赋值，否则option可以出来，但赋值没有完成。</p>
-<p>比如以jsp为例，初始进入页面不仅需要json请求配置option，又要对象属性赋值，因此在select中的option添加完毕之后<code>$(&quot;select[name=&#39;unit&#39;]&quot;).html(optionhtml)</code>，再执行回显的js才可以回显成功。</p>
-</li>
-<li><p>包括搜索配置，清除按钮，选择完不自动关闭，排序等，以及直接ajax属性请求数据显示。</p>
-</li>
-</ol>
-<p><strong>示例1</strong></p>
-<figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">tr</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">td</span> <span class="attr">class</span>=<span class="string">&quot;width-15 active&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;pull-right&quot;</span>&gt;</span>统计字段：<span class="tag">&lt;/<span class="name">label</span>&gt;</span><span class="tag">&lt;/<span class="name">td</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">td</span> <span class="attr">class</span>=<span class="string">&quot;width-35&quot;</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">select</span> <span class="attr">name</span>=<span class="string">&quot;statisticsField&quot;</span> <span class="attr">multiple</span>&gt;</span><span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">td</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">tr</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//在$(function()&#123;&#125;)下初始化选择框</span></span><br><span class="line">$(<span class="string">&quot;select[name=&#x27;statisticsField&#x27;]&quot;</span>).select2(&#123;<span class="attr">width</span>:<span class="string">&#x27;50%&#x27;</span>,<span class="attr">placeholder</span>:<span class="string">&#x27;请选择&#x27;</span>&#125;);<span class="comment">//统计字段</span></span><br><span class="line"><span class="comment">//在某个加载调用方法中配置option</span></span><br><span class="line">$(<span class="string">&quot;select[name=&#x27;statisticsField&#x27;]&quot;</span>).html(html);</span><br><span class="line"><span class="comment">//在配置完option值之后再进行回显设置</span></span><br><span class="line"><span class="keyword">if</span> (statisticsField!==<span class="literal">undefined</span>&amp;&amp;statisticsField!==<span class="string">&#x27;&#x27;</span>)&#123;</span><br><span class="line">	$(<span class="string">&quot;select[name=&#x27;statisticsField&#x27;]&quot;</span>).val(statisticsField.split(<span class="string">&#x27;,&#x27;</span>)).trigger(<span class="string">&#x27;change&#x27;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="一般标准的Bootstrap-form表单"><a href="#一般标准的Bootstrap-form表单" class="headerlink" title="一般标准的Bootstrap form表单"></a>一般标准的Bootstrap form表单</h4><figure class="highlight html"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">form</span> <span class="attr">id</span>=<span class="string">&quot;baseForm&quot;</span> <span class="attr">name</span>=<span class="string">&quot;baseForm&quot;</span> <span class="attr">class</span>=<span class="string">&quot;form form-horizontal&quot;</span> <span class="attr">method</span>=<span class="string">&quot;post&quot;</span></span></span><br><span class="line"><span class="tag">                                  <span class="attr">enctype</span>=<span class="string">&quot;multipart/form-data&quot;</span> <span class="attr">style</span>=<span class="string">&quot;width: 80%&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;thumbnail&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;groupId&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;hidden&quot;</span> <span class="attr">name</span>=<span class="string">&quot;id&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-2 control-label&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;color-required&quot;</span>&gt;</span>*<span class="tag">&lt;/<span class="name">span</span>&gt;</span>规划分类：<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">name</span>=<span class="string">&quot;group.name&quot;</span> <span class="attr">required</span> <span class="attr">readonly</span> <span class="attr">class</span>=<span class="string">&quot;form-control required&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-2 control-label&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;color-required&quot;</span>&gt;</span>*<span class="tag">&lt;/<span class="name">span</span>&gt;</span>模板名称：<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">name</span>=<span class="string">&quot;modelName&quot;</span> <span class="attr">required</span> <span class="attr">class</span>=<span class="string">&quot;form-control required&quot;</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-2 control-label&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;color-required&quot;</span>&gt;</span>*<span class="tag">&lt;/<span class="name">span</span>&gt;</span>模板文件名称：<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">select</span> <span class="attr">name</span>=<span class="string">&quot;modelFileName&quot;</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">&quot;&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">                &lt;c:forEach items=&quot;$&#123;modelPath&#125;&quot; var=&quot;item&quot;&gt;</span><br><span class="line">                    <span class="tag">&lt;<span class="name">option</span> <span class="attr">value</span>=<span class="string">&quot;$&#123;item&#125;&quot;</span>&gt;</span>$&#123;item&#125;<span class="tag">&lt;/<span class="name">option</span>&gt;</span></span><br><span class="line">                &lt;/c:forEach&gt;</span><br><span class="line">            <span class="tag">&lt;/<span class="name">select</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-2 control-label&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;color-required&quot;</span>&gt;</span>*<span class="tag">&lt;/<span class="name">span</span>&gt;</span>缩略图：<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">div</span> <span class="attr">id</span>=<span class="string">&quot;thumbnail-img&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line">            <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">button</span> <span class="attr">type</span>=<span class="string">&quot;button&quot;</span> <span class="attr">class</span>=<span class="string">&quot;layui-btn&quot;</span> <span class="attr">id</span>=<span class="string">&quot;upload-file&quot;</span>&gt;</span>选择文件<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-2 control-label&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;color-required&quot;</span>&gt;</span>*<span class="tag">&lt;/<span class="name">span</span>&gt;</span>配置人员：<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">name</span>=<span class="string">&quot;createBy.name&quot;</span> <span class="attr">required</span> <span class="attr">readonly</span> <span class="attr">class</span>=<span class="string">&quot;form-control&quot;</span> <span class="attr">value</span>=<span class="string">&quot;$&#123;fns:getUser().name&#125;&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-2 control-label&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;color-required&quot;</span>&gt;</span>*<span class="tag">&lt;/<span class="name">span</span>&gt;</span>配置时间：<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;text&quot;</span> <span class="attr">name</span>=<span class="string">&quot;createDate&quot;</span> <span class="attr">required</span> <span class="attr">readonly</span> <span class="attr">class</span>=<span class="string">&quot;form-control&quot;</span> <span class="attr">value</span>=<span class="string">&quot;$&#123;fns:getDate(&quot;</span><span class="attr">YYYY-MM-dd</span> <span class="attr">HH:mm:ss</span>&quot;)&#125;&quot;/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">label</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-2 control-label&quot;</span>&gt;</span><span class="tag">&lt;<span class="name">span</span> <span class="attr">class</span>=<span class="string">&quot;color-required&quot;</span>&gt;</span>*<span class="tag">&lt;/<span class="name">span</span>&gt;</span>前端显示<span class="tag">&lt;/<span class="name">label</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;radio&quot;</span> <span class="attr">name</span>=<span class="string">&quot;show&quot;</span> <span class="attr">value</span>=<span class="string">&quot;1&quot;</span>/&gt;</span>是<span class="symbol">&amp;nbsp;</span><span class="symbol">&amp;nbsp;</span><span class="symbol">&amp;nbsp;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">input</span> <span class="attr">type</span>=<span class="string">&quot;radio&quot;</span> <span class="attr">name</span>=<span class="string">&quot;show&quot;</span> <span class="attr">value</span>=<span class="string">&quot;0&quot;</span>/&gt;</span>否</span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;form-group&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">div</span> <span class="attr">class</span>=<span class="string">&quot;col-sm-offset-2 col-sm-10&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">button</span> <span class="attr">id</span>=<span class="string">&quot;thematicSubmit&quot;</span> <span class="attr">class</span>=<span class="string">&quot;btn btn-default&quot;</span>&gt;</span>提交<span class="tag">&lt;/<span class="name">button</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">div</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">form</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%B8%E7%94%A8/" rel="tag">常用</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/20/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/22/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/20/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/19/">19</a><a class="page-number" href="/page/20/">20</a><span class="page-number current">21</span><a class="page-number" href="/page/22/">22</a><a class="page-number" href="/page/23/">23</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/22/">下一页</a>
   </nav>
   
 </section>

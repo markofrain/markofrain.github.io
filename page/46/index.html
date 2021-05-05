@@ -78,6 +78,237 @@
     
     
     
+    <article id="post-Oracle/Oracle数据类型" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/02/Oracle/Oracle%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/"
+    >Oracle数据类型</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/02/Oracle/Oracle%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" class="article-date">
+  <time datetime="2018-06-02T02:14:34.000Z" itemprop="datePublished">2018-06-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="常用数据类型"><a href="#常用数据类型" class="headerlink" title="常用数据类型"></a>常用数据类型</h3><h4 id="字符类型"><a href="#字符类型" class="headerlink" title="字符类型"></a>字符类型</h4><p>常用的字符类型有char、nchar、varchar2、nvarchar2和long五种，它们在数据库中是以ASCII码的格式存储。</p>
+<p>数据类型</p>
+<p>取值范围</p>
+<p>说明</p>
+<p>char</p>
+<p>1~2000</p>
+<p>存储定长的字符型数据</p>
+<p>nchar</p>
+<p>1~1000</p>
+<p>存储Unicode字符集的定长字符型数据</p>
+<p>varchar2</p>
+<p>1~4000</p>
+<p>存储变长度的字符串</p>
+<p>nvarchar2</p>
+<p>1~2000</p>
+<p>用来存储Unicode字符集的变长字符型数据</p>
+<p>long</p>
+<p>不大于2GB</p>
+<p>用来存储变长的字符串</p>
+<p><strong>说明：</strong>很少使用long类型，大部分都通过clob类型代替，clob类型比long类型的限制要少。关于long类型的总结请<a target="_blank" rel="noopener" href="https://www.2cto.com/database/201006/50144.html">转到</a> <strong>什么是变长,定长?</strong> 1.存储定长的字符数据类型有char和nchar，变长字符数据类型有varchar2,nvarchar2. 2.定长是指如果定义的长度比存储的实际长度长，则剩余长度通过空格补充，而变长则不是，它的总长度为实际的长度。 3.通过length函数和lengthb函数获得字段的长度。length函数返回字符串长度，单位是字符，lengthb函数返回字符串长度，单位是字节。 例: <strong>name char(5)</strong>:长度为5，即可以<strong>存储五个英文字符</strong>,一个英文字符占一个字节，存储<strong>一个汉字和2个英文字符，汉字占用3个字节</strong></p>
+<ul>
+<li>假设插入值为’abc’和’中’,则length(name),两值分别为5和3,lengthb(name),两值分别为5和5。为何?</li>
+<li>我们已经知道length返回字符常，lengthb返回字节长度。那么’abc’是三个字符，但因定长原因，补空格2个到长度5，所以字符为5个，字节也是5个。</li>
+<li>而’中’,为1个字符，占用3个字节,因定长补2个空格到长度5，所以，字符变成了3，字节为3+2为5。</li>
+</ul>
+<p><strong>注意:</strong></p>
+<blockquote>
+<p>1.当你执行程序时，可能会疑惑’中’字符为何length(name)还是为3，难道没有补空格吗?不是，实际上就是补了2个空格加上原来的一个字符，注意不要把字符和字节搞混。 2.所以如果有中文，那么Length() != Lengthb() 3.如果没有中文，那么Length() == Lengthb()</p>
+</blockquote>
+<p><strong>name nchar(5):存储Unicode字符,英文和中文都占1个字符，都占2个字节</strong></p>
+<ul>
+<li>依然以’abc’和’中’为例,首先都得补空格，所以length都占5个字符。</li>
+<li>而lengthb，因为补满空格，每个字符占两个字节，所以都是10和10个字节。</li>
+</ul>
+<p><strong>varchar2(5):中文占3个字节,可存储1个汉字2个英文字符或最多5个英文字符</strong>(与char存储相同,但却是变长)</p>
+<ul>
+<li>因为是变长数据类型，所以不会补空格，所以length函数的得到的值为’abc’:<strong>3</strong>和’中’:<strong>1</strong>。</li>
+<li>而lengthb，非unicode字符集，它跟char一样汉字占用3个字节，所以就是3和3.</li>
+</ul>
+<p><strong>nvarchar2(5):存储Unicode字符,可存储5个英文数字或5个汉字,(跟nchar存储相同，但却是变长)</strong></p>
+<ul>
+<li>存储Unicode字符集，所以length返回的字符，’abc’是3，’中’是1。</li>
+<li>lengthb返回字节，因字母和汉字都占2个字节，所以分别为6和2。</li>
+</ul>
+<p>你只需记住加粗体，占用的字节即可，对于length和lengthb返回的值可以通过两个函数来测试。 <strong>字符与字节的区别?</strong></p>
+<ul>
+<li>字节(Byte)是一种计量单位，是数据存储最小单位，用于计算机存储容量的计量单位。</li>
+<li>字符指计算机使用的文本和字符，如:1,2,3,a,b,c,+,-,),(中，国 等等</li>
+<li>通过解释意思，两者并没关联，只不过在不同的编码格式中对应关系不同</li>
+<li>UTF-8中一个英文字符为1个字节，一个中文为3个字节</li>
+<li>Unicode编码中，英文和汉字都占用2个字节</li>
+<li>ASCII码中，英文占用一个字节，汉字占用2个字节</li>
+</ul>
+<h4 id="数字类型"><a href="#数字类型" class="headerlink" title="数字类型"></a>数字类型</h4><p>常用的数字类型有number和float两种，用来表示整数小数。</p>
+<p>数据类型</p>
+<p>说明</p>
+<p>number(p,s)</p>
+<p>p最大精度是38位(十进制) p为精度，表示数字的有效位数,在1-38之间,s代表保留的小数位数。用来存储定长的整数和小数。</p>
+<p>float(n)</p>
+<p>n 指示位的精度，可以存储的值的数目。N 值的范围可以从 1 到 126。若要从二进制转换为十进制的精度，请将 n 乘以 0.30103。要从十进制转换为二进制的精度，请用 3.32193 乘小数精度</p>
+<p>FLOAT类型是NUMBER的子类型，如果不太理解float类型，我们都可以使用NUMBER类型代替。 <strong>NUMBER(p,s)</strong> p指的是整个数字的整数部分+小数部分的长度(不含小数点),而s指的是小数的位数。<strong>小数长度不足补0，超过则四舍五入。</strong> 示例:</p>
+<pre><code>price number(6,3)  //表示精度为6，小数位数为3
+23.235  //总精度不超过6，小数不超过3，正确
+4.1234  //小数位数大于4，s为后面的数字四舍五入，4舍去，插入4.123正确
+856.1562 //虽然总长度大于6，但需先经过小数的四舍五入，计算后为6，正确
+1200.23  //小数不足3位，补0，而加上整数部分超过长度，所以总共是7，错误
+1230.123  //明显错误，不需四舍五入，总精度超过6，错误</code></pre><h4 id="日期类型"><a href="#日期类型" class="headerlink" title="日期类型"></a>日期类型</h4><p>常用的数据类型有DATE和TIMESTAMP。</p>
+<p>数据类型</p>
+<p>说明</p>
+<p>DATE</p>
+<p>存储日期和时间数据，使用7字节固定长度，每字节分别存储世纪，年月日时分秒。值为公元前4712年1月1日到公元9999年12月31日。SYSDATE函数是返回当前的日期和时间</p>
+<p>TIMESTAMP</p>
+<p>存储日期的年月日以及时分秒，秒值精确到小数点后6位，同时包含时区时间。SYSTIMESTAMP函数返回当前日期，时间和时区</p>
+<p><strong>DATE类型</strong> 存储在数据库中是2018/6/2 11:11:20这种方式存储并显示的，不是-连接,但如果你想使用-连接进行插入，使用to_date(val,fmt)函数。 示例:</p>
+<pre><code>insert into c1(today) values(sysdate)
+insert into c1(today) values(to_date(&apos;2018-12-12&apos;,&apos;yyyy-mm-dd&apos;))
+insert into c1(today) values(to_date(&apos;2018-12-12 12:15:58&apos;,&apos;yyyy-mm-dd hh24:mi:ss&apos;))</code></pre><p><strong>TIMESTAMP类型</strong> 更加的精确，精确到秒，而且具有时区,显示上下午。</p>
+<pre><code>insert into c1(times) values(systimestamp)
+insert into c1(times) values(TO_TIMESTAMP(&apos;2018-12-01 12:12:09.123456&apos;, &apos;YYYY-MM-DD HH24:MI:SS.FF&apos;));</code></pre><p>通常你要查询时转换，可以通过Java的Date类型进行转换。</p>
+<h4 id="大数据量类型"><a href="#大数据量类型" class="headerlink" title="大数据量类型"></a>大数据量类型</h4><p>数据类型</p>
+<p>说明</p>
+<p>BLOB</p>
+<p>存储二进制数据，视频，图片，最多4GB</p>
+<p>CLOB</p>
+<p>存储大量字符串数据，新闻，文章,最多4GB</p>
+<p>NCLOB</p>
+<p>存储大的NCHAR数据，同时支持固定宽度和可变宽度字符(Unicode)</p>
+<p>BFILE</p>
+<p>将二进制文件存储在数据库外部的操作系统文件中。BFILE列存储一个BFILE定位器，指向位于服务器文件系统上的二进制文件。支持文件最大为4GB</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/数据库介绍——三大范式，数据操作语言" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BB%8B%E7%BB%8D%E2%80%94%E2%80%94%E4%B8%89%E5%A4%A7%E8%8C%83%E5%BC%8F%EF%BC%8C%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80/"
+    >数据库介绍——三大范式，数据操作语言</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BB%8B%E7%BB%8D%E2%80%94%E2%80%94%E4%B8%89%E5%A4%A7%E8%8C%83%E5%BC%8F%EF%BC%8C%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80/" class="article-date">
+  <time datetime="2018-06-01T13:39:49.000Z" itemprop="datePublished">2018-06-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="数据库简介"><a href="#数据库简介" class="headerlink" title="数据库简介"></a>数据库简介</h3><h4 id="数据库三大范式"><a href="#数据库三大范式" class="headerlink" title="数据库三大范式"></a>数据库三大范式</h4><p><strong>1.第一范式——数据表中的字段都是单一属性，不可再分</strong> 例如一个产品，你需要描述它的编号，单价，数量，名称等，那么这一个个信息是不能再查分的，例如单价属性就不能再拆分，还能拆成什么，整数和小数吗，那就没有意义了。 <strong>2.第二范式——在满足1NF基础上，表中必须有一个主键，且除主键外的每一列都必须完全依赖于主键。要求每个表只描述一件事</strong> 像是产品和订单，本应该是两个表，如果订单编号，产品编号，订购日期和单价在一张表里，订购日期可能依赖于订单编号，而与单价无关。所以不依赖，并不适合在一张表里，应该分开在两个表中。 <strong>3.第三范式——在满足2NF的基础上，消除非主键字段对任意候选键的传递依赖</strong> 例如员工表中，员工的编号，名称，年龄，所在部门，部门电话。员工编号作为员工信息的主键，那么就决定了后面的这些信息。<strong>员工编号决定了所在的部门，而部门又决定了部门电话，就是说部门电话依赖了所在部门</strong>。存在一种传递的关系，称之为传递函数依赖。所以根据这种情况，需要将所在部门和部门电话单独分开出来。 4.另外还有BC范式，鲍依斯-科得范式BCNF。满足3NF基础上，不存在任何字段对任意候选关键字段的传递函数依赖。 <strong>解释一下关键字,主关键字，候选关键字:</strong> 1.某个字段或多个字段的值可以唯一的标识一条记录，则该字段或字段组称关键字。 2.如果一个关键字是用以<strong>标识每条记录的唯一性，并作为该表与其他表实现关联之用</strong>，则称其为主关键字(简称主键)。 3.除主关键字以外的其他关键字称为候选关键字。 4.如id name IDCard都可以是关键字，而id为主关键字，name，IDCard就是候选关键字。</p>
+<h4 id="数据库操作语言种类"><a href="#数据库操作语言种类" class="headerlink" title="数据库操作语言种类"></a>数据库操作语言种类</h4><p><strong>1.数据库定义语言(DDL)</strong> 定义数据库中数据如何存储，包括数据库中对象的创建、修改、删除操作，这些对象主要有数据库、数据表、视图、索引等。简单的来说就是定义，创建数据库，删除数据库，创建索引，删除索引的语句，如CREATE,DROP等。 <strong>2.数据操纵语言(DML)</strong> 对数据库表进行操作，主要包括对数据库表中的数据进行增删改的操作，也就是INSERT,DELETE,UPDATE。 <strong>3.数据查询语言(DQL)</strong> 对数据库表进行查询的，既可以单表查询，也可以多表查询，同时按不同条件检索数据。 <strong>4.数据控制语言(DCL)</strong> 对数据库中的对象权限进行权限设置和取消等操作，但只有数据库管理员这个角色才有权限对象数据库对象的权限进行操作。为数据库中不同的用户设置不同的权限，提高数据库的安全性。 如果关于这些操作语言不太懂，可以先看后面的，等清楚一些语句之后就能知道了。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/vue-router路由" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -718,317 +949,13 @@ this.emp.salary=8000;</code></pre><p>单击按钮，发现salarys从6000变成�
 
 </article>
     
-    <article id="post-Vue/Vue2.0组件1" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E7%BB%84%E4%BB%B61/"
-    >Vue2.0组件1</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%E7%BB%84%E4%BB%B61/" class="article-date">
-  <time datetime="2018-05-28T14:29:42.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>组件 (Component) 是 Vue.js 最强大的功能之一。组件可以扩展 HTML 元素，封装可重用的代码。 组件是自定义元素，Vue.js 的编译器为它添加特殊功能。</p>
-<h2 id="使用组件"><a href="#使用组件" class="headerlink" title="## 使用组件"></a>## 使用组件</h2><h3 id="组件的注册与使用"><a href="#组件的注册与使用" class="headerlink" title="组件的注册与使用"></a>组件的注册与使用</h3><h4 id="全局注册"><a href="#全局注册" class="headerlink" title="全局注册"></a>全局注册</h4><p>我们需要通过一个全局的API来构造。 <strong>Vue.extend(options)</strong> <strong>用法:</strong>使用基础 Vue 构造器，创建一个“子类”。参数是一个包含组件选项的对象。 同时还需要一个API通过这个构造器来注册组件，之后才能使用。 <strong>Vue.component(id, [definition])</strong> <strong>用法:</strong>注册或获取全局组件。注册还会自动使用给定的id设置组件的名称。注意:他仅仅是个构造器而已。 <strong>示例:</strong></p>
-<pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;my-global&gt;&lt;/my-global&gt;
-&lt;/div&gt;
-
-var myComponent = Vue.extend(&#123;
-    template:&apos;&lt;div&gt;&lt;h2&gt;This is the use of a global component&lt;/h2&gt;&lt;/div&gt;&apos;
-&#125;);
-Vue.component(&apos;my-global&apos;,myComponent);</code></pre><p>通过测试后，我们发现最终被渲染为:</p>
-<pre><code>&lt;div&gt;
-    &lt;h2&gt;This is the use of a global component&lt;/h2&gt;
-&lt;/div&gt;</code></pre><p><my-global></my-global>就可以使用组件。 template属性就是模板，该组件将被渲染后代替。 你可以写两个标签</p>
-<pre><code>&lt;my-global&gt;&lt;/my-global&gt;
-&lt;my-global&gt;&lt;/my-global&gt;</code></pre><p><strong>但是注意:</strong>这两个组件是相互独立的，虽然是通过各构造器注册的，但各自独立，局部的注册也是一样的。 这样写，又定义构造器，又注册，再使用，未免有些麻烦，也不常用。可以简短点写。</p>
-<pre><code>//我们是直接可以这样写的，也是全局注册最常用的方式
-Vue.component(&apos;my-global&apos;,&#123;
-    template:&apos;&lt;div&gt;&lt;h2&gt;This is the use of a global component&lt;/h2&gt;&lt;/div&gt;&apos;
-&#125;);</code></pre><h4 id="局部注册"><a href="#局部注册" class="headerlink" title="局部注册"></a>局部注册</h4><p>即在某个Vue实例中通过components选项中注册。 <strong>示例:</strong></p>
-<pre><code>data:&#123;
-    msg:&apos;Hello Vue2.0&apos;
-&#125;,
-components:&#123;
-    &apos;my-local&apos;:&#123;
-        data:function()&#123;
-            return &#123;
-                msg:&apos;Hello Vue2.0---Local&apos;
-            &#125;
-        &#125;,
-        template:&apos;&lt;div&gt;&lt;h2&gt;&#123; &#123;msg&#125;&#125;&lt;/h2&gt;&lt;/div&gt;&apos;
-    &#125;
-&#125;</code></pre><p>好了，这就是局部的注册，我们这里在template属性里使用了模板语法{ {}}，而不过要在子组件中使用模板的到属性值得话，就必须使用子组件自己的data，虽然是子组件，但也不能直接使用父组件的data。需要定义data，注意，<strong>组件的data必须是一个函数</strong>，属性由函数返回，多个属性使用对象{}的方式。</p>
-<blockquote>
-<p>官方原话：构造 Vue 实例时传入的各种选项大多数都可以在组件里使用。只有一个例外：data 必须是函数 如果这么做，那么 Vue 会停止运行，并在控制台发出警告，告诉你在组件实例中 data 必须是一个函数</p>
-</blockquote>
-<p>所以此时，打印的语句为Hello Vue2.0—Local。 如果有Vue的开发工具插件vue-devtools，我们就可以看到。 <img src="http://i2.51cto.com/images/blog/201804/21/aeebe30bf0af8d5604e740fc9b253266.png?x-oss-process=image/watermark,size_16,text_QDUxQ1RP5Y2a5a6i,color_FFFFFF,t_100,g_se,x_10,y_10,shadow_90,type_ZmFuZ3poZW5naGVpdGk=" alt="vue-devtools工具查看到组件图"> 应官方的要求，这个id，即组件定义的这个标签名不强制遵循 W3C 规则 (小写，并且包含一个短杠)。但是在vue-devtool中就被改成这种名字了，驼峰命名法吧。当然我们可以定义name属性，它是通过name属性来显示的，默认的值就是id变成驼峰，我们可以自己写name。依然是没问题的。</p>
-<h4 id="引用模板"><a href="#引用模板" class="headerlink" title="引用模板"></a>引用模板</h4><p>如果我们的template属性中的内容太多，未免会造成麻烦，不仅影响美感，还容易出错，所以我们通过template标签定义引用。</p>
-<pre><code>//挂载元素div外定义的模板
-&lt;template id=&quot;templ&quot;&gt;
-    &lt;ul&gt;
-        &lt;li v-for=&quot;(val,key) in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
-    &lt;/ul&gt;
-&lt;/template&gt;
-components:&#123;
-    &apos;my-local&apos;:&#123;
-        name:&apos;MyLocal2&apos;,
-        data:function()&#123;
-            return &#123;
-                msg:&apos;Hello Vue2.0---Local&apos;,
-                arr:[&apos;what&apos;,&apos;are&apos;,&apos;you&apos;,&apos;doing&apos;]
-            &#125;
-        &#125;,
-        template:&apos;#templ&apos;
-    &#125;
-&#125;</code></pre><p>我们在挂载元素div外定义模板元素template，然后添加一个id元素，在子组件template属性中，通过’#templ’对其引用。 然而有一中易错误现象，当在template元素中使用两个独立的标签时会出错。</p>
-<pre><code>&lt;template id=&quot;templ&quot;&gt;
-    &lt;ul&gt;
-        &lt;li v-for=&quot;(val,key) in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
-    &lt;/ul&gt;
-    &lt;p&gt;你好，你是谁&lt;/p&gt;&lt;!-- 或是&#123; &#123;msg&#125;&#125; --&gt;
-&lt;/template&gt;</code></pre><p>此时它会给你一个错误，这个错误主要说的就是，“<strong>模板中有且仅有一个根元素</strong>”,就是说要么你template标签中有一个ul，要么有一个p，你只能在template中有一个根元素，所以你需要做的是<strong>添加一个div标签在所有标签的最外层作为根元素</strong>。</p>
-<h4 id="DOM-模板解析注意事项"><a href="#DOM-模板解析注意事项" class="headerlink" title="DOM 模板解析注意事项"></a>DOM 模板解析注意事项</h4><p>这篇就不写了，看官网的<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/guide/components.html#DOM-%E6%A8%A1%E6%9D%BF%E8%A7%A3%E6%9E%90%E6%B3%A8%E6%84%8F%E4%BA%8B%E9%A1%B9">DOM 模板解析注意事项</a>来详细看，最后的要求就是说<strong>尽可能使用字符串模板。</strong></p>
-<h3 id="动态组件的渲染"><a href="#动态组件的渲染" class="headerlink" title="动态组件的渲染"></a>动态组件的渲染</h3><p>有时候你可能由于一个if判断，根据数据该选择到底显示渲染哪个组件。此时就需要动态渲染。 动态渲染需要使用到内置的组件<strong>component</strong>，如果可能的话还有<strong>keep-alive</strong>。 component的作用就是<strong>渲染一个“元组件”为动态组件。依 is 的值，来决定哪个组件被渲染。</strong> 我们需要做的就是设置这个is的值，值得内容是什么，就显示名字叫什么组件。</p>
-<h4 id="component"><a href="#component" class="headerlink" title="component"></a>component</h4><p>示例:</p>
-<pre><code>//我们再定义一个子组件
-&apos;my-chen&apos;:&#123;
-    data:function()&#123;
-        return &#123;
-            msg:&apos;My name is Xiaoxiaochen Xiansen&apos;
-        &#125;
-    &#125;,
-    template:&apos;&lt;p&gt;&#123; &#123;msg&#125;&#125;&lt;/p&gt;&apos;
-&#125;
-//同时，为Vue实例添加一个currentView属性
-data:&#123;
-    currentView:&apos;my-local&apos;
-&#125;
-//Vue实例挂载处。:is就是v-bind:is的简写
-&lt;div id=&quot;app&quot;&gt;
-    &lt;component :is=&quot;currentView&quot;&gt;&lt;/component&gt;
-&lt;/div&gt;</code></pre><p>然后测试，默认显示的就是my-local组件的模板内容，通过按钮点击的方式改变currentView的值就可以动态的改变组件了。</p>
-<h4 id="keep-alive"><a href="#keep-alive" class="headerlink" title="keep-alive"></a>keep-alive</h4><p>如果你想把切换出去的组件保留在内存中，可以保留它的状态或避免重新渲染，那么你就可以使用<strong>keep-alive</strong>内置组件了。 <strong><keep-alive></strong>包裹动态组件时，会缓存不活动的组件实例，而不是销毁它们。 只需要把这个标签套在component标签的外边就好了。</p>
-<pre><code>&lt;keep-alive&gt;
-    &lt;component :is=&quot;currentView&quot;&gt;
-        &lt;!-- 非活动组件将被缓存！ --&gt;
-    &lt;/component&gt;
-&lt;/keep-alive&gt;</code></pre><p>2.它有两个属性可以设置“<strong>include</strong>”和“<strong>exclude</strong>”，值为字符串或正则表达式,只有匹配的组件才会被缓存或不缓存。 <strong>示例:</strong></p>
-<pre><code>&lt;!-- 逗号分隔字符串 --&gt;
-&lt;keep-alive include=&quot;a,b&quot;&gt;
-  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
-&lt;/keep-alive&gt;
-
-&lt;!-- 正则表达式 (使用 `v-bind`) --&gt;
-&lt;keep-alive :include=&quot;/a|b/&quot;&gt;
-  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
-&lt;/keep-alive&gt;
-
-&lt;!-- 数组 (使用 `v-bind`) --&gt;
-&lt;keep-alive :include=&quot;[&apos;a&apos;, &apos;b&apos;]&quot;&gt;
-  &lt;component :is=&quot;view&quot;&gt;&lt;/component&gt;
-&lt;/keep-alive&gt;</code></pre><p>匹配首先检查组件自身的 name 选项，如果 name 选项不可用，则匹配它的局部注册名称 (父组件 components 选项的键值)。匿名组件不能被匹配。</p>
-<blockquote>
-<p><keep-alive> 不会在函数式组件中正常工作，因为它们没有缓存实例。</p>
-</blockquote>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue2.0自定义指令" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4/"
-    >Vue2.0自定义指令</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%E8%87%AA%E5%AE%9A%E4%B9%89%E6%8C%87%E4%BB%A4/" class="article-date">
-  <time datetime="2018-05-28T14:26:37.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="自定义指令"><a href="#自定义指令" class="headerlink" title="自定义指令"></a>自定义指令</h3><p>自定义指令主要用于，除系统提供外，自己对DOM的底层操作。 例如当页面加载时需要将一个文本框为自动获得焦点。只要你在打开这个页面后还没点击过任何内容，这个输入框就应当还是处于聚焦状态。 我们通过全局自定义指令和局部自定义指令来讲解autofouce案例。</p>
-<h4 id="全局自定义指令"><a href="#全局自定义指令" class="headerlink" title="全局自定义指令"></a>全局自定义指令</h4><p>在全局API中通过<strong>Vue.directive( id, [definition] )</strong>来注册或获取全局指令。 <strong>参数:</strong></p>
-<ul>
-<li>id表示自定义的指令名称</li>
-<li>definition为自定义指令的定义，一般可以含有几个生命周期钩子函数</li>
-<li>bind() 指令第一次绑定到元素上时调用，且只调用一次，可执行初始化操作</li>
-<li>inserted() 被绑定元素插入到DOM时调用</li>
-<li>update() 被绑定元素所在模板更新时调用</li>
-<li>componentUpdated() 被绑定元素所在模板完成一次更新周期时调用</li>
-<li>unbind() 指令与元素解绑时调用，只调用一次</li>
-</ul>
-<blockquote>
-<p>bind与inserted在加载页面初始化实例并挂载之后调用 update，componentUpdated 当指令所绑定的元素模板更新时调用 unbind解绑时调用</p>
-</blockquote>
-<p><strong>语法:</strong></p>
-<pre><code>// 注册
-Vue.directive(&apos;my-directive&apos;, &#123;
-  bind: function () &#123;&#125;,
-  inserted: function () &#123;&#125;,
-  update: function () &#123;&#125;,
-  componentUpdated: function () &#123;&#125;,
-  unbind: function () &#123;&#125;
-&#125;)
-
-// 注册 (指令函数)
-Vue.directive(&apos;my-directive&apos;, function () &#123;
-  // 这里将会被 `bind` 和 `update` 调用
-&#125;)
-
-// getter，返回已注册的指令
-var myDirective = Vue.directive(&apos;my-directive&apos;)</code></pre><p><strong>示例:</strong></p>
-<pre><code>//el参数为绑定的元素，自动载入
-Vue.directive(&apos;focus&apos;,&#123;
-    inserted:function(el)&#123;
-        console.log(el);
-        el.focus();
-    &#125;
-&#125;);
-
-&lt;div id=&quot;app&quot;&gt;
-    &lt;input type=&quot;text&quot; v-focus&gt;
-&lt;/div&gt;</code></pre><p>2.当然，你也可以使用简单的指令函数。</p>
-<pre><code>// 注册 (指令函数)
-Vue.directive(&apos;my-directive&apos;, function () &#123;
-  // 这里将会被 `bind` 和 `update` 调用
-&#125;)</code></pre><p>3.我们可以在bind函数中为其添加两个参数，第一个是绑定的元素，第二个是当前自定义指令对象。</p>
-<pre><code>Vue.directive(&apos;focus&apos;,&#123;
-    bind(el,binding)&#123;
-        console.log(binding);
-    &#125;
-&#125;);</code></pre><h4 id="局部，实例的自定义指令"><a href="#局部，实例的自定义指令" class="headerlink" title="局部，实例的自定义指令"></a>局部，实例的自定义指令</h4><p>局部的自定义指令定义在<strong>directives选项</strong>中，所配置的数据与全局的完全一样。</p>
-<pre><code>directives:&#123;
-    focus:&#123;
-        inserted(el)&#123; //当被绑定元素插入到DOM的时候，进行自动获焦
-        el.focus();
-    &#125;
-&#125;</code></pre><p>focus即为指令名称，使用时直接，v-focus即可。</p>
-<blockquote>
-<p>el参数和binding参数，获得绑定元素与当前指令对象只有在bind函数绑定之后才能得到值。所以inserted，update也是可以的。</p>
-</blockquote>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/45/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/44/">44</a><a class="page-number" href="/page/45/">45</a><span class="page-number current">46</span><a class="page-number" href="/page/47/">47</a><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/47/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/45/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/44/">44</a><a class="page-number" href="/page/45/">45</a><span class="page-number current">46</span><a class="page-number" href="/page/47/">47</a><a class="page-number" href="/page/48/">48</a><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/47/">下一页</a>
   </nav>
   
 </section>

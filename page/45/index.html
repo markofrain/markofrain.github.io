@@ -78,6 +78,306 @@
     
     
     
+    <article id="post-Oracle/Oracle数据查询语言select" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/10/Oracle/Oracle%E6%95%B0%E6%8D%AE%E6%9F%A5%E8%AF%A2%E8%AF%AD%E8%A8%80select/"
+    >Oracle数据查询语言select</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/10/Oracle/Oracle%E6%95%B0%E6%8D%AE%E6%9F%A5%E8%AF%A2%E8%AF%AD%E8%A8%80select/" class="article-date">
+  <time datetime="2018-06-10T08:13:35.000Z" itemprop="datePublished">2018-06-10</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="数据查询语言"><a href="#数据查询语言" class="headerlink" title="数据查询语言"></a>数据查询语言</h3><p>SELECT数据查询，可以检索数据，由一系列字句组成，根据字句条件满足情况查询，按照复杂程度可分为简单查询、WHERE条件查询、多表查询、子查询等。</p>
+<blockquote>
+<p>注意：ORACLE中语句字母大小写无影响，字段均转换为大写。建议关键字大写。</p>
+</blockquote>
+<p><strong>语法结构:</strong></p>
+<pre><code>SELECT 
+    [DISTINCT|ALL]
+        select _list
+    FROM table_list
+    [where_clause]
+    [group_by_clause]
+    [HAVING condition]
+    [order_by_clause]</code></pre><p><strong>语法说明：</strong></p>
+<ul>
+<li>SELECT：查询关键字</li>
+<li>[DISTINCT|ALL]：字段数据中的数据是否去除重复记录</li>
+<li>select_list：需要查询的字段列表</li>
+<li>FROM：查询必须关键字，数据来源</li>
+<li>[where_clause]：查询的WHERE条件部分</li>
+<li>[group_by_clause]：GROUP BY 子语句部分</li>
+<li>[HAVING condition]：HAVING字句部分,排序后筛选</li>
+</ul>
+<h4 id="简单查询"><a href="#简单查询" class="headerlink" title="简单查询"></a>简单查询</h4><p><strong>1.指定字段查询</strong></p>
+<pre><code>SELECT productId,productName,productPrice FROM product;</code></pre><p>各字段使用逗号分割。 <strong>2.获得所有字段数据</strong></p>
+<pre><code>SELECT *  FROM product;</code></pre><p>使用星号省略所有字段，但这样做导致查询缓慢，在生产环境中并不建议使用。 <strong>3.使用别名代替字段</strong></p>
+<pre><code>SELECT productId as 产品编号,productName as 产品名称,productPrice as 产品价格 FROM product;</code></pre><p>别名一般使用在开发环境中，生产环境也不适用。 <strong>4.使用表达式操作字段</strong></p>
+<pre><code>SELECT productId,productName,productPrice || &apos;*&apos; || 1.25 || &apos;=&apos; || productPrice*1.25 as new_productPrice FROM PRODUCT;</code></pre><p>语句中有“||”表示字符连接符号和“<em>”符号表示算数乘号 *</em>5.使用函数操作查询字段**</p>
+<pre><code>SELECT count(*) FROM product;
+或
+SELECT count(0) FROM product;
+
+SELECT lengthb(productName) FROM product;</code></pre><p>count函数查询表中记录，lengthb获得字符串字节数。 <strong>6.去处检索数据中重复记录</strong></p>
+<pre><code>select distinct productName,productPrice from product;</code></pre><p>如果我再插入一条除主键外相同记录，那么此语句将根据distinct后的字段列进行去重,若查询出来有相同的，则以第一条为准。如果字段列有主键，那么永远不会重复。</p>
+<h4 id="WHERE条件查询"><a href="#WHERE条件查询" class="headerlink" title="WHERE条件查询"></a>WHERE条件查询</h4><p>WHERE字句用于条件筛选，对字段进行筛选,满足条件查询。 WHERE字句中可以使用的操作符有关系操作符、比较操作符、罗技操作符。 1) 关系操作符包括：&lt;、、&gt;=、=、!= 2) 比较操作符包括:</p>
+<ul>
+<li>IS NULL：操作数为NULL返回TRUE。</li>
+<li>LIKE：模糊匹配比较字符串。</li>
+<li>BETWEEN..AND…：在两值范围中。</li>
+<li>IN：验证操作数在一系列值中。</li>
+</ul>
+<p>3) 逻辑操作符:</p>
+<ul>
+<li>AND：并且，两个条件都满足</li>
+<li>OR：或者</li>
+<li>NOT：某个逻辑值取反</li>
+</ul>
+<p><strong>1.单一条件查询</strong></p>
+<pre><code>SELECT * FROM product WHERE productPrice&gt;10;
+SELECT * FROM product WHERE productName != &apos;晨光签字笔&apos;</code></pre><p>通过比较运算符，比较,字符要用引号引起来。 <strong>2.多条件查询</strong></p>
+<pre><code>SELECT * FROM product WHERE productId&gt;2 AND productWeight IS NULL;
+
+SELECT * FROM product WHERE productId&gt;2 OR productWeight&gt;10;
+
+SELECT * FROM product WHERE NOT productWeight&lt;10;
+
+SELECT * FROM product WHERE NOT productWeight IS NULL;
+
+SELECT * FROM product WHERE productPrice BETWEEN 10 AND 50;</code></pre><p><strong>3.LIKE模糊匹配查询</strong></p>
+<ul>
+<li><p>_：可以代替一个字符</p>
+</li>
+<li><p>%：可以代替多个字符</p>
+<p>SELECT *  FROM product WHERE productName LIKE ‘晨光%’;</p>
+<p>SELECT  * FROM product WHERE productName LIKE ‘_光%笔’;</p>
+</li>
+</ul>
+<p><strong>4.限制条件在某范围内</strong></p>
+<pre><code>SELECT *  FROM product WHERE productId IN (1,3,4);</code></pre><p>它将筛选出productId为1,3,4的记录,<strong>一般IN用于子查询中</strong>，而且括号中的值一般都为主键值。</p>
+<h4 id="分组查询"><a href="#分组查询" class="headerlink" title="分组查询"></a>分组查询</h4><h5 id="聚合函数"><a href="#聚合函数" class="headerlink" title="聚合函数"></a>聚合函数</h5><ul>
+<li><p>AVG(column)：列所有值的平均数</p>
+</li>
+<li><p>SUM(column)：列所有值的总和</p>
+</li>
+<li><p>MAX(column)：列所有值中的最大值</p>
+</li>
+<li><p>MIN(column)：列所有值的中的最小值</p>
+<p>SELECT AVG(productPrice),SUM(productPrice),MAX(productPrice),MIN(productPrice) FROM product;</p>
+</li>
+</ul>
+<p>GROUP BY子句用于分组，HAVING子句用于分组后的筛选。 <strong>笔记:</strong></p>
+<ul>
+<li><p>聚合函数只能出现在查询列表、HAVING、ORDER BY 子句中(不能出现在WHERE子句中)。</p>
+</li>
+<li><p>如果再SELECT语句中关键字排序为GROUP BY,HAVING、ORDER BY、LIMIT</p>
+</li>
+<li><p>在查询列表中如果有列、表达式、聚合函数，那么这些列和表达式必须出现在GROUP BY子句中，否则出错</p>
+<p>SELECT SUM(productPrice),productName FROM product GROUP BY productName;</p>
+</li>
+</ul>
+<p>按产品名称分组，获得该分组每个Name值对应价格的和。如果查询列表出现productName则GROUP BY中必须有productName，如果查询列表没有，那么GROUP BY子句中也可以有。 当然GROUP BY子句中可以有多个列名。 <strong>HAVING子句放在GROUP BY后面，用于WHERE之后分组完再次筛选，与WHERE用法一致</strong></p>
+<pre><code>SELECT SUM(productPrice),productName FROM product GROUP BY productName HAVING SUM(productPrice)&gt;30;</code></pre><h4 id="检索结果排序"><a href="#检索结果排序" class="headerlink" title="检索结果排序"></a>检索结果排序</h4><p>ORDER BY子句用于排序操作,字段名后跟排序方式，ASC表示升序，DESC表示降序</p>
+<pre><code>SELECT *  FROM product ORDER BY productPrice;
+
+SELECT SUM(productPrice),productName FROM product GROUP BY productName ORDER BY SUM(productPrice) DESC;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle数据定义语言，数据操作语言" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/05/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80%EF%BC%8C%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80/"
+    >Oracle数据定义语言，数据操作语言</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/05/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80%EF%BC%8C%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80/" class="article-date">
+  <time datetime="2018-06-05T14:23:19.000Z" itemprop="datePublished">2018-06-05</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="数据定义语言数据库表的创建"><a href="#数据定义语言数据库表的创建" class="headerlink" title="数据定义语言数据库表的创建"></a>数据定义语言数据库表的创建</h3><p>前面已经有简单的了解数据定义语言，那么直接切入正题。 在创建表之前，先说一下。数据库的问题。 与MySQL数据库不一样，mysql可以创建多个数据库，而Oracle只有一个数据库orcl，它通过用户来操作，每个用户访问到的数据是不一样的。你需要创建用户，创建并分配表空间，赋予权限。并登陆创建的用户来操作。在后面讲，他与sql操作无关，可跳过学习。</p>
+<h4 id="创建表"><a href="#创建表" class="headerlink" title="创建表"></a>创建表</h4><p><strong>创建语法:</strong></p>
+<pre><code>CREATE TABLE table_name
+(
+column_name datatype [null|not null],
+column_name datatype [null|not null],
+...
+[constraint]
+)</code></pre><p><strong>语法说明:</strong></p>
+<ul>
+<li>table_name：数据表名称，在同一数据库中数据表名是不能重复的</li>
+<li>column_name:列名，或字段名，在一个表中不能重复</li>
+<li>datatype:数据类型，上节课说的</li>
+<li>[null | not null]:表明该列是否为空或者不为空</li>
+<li>[constraint]:设置表中列的约束，主要包括主键约束、外键约束、检查约束等。</li>
+</ul>
+<p>示例:</p>
+<pre><code>CREATE TABLE product
+(
+productId number(4) not null,
+productName nvarchar2(20),
+productPrice number(10,2),
+CONSTRAINT pk_product primary key(productId)
+)</code></pre><p>语法已经说了，约束上章已经讲了，代码就不解释了。</p>
+<h4 id="删除表"><a href="#删除表" class="headerlink" title="删除表"></a>删除表</h4><p>示例：</p>
+<pre><code>DROP TABLE table_name;</code></pre><p>删除整张表，删除后将无法使用。</p>
+<h4 id="ALTER-语句修改表"><a href="#ALTER-语句修改表" class="headerlink" title="ALTER 语句修改表"></a>ALTER 语句修改表</h4><p>如果想更改表的属性或是列，可使用LATER TABLE语句 <strong>语法:</strong></p>
+<pre><code>ALTER TABLE table_name 
+ADD column_name | MODIFY column_name | DROP COLUMN column_name</code></pre><p><strong>语法说明:</strong></p>
+<ul>
+<li>ADD:用于向表中添加列</li>
+<li>MODIFY:用来修改表中已存在的信息</li>
+<li>DOP COLUMN:删除表中的列删除列时有时要加上<strong>CASCADE CONSTRAINTS</strong>,把该列有关的约束一并删掉。</li>
+</ul>
+<p><strong>示例:</strong></p>
+<pre><code>//假如还是上面创建的product表,要为其添加productWeight重量字段
+ALTER TABLE product ADD productWeight number(6,2);
+
+//修改productName的数据类型为varchar2(40),查看数据类型是否修改看下一个代码块
+ALTER TABLE product MODIFY productName varchar2(40);
+
+//删除列productWeight字段
+ALTER TABLE product DROP COLUMN productWeight;
+
+//更改列名,productName改为productN
+ALTER TABLE product RENAME COLUMN productName to productN;</code></pre><p>通常删除列字段可能会到你没有权限,无法删除属于sys的表中的列</p>
+<pre><code>//查看表数据结构
+SELECT table_name, column_name, data_type, char_length
+  FROM all_tab_cols
+ WHERE table_name = &apos;PRODUCT&apos; ;</code></pre><p>这是表的特性的增删改字段操作，而通过ALTER TABLE添加约束，上个文章中也是说了的。</p>
+<h3 id="数据操作语言"><a href="#数据操作语言" class="headerlink" title="数据操作语言"></a>数据操作语言</h3><h4 id="INSERT语句"><a href="#INSERT语句" class="headerlink" title="INSERT语句"></a>INSERT语句</h4><p>INSERT语句是对表数据的新增操作. <strong>语法:</strong></p>
+<pre><code>INSERT INTO table_name(column1，column2，column3...) VALUES(val1,val2,val3...);</code></pre><p>如果你要插入整个列的字段,那么不必写列名了</p>
+<pre><code>INSERT INTO table_name VALUES(val1,val2,val3...);</code></pre><p>当然如果主键是自增的,那就不需要添加主键列了，但是需要为主键列设置序列(后面讲)。 <strong>示例:</strong></p>
+<pre><code>INSERT INTO product(PRODUCTID,PRODUCTNAME,PRODUCTPRICE,PRODUCTWEIGHT) VALUES(1,&apos;晨光笔&apos;,12,20);
+INSERT INTO product VALUES(2,&apos;怡宝矿泉水&apos;,4,1500);</code></pre><h4 id="DELETE语句"><a href="#DELETE语句" class="headerlink" title="DELETE语句"></a>DELETE语句</h4><p>DELETE语句用于表数据的删除，根据条件进行删除，一般通过获得主键值删除。 <strong>语法:</strong></p>
+<pre><code>DELETE FROM table_name WHERE condition</code></pre><p><strong>示例:</strong></p>
+<pre><code>DELETE FROM product WHERE productId=1;
+DELETE FROM product WHERE productName=&apos;怡宝矿泉水&apos;;</code></pre><p>WHERE条件后可以添加任何条件。 如果你想删除整个表格数据，而不删除表结构，可使用如下语句</p>
+<pre><code>TRUNCATE TABLE table_name;</code></pre><p><strong>区别:</strong></p>
+<ul>
+<li>DELETE：删除表数据会记录日志，相对比较慢,commit前是可以回滚恢复的</li>
+<li>TRUNCATE：不记录日志，永久删除，数据不能恢复，速度快，但不会删除表结构</li>
+<li>DROP TABLE：直接删除整个表，不可恢复</li>
+</ul>
+<h3 id="UPDATE-语句"><a href="#UPDATE-语句" class="headerlink" title="UPDATE 语句"></a>UPDATE 语句</h3><p>进行数据更改的操作 <strong>语法:</strong></p>
+<pre><code>UPDATE  table_name SET column1=val1[,column2=val2....] WHERE [condition]</code></pre><p><strong>示例:</strong></p>
+<pre><code>UPDATE product SET productWeight=550,productName=&apos;康师傅小瓶矿泉水&apos; WHERE productId= 2;</code></pre><p>一般更改条件根据主键获得，而一般不会更改主键，因为这会导致不好的情况。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle约束类型主键,外键,唯一约束" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -367,244 +667,13 @@ ALTER TABLE  dept MODIFY name NULL;</code></pre>
 
 </article>
     
-    <article id="post-Oracle/Oracle数据类型" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/02/Oracle/Oracle%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/"
-    >Oracle数据类型</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/02/Oracle/Oracle%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/" class="article-date">
-  <time datetime="2018-06-02T02:14:34.000Z" itemprop="datePublished">2018-06-02</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="常用数据类型"><a href="#常用数据类型" class="headerlink" title="常用数据类型"></a>常用数据类型</h3><h4 id="字符类型"><a href="#字符类型" class="headerlink" title="字符类型"></a>字符类型</h4><p>常用的字符类型有char、nchar、varchar2、nvarchar2和long五种，它们在数据库中是以ASCII码的格式存储。</p>
-<p>数据类型</p>
-<p>取值范围</p>
-<p>说明</p>
-<p>char</p>
-<p>1~2000</p>
-<p>存储定长的字符型数据</p>
-<p>nchar</p>
-<p>1~1000</p>
-<p>存储Unicode字符集的定长字符型数据</p>
-<p>varchar2</p>
-<p>1~4000</p>
-<p>存储变长度的字符串</p>
-<p>nvarchar2</p>
-<p>1~2000</p>
-<p>用来存储Unicode字符集的变长字符型数据</p>
-<p>long</p>
-<p>不大于2GB</p>
-<p>用来存储变长的字符串</p>
-<p><strong>说明：</strong>很少使用long类型，大部分都通过clob类型代替，clob类型比long类型的限制要少。关于long类型的总结请<a target="_blank" rel="noopener" href="https://www.2cto.com/database/201006/50144.html">转到</a> <strong>什么是变长,定长?</strong> 1.存储定长的字符数据类型有char和nchar，变长字符数据类型有varchar2,nvarchar2. 2.定长是指如果定义的长度比存储的实际长度长，则剩余长度通过空格补充，而变长则不是，它的总长度为实际的长度。 3.通过length函数和lengthb函数获得字段的长度。length函数返回字符串长度，单位是字符，lengthb函数返回字符串长度，单位是字节。 例: <strong>name char(5)</strong>:长度为5，即可以<strong>存储五个英文字符</strong>,一个英文字符占一个字节，存储<strong>一个汉字和2个英文字符，汉字占用3个字节</strong></p>
-<ul>
-<li>假设插入值为’abc’和’中’,则length(name),两值分别为5和3,lengthb(name),两值分别为5和5。为何?</li>
-<li>我们已经知道length返回字符常，lengthb返回字节长度。那么’abc’是三个字符，但因定长原因，补空格2个到长度5，所以字符为5个，字节也是5个。</li>
-<li>而’中’,为1个字符，占用3个字节,因定长补2个空格到长度5，所以，字符变成了3，字节为3+2为5。</li>
-</ul>
-<p><strong>注意:</strong></p>
-<blockquote>
-<p>1.当你执行程序时，可能会疑惑’中’字符为何length(name)还是为3，难道没有补空格吗?不是，实际上就是补了2个空格加上原来的一个字符，注意不要把字符和字节搞混。 2.所以如果有中文，那么Length() != Lengthb() 3.如果没有中文，那么Length() == Lengthb()</p>
-</blockquote>
-<p><strong>name nchar(5):存储Unicode字符,英文和中文都占1个字符，都占2个字节</strong></p>
-<ul>
-<li>依然以’abc’和’中’为例,首先都得补空格，所以length都占5个字符。</li>
-<li>而lengthb，因为补满空格，每个字符占两个字节，所以都是10和10个字节。</li>
-</ul>
-<p><strong>varchar2(5):中文占3个字节,可存储1个汉字2个英文字符或最多5个英文字符</strong>(与char存储相同,但却是变长)</p>
-<ul>
-<li>因为是变长数据类型，所以不会补空格，所以length函数的得到的值为’abc’:<strong>3</strong>和’中’:<strong>1</strong>。</li>
-<li>而lengthb，非unicode字符集，它跟char一样汉字占用3个字节，所以就是3和3.</li>
-</ul>
-<p><strong>nvarchar2(5):存储Unicode字符,可存储5个英文数字或5个汉字,(跟nchar存储相同，但却是变长)</strong></p>
-<ul>
-<li>存储Unicode字符集，所以length返回的字符，’abc’是3，’中’是1。</li>
-<li>lengthb返回字节，因字母和汉字都占2个字节，所以分别为6和2。</li>
-</ul>
-<p>你只需记住加粗体，占用的字节即可，对于length和lengthb返回的值可以通过两个函数来测试。 <strong>字符与字节的区别?</strong></p>
-<ul>
-<li>字节(Byte)是一种计量单位，是数据存储最小单位，用于计算机存储容量的计量单位。</li>
-<li>字符指计算机使用的文本和字符，如:1,2,3,a,b,c,+,-,),(中，国 等等</li>
-<li>通过解释意思，两者并没关联，只不过在不同的编码格式中对应关系不同</li>
-<li>UTF-8中一个英文字符为1个字节，一个中文为3个字节</li>
-<li>Unicode编码中，英文和汉字都占用2个字节</li>
-<li>ASCII码中，英文占用一个字节，汉字占用2个字节</li>
-</ul>
-<h4 id="数字类型"><a href="#数字类型" class="headerlink" title="数字类型"></a>数字类型</h4><p>常用的数字类型有number和float两种，用来表示整数小数。</p>
-<p>数据类型</p>
-<p>说明</p>
-<p>number(p,s)</p>
-<p>p最大精度是38位(十进制) p为精度，表示数字的有效位数,在1-38之间,s代表保留的小数位数。用来存储定长的整数和小数。</p>
-<p>float(n)</p>
-<p>n 指示位的精度，可以存储的值的数目。N 值的范围可以从 1 到 126。若要从二进制转换为十进制的精度，请将 n 乘以 0.30103。要从十进制转换为二进制的精度，请用 3.32193 乘小数精度</p>
-<p>FLOAT类型是NUMBER的子类型，如果不太理解float类型，我们都可以使用NUMBER类型代替。 <strong>NUMBER(p,s)</strong> p指的是整个数字的整数部分+小数部分的长度(不含小数点),而s指的是小数的位数。<strong>小数长度不足补0，超过则四舍五入。</strong> 示例:</p>
-<pre><code>price number(6,3)  //表示精度为6，小数位数为3
-23.235  //总精度不超过6，小数不超过3，正确
-4.1234  //小数位数大于4，s为后面的数字四舍五入，4舍去，插入4.123正确
-856.1562 //虽然总长度大于6，但需先经过小数的四舍五入，计算后为6，正确
-1200.23  //小数不足3位，补0，而加上整数部分超过长度，所以总共是7，错误
-1230.123  //明显错误，不需四舍五入，总精度超过6，错误</code></pre><h4 id="日期类型"><a href="#日期类型" class="headerlink" title="日期类型"></a>日期类型</h4><p>常用的数据类型有DATE和TIMESTAMP。</p>
-<p>数据类型</p>
-<p>说明</p>
-<p>DATE</p>
-<p>存储日期和时间数据，使用7字节固定长度，每字节分别存储世纪，年月日时分秒。值为公元前4712年1月1日到公元9999年12月31日。SYSDATE函数是返回当前的日期和时间</p>
-<p>TIMESTAMP</p>
-<p>存储日期的年月日以及时分秒，秒值精确到小数点后6位，同时包含时区时间。SYSTIMESTAMP函数返回当前日期，时间和时区</p>
-<p><strong>DATE类型</strong> 存储在数据库中是2018/6/2 11:11:20这种方式存储并显示的，不是-连接,但如果你想使用-连接进行插入，使用to_date(val,fmt)函数。 示例:</p>
-<pre><code>insert into c1(today) values(sysdate)
-insert into c1(today) values(to_date(&apos;2018-12-12&apos;,&apos;yyyy-mm-dd&apos;))
-insert into c1(today) values(to_date(&apos;2018-12-12 12:15:58&apos;,&apos;yyyy-mm-dd hh24:mi:ss&apos;))</code></pre><p><strong>TIMESTAMP类型</strong> 更加的精确，精确到秒，而且具有时区,显示上下午。</p>
-<pre><code>insert into c1(times) values(systimestamp)
-insert into c1(times) values(TO_TIMESTAMP(&apos;2018-12-01 12:12:09.123456&apos;, &apos;YYYY-MM-DD HH24:MI:SS.FF&apos;));</code></pre><p>通常你要查询时转换，可以通过Java的Date类型进行转换。</p>
-<h4 id="大数据量类型"><a href="#大数据量类型" class="headerlink" title="大数据量类型"></a>大数据量类型</h4><p>数据类型</p>
-<p>说明</p>
-<p>BLOB</p>
-<p>存储二进制数据，视频，图片，最多4GB</p>
-<p>CLOB</p>
-<p>存储大量字符串数据，新闻，文章,最多4GB</p>
-<p>NCLOB</p>
-<p>存储大的NCHAR数据，同时支持固定宽度和可变宽度字符(Unicode)</p>
-<p>BFILE</p>
-<p>将二进制文件存储在数据库外部的操作系统文件中。BFILE列存储一个BFILE定位器，指向位于服务器文件系统上的二进制文件。支持文件最大为4GB</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/数据库介绍——三大范式，数据操作语言" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BB%8B%E7%BB%8D%E2%80%94%E2%80%94%E4%B8%89%E5%A4%A7%E8%8C%83%E5%BC%8F%EF%BC%8C%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80/"
-    >数据库介绍——三大范式，数据操作语言</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/01/Oracle/%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BB%8B%E7%BB%8D%E2%80%94%E2%80%94%E4%B8%89%E5%A4%A7%E8%8C%83%E5%BC%8F%EF%BC%8C%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80/" class="article-date">
-  <time datetime="2018-06-01T13:39:49.000Z" itemprop="datePublished">2018-06-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="数据库简介"><a href="#数据库简介" class="headerlink" title="数据库简介"></a>数据库简介</h3><h4 id="数据库三大范式"><a href="#数据库三大范式" class="headerlink" title="数据库三大范式"></a>数据库三大范式</h4><p><strong>1.第一范式——数据表中的字段都是单一属性，不可再分</strong> 例如一个产品，你需要描述它的编号，单价，数量，名称等，那么这一个个信息是不能再查分的，例如单价属性就不能再拆分，还能拆成什么，整数和小数吗，那就没有意义了。 <strong>2.第二范式——在满足1NF基础上，表中必须有一个主键，且除主键外的每一列都必须完全依赖于主键。要求每个表只描述一件事</strong> 像是产品和订单，本应该是两个表，如果订单编号，产品编号，订购日期和单价在一张表里，订购日期可能依赖于订单编号，而与单价无关。所以不依赖，并不适合在一张表里，应该分开在两个表中。 <strong>3.第三范式——在满足2NF的基础上，消除非主键字段对任意候选键的传递依赖</strong> 例如员工表中，员工的编号，名称，年龄，所在部门，部门电话。员工编号作为员工信息的主键，那么就决定了后面的这些信息。<strong>员工编号决定了所在的部门，而部门又决定了部门电话，就是说部门电话依赖了所在部门</strong>。存在一种传递的关系，称之为传递函数依赖。所以根据这种情况，需要将所在部门和部门电话单独分开出来。 4.另外还有BC范式，鲍依斯-科得范式BCNF。满足3NF基础上，不存在任何字段对任意候选关键字段的传递函数依赖。 <strong>解释一下关键字,主关键字，候选关键字:</strong> 1.某个字段或多个字段的值可以唯一的标识一条记录，则该字段或字段组称关键字。 2.如果一个关键字是用以<strong>标识每条记录的唯一性，并作为该表与其他表实现关联之用</strong>，则称其为主关键字(简称主键)。 3.除主关键字以外的其他关键字称为候选关键字。 4.如id name IDCard都可以是关键字，而id为主关键字，name，IDCard就是候选关键字。</p>
-<h4 id="数据库操作语言种类"><a href="#数据库操作语言种类" class="headerlink" title="数据库操作语言种类"></a>数据库操作语言种类</h4><p><strong>1.数据库定义语言(DDL)</strong> 定义数据库中数据如何存储，包括数据库中对象的创建、修改、删除操作，这些对象主要有数据库、数据表、视图、索引等。简单的来说就是定义，创建数据库，删除数据库，创建索引，删除索引的语句，如CREATE,DROP等。 <strong>2.数据操纵语言(DML)</strong> 对数据库表进行操作，主要包括对数据库表中的数据进行增删改的操作，也就是INSERT,DELETE,UPDATE。 <strong>3.数据查询语言(DQL)</strong> 对数据库表进行查询的，既可以单表查询，也可以多表查询，同时按不同条件检索数据。 <strong>4.数据控制语言(DCL)</strong> 对数据库中的对象权限进行权限设置和取消等操作，但只有数据库管理员这个角色才有权限对象数据库对象的权限进行操作。为数据库中不同的用户设置不同的权限，提高数据库的安全性。 如果关于这些操作语言不太懂，可以先看后面的，等清楚一些语句之后就能知道了。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/44/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/43/">43</a><a class="page-number" href="/page/44/">44</a><span class="page-number current">45</span><a class="page-number" href="/page/46/">46</a><a class="page-number" href="/page/47/">47</a><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/46/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/44/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/43/">43</a><a class="page-number" href="/page/44/">44</a><span class="page-number current">45</span><a class="page-number" href="/page/46/">46</a><a class="page-number" href="/page/47/">47</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/46/">下一页</a>
   </nav>
   
 </section>

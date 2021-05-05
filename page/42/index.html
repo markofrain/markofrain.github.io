@@ -78,6 +78,380 @@
     
     
     
+    <article id="post-开源/Jeesite开源项目SSM基础搭建——前端js插件技术" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E5%89%8D%E7%AB%AFjs%E6%8F%92%E4%BB%B6%E6%8A%80%E6%9C%AF/"
+    >Jeesite开源项目SSM基础搭建——前端js插件技术</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E5%89%8D%E7%AB%AFjs%E6%8F%92%E4%BB%B6%E6%8A%80%E6%9C%AF/" class="article-date">
+  <time datetime="2018-07-26T14:42:16.000Z" itemprop="datePublished">2018-07-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="项目技术综合学习文档"><a href="#项目技术综合学习文档" class="headerlink" title="项目技术综合学习文档"></a>项目技术综合学习文档</h1><p>包含前端技术: jsp自定义标签 Mustache模板库 treeTable树形表 jquery validate校验 pagination 分页 WdatePicker日期插件 jquery jbox通知插件 <strong>目录</strong> <a href="#a1">JS自定义标签</a><br>    <a href="#a2">自定义tld文件</a><br>    <a href="#a3">自定义tag文件</a><br><a href="#b1">Js Mustache模板引擎</a><br><a href="#c1">jQuery treeTable js</a><br><a href="#d1">jquery DateTimer jeDate时间控件</a><br><a href="#e1">jQuery validate校验框架</a><br>    <a href="#e2">默认标签校验规则</a><br>    <a href="#e3">js设置校验规则</a><br>    <a href="#e4">其他方法级问题</a>  </p>
+<h2 id="JSP自定义标签"><a href="#JSP自定义标签" class="headerlink" title="JSP自定义标签"></a>JSP自定义标签</h2><p>jsp自定义标签可以通过定义tld文件和tag文件来完成 tld是自定义方法标签，可以调用类的静态方法 tag是自定义控件标签，可自定义标签，定义标签属性添加</p>
+<h3 id="自定义tld文件"><a href="#自定义tld文件" class="headerlink" title="自定义tld文件"></a>自定义tld文件</h3><p>主要用于对java方法的静态都调用 引用示例: 对于自定义tld标签需要使用的依赖</p>
+<pre><code>&lt;dependency&gt;
+  &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+  &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
+  &lt;version&gt;4.0.1&lt;/version&gt;
+  &lt;scope&gt;provided&lt;/scope&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+  &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
+  &lt;artifactId&gt;jstl&lt;/artifactId&gt;
+  &lt;version&gt;1.2&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>tld文件内，主要是方法function，通过java类静态方法的定义和引用，在jsp中通过${}方式输出 例如: 则可以${stu:method(params)}的方式输出 tld文件的定义</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+
+&lt;taglib xmlns=&quot;http://java.sun.com/xml/ns/j2ee&quot;
+        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+        xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd&quot;
+        version=&quot;2.0&quot;&gt;
+
+    &lt;description&gt;JSTL 1.1 Global library&lt;/description&gt;
+    &lt;display-name&gt;JSTL Global&lt;/display-name&gt;
+    &lt;tlib-version&gt;1.1&lt;/tlib-version&gt;
+    &lt;short-name&gt;gbl&lt;/short-name&gt;
+    &lt;uri&gt;http://java.sun.com/jsp/jstl/stu&lt;/uri&gt;
+
+    &lt;function&gt;
+        &lt;description&gt;获得学生名称&lt;/description&gt;
+        &lt;name&gt;getStudentName&lt;/name&gt;
+        &lt;function-class&gt;com.fsats.synthesis.customizetag.util.GlobalUtil&lt;/function-class&gt;
+        &lt;function-signature&gt;java.lang.String getStudentName(int)&lt;/function-signature&gt;
+        &lt;example&gt;$&#123;stu:getStudentName(index)&#125;&lt;/example&gt;
+    &lt;/function&gt;
+&lt;/taglib&gt;</code></pre><p>文件根标签头部是必须的，其次定义描述，显示名称，标签版本，短名称，uri。对于uri可以按示例格式定义，修改后面一个路径就好 然后是function标签，定义方法，依次是描述，名称，方法全类名，方法签名，示例。对于name就是${stu:name},需要正确定义，参数除基本数据类型外，均写完全限定名。可多参数传递。 可以为参数设置为对象类型，对象值可以通过model携带属性传递到jsp的，例如，项目中传递的student属性就是一个student对象，并直接作为参数，不必要再写${}了。 当然参数还可以是自定义的function，例如:${stu:getStudent(stu:getXxx(param))}。</p>
+<h3 id="自定义tag文件"><a href="#自定义tag文件" class="headerlink" title="自定义tag文件"></a>自定义tag文件</h3><p>tag自定义文件主要用于对重复jsp代码的自定义，也可以进行其他操作 引用示例: 自定义标签需要使用tagdir属性，路径到tag文件的目录，通过 <strong>前缀:文件名</strong>的方式使用自定义标签 示例是通过id获得对应的Student对象,通过ajax请求返回数据并设置到页面，返回的json数据可进行处理，只是转json的时候中文出现乱码问题没有解决。 在tag文件中，可使用jsp指令，tag，attribute，taglib，include等，不可使用page。也可以添加标签元素和js代码，完全可以当作jsp页面。 另外，只要引用了tld文件，依然是可以用静态方法调用的。</p>
+<blockquote>
+<p>实例在customizetag包</p>
+</blockquote>
+<h2 id="Js-Mustache模板引擎"><a href="#Js-Mustache模板引擎" class="headerlink" title="Js Mustache模板引擎"></a>Js Mustache模板引擎</h2><p>Mustache模板引擎需要引入mustache.min.js的js文件，它的官网在<a target="_blank" rel="noopener" href="https://github.com/janl/mustache.js">Mustache</a> 官网简单示例:</p>
+<pre><code>&lt;!DOCTYPE HTML&gt;
+&lt;html&gt;
+&lt;body onload=&quot;loadUser()&quot;&gt;
+&lt;div id=&quot;target&quot;&gt;Loading...&lt;/div&gt;
+&lt;script id=&quot;template&quot; type=&quot;x-tmpl-mustache&quot;&gt;
+Hello &#123; &#123; name &#125;&#125;!
+&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+function loadUser() &#123;
+  var template = $(&apos;#template&apos;).html();
+  var rendered = Mustache.render(template, &#123;name: &quot;Luke&quot;&#125;);
+  $(&apos;#target&apos;).html(rendered);
+&#125;</code></pre><p>定义script标签，为模板类型，通过{ {}}设置属性,如{ {name}},{ {emp.name}},与${}一个道理。 js代码，先获取模板html，然后如果想要显示列表，那么可以拼接字符串，通过json循环，追加html模板字符串。</p>
+<pre><code>Mustache.render(template, &#123;name: &quot;Luke&quot;&#125;);</code></pre><p>该方法可以将模板转换，属性设置，在第二个参数，json格式，key为模板属性名称，值为模板属性值。第一个参数为模板转换的字符串。 翻看view下的mustache文件下的jsp文件以及mustache包下的controller。</p>
+<h2 id="jQuery-TreeTable-js"><a href="#jQuery-TreeTable-js" class="headerlink" title="jQuery TreeTable js"></a>jQuery TreeTable js</h2><p>js文件包,statics文件夹下的treeTable文件夹，整个文件夹都是，少了文件可能就导致小三角显示不出来，不能打开关闭树。 默认表格样式不好看，所以添加了bootstrap的表格样式。 先得到list的json字符串，随后通过模板进行append，但要注意的是，模板的tr标签一定要有id和pid属性，一个是该实例id，一个是该实例的父级id。 另外需要通过addRow迭代方法按照顺序append显示，否则它不会自动排序</p>
+<pre><code>function addRow(list,tpl,data,pid) &#123;
+    for (var i=0;i&lt;data.length;i++)&#123;
+        var row = data[i];//获得某一个实例
+        //判断该实例的父级id是否是传递来的pid，是则是其子级元素，将追加到后面
+        if(row.parentId==pid)&#123;
+            $(list).append(Mustache.render(tpl,&#123;area:row,areatype:row.type,pid:pid&#125;));
+            addRow(list,tpl,data,row.id);
+        &#125;
+
+    &#125;
+&#125;</code></pre><p>该排序，简而言之就是，首先循环，判断该父级id是否是传递的父级id，是则是父子级关系，会追加到其父的后面，然后再循环。 按着这个格式写就好。所有完毕后，通过$(“#treeTable”).treeTable({ expandable: true ,expandLevel : 5});显示，expandLevel表示拓展几级。 后台手动创建area list，用gson转为json字符串传递到后台可直接循环。 java类在jquerytreetable包中，jsp在bst/bstable.jsp，最重要的就是statics中包文件的的齐全。</p>
+<blockquote>
+<p>如果console出现$(‘’).treetabl不是一个函数的话，注意js引入是否正确，以及statics包是否完全导入项目。<br>另外row.type为数值，使用tld静态类时，无法使用，完全被转化为空。</p>
+</blockquote>
+<h2 id="jquery-DateTimer-jeDate时间控件"><a href="#jquery-DateTimer-jeDate时间控件" class="headerlink" title="jquery DateTimer jeDate时间控件"></a>jquery DateTimer jeDate时间控件</h2><p>添加jeDate插件,添加包到静态文件夹，jsp引入js和css，以及一个test.js文件。test.js文件主要就是定义文本框中日期字符串格式的。自己定义，如果不定义则js中会弹框。并且test.js必须放在body中的随后位置，以保证得到日期文本框的id</p>
+<pre><code>&lt;form:form id=&quot;deptForm&quot; action=&quot;$&#123;pageContext.request.contextPath&#125;/dept/save&quot; method=&quot;post&quot; modelAttribute=&quot;dept&quot;&gt;
+    &lt;form:label path=&quot;name&quot;&gt;部门名称&lt;/form:label&gt;&lt;form:input path=&quot;name&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;area&quot;&gt;部门面积&lt;/form:label&gt;&lt;form:input path=&quot;area&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;address&quot;&gt;部门地址&lt;/form:label&gt;&lt;form:input path=&quot;address&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;phone&quot;&gt;部门电话&lt;/form:label&gt;&lt;form:input path=&quot;phone&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
+    &lt;form:label path=&quot;establishDate&quot;&gt;成立日期&lt;/form:label&gt;
+    &lt;input type=&quot;text&quot; name=&quot;establishDate&quot; value=&quot;&lt;fmt:formatDate value=&quot;$&#123;dept.establishDate&#125;&quot;/&gt;&quot; class=&quot;jeinput&quot; id=&quot;enYMD&quot; placeholder=&quot;YYYY-MM-DD&quot;/&gt;&lt;br/&gt;
+
+    &lt;input type=&quot;submit&quot; value=&quot;提交&quot;&gt;
+&lt;/form:form&gt;</code></pre><p>对于日期控件，简单的日期，添加倒数第三行那一行就好，但是不能使用form:input控件当作日期文本框，因为这样会导致标签变成字符串。 此日期插件有更多的显示方式，如：面板主题颜色，区域范围，自定义格式，双击弹出，有效无效日期限制，直接显示日历等。 具体可查看jeDate包，也可以看官网<a target="_blank" rel="noopener" href="http://www.jemui.com/index.html">JEUI</a>里的jeDate控件。 另外如果你发现引入后导致400 bad request，那么可以详细看看form及其属性标签定义的对不对，如果没问题，<strong>就看你是否有Date，String转换器，这是导致错误的最大可能。</strong>如果是其他报错则查看jsp也main与controller是否编写错误。 StringToDate转换器配置如下:</p>
+<pre><code>&lt;mvc:annotation-driven conversion-service=&quot;myConversionService&quot;/&gt;
+
+&lt;bean id=&quot;myConversionService&quot; class=&quot;org.springframework.context.support.ConversionServiceFactoryBean&quot;&gt;
+    &lt;property name=&quot;converters&quot;&gt;
+        &lt;set&gt;
+            &lt;!-- 引入自己配置的自定义转换器，将String类型转换为Date日期 --&gt;
+            &lt;bean class=&quot;com.fsats.synthesis.jqueryvalidate.converter.MyConversionDateToString&quot;&gt;
+                &lt;constructor-arg name=&quot;patten&quot; value=&quot;yyyy-MM-dd&quot;/&gt;
+            &lt;/bean&gt;
+        &lt;/set&gt;
+    &lt;/property&gt;
+&lt;/bean&gt;</code></pre><blockquote>
+<p>java文件在jqueryvalidate包，jsp在jvalidate文件夹下</p>
+</blockquote>
+<h2 id="jQuery-validate校验框架"><a href="#jQuery-validate校验框架" class="headerlink" title="jQuery validate校验框架"></a>jQuery validate校验框架</h2><p>引入js文件jquery.validate.min.js和messages_zh.js用于中文输出信息,还有必要的jquery.js文件 <a target="_blank" rel="noopener" href="http://www.runoob.com/jquery/jquery-plugin-validate.html">jquery validate菜鸟教程</a> <a target="_blank" rel="noopener" href="https://jqueryvalidation.org/">jquery validate官网</a>及<a target="_blank" rel="noopener" href="https://jqueryvalidation.org/files/demo/">官网演示案例</a></p>
+<h3 id="默认标签校验规则"><a href="#默认标签校验规则" class="headerlink" title="默认标签校验规则"></a>默认标签校验规则</h3><p>校验规则众多，许多规则名称，HTML5 Input标签都有。 像是取值为true的，如required、email、url、digits等，都可以直接写在class属性中，也可以单独写成一个属性。maxlength，range带值的这种，如果标签本来就有的就写上去，没有的也可以作为属性并赋值。 完成后，就可以进行校验,如:</p>
+<pre><code>$.validator.setDefaults(&#123;
+    //使用其他方式代替默认的submit
+    submitHandler: function(form) &#123;
+        alert(&quot;提交事件!&quot;);
+        form.submit();
+    &#125;
+&#125;);
+$(function()&#123;
+    $(&quot;#deptForm&quot;).validate();
+&#125;)</code></pre><p>测试后，如果不符合条件就会出现默认错误信息。</p>
+<h3 id="js设置校验规则"><a href="#js设置校验规则" class="headerlink" title="js设置校验规则"></a>js设置校验规则</h3><p>刚才校验规则都是写在标签里的，可以使用js代码写 rules属性可以设置规则</p>
+<pre><code>$(function()&#123;
+    $(&quot;#deptForm&quot;).validate(&#123;
+        submitHandler: function(form) &#123;
+            alert(&quot;提交事件!&quot;);
+        &#125;,
+        rules:&#123;
+            name:&quot;required&quot;,
+            address:&quot;required&quot;,
+            phone:&#123;
+                required:true,
+                maxlength:11
+            &#125;,
+            area:&#123;
+                required:true,
+                digits:true
+            &#125;,
+            establishDate:&quot;required&quot;
+        &#125;
+    &#125;);
+&#125;)</code></pre><h3 id="其他方法级问题"><a href="#其他方法级问题" class="headerlink" title="其他方法级问题"></a>其他方法级问题</h3><ol>
+<li>使用其他方式代替type=submit提交</li>
+</ol>
+<p>上面的示例代码是一种，注意:对于$.validator.setDefaults方法，只是设置默认和其他js校验代码，必须设置$(“#deptForm”).validate();才能校验，否则直接提交。 或者:</p>
+<pre><code>$().ready(function() &#123;
+ $(&quot;#signupForm&quot;).validate(&#123;
+        submitHandler:function(form)&#123;
+            alert(&quot;提交事件!&quot;);   
+            form.submit();
+        &#125;    
+    &#125;);
+&#125;);</code></pre><ol start="2">
+<li><p>debug，只验证不提交表单</p>
+<p>$(“#signupForm”).validate({</p>
+<pre><code>debug:true</code></pre><p>});</p>
+</li>
+</ol>
+<ol start="3">
+<li>errorContainer，错误容器</li>
+</ol>
+<p>显示或者隐藏验证信息，可以自动实现有错误信息出现时把容器属性变为显示，无错误时隐藏，用处不大。 errorContainer: “#messageBox1, #messageBox2” 没有太大用处</p>
+<ol start="4">
+<li>errorPlacement,更改错误信息显示的位置</li>
+</ol>
+<p>默认放在元素后面</p>
+<pre><code>errorPlacement: function(error, element) &#123;  
+    error.appendTo(element.parent());  
+&#125;</code></pre><p>你可以修改，函数内的代码段</p>
+<ol start="5">
+<li><p>定义错误样式,定义类名为error的css即可</p>
+</li>
+<li><p>异步验证</p>
+</li>
+</ol>
+<p>remote属性 示例:</p>
+<pre><code>remote: &#123;
+    url: &quot;dept/remote&quot;,     //后台处理程序
+    type: &quot;post&quot;,               //数据发送方式
+    dataType: &quot;json&quot;,           //接受数据格式   
+    data: &#123;                     //要传递的数据
+        name: function() &#123;
+            return $(&quot;input[name=name]&quot;).val();
+        &#125;
+    &#125;
+&#125;</code></pre><ol start="7">
+<li>自定义验证 addMethod(name, method, message);</li>
+</ol>
+<p>示例:</p>
+<pre><code>jQuery.validator.addMethod(&quot;checkPhone&quot;, function(value, element) &#123;
+    var tel = /^((13[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0,5-9]))\d&#123;8&#125;$/;
+    return this.optional(element) || (tel.test(value));
+&#125;, &quot;请正确填写您的手机号&quot;);</code></pre><p>校验的话，只需要在rules对应属性中设置，checkPhone:true。或者标签中class=”checkPhone”,或标签属性,checkPhone=”true”。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-开源/Jeesite开源项目SSM基础搭建——系统管理释义" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E9%87%8A%E4%B9%89/"
+    >Jeesite开源项目SSM基础搭建——系统管理释义</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E9%87%8A%E4%B9%89/" class="article-date">
+  <time datetime="2018-07-26T14:40:39.000Z" itemprop="datePublished">2018-07-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>dbunit技术 maven dbunit导入导出数据库 oracle数据库i 1.jeesite。properties文件需要改配置为oracle 2.pom文件需要改，使用dbunit技术。更改pom的依赖，不同数据库版本，使用不同的jar包； 更改maven-antrun-plugin插件中，target中的配置，property标签 注释mysql，解除oracle注释 dbunit标签，注释mysql的，解除oracle 只要数据导入到数据库中就先启动项目 3项目启动No matching authentication protocol错误异常问题， 解决：在Oracle用户（不是grid用户）下，将$ORACLE_HOME/network/admin/sqlnet.ora文件原来的SQLNET.ALLOWED_LOGON_VERSION=8注释掉（如果没有sqlnet.ora文件，那么就创建一个），修改为如下的行</p>
+<pre><code>SQLNET.ALLOWED_LOGON_VERSION_SERVER=8
+
+SQLNET.ALLOWED_LOGON_VERSION_CLIENT=8</code></pre><p>spring jsp自定义标签 tag文件和tld文件 tag文件：自定义控件标签，直接就是自定义的控件标签 tld文件：自定义方法标签通过,${名称:方法名(参数)}的方式调用 Mustache库，render回调函数，模板引擎 模板中变量使用{ {name}}的方式显示值 treeTable 树形网格 jquery validate校验框架 jQuery pagination插件 SpringContextHolder类，静态持有SpringContext引用 package com.thinkgem.jeesite.common.utils;</p>
+<pre><code>private static UserDao userDao = SpringContextHolder.getBean(UserDao.class);</code></pre><p>WdatePicker日期插件||jeDate日期控件 跨站脚本XSS又叫CSS (Cross Site Script)。它指的是恶意攻击者往Web页面里插入恶意html代码 将所有传递进来的String进行HTML编码，防止XSS攻击 StringEscapeUtils类，HTML转解码，XML转解码 com.thinkgem.jeesite.common.utils.Encodes类,fns.tld引用 BaseController下的initBinder类 NamedThreadLocal类，多线程模式 jquery jbox通知插件</p>
+<h2 id="系统管理"><a href="#系统管理" class="headerlink" title="系统管理"></a>系统管理</h2><h3 id="区域管理-一般模块"><a href="#区域管理-一般模块" class="headerlink" title="区域管理(一般模块)"></a>区域管理(一般模块)</h3><p>List: 列表页进入，默认显示列表，list方法的请求路径为list和””，那么点击区域管理可直接执行此方法显示列表 列表通过table表显示，使用jQuery treetable树形表格显示，每个tr使用Mustache模板库，来解析，将所有解析的值带入到模板中并追加到tbody中。 将list数据解析为前台js可操纵的json格式，以便可循环设置模板属性值。 通过迭代循环，if判断当前节点id的parentid是否为上次调用传来pid，是则表示为上下级。</p>
+<pre><code>addRow(&quot;#treeTableList&quot;, tpl, data, rootId, true);
+
+//list:tbody标签id，tpl为js中解析的模板,data为将areaList解析的json字符串，pid为父id，root表示根节点值
+function addRow(list, tpl, data, pid, root)&#123;
+    for (var i=0; i&lt;data.length; i++)&#123;
+        var row = data[i];
+        if (($&#123;fns:jsGetVal(&apos;row.parentId&apos;)&#125;) == pid)&#123;
+            //使用js Mustache模板库，render回调设置模板参数和值
+            $(list).append(Mustache.render(tpl, &#123;
+                dict: &#123;
+                    type: getDictLabel($&#123;fns:toJson(fns:getDictList(&apos;sys_area_type&apos;))&#125;, row.type)
+                &#125;, 
+                pid: (root?0:pid),
+                row: row
+            &#125;));
+            addRow(list, tpl, data, row.id);
+        &#125;
+    &#125;
+&#125;</code></pre><p>Form: 可通过区域操作添加下级区域的超链接，也可以通过添加按钮添加新的区域。 为保证进入Form页时，上级区域有默认值，所以需要有parent.id属性值，这样在进入页面时才能显示。对于点击按钮和超链接都是创建一个空实例，超链接带parent.id属性，所以直接设置parent属性为上级area对象；而对于按钮点击的空实例对象，parent属性就设置为当前用户所在机构的区域对象。 save: 上级区域使用自定义sys标签，选择树treeSelect,默认值value为area实例的parent.id属性值，数据树通过url请求方法返回list 保存前表单通过jquery validate校验 保存消息提示，通过基类BaseController的addMessage方法设置通用Flash消息,并重定向至列表请求。 页面上通过sys的message标签，通过其标签设置显示信息。 delete 删除提示，执行删除，并通过sys:message标签显示消息信息。</p>
+<h3 id="字典管理"><a href="#字典管理" class="headerlink" title="字典管理"></a>字典管理</h3><p>List: 列表页进入，默认显示列表，list方法的请求路径为list和””，那么点击字典管理可直接执行此方法显示列表 搜索方法，设置类型和描述，以及可能的page对象,提交到list请求，页面显示。list请求方法，会传递typeList和page对象，页面list通过page.list属性显示，分页使用jQuery pagination插件 form: 依旧是两种，按钮和超链接添加 该添加主要用于新的字典类型添加，按钮将携带sort=10参数 超链接主要是为当前字典类型添加新键值，携带类型，描述和sort参数，sort参数的值为当前sort值+10(这样做可能会导致排序重复，但对于插入操作并无影响) insert: 根据Dict对象显示信息，提交前进行校验,之后方法里，还需要服务端校验，之后返回list请求方法，并携带type参数可只在list显示该类型的字典值 delete： 删除提示，执行删除，返回消息,显示该类型的字典列表</p>
+<h3 id="日志查询"><a href="#日志查询" class="headerlink" title="日志查询"></a>日志查询</h3><p>List: 查询日志，设置参数，title，createBy.id，requesturi，begindate，enddate，查询，业务层使用Page对象封装，到list页面显示 list显示通过page.list，判断exception属性是否有值，为空则不显示该列，不为空则显示该异常信息</p>
+<pre><code>$&#123;fn:replace(fn:replace(fns:escapeHtml(log.exception), strEnter, &apos;&lt;br /&gt;&apos;), strTab, &apos;&amp;nbsp; &amp;nbsp; &apos;)&#125;</code></pre><p>div.pagination 显示分页div导航 Insert: 使用 com.thinkgem.jeesite.modules.sys.interceptor.LogInterceptor拦截器类 preHandle和postHandle方法用户与计时显示，afterCompletion方法在渲染后执行，可以进行日志记录。 日志记录通过LogUtils类的saveLog方法执行，具体日志保存，通过内部线程类，异步保存日志。title属性值的设置，通过获得@RequiresPermissions注解的value属性值，并通过getMenuNamePath方法解析。</p>
+<h3 id="菜单管理"><a href="#菜单管理" class="headerlink" title="菜单管理"></a>菜单管理</h3><p>List: 查询所有菜单，并创建一个新List</p>
+<p>通过Menu类的静态sort方法惊醒排序，将sourcelist排好序放在新创建的list中</p>
+<pre><code>Menu.sortList(list, sourcelist, Menu.getRootId(), true);
+
+public static void sortList(List&lt;Menu&gt; list, List&lt;Menu&gt; sourcelist, String parentId, boolean cascade)&#123;
+    for (int i=0; i&lt;sourcelist.size(); i++)&#123;
+        Menu e = sourcelist.get(i);
+        if (e.getParent()!=null &amp;&amp; e.getParent().getId()!=null
+                &amp;&amp; e.getParent().getId().equals(parentId))&#123;
+            list.add(e);
+            if (cascade)&#123;
+                // 判断是否还有子节点, 有则继续获取子节点
+                for (int j=0; j&lt;sourcelist.size(); j++)&#123;
+                    Menu child = sourcelist.get(j);
+                    if (child.getParent()!=null &amp;&amp; child.getParent().getId()!=null
+                            &amp;&amp; child.getParent().getId().equals(e.getId()))&#123;
+                        sortList(list, sourcelist, e.getId(), true);
+                        break;
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+&#125;</code></pre><p>该方法简而言之，从sourcelist中一次获得对象，判断该菜单的父id是否为参数的parentId，则说明是其子类，并添加到list，随后判断该节点是否有子节点，再次循环sourcelise，如果某个菜单id的父id等于刚才被添加到list中的菜单，那么是父子关系则add到list，因为多级菜单，所以用到迭代方法，，只不过第一次调用此方法是，传递parentid是根root。 该代码与区域管理都是tree table，排序的方式也是一样的。不过区域排序是在前台js写的。 form: 还是和区域管理一样，一个按钮，一个超链接创建下级，创建实例时，一个parent为root，一个为当前id。 为传入form页面的新menu对象设置sort值，方式：排序，值通过最大值+30 Save: 上级菜单选项，使用tree select树形选择框，请求路径/sys/menu/treeData。显示树形选择 保存时,验证是否为管理员权限，之后进行服务端参数有效性校验 Delete: 删除,逻辑删除，更新del_flag字段为1 menuTree页面是最左侧导航 menuTreeSelect</p>
+<h3 id="用户管理"><a href="#用户管理" class="headerlink" title="用户管理"></a>用户管理</h3><p>List: 分页显示列表 搜索查询，归属公司，归属部门使用treeselect显示， 用户信息导入导出，请求后台导出信息，file upload导入上传用户信息 form: 根据对象的id值，判断form页如何显示表单 save: jquery validate校验 保存 info: 信息修改保存，基本信息修改 modifyPwd： 密码修改，密码修改前校验</p>
+<h3 id="角色管理"><a href="#角色管理" class="headerlink" title="角色管理"></a>角色管理</h3><p>List: 显示list角色信息 edit/insert: 角色授权，树结构，${role.menuIds]与${role.officeIds}如何而来,以及保存方式 Assign角色分配： 为用户分配当前角色 selectUserToRole页面显示 用户 用户与机构 用户与角色 角色 角色与机构 角色与菜单 区域 机构 机构与区域 机构与机构的上下级关系 parent_id,grade 菜单 父子级菜单 字典 按type和key，value。与parentId无关</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Java/Java使用阿里云短信服务实现手机验证码注册验证" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -731,266 +1105,13 @@ Document document = DocumentHelper.parseText(text);</code></pre><ol start="2">
 
 </article>
     
-    <article id="post-Oracle/Oracle序列Sequence" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/"
-    >Oracle序列Sequence</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/" class="article-date">
-  <time datetime="2018-06-27T10:18:05.000Z" itemprop="datePublished">2018-06-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="序列"><a href="#序列" class="headerlink" title="序列"></a>序列</h3><p>序列是一个数据库对象，对个用户可以从种生成唯一整数。我们可以使用序列自动生成主键值。 生成序列时，顺序会递增，而与事务提交或回滚无关。</p>
-<h4 id="创建序列"><a href="#创建序列" class="headerlink" title="创建序列"></a>创建序列</h4><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/create_sequence.gif" alt=""> <strong>语法:</strong></p>
-<pre><code>CREATE SEQUENCE [schema.]sequence_name
-    [START WITH integer]     
-    [INCREMENT BY integer]     
-    [MAXVALUE integer | [NOMAXVALUE]]
-    [MINVALUE integer | [NOMINVALUE]]
-    [CYCLE | NOCYCLE]   
-    [CACHE integer | NOCACHE]
-    [ORDER | NOORDER]
-    [KEEP | NO KEEP]
-    [SESSION | GLOBAL]</code></pre><p><strong>语法说明:</strong></p>
-<ul>
-<li><p>START WITH integer：生成的第一个列序号，对于升序默认为序列最小值，降序默认为序列最大值</p>
-</li>
-<li><p>INCREMENT BY integer：增量，默认１，为正则升序，为负为降序</p>
-</li>
-<li><p>MAXVALUE integer | [NOMAXVALUE]：生成最大值 ,NOMAXVALUE指默认升序最大10的27次方,降序最大-1</p>
-</li>
-<li><p>MINVALUE integer | [NOMINVALUE]：生成最小值,NOMINVALUE默认升序最小1,降序最小负10的26次方</p>
-</li>
-<li><p>CYCLE | NOCYCLE：那个序列达到最小或最大后，是否继续从头开始生成，默认CYCLE</p>
-</li>
-<li><p>CACHE integer | NOCACHE：加快速度，预先分配列序号，默认缓存20个</p>
-</li>
-<li><p>ORDER | NOORDER：是否按请求顺序生成序列号，默认NOORDER</p>
-<p>CREATE SEQUENCE seq_pri</p>
-<pre><code>START WITH 10
-INCREMENT BY 1
-MAXVALUE 2000
-NOCYCLE
-CACHE 30;</code></pre></li>
-</ul>
-<h4 id="使用序列"><a href="#使用序列" class="headerlink" title="使用序列"></a>使用序列</h4><p>使用NEXTVAL和CURRVAL伪列来访问该序列的值，可以从伪列中选择值，但不能操作它们的值。</p>
-<ul>
-<li><p>NEXTVAL：创建序列后第一次使用返回初始值，再引用时通过INCREMENT BY增加序列值。</p>
-</li>
-<li><p>CURRVAL：返回序列的当前值</p>
-<p>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易小风扇’,59.00,255,NULL);<br>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易黑凤梨女生版’,129.00,1200,NULL);<br>COMMIT;</p>
-</li>
-</ul>
-<h4 id="修改序列"><a href="#修改序列" class="headerlink" title="修改序列"></a>修改序列</h4><p><strong>语法:</strong></p>
-<pre><code>ALTER SEQUENCE [schema.]sequence_name
-    [INCREMENT BY integer]
-    [MAXVALUE integer | NOMAXVALUE]
-    [MINVALUE integer |  NOMINVALUE]
-    [CYCLE | NOCYCLE]
-    [CACHE integer | NOCACHE]
-    ...;</code></pre><p>对于已经创建的序列，无法修改初始值。</p>
-<h4 id="删除序列"><a href="#删除序列" class="headerlink" title="删除序列"></a>删除序列</h4><pre><code>DROP SEQUENCE [schema.]sequence_name;</code></pre><p>可以为一个或多个表使用相同的序列。 单个序列号可能会跳过，导致不连续情况，一般情况有:</p>
-<ul>
-<li>如果事务回滚，且依然连续使用NEXTVAL会导致序列不连续，导致除 回滚前最后一条NEXTVAL语句 之前的序列号断掉。你只能获得最后一条的值，通过CURRVAL得到。</li>
-<li>大量请求是，为了申请序列更快，允许通过CACHE提前将n个序列存到内存中，而如果数据库服务器重启，断点等情况也会导致内存序列丢失。</li>
-</ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle事务和锁" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/27/Oracle/Oracle%E4%BA%8B%E5%8A%A1%E5%92%8C%E9%94%81/"
-    >Oracle事务和锁</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/27/Oracle/Oracle%E4%BA%8B%E5%8A%A1%E5%92%8C%E9%94%81/" class="article-date">
-  <time datetime="2018-06-27T09:00:53.000Z" itemprop="datePublished">2018-06-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="什么是事务"><a href="#什么是事务" class="headerlink" title="什么是事务"></a>什么是事务</h3><p>事务在数据库中主要用于保证数据的一致性，防止出现错误的数据。事务内的语句被看成一个单元，一旦有一个失败，那么所有的都会失败。在编程过程中经常用到事务。</p>
-<h4 id="认识事务"><a href="#认识事务" class="headerlink" title="认识事务"></a>认识事务</h4><p>事务就是一组包含一条或多条语句的逻辑单元，事务中的与具备作为一个整体，要么一起被提交，要么回滚。提交后数据将会永久保存。 对于银行转账操作中的事务来说，有以下3步完成: 1. 源账户减少金额1000 2. 目标账户增加存储金额1000 3. 事务日志中记录该事务 在整个交易过程，我们看做一个事务，如果操作失败事务便会回滚，将事务中的操作撤销，回到原始情况，如果操作成功则对数据库永久修改。一旦事务提交就不能回滚了。 Oracle控制事务的语句有以下几个:</p>
-<ul>
-<li>SET TRANSACTION：设置事务的属性</li>
-<li>COMMIT：提交事务</li>
-<li>SAVEPOINT：设置保存点</li>
-<li>ROLLBACK：回滚事务</li>
-<li>ROLLBACK TO SAVEPOINT：回滚至保存点</li>
-</ul>
-<h5 id="事务的使用类型"><a href="#事务的使用类型" class="headerlink" title="事务的使用类型"></a>事务的使用类型</h5><ol>
-<li><p><strong>显式方式：</strong>显式事务，就是手动通过命令完成</p>
-</li>
-<li><p><strong>隐式方式：</strong>该类型的事务没有明确的开始和结束标志，由数据库自动开启，设置AUTOCOMMIT设置是否自动提交。</p>
-</li>
-</ol>
-<pre><code>SET AUTOCOMMIT ON/OFF</code></pre><p>默认为关闭状态，当程序执行DDL语言时会自动提交，失败会自动回滚。只有打开后每次执行的DML操作才会自动提交。 什么时候事务会结束:</p>
-<ul>
-<li>使用COMMIT事务提交或ROLLBACK事务回滚</li>
-<li>执行DDL语句，事务自动提交。数据定义语言，CREATE、DROP、GRANT等</li>
-<li>正常退出SQL*Plus时自动提交事务，非正常退出则ROLLBACK事务回滚</li>
-</ul>
-<h4 id="事务ACID特性"><a href="#事务ACID特性" class="headerlink" title="事务ACID特性"></a>事务ACID特性</h4><p><strong>Atomic原子性</strong> 指事务是数据库的逻辑工作单位，事务包含的所有操作要么都完成，要么都不完成 <strong>Consistency一致性</strong> 事务的执行结果必须从一个一致性状态转换为另一个一致性状态，也就是说，在事务之前数据库的数据与事务之后数据数据处于一致，不能A账户+1000，B账户确被迫中断没有更改，这样就处于了不一致性。 <strong>lsolation隔离性</strong> 一个事务的执行不能被其他事务干扰，当多个用户并发访问数据库，操作同一张表，数据库为每个用户开启的事务，不能被其他事务干扰，多个事物之间要相互隔离。对于数据库的隔离级别，数据库提供了多种隔离级别。 <strong>Durability持久性</strong> 事务一旦被提交了，那么对数据库的改变将是永久的，即便在断电或数据库系统故障下也不会丢失提交事务的操作。</p>
-<h3 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h3><p>锁出现在数据共享的环境中，它是一种机制，在访问相同资源时，可以防止事务之间的破坏性交互。在多个会话同时操作某表时，优先操作的回话需要对其锁定。</p>
-<h4 id="锁的分类"><a href="#锁的分类" class="headerlink" title="锁的分类"></a>锁的分类</h4><p>Oracle中分为两种模式的锁，一种是排它锁(X锁)，另一种是共享锁(S锁)。</p>
-<ul>
-<li>排它锁也叫写锁。它禁止资源的共享，用作数据的修改。假如有事务T给数据A加上该锁，那么么其他事务将不能为A添加任何锁，因此只允许T对该数据进行读取和修改，直到失误完成将该锁释放为止。</li>
-<li>共享锁也叫读锁。该模式下的数据只能被读取，不能被修改。如果有事务T给数据A加上共享锁后，那么其他事务不能对其加排它锁，只能加共享锁。加了该锁的数据可以被并发地读取。</li>
-</ul>
-<p>锁是实现并发地主要手段。</p>
-<h4 id="锁的类型"><a href="#锁的类型" class="headerlink" title="锁的类型"></a>锁的类型</h4><p>Oracle为了使数据库实现高度的并发访问，它使用了不同类型的锁来管理并发会话对数据对象操作。按作用对象分为以下几种:</p>
-<ul>
-<li>DML锁：该类型的锁被称为数据锁，用于保护数据。</li>
-<li>DDL锁：可以保护模式中的对象结构。</li>
-<li>内部锁：保护数据库的内部结构。</li>
-</ul>
-<p>其中DML锁保证的并发访问时数据的完整性。如果再细分可分为以下两种：</p>
-<ol>
-<li><p>行级锁(TX),也可以成为事务锁。当修改表中的某行记录时，需要对将要修改的记录加行级锁，防止两个事务同时修改相同记录，事务结束，该锁也会释放，是粒度最小的锁。该锁只能属于排它锁(X锁)。</p>
-</li>
-<li><p>表级锁(TM)，主要作用是防止在修改表的数据时，表的结构发生变化。</p>
-</li>
-</ol>
-<p>表级锁包含如下几种模式:</p>
-<ul>
-<li>ROW SHARE，行级共享锁(RS)。该模式下不许与其他并行会话对同一张表使用排他锁，但允许利用DML语句或lock命令锁定同一张表的其他记录。</li>
-<li>ROW EXCLUSIVE，行级排他锁(RX)。该模式下允许并行会话对同一张表的其他数据进行修改，但不允许并行会话对同一张表使用排他锁。</li>
-<li>SHARE，共享锁(S)。该模式下，不允许会话更新表，但允许对表添加RS锁。</li>
-<li>SHARE ROW EXCLUSIVE，共享行级排他锁(SRX)。该模式下，不能对同一张表进行DML操作，也不能添加S锁。</li>
-<li>EXCLUSIVE,排他锁(X)。该模式下，其他的并行会话不能对表进行DML和DDL操作。该表只能读。</li>
-</ul>
-<p>在Oracle中除了执行DML时自动为表添加TM锁外，也可以主动的为表添加TM锁。 <strong>语法:</strong></p>
-<pre><code>LOCK TABLE tablename IN
-    [EXCLUSIVE]
-    [SHARE]
-    [ROW EXCLUSIVE]
-    [SHARE ROW EXCLUSIVE]
-    [ROW SHARE* | SHARE UPDATE*]
-    MODE [NOWAIT]</code></pre><p>要释放它们，需要使用ROLLBACK命令。</p>
-<h4 id="锁等待与死锁"><a href="#锁等待与死锁" class="headerlink" title="锁等待与死锁"></a>锁等待与死锁</h4><p>在某些情况下，由于占用的资源不能及时释放，而造成锁等待，也可叫锁冲突。所等待会严重得影响数据库性能和日冲工作。 死锁是锁等待的一个特例，通常发生在两会话之间。A,B两个会话互相占用都占用相同的两个资源，一个资源被A锁定，一个被B锁定，而A要获得另一个资源时，因为B已经锁了，而B要获得另一个资源时，A所占的资源也锁了。两边都锁了，两个会话都不能得到想要的对象，于是出现了死锁。 此时Oracle自动做出处理，并重新回到锁等待的情况。出现锁等待应尽快找出错误原因并对其处理。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/41/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/40/">40</a><a class="page-number" href="/page/41/">41</a><span class="page-number current">42</span><a class="page-number" href="/page/43/">43</a><a class="page-number" href="/page/44/">44</a><span class="space">&hellip;</span><a class="page-number" href="/page/48/">48</a><a class="extend next" rel="next" href="/page/43/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/41/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/40/">40</a><a class="page-number" href="/page/41/">41</a><span class="page-number current">42</span><a class="page-number" href="/page/43/">43</a><a class="page-number" href="/page/44/">44</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/43/">下一页</a>
   </nav>
   
 </section>
