@@ -78,6 +78,136 @@
     
     
     
+    <article id="post-Vue/Vue2.0计算属性和侦听器" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7%E5%92%8C%E4%BE%A6%E5%90%AC%E5%99%A8/"
+    >Vue2.0计算属性和侦听器</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E8%AE%A1%E7%AE%97%E5%B1%9E%E6%80%A7%E5%92%8C%E4%BE%A6%E5%90%AC%E5%99%A8/" class="article-date">
+  <time datetime="2018-05-28T14:04:26.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="计算属性"><a href="#计算属性" class="headerlink" title="计算属性"></a>计算属性</h3><p>在模板使用表达式会非常便利，但是仅适用于简单的运算。当放入太多的逻辑，使得模板过于难以维护。对于这样，就像一个数据需要根据另一个数据的变动而变动。也因此计算属性有了可以监视的能力。<br>所以，对于任何复杂逻辑，你都应当使用计算属性。 计算属性也是用来存储数据，但具有以下几个特点：</p>
+<ul>
+<li>数据可以进行逻辑处理操作</li>
+<li>对计算属性中的数据进行监视</li>
+</ul>
+<h4 id="计算属性逻辑处理"><a href="#计算属性逻辑处理" class="headerlink" title="计算属性逻辑处理"></a>计算属性逻辑处理</h4><p>计算属性跟data选项一样，也是用来存储数据的。 计算属性写在<strong>computed</strong>选项里。 可以看下面一个例子:</p>
+<pre><code>var vm = new Vue(&#123;
+        el:&apos;#app&apos;,
+        data:&#123;
+            message:&apos;Hello&apos;
+        &#125;,
+        computed:&#123;
+            //计算属性的getter方法
+            reversedMessage:function()&#123;
+                return this.message.split(&apos;&apos;).reverse().join(&apos;&apos;);
+            &#125;
+        &#125;
+&#125;)
+&lt;div id=&quot;app&quot;&gt;
+    &lt;p&gt;message:&#123; &#123;message&#125;&#125;&lt;/p&gt;
+    &lt;p&gt;Computed reversed message:&#123; &#123; reversedMessage &#125;&#125;&lt;/p&gt;
+&lt;/div&gt;</code></pre><p>通过执行代码，message属性值为Hello，翻转了值为olleH。 reversedMessage属性的值为一个函数，这个函数是一个getter方法，<strong>如果该属性所依赖的属性(message)发生变更，此计算属性会重新触发</strong>。 <strong>修改代码如下:</strong></p>
+<pre><code>&lt;input type=&quot;text&quot; v-model=&quot;message&quot;&gt;
+&#123; &#123;message&#125;&#125;
+&lt;p&gt;Computed reversed message:&#123; &#123; reversedMessage &#125;&#125;&lt;/p&gt;</code></pre><p>该message属性进行了双向绑定，message值一更改，reversedMessage就会执行，并的到新的值，这就是它的监听的能力。  </p>
+<h4 id="计算属性的setter方法"><a href="#计算属性的setter方法" class="headerlink" title="计算属性的setter方法"></a>计算属性的setter方法</h4><p>当然计算属性默认只有getter方法，你还可以添加setter方法。</p>
+<pre><code>computed: &#123;
+  fullName: &#123;
+    // getter
+    get: function () &#123;
+      return this.firstName + &apos; &apos; + this.lastName
+    &#125;,
+    // setter
+    set: function (newValue) &#123;
+      var names = newValue.split(&apos; &apos;)
+      this.firstName = names[0]
+      this.lastName = names[names.length - 1]
+    &#125;
+  &#125;
+&#125;</code></pre><h4 id="计算属性缓存与方法的比较"><a href="#计算属性缓存与方法的比较" class="headerlink" title="计算属性缓存与方法的比较"></a>计算属性缓存与方法的比较</h4><p>方法和计算属性都能为其进行单词翻转，结果都是一样的，但是不同的是，<strong>计算属性是基于他们的依赖进行缓存的</strong>，也就是说，只要message不改变，多次访问将返回原来的计算结果，而不必再执行函数。 相比之下，每当触发重新渲染时，调用方法将总会再次执行函数。</p>
+<h3 id="侦听器"><a href="#侦听器" class="headerlink" title="侦听器"></a>侦听器</h3><p>虽然计算属性在大多数情况下更合适，但有时也需要一个自定义的侦听器。 局部的侦听器写在<strong>watch选项</strong>中。</p>
+<pre><code>watch:&#123;
+            name:function(newName,oldName)&#123;
+                console.log(&apos;新值:&apos; +newName +&apos;,&apos; + &apos;旧值：&apos; + oldName);
+            &#125;
+        &#125;</code></pre><p>name为监听的某个属性，第一个参数是的得到新值，第二个参数是旧值。  </p>
+<h4 id="选项deep"><a href="#选项deep" class="headerlink" title="选项deep"></a>选项deep</h4><p>如果你监视对象，，你改变了此对象的属性，但是并不会改变对象的地址，因为它监视的是地址, 如果不发生改变就不会执行这个处理器，为了<strong>发现对象内部值变化</strong>，需要设置选项deep:true,注意监听数组是不用这么做。</p>
+<pre><code>user:&#123; 
+    handler:function(newVal,oldVal)&#123;
+        console.log(&apos;原值为&apos; + oldVal.name + &apos;新值为&apos; + newVal.name);
+    &#125;,
+    deep:true 
+&#125;</code></pre><p>加了之后会执行这个处理器函数，显示值。但是newVal和oldVal都是新的值， 因为对象时引用类型，两个变量都指向那个对象，所以，改变了值之后，自然oldVal.name也会改变成新值</p>
+<h4 id="选项：immediate"><a href="#选项：immediate" class="headerlink" title="选项：immediate"></a>选项：immediate</h4><p>在选项参数中指定 immediate: true 将立即以表达式的当前值触发回调：</p>
+<pre><code>user:&#123; 
+    handler:function(newVal,oldVal)&#123;
+        console.log(&apos;原值为&apos; + oldVal.name + &apos;新值为&apos; + newVal.name);
+    &#125;,
+    immediate:true
+&#125;
+// 立即以 `name` 的当前值触发回调</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0Ajax，JSONP跨域" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -598,131 +728,6 @@ methods:&#123;
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
 
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue2.0常用指令" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/"
-    >Vue2.0常用指令</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/" class="article-date">
-  <time datetime="2018-05-28T13:22:53.000Z" itemprop="datePublished">2018-05-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="常用指令"><a href="#常用指令" class="headerlink" title="常用指令"></a>常用指令</h2><h3 id="v-model指令"><a href="#v-model指令" class="headerlink" title="v-model指令"></a>v-model指令</h3><p>该指令用于数据的双向绑定，即通过input text文本框，和Vue进行双向的显示。 一般用于表单元素。 只需要这样编写挂载目标：</p>
-<pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;input type=&quot;text&quot; v-model=&quot;message&quot;/&gt;&lt;br/&gt;
-    文本框的内容为:&#123; &#123;message&#125;&#125;
-&lt;/div&gt;</code></pre><p>Vue实例的内容跟上节一样不用变。 通过对文本框的输入，Vue实例会自动解析并绑定到{ {message}}进行渲染。</p>
-<blockquote>
-<p>v-model为Vue的内部指令，到后面我们是可以指令的。</p>
-</blockquote>
-<h3 id="v-for指令"><a href="#v-for指令" class="headerlink" title="v-for指令"></a>v-for指令</h3><p>该指令，顾名思义，使用来循环的。 我们通过，手动编写和循环介绍: 1.首先在Vue实例的data选项中建立数组</p>
-<pre><code>data:&#123;
-    arr:[&apos;51CTO&apos;,&apos;走着路&apos;,&apos;Vue&apos;,&apos;v-for&apos;]
-&#125;</code></pre><p>2.然后再div中编写</p>
-<pre><code>&lt;div id=&quot;app&quot;&gt;
-    &lt;ol&gt;
-        &lt;li&gt;51CTO博客&lt;/li&gt;
-        &lt;li&gt;走着路&lt;/li&gt;
-        &lt;li&gt;Vue&lt;/li&gt;
-        &lt;li&gt;v-for&lt;/li&gt;
-    &lt;/ol&gt;
-    &lt;hr/&gt;
-    &lt;ul&gt;
-        &lt;li v-for=&quot;val in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
-    &lt;/ul&gt;
-&lt;/div&gt;</code></pre><p>ol是手动写的有序列表，下面的ul是我们通过v-for指令的无序列表。运行可看到显示成功。 但如果想要索引和值，那么修改:</p>
-<pre><code>&lt;li v-for=&apos;(val,key) in arr&apos;&gt;&#123; &#123;key&#125;&#125;=&#123; &#123;val&#125;&#125;&lt;/li&gt;</code></pre><p>即可,注意，括号里val在前，而模板显示时时，key在前。需注意。</p>
-<h3 id="v-on指令"><a href="#v-on指令" class="headerlink" title="v-on指令"></a>v-on指令</h3><p>用于绑定事件的,类似onclick,onblur等等。 用法：v-on:事件=”函数” 既然使用事件，那么就要有一个新的选项methods来制定方法。 例如：</p>
-<pre><code>&lt;div id=&apos;app&apos;&gt;
-    &lt;button v-on:click=&quot;sayHi()&quot;&gt;点击方法，sayHi&lt;/button&gt;
-    &lt;button @mouseover=&apos;mousevoer()&apos;&gt;鼠标经过&lt;/button&gt;
-&lt;/div&gt;
-
-&lt;script&gt;
-    var vm = new Vue(&#123;
-        el:&apos;#app&apos;,
-        data:&#123;
-            arr:[&apos;51CTO&apos;,&apos;走着路&apos;,&apos;Vue&apos;,&apos;v-for&apos;]
-        &#125;,
-        methods:&#123;
-            sayHi:function()&#123;
-                console.log(&apos;HelloWorld&apos;);
-            &#125;,
-            mousevoer()&#123;
-                console.log(&apos;mouseover&apos;);
-            &#125;
-        &#125;
-    &#125;)
-&lt;/script&gt;</code></pre><p>然后，打开控制台，点击按钮，控制台就会显示HelloWorld，点击多次，前面会有数字显示次数。 此外还可以通过对象语法来编写事件:</p>
-<pre><code>&lt;button v-on=&quot;&#123; mousedown: doThis, mouseup: doThat &#125;&quot;&gt;&lt;/button&gt;</code></pre><p>此方式可以一次定义多个事件，在Vue实例的mothods选项中如平常一样编写。</p>
-<blockquote>
-<p>v-on指令可以简写为@</p>
-</blockquote>
-<h3 id="v-once指令"><a href="#v-once指令" class="headerlink" title="v-once指令"></a>v-once指令</h3><p>用于只绑定一次</p>
-<pre><code>&lt;input type=&quot;text&quot; v-model=&quot;message&quot;/&gt;&lt;br/&gt;
-&lt;h2 v-once&gt;&#123; &#123;message&#125;&#125;&lt;/h2&gt;
-&lt;h3&gt;&#123; &#123;message&#125;&#125;&lt;/h3&gt;</code></pre><p>尽管v-model绑定message如何更改，message值总会变，但是h2通过v-once指令，它却只能显示一次，即’HelloWorld’这个初始绑定。而h3却始终动态渲染。</p>
-<hr>
-<p>其余常用的v-if,v-show在 条件渲染 中介绍 v-bind在 Class与Style绑定 中介绍</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
 
     </footer>
 

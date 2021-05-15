@@ -78,6 +78,197 @@
     
     
     
+    <article id="post-XML/XML XSTL技术笔记 XML样式表" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/14/XML/XML%20XSTL%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0%20XML%E6%A0%B7%E5%BC%8F%E8%A1%A8/"
+    >XML XSTL技术笔记 XML样式表</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/14/XML/XML%20XSTL%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0%20XML%E6%A0%B7%E5%BC%8F%E8%A1%A8/" class="article-date">
+  <time datetime="2018-09-14T09:09:15.000Z" itemprop="datePublished">2018-09-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="XML-XSLT"><a href="#XML-XSLT" class="headerlink" title="XML XSLT"></a>XML XSLT</h1><p>XSLT 是一种用于将 XML 文档转换为 XHTML 文档或其他 XML 文档的语言。 XPath 是一种用于在 XML 文档中进行导航的语言。 在学习XSTL之前要了解XPath。</p>
+<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><p>one.xsl文件</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt; &lt;xsl:stylesheet version=&quot;1.0&quot; xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;&gt;
+    &lt;xsl:template match=&quot;/&quot;&gt;
+        &lt;html&gt;
+            &lt;body&gt;
+                &lt;h2&gt;My CD Collection&lt;/h2&gt;
+                &lt;table border=&quot;1&quot;&gt;
+                    &lt;tr bgcolor=&quot;#9acd32&quot;&gt;
+                        &lt;th&gt;Title&lt;/th&gt;
+                        &lt;th&gt;Artist&lt;/th&gt;
+                    &lt;/tr&gt;
+                    &lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
+                        &lt;tr&gt;
+                            &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
+                            &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
+                        &lt;/tr&gt;
+                    &lt;/xsl:for-each&gt;
+                &lt;/table&gt;
+            &lt;/body&gt;
+        &lt;/html&gt;
+    &lt;/xsl:template&gt;
+&lt;/xsl:stylesheet&gt;</code></pre><p>a.xml文件</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;?xml-stylesheet  type=&quot;text/xsl&quot;  href=&quot;one.xsl&quot;?&gt; &lt;catalog&gt;
+    &lt;cd&gt;
+        &lt;title&gt;Empire Burlesque&lt;/title&gt;
+        &lt;artist&gt;Bob Dylan&lt;/artist&gt;
+        &lt;country&gt;USA&lt;/country&gt;
+        &lt;company&gt;Columbia&lt;/company&gt;
+        &lt;price&gt;10.90&lt;/price&gt;
+        &lt;year&gt;1985&lt;/year&gt;
+    &lt;/cd&gt;
+&lt;/catalog&gt;</code></pre><p>使用浏览器预览a.xml文件。</p>
+<h3 id="xsl-template元素"><a href="#xsl-template元素" class="headerlink" title="xsl:template元素"></a>xsl:template元素</h3><p>XSL 样式表由一个或多套被称为模板（template）的规则组成。 每个模板含有当某个指定的节点被匹配时所应用的规则。 xls:templdate元素用于构建模板，match属性用于关联XML元素和模板。match元素也可以用于为整个XML文档定义模板。match属性的值是XPath表达式。 先来简单介绍一下这个模板的示例</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;xsl:stylesheet version=&quot;1.0&quot; xmlns:xsl=&quot;http://www.w3.org/1999/XSL/Transform&quot;&gt;
+&lt;xsl:template match=&quot;/&quot;&gt;
+  &lt;html&gt;
+  &lt;body&gt;
+  &lt;h2&gt;My CD Collection&lt;/h2&gt;
+  &lt;table border=&quot;1&quot;&gt;
+    &lt;tr bgcolor=&quot;#9acd32&quot;&gt;
+      &lt;th&gt;Title&lt;/th&gt;
+      &lt;th&gt;Artist&lt;/th&gt;
+    &lt;/tr&gt;
+    &lt;tr&gt;
+      &lt;td&gt;.&lt;/td&gt;
+      &lt;td&gt;.&lt;/td&gt;
+    &lt;/tr&gt;
+  &lt;/table&gt;
+  &lt;/body&gt;
+  &lt;/html&gt;
+&lt;/xsl:template&gt;
+&lt;/xsl:stylesheet&gt;</code></pre><p>第一行为XML声明，第二行xml:stylesheet元素定义此文档是XSTL样式表文档(连同版本号和命名空间)。 xsl:template元素表示定义一个模板，而match属性值为“/”表示将此模板与整个XML源文档的根关联。 而模板内部内容定义了html代码。</p>
+<h3 id="xls-value-of"><a href="#xls-value-of" class="headerlink" title="xls:value-of"></a>xls:value-of</h3><p>xls:value-of元素元用于提取某个 XML 元素的值，并把值添加到转换的输出流中：</p>
+<pre><code>&lt;tr&gt;
+    &lt;td&gt;&lt;xsl:value-of select=&quot;catalog/cd/title&quot;/&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;xsl:value-of select=&quot;catalog/cd/artist&quot;/&gt;&lt;/td&gt;
+&lt;/tr&gt;</code></pre><p>select元素中的值为XPath表达式，该示例中的值表示，获取catalog下的cd下的所有title元素，其中“/”代表一个子目录级。 此元素将获取title元素包含的文本值转换输出到此处。</p>
+<h3 id="xls-for-each元素"><a href="#xls-for-each元素" class="headerlink" title="xls:for-each元素"></a>xls:for-each元素</h3><p>由名字可见，此标签元素用于循环</p>
+<pre><code>&lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/xsl:for-each&gt;</code></pre><p>该元素和Java jstl表达式的for-each一个意思。select属性也是XPath值，表示获得catalog下的所有cd元素。 此示例将对所有的cd元素进行循环,而每次循环，value-of都可以从中得到cd的子元素。 当然，还可以对select进行过滤筛选</p>
+<pre><code>&lt;xsl:for-each select=&quot;catalog/cd[artist=&apos;Xiao Duo&apos;]&quot;&gt;
+&lt;/xsl:for-each&gt;</code></pre><p>过滤运算符:</p>
+<ul>
+<li>等于：=</li>
+<li>不等于：!=</li>
+<li>小于：&lt;</li>
+<li>大于：&gt;</li>
+</ul>
+<p>该示例表明，将筛选出artist元素值等于“Xiao Duo”的cd元素。</p>
+<h3 id="xsl-sort"><a href="#xsl-sort" class="headerlink" title="xsl:sort"></a>xsl:sort</h3><p>用于对输出结果进行排序。 只需要简单的在xsl:for-each元素中放入此元素即可，select的值为要排序的元素名称。</p>
+<pre><code>&lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
+    &lt;xsl:sort select=&quot;artist&quot;/&gt;
+    &lt;tr&gt;
+        &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
+        &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
+    &lt;/tr&gt;
+&lt;/xsl:for-each&gt;</code></pre><h3 id="xsl-if"><a href="#xsl-if" class="headerlink" title="xsl:if"></a>xsl:if</h3><p>用于对数据进行条件筛选。</p>
+<pre><code>&lt;xsl:for-each select=&quot;catalog/cd&quot;&gt;
+    &lt;xsl:if test=&quot;price &gt; 10&quot;&gt;
+        &lt;tr&gt;
+            &lt;td&gt;&lt;xsl:value-of select=&quot;title&quot;/&gt;&lt;/td&gt;
+            &lt;td&gt;&lt;xsl:value-of select=&quot;artist&quot;/&gt;&lt;/td&gt;
+            &lt;td&gt;&lt;xsl:value-of select=&quot;price&quot;/&gt;&lt;/td&gt;
+        &lt;/tr&gt;
+    &lt;/xsl:if&gt;
+&lt;/xsl:for-each&gt;</code></pre><p>该示例表示价格大于10的数据进行显示。</p>
+<h3 id="xls-choose-xls-when-xls-otherwise"><a href="#xls-choose-xls-when-xls-otherwise" class="headerlink" title="xls:choose xls:when xls:otherwise"></a>xls:choose xls:when xls:otherwise</h3><p>语法：</p>
+<pre><code>&lt;xsl:choose&gt;
+&lt;xsl:when test=&quot;_expression_&quot;&gt;
+... some output ...
+&lt;/xsl:when&gt;
+&lt;xsl:otherwise&gt;
+... some output ....
+&lt;/xsl:otherwise&gt;
+&lt;/xsl:choose&gt;</code></pre><h3 id="xls-attribute"><a href="#xls-attribute" class="headerlink" title="xls:attribute"></a>xls:attribute</h3><p>该元素放置在html元素内部，表示为当前父级html节点元素设置一个属性，其name属性值(非XPath)为html的属性名，而xls:attribute文本值则为html元素的对应属性值。</p>
+<pre><code>&lt;td&gt;
+    &lt;xsl:attribute name=&quot;price&quot;&gt;
+      &lt;xsl:value-of select=&quot;price&quot;/&gt;
+    &lt;/xsl:attribute&gt;
+    &lt;xsl:value-of select=&quot;title&quot;/&gt;
+&lt;/td&gt;</code></pre><p>该示例表示，为td标签元素设置一个属性，名称为price,值为value-of获得的值，选取了price的xml节点元素值。显示如下:</p>
+<pre><code>&lt;td price=&quot;10.90&quot;&gt;Empire Burlesque&lt;/td&gt;</code></pre><h3 id="xls-element"><a href="#xls-element" class="headerlink" title="xls:element"></a>xls:element</h3><p>表示自定义一个元素，name属性值为自定义的元素名称。</p>
+<pre><code>&lt;xsl:element name=&quot;singer&quot;&gt;
+    &lt;xsl:attribute name=&quot;a&quot;&gt;a&lt;/xsl:attribute&gt;
+    &lt;xsl:attribute name=&quot;b&quot;&gt;b&lt;/xsl:attribute&gt;
+    &lt;xsl:value-of select=&quot;artist&quot; /&gt;
+&lt;/xsl:element&gt;
+展示:
+&lt;singer a=&quot;a&quot; b=&quot;b&quot;&gt;Bob Dylan&lt;/singer&gt;</code></pre><h3 id="xls-import-xls-include"><a href="#xls-import-xls-include" class="headerlink" title="xls:import,xls:include"></a>xls:import,xls:include</h3><p>xls:import表示把一个样式表中的内容<strong>导入</strong>到另一个样式表中。被导入的样式表的优先级低于当前的样式表。 xls:include表示把一个样式表的内容包含到另一个样式表中。被包含的样式表用于与包含的样式表优先级相同。 href属性指定被导入或被包含的样式表路径，相对路径。</p>
+<h3 id="xls-text"><a href="#xls-text" class="headerlink" title="xls:text"></a>xls:text</h3><p>用于向输出写文本，即通过样式表生成文本节点。</p>
+<pre><code>&lt;xsl:template match=&quot;/&quot;&gt;
+    &lt;xls:text&gt;你好&lt;/xls:text&gt;
+&lt;/xsl:template&gt;</code></pre><p>可直接在标签内写值或value-of元素,属性disable-output-escaping表示是否对文本不进行转义，默认no，也就是转义。</p>
+<h3 id="xsl-comment"><a href="#xsl-comment" class="headerlink" title="xsl:comment"></a>xsl:comment</h3><p>在结果树中创建注释节点</p>
+<pre><code>&lt;xsl:comment&gt;This is a comment!&lt;/xsl:comment&gt;
+&lt;xsl:comment&gt;&lt;xsl:value-of select=&quot;name&quot;/&gt;&lt;/xsl:comment&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-XML/XML Schema技术笔记" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -773,125 +964,6 @@ alter database open;-- 打开数据库</code></pre><p>之后便可以备份了</
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/关于使用BootStrap Table出现的一些问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/28/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8BootStrap%20Table%E5%87%BA%E7%8E%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/"
-    >关于使用BootStrap Table出现的一些问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/28/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8BootStrap%20Table%E5%87%BA%E7%8E%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2018-08-28T02:59:08.000Z" itemprop="datePublished">2018-08-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="页面无法分页，传入多少就显示多少"><a href="#页面无法分页，传入多少就显示多少" class="headerlink" title="页面无法分页，传入多少就显示多少"></a><strong>页面无法分页，传入多少就显示多少</strong></h3><p>通常你会按照网上或官网的实例，map转json，返回rows和total，可是，前台始终无法得到这两个数据来显示。那么请检查你的</p>
-<pre><code>sidePagination: &apos;server&apos;</code></pre><p>是否配置正确，且注意名称是否正确 如果设置了此方式，则每次点击，排序啊，等等将是通过server来实现，将params参数传递到后台服务器进行排序，而不是客户端(不请求)排序</p>
-<h3 id="关于queryParams参数始终无法向后台传递参数"><a href="#关于queryParams参数始终无法向后台传递参数" class="headerlink" title="关于queryParams参数始终无法向后台传递参数"></a>关于queryParams参数始终无法向后台传递参数</h3><p>需要配置如下参数:</p>
-<pre><code>contentType: &quot;application/x-www-form-urlencoded&quot;,//请求数据内容格式 默认是 application/json</code></pre><p>但是有些项目不写，依然能传递参数，这我就不知道为什么了，可能后台配置了什么吧</p>
-<h3 id="queryParamType值为空字符串和limit的问题"><a href="#queryParamType值为空字符串和limit的问题" class="headerlink" title="queryParamType值为空字符串和limit的问题"></a>queryParamType值为空字符串和limit的问题</h3><ol>
-<li>当设置为limit时,返回参数为limit, offset, search, sort, order</li>
-</ol>
-<p>其中: sort值在column属性中的列中设置，sortable:true,那么请求时sort值就是该字段的名称，如果超过1个设置了sortable，那么sort为undefined search表示当你在属性设置中设置了search:true时，显示搜索框，输入完毕后自动请求，而值就给了search参数。 order表示在设置了sortOrder:’asc’或值为desc时，将值传递导order参数中 limit表示请求数量，属性中设置的pageSize: 5，那么limit就是5，如果设置了pageList，那么选择多少页数，就将数传递到limit并立刻发起请求 offset表示偏移量的意思，就是当前页之前的数据量，包含当前页</p>
-<ol start="2">
-<li>当值设置为空字符串””时,返回参数为pageSize, pageNumber, searchText, sortName, sortOrder</li>
-</ol>
-<p>其中pageSize和pageNumber，以及searchText分别都是对应属性值，searchText与search一样，都是搜索框里的值。 sortName表示，属性设置sortName:’对象名’,设置什么，返回什么,设置值为name，则返回name sortOrder与值为limit时的order一样，属性设置sortOrder值为asc或desc时返回的值</p>
-<h3 id="如果每个属性你设置了，并且功能不出来"><a href="#如果每个属性你设置了，并且功能不出来" class="headerlink" title="如果每个属性你设置了，并且功能不出来"></a>如果每个属性你设置了，并且功能不出来</h3><p>那么首先要看的就是属性名是否错误，在<a target="_blank" rel="noopener" href="http://bootstrap-table.wenzhixin.net.cn/zh-cn/documentation/?tdsourcetag=s_pctim_aiomsg">Bootstrap Table文档中</a>，搜索一下(Ctrl+F)，没有这个这属性。 其次就是js文件的引入问题，可能是少了，可能是js的script标签少了结束标签，这中情况很小 还有一种就是某个关键属性错误，比如sidePagination:’server’设置错误，导致无法分页。以及网上搜索可能会遇到的问题。</p>
-<h3 id="为表格添加增删改操作"><a href="#为表格添加增删改操作" class="headerlink" title="为表格添加增删改操作"></a>为表格添加增删改操作</h3><p>在table标签上定义toolbar</p>
-<pre><code>&lt;div id=&quot;toolbar&quot;&gt;
-    &lt;a id=&quot;add&quot; class=&quot;btn btn-primary&quot; onclick=&quot;add()&quot;&gt;&lt;i class=&quot;glyphicon glyphicon-plus&quot;&gt;&lt;/i&gt; 新建&lt;/a&gt;
-    &lt;button id=&quot;edit&quot; class=&quot;btn btn-success&quot; disabled&gt;
-        &lt;i class=&quot;glyphicon glyphicon-edit&quot;&gt;&lt;/i&gt; 修改
-    &lt;/button&gt;
-    &lt;button id=&quot;remove&quot; class=&quot;btn btn-danger&quot; disabled&gt;
-        &lt;i class=&quot;glyphicon glyphicon-remove&quot;&gt;&lt;/i&gt; 删除
-    &lt;/button&gt;
-&lt;/div&gt;</code></pre><p>并在bootStrapTable中设置toolbar属性值为toolbar的id。在column属性中，最前面添加一列(也就是{})，定义属性checkbox:true，表示为复选框。 对修改删除的操作是依据数据选中的数目判定，</p>
-<ul>
-<li><p>无选择则修改删除为禁用</p>
-</li>
-<li><p>当有且只有1个选中时修改按钮可用</p>
-</li>
-<li><p>当选中一个或一个以上时删除可用</p>
-</li>
-<li><p>当任何不选时，修改和删除又都被禁用。</p>
-<p>//表示设置禁用/启用按钮<br>$(“#basic”).on(‘check.bs.table uncheck.bs.table ‘ +</p>
-<pre><code>&apos;check-all.bs.table uncheck-all.bs.table&apos;, function () &#123;
-$(&quot;#remove&quot;).prop(&apos;disabled&apos;, !$(&quot;#basic&quot;).bootstrapTable(&apos;getSelections&apos;).length);
-$(&apos;#edit&apos;).prop(&apos;disabled&apos;, $(&apos;#basic&apos;).bootstrapTable(&apos;getSelections&apos;).length!=1);//false为可用</code></pre><p>});<br>//获得id选项行<br>function getIdSelections() {</p>
-<pre><code>return $.map($(&quot;#basic&quot;).bootstrapTable(&apos;getSelections&apos;), function (row) &#123;
-    return row.id//返回改行数据的id
-&#125;);</code></pre><p>}</p>
-</li>
-</ul>
-<p>每选中一个个复选框，都会执行在后台存储这条数据，而$(‘#basic’).bootstrapTable(‘getSelections’)可以获得所有选中的数据，那么就可以根据数量来判定是否禁用按钮，prop方法表示删除或返回一个属性，那么值为false表示删除该属性，true则使用该属性。 对新增自行定义方法 修改，删除，只需要自己定义click方法，然后在方法体里添加</p>
-<pre><code>var ids = getIdSelections();</code></pre><p>获得所有数据对象，注意不是id数组，而是一个包含所有字段的object类型数组，你需要提取id。 另外还可以通过这个两个方法更新表格和按钮</p>
-<pre><code>$(&quot;#basic&quot;).bootstrapTable(&apos;remove&apos;, &#123;//前台删除该数据
-    field: &apos;id&apos;,
-    values: ids
-&#125;);
-$(&quot;#remove&quot;).prop(&apos;disabled&apos;, true);//禁用按钮</code></pre><p>当然，前台删除可能不太保险，那么就再查一遍</p>
-<pre><code>//刷新表格，将重新请求
-$(&apos;#table&apos;).bootstrapTable(&apos;refresh&apos;);</code></pre><h3 id="对于字段值转换的情况可以使用formatter"><a href="#对于字段值转换的情况可以使用formatter" class="headerlink" title="对于字段值转换的情况可以使用formatter"></a>对于字段值转换的情况可以使用formatter</h3><p>对于日期如果有好的方法，可以直接前台json到后台Date类型，但如果前台没有好的方法解析，那么后台直接传到前台已经解析好的字符串，这种方式可以直接在查询数据库时转换为string类型，或通过其他定义的转换方法转换。 如果有图片的显示，如头像，可以使用此属性函数，其可用参数有value，row，index。通过img即可转成图片。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BootStrap-Table/" rel="tag">BootStrap Table</a></li></ul>
 
 
     </footer>

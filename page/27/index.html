@@ -78,6 +78,82 @@
     
     
     
+    <article id="post-other/IDEA打断点也无法debug问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/"
+    >IDEA打断点也无法debug问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2019-08-07T02:26:40.000Z" itemprop="datePublished">2019-08-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>首先，出现这个问题肯定是莫名其妙的。其他项目就可以，刚导入这个项目就不可以。</p>
+<p>去google搜索，搜索到低级问题，是点击了左边的禁用断点。</p>
+<p>然后还有的就是springboot-devtool的问题</p>
+<p>我的问题是catalina.bat设置的java_opts问题,因为设置了这个，导致的无法启动断点。但是之前的项目也是使用的这个设置就没问题。莫名其妙了。</p>
+<p>检查一下catalina.bat里的SET JAVA_OPTS配置吧。</p>
+<p>原因是idea里的环境变量java_opts也有配置，导致catalina.bat里的覆盖了debug的这个配置，导致无法debug。因此在IDEA的start/connection里的配置不用改。只需要将cataina.bat的SET JAVA_OPTS = xxxxxx修改为</p>
+<p>SET JAVA_OPTS = %JAVA_OPTS% -xxxxxxx即可，这样就可以继承环境变量。</p>
+<p>但是，这个问题也会导致，你的项目启动会多启动一两次，也就是说你点了一下启动，然后控制台上走了两遍三遍项目启动。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Javascript/jExcel web交互式电子表格" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -455,122 +531,6 @@ Caused by: java.lang.IllegalStateException: Error looking for paramter names in 
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/axis2/" rel="tag">axis2</a></li></ul>
 
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-MyBatis/Mybatis对存储过程的调用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/"
-    >Mybatis对存储过程的调用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
-  <time datetime="2019-07-30T15:56:15.000Z" itemprop="datePublished">2019-07-30</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="调用存储过程，输出参数为CURSOR"><a href="#调用存储过程，输出参数为CURSOR" class="headerlink" title="调用存储过程，输出参数为CURSOR"></a>调用存储过程，输出参数为CURSOR</h3><p>使用mybatis来调用存储过程，然后输出参数为CURSOR类型，在存储过程中，输出参数为SYS_REFCURSOR类型的游标。简易存储过程如下:</p>
-<pre><code>create or replace procedure testproc(test in varchar2,RETURNVAL out sys_refcursor)
-is
-test1 VARCHAR2(50);
-begin
-open RETURNVAL for
-     select * from baowen.bizmsg where trunc(receivedate)&gt;=to_date(&apos;2019-07-12&apos;,&apos;yyyy-mm-dd&apos;);
-end;</code></pre><p>那么mybatis中调用的方式如下:</p>
-<pre><code>&lt;resultMap id=&quot;test&quot; type=&quot;hashmap&quot;&gt;
-
-&lt;/resultMap&gt;
-&lt;select id=&quot;testProcedure&quot; parameterType=&quot;map&quot; statementType=&quot;CALLABLE&quot;&gt;
-        &lt;![CDATA[
-           &#123;call baowen.TESTPROC(
-             #&#123;test,mode=IN,jdbcType=VARCHAR&#125;,
-             #&#123;v_cursor,mode=OUT,jdbcType=CURSOR,resultMap=test&#125;
-           )&#125;
-       ]]&gt;
-&lt;/select&gt;</code></pre><p>在mybatis中，dao层定义的方法是无返回值的，参数为map类型，并有test和v_cursor参数，test值设置为实际值，v_cursor值为创建一个空的ArrayList，泛型为map。注意游标接收，一定需要有resultMap指定，否则，会报错需要resultmap，resultmap只做字段映射，所以查出的字段取决于存储过程。</p>
-<pre><code>void testProcedure(Map&lt;String,Object&gt; map);
-
-HashMap&lt;String, Object&gt; hashMap = new HashMap&lt;&gt;();
-hashMap.put(&quot;test&quot;, &quot;test&quot;);
-hashMap.put(&quot;v_cursor&quot;, new ArrayList&lt;Map&lt;String, Object&gt;&gt;());
-dzjDao.testProcedure(hashMap);
-System.out.println(hashMap.get(&quot;v_cursor&quot;));</code></pre><h3 id="当数据库类型时blob时的读写以及blob类型字段转换成json"><a href="#当数据库类型时blob时的读写以及blob类型字段转换成json" class="headerlink" title="当数据库类型时blob时的读写以及blob类型字段转换成json"></a>当数据库类型时blob时的读写以及blob类型字段转换成json</h3><p><strong>读取blob，读取blob时，存储过程参数不用管，输出参数是sys_refcursor类型，在mybatis的mapperxml里游标类型肯定是要配resultMap的，你可以不用设置他的属性，他会自动转换为java.sql.Blob类型</strong></p>
-<pre><code>&lt;resultMap id=&quot;zszmInfo&quot; type=&quot;hashmap&quot;&gt;
-        &lt;result column=&quot;QLR&quot; property=&quot;qlr&quot; javaType=&quot;java.lang.String&quot;/&gt;
-        &lt;result column=&quot;GYQK&quot; property=&quot;gyqk&quot; javaType=&quot;java.lang.String&quot;/&gt;
-        &lt;result column=&quot;EWM&quot; property=&quot;ewm&quot;/&gt;
-&lt;/resultMap&gt;</code></pre><p>然后你要想转为json，那么json里肯定是字符串类型。所以讲Blob转换为base64字符串放在json中。可以通过以下方式转换,改代码将blob转为字节数组，IOUtil是common-io包的类。使用alibaba fastjson的JSON可直接将byte数组转为base64.</p>
-<pre><code>if (o instanceof Blob) &#123;
-    Blob blob = (Blob) o;
-    try &#123;
-        byte[] bytes = IOUtils.toByteArray(blob.getBinaryStream());
-        item.put(key, bytes);
-    &#125; catch (IOException e) &#123;
-        e.printStackTrace();
-    &#125; catch (SQLException e) &#123;
-        e.printStackTrace();
-    &#125;
-&#125;</code></pre><p><strong>写入blob类型数据时，若只需要将数据转为byte[]字节数组，若前台传递的是base64，则通过<code>new BASE64Decoder().decodeBuffer(YSXLHP);</code>转为字节数组，然后存储过程调用的参数的jdbcType设置为Blob。不需要任何转换，mybatis有Handler可以让byte数组转为Blob类型。</strong></p>
-<pre><code>&lt;![CDATA[
-   &#123;call bdcdj.LND_PROC_UPDATECERTINFO(
-     #&#123;YWH,mode=IN,jdbcType=VARCHAR&#125;,
-     #&#123;YSXLHP,mode=IN,jdbcType=BLOB&#125;,
-     #&#123;returnval,mode=OUT,jdbcType=INTEGER&#125;
-   )&#125;
-]]&gt;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
 
     </footer>
 

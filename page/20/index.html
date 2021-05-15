@@ -78,6 +78,85 @@
     
     
     
+    <article id="post-Java/Window共享目录的访问" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/24/Java/Window%E5%85%B1%E4%BA%AB%E7%9B%AE%E5%BD%95%E7%9A%84%E8%AE%BF%E9%97%AE/"
+    >Window共享目录访问</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/24/Java/Window%E5%85%B1%E4%BA%AB%E7%9B%AE%E5%BD%95%E7%9A%84%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2020-05-24T10:45:12.000Z" itemprop="datePublished">2020-05-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.samba.jcifs<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jcifs<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.3.19<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;lib.path&#125;/jcifs-1.3.19.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://chen-sys.oss-cn-beijing.aliyuncs.com/package/jcifs-1.3.19.jar">jcifs.jar</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">String url = <span class="string">&quot;smb://192.168.6.44/d/空间规划数据库电子成果数据/&quot;</span>;</span><br><span class="line">NtlmPasswordAuthentication authentication = <span class="keyword">new</span> NtlmPasswordAuthentication(<span class="keyword">null</span>, <span class="string">&quot;administrator&quot;</span>, <span class="string">&quot;XXHA5367fkm@&quot;</span>);</span><br><span class="line">SmbFile file = <span class="keyword">new</span> SmbFile(url, authentication);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">    SmbFile[] smbFiles = file.listFiles();</span><br><span class="line">    <span class="keyword">for</span> (SmbFile smbFile : smbFiles) &#123;</span><br><span class="line">        downloadShare(smbFile,local);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">downloadShare</span><span class="params">(SmbFile smbFile, String local)</span> <span class="keyword">throws</span> SmbException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (smbFile.isDirectory())&#123;</span><br><span class="line">        String aName = smbFile.getName();</span><br><span class="line">        String aDir = local + <span class="string">&quot;/&quot;</span> + aName;</span><br><span class="line">        createDirectory(aDir);</span><br><span class="line">        SmbFile[] smbFiles = smbFile.listFiles();</span><br><span class="line">        <span class="keyword">for</span> (SmbFile file : smbFiles) &#123;</span><br><span class="line">            <span class="keyword">if</span> (file.isDirectory())&#123;</span><br><span class="line">                downloadShare(file,aDir);</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                downShareIO(file,aDir + <span class="string">&quot;/&quot;</span> + file.getName());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        downShareIO(smbFile,local + <span class="string">&quot;/&quot;</span> + smbFile.getName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">downShareIO</span><span class="params">(SmbFile file, String local)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> (InputStream in = <span class="keyword">new</span> BufferedInputStream(<span class="keyword">new</span> SmbFileInputStream(file));</span><br><span class="line">         OutputStream out = <span class="keyword">new</span> BufferedOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="keyword">new</span> File(local)));) &#123;</span><br><span class="line">        <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">4096</span>];</span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> ((len = in.read(buffer, <span class="number">0</span>, buffer.length)) != -<span class="number">1</span>) &#123;</span><br><span class="line">            out.write(buffer, <span class="number">0</span>, len);</span><br><span class="line">            out.flush(); <span class="comment">//刷新缓冲的输出流</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-PostgreSQL/Postgresql批量执行" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -346,132 +425,6 @@
 
 
 
-
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Activiti/Activiti自定义流程设计器简单属性" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7/"
-    >Activiti自定义流程设计器用户简单属性V5.21</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/05/22/Activiti/Activiti%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7/" class="article-date">
-  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="编辑stencilset-json文件"><a href="#编辑stencilset-json文件" class="headerlink" title="编辑stencilset.json文件"></a>编辑stencilset.json文件</h2><p>在集成activiti的流程会绘制工具后，在resource下会有stencilset.json文件，该文件为BPMN的流程编辑器配置。用于完善和布局整个流程设计器。</p>
-<p>以增加一个简单的字符串属性和布尔的勾选属性为例。</p>
-<p>已办配置的属性都在用户任务的右侧属性，包括执行人/角色、事件监听器、任务监听器等。我们只需要在文件中所搜索。其格式为一个json字符串</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">,&#123;</span><br><span class="line">    &quot;name&quot; : &quot;tasklistenerspackage&quot;,</span><br><span class="line">    &quot;properties&quot; : [ &#123;</span><br><span class="line">      &quot;id&quot; : &quot;tasklisteners&quot;,</span><br><span class="line">      &quot;type&quot; : &quot;multiplecomplex&quot;,</span><br><span class="line">      &quot;title&quot; : &quot;任务监听器&quot;,</span><br><span class="line">      &quot;value&quot; : &quot;&quot;,</span><br><span class="line">      &quot;description&quot; : &quot;Listeners for a user task&quot;,</span><br><span class="line">      &quot;popular&quot; : true</span><br><span class="line">    &#125; ]</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
-
-<p>在后面增加如下配置:</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;name&quot;</span>: <span class="string">&quot;nodewarndaypackage&quot;</span>,</span><br><span class="line"><span class="attr">&quot;properties&quot;</span>: [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;nodewarnday&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;String&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;title&quot;</span>: <span class="string">&quot;警告天数&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;value&quot;</span>: <span class="string">&quot;3&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;当前任务节点剩余天数警告阙值&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;popular&quot;</span>: <span class="literal">true</span></span><br><span class="line">  &#125;]</span><br><span class="line">&#125;,</span><br><span class="line">&#123;</span><br><span class="line"><span class="attr">&quot;name&quot;</span>: <span class="string">&quot;isreplypackage&quot;</span>,</span><br><span class="line"><span class="attr">&quot;properties&quot;</span>: [</span><br><span class="line">  &#123;</span><br><span class="line">    <span class="attr">&quot;id&quot;</span>: <span class="string">&quot;isreply&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;type&quot;</span>: <span class="string">&quot;Boolean&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;title&quot;</span>: <span class="string">&quot;批复文件&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;value&quot;</span>: <span class="literal">false</span>,</span><br><span class="line">    <span class="attr">&quot;description&quot;</span>: <span class="string">&quot;是否需要上传批复文件&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;popular&quot;</span>: <span class="literal">true</span></span><br><span class="line">  &#125;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>以上配置中,name只在stencilset.json文件中使用，</p>
-<ul>
-<li>id属性为表示属性，部署时解析值需要用到 json转BpmnModel</li>
-<li>type为值类型，String或Boolean</li>
-<li>value为默认值</li>
-<li>description为默认描述</li>
-<li>popular是否显示使用</li>
-</ul>
-<p>配置完基础属性后，找到UserTask，在UserTask里加入这两个配置。</p>
-<p>搜索<code>&quot;title&quot; : &quot;用户活动&quot;,</code>找到<code>propertyPackages</code>属性,在数组后面合适的位置，把两个name值放进去。</p>
-<p>重启项目可以看到这两个在用户任务右边显示了。</p>
-<p>自定义属性在部署模型的属性需要自己解析，导出bpmn20.xml、流程定义转模型的时候也需要把自定义属性转json或转BpmnModel。因此需要自定义UserTaskJsonConverter类继承UserTaskJsonConverter类</p>
-<h2 id="解析自定义用户属性"><a href="#解析自定义用户属性" class="headerlink" title="解析自定义用户属性"></a>解析自定义用户属性</h2><p>创建类继承UserTaskJsonConverter并实现StencilConstants接口</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">public class CustomUserTaskJsonConverter extends UserTaskJsonConverter implements StencilConstants</span><br></pre></td></tr></table></figure>
-
-<h3 id="重写UserTaskJsonConverter类的实现方法"><a href="#重写UserTaskJsonConverter类的实现方法" class="headerlink" title="重写UserTaskJsonConverter类的实现方法"></a>重写UserTaskJsonConverter类的实现方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillTypes</span><span class="params">(Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToBpmnMap,</span></span></span><br><span class="line"><span class="function"><span class="params">                                 Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToJsonMap)</span> </span>&#123;</span><br><span class="line">    fillJsonTypes(convertersToBpmnMap);</span><br><span class="line">    fillBpmnTypes(convertersToJsonMap);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillJsonTypes</span><span class="params">(Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToBpmnMap)</span> </span>&#123;</span><br><span class="line">    convertersToBpmnMap.put(STENCIL_TASK_USER, CustomUserTaskJsonConverter.class);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">fillBpmnTypes</span><span class="params">(Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; convertersToJsonMap)</span> </span>&#123;</span><br><span class="line">    convertersToJsonMap.put(UserTask.class, CustomUserTaskJsonConverter.class);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="重写convertJsonToElement方法"><a href="#重写convertJsonToElement方法" class="headerlink" title="重写convertJsonToElement方法"></a>重写convertJsonToElement方法</h3><p>该方法是把流程设计器编辑完成后模型json结果文件转为BpmnModel</p>
-<p>也就是说，把json中自定义的属性转换完成后，就可以通过在部署的时候，获取模型BpmnModel的FlowElements，获取自己的属性，插入到自己定义的表中。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//预警天数</span></span><br><span class="line">String nodeWarnDay = <span class="keyword">this</span>.getProperty(<span class="string">&quot;nodewarnday&quot;</span>, elementNode).toString();</span><br><span class="line"><span class="keyword">if</span> (StringUtils.isNotBlank(nodeWarnDay)) &#123;</span><br><span class="line">    CustomProperty nodeWarnProperty = <span class="keyword">new</span> CustomProperty();</span><br><span class="line">    nodeWarnProperty.setName(<span class="string">&quot;nodeWarnDay&quot;</span>);</span><br><span class="line">    nodeWarnProperty.setSimpleValue(nodeWarnDay.replace(<span class="string">&quot;\&quot;&quot;</span>, <span class="string">&quot;&quot;</span>));</span><br><span class="line">    userTask.getCustomProperties().add(nodeWarnProperty);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">boolean</span> isReply = <span class="keyword">this</span>.getProperty(<span class="string">&quot;isreply&quot;</span>, elementNode).asBoolean(<span class="keyword">false</span>);</span><br><span class="line">CustomProperty replyProperty = <span class="keyword">new</span> CustomProperty();</span><br><span class="line">replyProperty.setName(<span class="string">&quot;isReply&quot;</span>);</span><br><span class="line">replyProperty.setSimpleValue(isReply ? <span class="string">&quot;1&quot;</span> : <span class="string">&quot;0&quot;</span>);</span><br><span class="line">userTask.getCustomProperties().add(replyProperty);</span><br></pre></td></tr></table></figure>
-
-<p>此处的获取直接获取的就是id值nodewarnday，而第五行的设置名称就是等到FlowElements循环时获取的属性名。</p>
-<h3 id="重写convertElementToJson方法"><a href="#重写convertElementToJson方法" class="headerlink" title="重写convertElementToJson方法"></a>重写convertElementToJson方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">convertElementToJson</span><span class="params">(ObjectNode propertiesNode, BaseElement baseElement)</span> </span>&#123;</span><br></pre></td></tr></table></figure>
-
-<p>该方法是BpmnModel的FlowElements转为json时的转换方法。其实这两个方法在继承的<code>UserTaskJsonConverter</code>类里就有UserTask自己定义的实现，可以进行参考。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">UserTask userTask = (UserTask) baseElement;</span><br><span class="line">Map&lt;String, List&lt;ExtensionElement&gt;&gt; extensionElements = userTask.getExtensionElements();</span><br><span class="line"></span><br><span class="line">List&lt;ExtensionElement&gt; nodeWarnDay = extensionElements.get(<span class="string">&quot;nodeWarnDay&quot;</span>);</span><br><span class="line">propertiesNode.put(<span class="string">&quot;nodewarnday&quot;</span>, nodeWarnDay.get(<span class="number">0</span>).getElementText());</span><br><span class="line"></span><br><span class="line">List&lt;ExtensionElement&gt; isreply = extensionElements.get(<span class="string">&quot;isReply&quot;</span>);</span><br><span class="line">propertiesNode.put(<span class="string">&quot;isreply&quot;</span>, isreply.get(<span class="number">0</span>).getElementText());</span><br></pre></td></tr></table></figure>
-
-<p>getExtensionElements();就是获取拓展属性。在你导出为bpmn20.xml的时候就会有UserTask的子元素extensionElements，这个元素里面的子元素就是自己定义的属性。</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">userTask</span> <span class="attr">id</span>=<span class="string">&quot;sjghk&quot;</span> <span class="attr">name</span>=<span class="string">&quot;初审&quot;</span> <span class="attr">activiti:candidateGroups</span>=<span class="string">&quot;sjghk&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">documentation</span>&gt;</span>初审<span class="tag">&lt;/<span class="name">documentation</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">extensionElements</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodetask</span>&gt;</span>&lt;![CDATA[&#123;&quot;node&quot;:&#123;&quot;tasks&quot;:[&#123;&quot;value&quot;:&quot;收件表&quot;,&quot;readOnly&quot;:&quot;2&quot;,&quot;id&quot;:&quot;3d0a167ae1534fb387425a35611ca284&quot;,&quot;$$hashKey&quot;:&quot;0NH&quot;,&quot;mode&quot;:&quot;read&quot;&#125;,&#123;&quot;value&quot;:&quot;审核表&quot;,&quot;readOnly&quot;:&quot;1&quot;,&quot;id&quot;:&quot;913ba193d6dc4d08be168c2c2c22ae9f&quot;,&quot;$$hashKey&quot;:&quot;0NK&quot;,&quot;mode&quot;:&quot;read&quot;&#125;]&#125;&#125;]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodetask</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodeDay</span>&gt;</span>&lt;![CDATA[2]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodeDay</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:nodeWarnDay</span>&gt;</span>&lt;![CDATA[1]]&gt;<span class="tag">&lt;/<span class="name">activiti:nodeWarnDay</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">activiti:isReply</span>&gt;</span>&lt;![CDATA[0]]&gt;<span class="tag">&lt;/<span class="name">activiti:isReply</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">extensionElements</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">userTask</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>从xml里可以看到，一般定义的简单属性只有通过CDATA括起来的数组，因此简单的属性,String类型直接就get(0)即可获得到文本<code>nodeWarnDay.get(0).getElementText()</code>，对于nodetask的复杂对象，在jackson2.8.6版本里，可以直接通过<code>objectMapper.readTree(elementText);</code>来读取成JsonNode的,然后把jsonNode放入propertiesNode中,但是在2.8里就已经被标注未来弃用了。这个方法可以再后来的版本找可以替换的方法。</p>
-<h2 id="读取保存的属性"><a href="#读取保存的属性" class="headerlink" title="读取保存的属性"></a>读取保存的属性</h2><h3 id="引入转换器"><a href="#引入转换器" class="headerlink" title="引入转换器"></a>引入转换器</h3><p>在使用BpmnJsonConverter对象，转换成BpmnModel前添加引入转换器map的代码，也就是咱们自定义的用户任务转换器</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CustomBpmnJsonConverter.getConvertersToBpmnMap().put(<span class="string">&quot;UserTask&quot;</span>, CustomUserTaskJsonConverter.class);</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomBpmnJsonConverter</span> <span class="keyword">extends</span> <span class="title">BpmnJsonConverter</span> </span>&#123;</span><br><span class="line">    </span><br><span class="line">    <span class="comment">//通过继承开放convertersToJsonMap的访问</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;Class&lt;? extends BaseElement&gt;, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; getConvertersToJsonMap()&#123;</span><br><span class="line">        <span class="keyword">return</span> convertersToJsonMap;</span><br><span class="line">    &#125;</span><br><span class="line"> </span><br><span class="line">    <span class="comment">//通过继承开放convertersToJsonMap的访问</span></span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, Class&lt;? extends BaseBpmnJsonConverter&gt;&gt; getConvertersToBpmnMap()&#123;</span><br><span class="line">        <span class="keyword">return</span> convertersToBpmnMap;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>该类有两个方法，获取bpmn转json的转换器map，和json转bpmn的转换器map。在这里只需要获取转bpmn的map，并将定义的自定义转换器put进去。如果要是用转josn的就使用此方式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CustomBpmnJsonConverter.getConvertersToJsonMap().put(UserTask.class, CustomUserTaskJsonConverter.class);</span><br></pre></td></tr></table></figure>
-
-<p>如果不清楚该方法需要那种转换器，可以将两行代码都放过去。</p>
-<h3 id="获取属性"><a href="#获取属性" class="headerlink" title="获取属性"></a>获取属性</h3><p>在部署完流程之后，process类的getFlowElements方法可以获取所有元素</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">BpmnModel model = repositoryService.getBpmnModel(processDefinition.getId());</span><br><span class="line">Collection&lt;FlowElement&gt; flowElements = model.getMainProcess().getFlowElements();</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span>(FlowElement e : flowElements) &#123;</span><br><span class="line">	<span class="keyword">if</span>(e <span class="keyword">instanceof</span> UserTask) &#123;</span><br><span class="line">		UserTask userTask = (UserTask)e;</span><br><span class="line">		Map&lt;String, List&lt;ExtensionElement&gt;&gt; extensionElements = userTask.getExtensionElements();</span><br><span class="line">		<span class="keyword">for</span>(String key : extensionElements.keySet()) &#123;</span><br><span class="line">			List&lt;ExtensionElement&gt; list2 = extensionElements.get(key);</span><br><span class="line">			<span class="keyword">for</span> (ExtensionElement et : list2) &#123;</span><br><span class="line">				String node = et.getElementText();</span><br><span class="line">				<span class="keyword">if</span> (<span class="string">&quot;nodeWarnDay&quot;</span>.equals(key))&#123;</span><br><span class="line">					<span class="keyword">if</span> (StringUtils.isBlank(node))&#123;</span><br><span class="line">						node = taskProperty.getNodeTime();</span><br><span class="line">					&#125;</span><br><span class="line">					taskProperty.setWarnTime(node);</span><br><span class="line">					<span class="keyword">if</span> (Long.parseLong(taskProperty.getWarnTime())&gt;Long.parseLong(taskProperty.getNodeTime()))&#123;</span><br><span class="line">						<span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;预警天数不能大于节点天数&quot;</span>);</span><br><span class="line">					&#125;</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在如上代码中，首先判断flowElements是否是UserTask，如果看bpmn20.xml可以完全的看出来</p>
-<img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200523170140.png" style="zoom:70%;" />
 
 
       

@@ -78,6 +78,150 @@
     
     
     
+    <article id="post-PostgreSQL/Postgresql常用函数" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/03/24/PostgreSQL/Postgresql%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/"
+    >Postgresql常用函数</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/03/24/PostgreSQL/Postgresql%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/" class="article-date">
+  <time datetime="2020-03-24T01:01:02.000Z" itemprop="datePublished">2020-03-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/PostgreSQL/">PostgreSQL</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="日期函数"><a href="#日期函数" class="headerlink" title="日期函数"></a>日期函数</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p>获取最近一周，一个月，一年的日期函数</p>
+<ul>
+<li>近一周<br>select now() - interval ‘1 week’;</li>
+<li>近一月<br>select now() - interval ‘1 month’;</li>
+<li>近一年<br>select now() - interval ‘1 year’;</li>
+<li>下一周<br>select now() + interval ‘1 week’;</li>
+<li>下一月<br>select now() + interval ‘1 month’;</li>
+<li>下一年<br>select now() + interval ‘1 year’;<h3 id="获取指定时间段内的日期列表"><a href="#获取指定时间段内的日期列表" class="headerlink" title="获取指定时间段内的日期列表"></a>获取指定时间段内的日期列表</h3>select to_char(generate_series(‘2018-10-01’::date,’2018-10-25’,’1 day’),’yyyy-mm-dd’);<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> daytime::<span class="built_in">date</span> <span class="keyword">from</span> generate_series(</span><br><span class="line">	(<span class="string">&#x27;2017-06-01&#x27;</span>),		<span class="comment">--查询开始日期（可根据需求调整） </span></span><br><span class="line">	(<span class="keyword">select</span> <span class="keyword">now</span>()::<span class="built_in">date</span>),	<span class="comment">--查询结束日期（可根据需求调整） </span></span><br><span class="line"> 	<span class="string">&#x27;1 day&#x27;</span>			<span class="comment">--间隔（可根据需求调整）</span></span><br><span class="line">) s(daytime)</span><br></pre></td></tr></table></figure>
+
+</li>
+</ul>
+<h3 id="日期截断-获取当前日期的年月日"><a href="#日期截断-获取当前日期的年月日" class="headerlink" title="日期截断,获取当前日期的年月日"></a>日期截断,获取当前日期的年月日</h3><p>date_trunc(‘&lt;unit&gt;’,&lt;date&gt;);</p>
+<ul>
+<li>截取为当天日期<br>select date_trunc(‘day’,now())</li>
+<li>截取为当月日期<br>select date_trunc(‘month’,now())</li>
+<li>截取小时，即当天0点整合12点整<br>select date_trunc(‘h’,now())<br>select date_trunc(‘h’,to_date(‘2020-02-12 09:00:00’,’YYYY-MM-DD HH24:mi:ss’))</li>
+<li>截取分钟，即当前当前分钟整，秒数归零<br>select date_trunc(‘minute’,now())</li>
+<li>截取当前季度，以1234位第一季度，当前月为2月则季度获取为1月1日<br>select date_trunc(‘quarter’,now())</li>
+</ul>
+<p>第二个参数为日期类型，可以使用日期函数，也可以使用<code>date &#39;2020-01-23 12:23:34&#39;</code>的方式表示为一个日期。还可使用time、timestamp、timestamptz定义对应格式的字符串。</p>
+<p><strong>interval ‘&lt;number&gt; &lt;unit&gt;’</strong><br>interval表示间隔多少，可以不要这个单词</p>
+<ul>
+<li>number 表示数量</li>
+<li>unit 表示单位,second、minute、hour、day、week、month、quarter、year都可以。</li>
+</ul>
+<h3 id="截取年月日时分秒"><a href="#截取年月日时分秒" class="headerlink" title="截取年月日时分秒"></a>截取年月日时分秒</h3><p>使用<strong>to_char</strong>函数，可进行截取</p>
+<ul>
+<li>获取年份,使用YYYY或YY<br>select to_char(date ‘1989-12-12’,’YYYY’)</li>
+<li>获取月份MM</li>
+<li>获取天DD</li>
+<li>获取星期,小写表示星期小写，首字母大写为星期首字母大小，全大写为星期字母全大写<br>select to_char(date ‘1989-12-13’,’day’)</li>
+</ul>
+<p><strong>extract(&lt;unit&gt; from &lt;date&gt;)</strong><br>该函数表示从date中提取，unit为单位，date为日期时间。但unit中的day表示的是日不是星期</p>
+<p><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/10/functions-formatting.html">此处为日期格式化中文官方文档</a></p>
+<h2 id="常用逻辑函数"><a href="#常用逻辑函数" class="headerlink" title="常用逻辑函数"></a>常用逻辑函数</h2><h3 id="COALESCE-val-val2-val3"><a href="#COALESCE-val-val2-val3" class="headerlink" title="COALESCE(val,val2[,val3])"></a>COALESCE(val,val2[,val3])</h3><p>该函数表示为空判断，如果val为空则使用val2的值，否则使用val的值。<br>如果3个参数表示，如果不为空使用val3</p>
+<h3 id="case-when-then-else-end可使用多条件判断"><a href="#case-when-then-else-end可使用多条件判断" class="headerlink" title="case when then else end可使用多条件判断"></a>case when then else end可使用多条件判断</h3><h3 id="单条数据的列转行操作"><a href="#单条数据的列转行操作" class="headerlink" title="单条数据的列转行操作"></a>单条数据的列转行操作</h3><table>
+<thead>
+<tr>
+<th>plan_value</th>
+<th>t</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.23</td>
+<td>one</td>
+</tr>
+<tr>
+<td>0.45</td>
+<td>two</td>
+</tr>
+<tr>
+<td>0.24</td>
+<td>three</td>
+</tr>
+</tbody></table>
+<p>对该结果进行列转行，转换为</p>
+<table>
+<thead>
+<tr>
+<th>one</th>
+<th>two</th>
+<th>three</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.23</td>
+<td>0.45</td>
+<td>0.24</td>
+</tr>
+</tbody></table>
+<p>以上one、two、three分别为标识的每行数据</p>
+<p>转换使用case when的方式，该方式使用sum函数包裹，则会聚合函数成一行，但是如果有重复的t列标识，则不能使用sum函数。如果你要求t标识的数量，则使用count可以得到。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;one&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;one&quot;</span>,</span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;two&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;two&quot;</span>,</span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;three&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;three&quot;</span></span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	 <span class="keyword">select</span> value_plan <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;one&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value_before</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line">	 <span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">	 <span class="keyword">select</span> recentyear <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;two&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line">	 <span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">	 <span class="keyword">select</span> value_plan <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;three&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line"> ) a</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PostgreSQL/" rel="tag">PostgreSQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-MongoDB/MongoDB笔记" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -820,147 +964,6 @@
 <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.namenode.secondary.http-address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos3:50090&lt;&#x2F;value&gt;</span><br><span class="line">        &lt;description&gt;secondarynamenode运行节点的信息,和namenode不同节点&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.namenode.http-address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos1:50070&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
 
 <p>另外每次关闭，下次重新启动 时都先stop-dfs.sh和stop-yarn,然后在删除所有节点的data logs，这样hdfs namenode -format之后对的操作才可能不出问题。平常关闭启动的话就不需要hdfs namenode -format,仅对没搭建起来集群的，需要重新部署的，要删干净。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Hadoop/" rel="tag">Hadoop</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Hadoop/Hadoop完全分布式集群" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/24/Hadoop/Hadoop%E5%AE%8C%E5%85%A8%E5%88%86%E5%B8%83%E5%BC%8F%E9%9B%86%E7%BE%A4/"
-    >Hadoop完全分布式集群</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/24/Hadoop/Hadoop%E5%AE%8C%E5%85%A8%E5%88%86%E5%B8%83%E5%BC%8F%E9%9B%86%E7%BE%A4/" class="article-date">
-  <time datetime="2020-03-24T00:40:20.000Z" itemprop="datePublished">2020-03-24</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="第一章-虚拟机配置"><a href="#第一章-虚拟机配置" class="headerlink" title="第一章 虚拟机配置"></a>第一章 虚拟机配置</h1><p>创建centos7.x虚拟机不再描述,网卡连接方式使用桥接方式</p>
-<p><strong>网络问题,创建NAT虚拟网络</strong><br>可在VMware的编辑，虚拟网络编辑器中，添加网络，点击右下角的管理员操作权限，点击添加网络按钮，随意选一个VMnet，选择VMnet为NAT模式。<br>勾选将主机虚拟适配器连接到此网络和勾选使用本地DHCP服务将IP地址分配给虚拟机。然后可以修改HDCP设置，默认可以不更改。</p>
-<h2 id="创建完虚拟机后，无法使用sudo问题"><a href="#创建完虚拟机后，无法使用sudo问题" class="headerlink" title="创建完虚拟机后，无法使用sudo问题"></a>创建完虚拟机后，无法使用sudo问题</h2><p>使用命令<code>su root</code>进入root用户,执行<code>visudo</code>命令打开sudoer文件,找到</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">root    ALL&#x3D;(ALL)       ALL</span><br></pre></td></tr></table></figure>
-<p>在其下面添加与其一样的一行，并把root改为自己的用户名,然后保存退出,如:</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">centos    ALL=(ALL)       ALL</span><br></pre></td></tr></table></figure>
-
-<h2 id="安装jdk和hadoop"><a href="#安装jdk和hadoop" class="headerlink" title="安装jdk和hadoop"></a>安装jdk和hadoop</h2><p>jdk选JDK8的,hadoop建议选择3.x版本的，这里，我使用JDK8和hadoop3.1.3。目前JDK11与hadoop3.x版本的匹配问题还没有找到解决办法，使用jdk会导致在启动时出现java.lang.ClassNotFoundException: javax.activation.DataSource的异常。</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[centos@centos3 ~]$ java -version</span><br><span class="line">java version &quot;1.8.0_231&quot;</span><br><span class="line">Java(TM) SE Runtime Environment (build 1.8.0_231-b11)</span><br><span class="line">Java HotSpot(TM) 64-Bit Server VM (build 25.231-b11, mixed mode)</span><br><span class="line">[centos@localhost ~]$ hadoop version</span><br><span class="line">Hadoop 3.1.3</span><br><span class="line">Source code repository https://gitbox.apache.org/repos/asf/hadoop.git -r ba631c436b806728f8ec2f54ab1e289526c90579</span><br><span class="line">Compiled by ztang on 2019-09-12T02:47Z</span><br><span class="line">Compiled with protoc 2.5.0</span><br><span class="line">From source with checksum ec785077c385118ac91aadde5ec9799</span><br><span class="line">This command was run using /home/centos/hadoop/share/hadoop/common/hadoop-common-3.1.3.jar</span><br></pre></td></tr></table></figure>
-<p>将jdk8和hadoop解压，放置在~/下,在/etc/profile中配置环境变量,<code>sudo vim /etc/profile</code>命令，打开后在结尾追加</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">export JAVA_HOME=/home/centos/jdk8</span><br><span class="line">export PATH=$JAVA_HOME/bin:$PATH</span><br><span class="line">export HADOOP_HOME=/home/centos/hadoop</span><br><span class="line">export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH</span><br></pre></td></tr></table></figure>
-<p>然后使用<code>source /etc/profile</code>编译文件。然后可以输入上面的版本命令，看看信息。</p>
-<h2 id="暂时关闭防火墙"><a href="#暂时关闭防火墙" class="headerlink" title="暂时关闭防火墙"></a>暂时关闭防火墙</h2><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl stop firewalld.service</span><br></pre></td></tr></table></figure>
-
-<h2 id="规定三台服务器的IP-这个ip地址是随意的。"><a href="#规定三台服务器的IP-这个ip地址是随意的。" class="headerlink" title="规定三台服务器的IP,这个ip地址是随意的。"></a>规定三台服务器的IP,这个ip地址是随意的。</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">192.168.181.129 centos1</span><br><span class="line">192.168.181.130 centos2</span><br><span class="line">192.168.181.131 centos3</span><br></pre></td></tr></table></figure>
-<p>修改/etc/host文件，配置映射文件,将上面的配置放在该文件中。</p>
-<h2 id="克隆虚拟机"><a href="#克隆虚拟机" class="headerlink" title="克隆虚拟机"></a>克隆虚拟机</h2><p>关闭虚拟机，点击菜单栏的虚拟机，选择管理，选择克隆，选择完全克隆，选择存储位置，然后进行克隆。如果你的当前磁盘是固态，那么是非常非常快的，不超过1分钟。</p>
-<h2 id="配置网络"><a href="#配置网络" class="headerlink" title="配置网络"></a>配置网络</h2><p>打开全部虚拟机，其实完全克隆后，主机名已经变了，从centos1到centos3，hostname是直接改过了的。你可以到设置-详细信息-用户里改一下用户名称为主机名名称。<br>然后配置一下另外两个的网络,这里配ip，上面好像没说。可以直接到设置-网络，点有线连接下的那个网卡点IPV4，设为手动，分别填写，你在虚拟网络配置里配置的网络ip，或者可以不用这用，因为是hdcp的，所以直接ifconfig查看ip结构，把之前预先设计好的ip填进去，并把地址和子网掩码放进去，网关为.1，DNS设为114.114.114.114。然后ipv6这点击禁用。<br>然后尝试互相ping并ping一下<a target="_blank" rel="noopener" href="http://www.baidu.com看是否外网可以通。">www.baidu.com看是否外网可以通。</a><br>如果找不到地方，看不到英文的话，可以设置成中文，点设置-region-language，看上部分，选择语言，汉语中文，然后根据他的提示重启一下就好了，让修改home下的文件名称的话，<strong>选不修改且不再提示</strong>。</p>
-<h2 id="虚拟机免密登录"><a href="#虚拟机免密登录" class="headerlink" title="虚拟机免密登录"></a>虚拟机免密登录</h2><p>在三台机器都执行以下指令</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">ssh-keygen -t rsa ；</span><br><span class="line">ssh-copy-id IP (自身)</span><br><span class="line">ssh-copy-id IP (其他节点)</span><br></pre></td></tr></table></figure>
-<p>执行第一条指令时，回车三次，第二条和第三条是一样的，输入yes，然后输入ip的密码。<br>这三条指令，每台机器都执行一遍。<br>执行完毕后，从129开始，ssh centos1,ssh centos2,ssh centos3,三台机器都执行一遍这三个命令，表示要ssh连接一次，记住ip。</p>
-<h1 id="第二章-集群配置"><a href="#第二章-集群配置" class="headerlink" title="第二章 集群配置"></a>第二章 集群配置</h1><h2 id="集群规划"><a href="#集群规划" class="headerlink" title="集群规划"></a>集群规划</h2><table>
-<thead>
-<tr>
-<th></th>
-<th>centos1</th>
-<th>centos2</th>
-<th>centos3</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>HDFS</td>
-<td>NameNode<br/>DataNode</td>
-<td>DataNode</td>
-<td>SecondaryNameNode<br/>DataNode</td>
-</tr>
-<tr>
-<td>YARN</td>
-<td>NodeManager</td>
-<td>NodeManager<br/>ResourceManager</td>
-<td>NodeManager</td>
-</tr>
-</tbody></table>
-<p>每个DataNode一定是有个NodeManager的。NameNode是比较重要的，管理所有的节点，所以一般是单独占一个服务器，但是只有三台机器又要做三个机器的数据存储。</p>
-<h2 id="集群配置"><a href="#集群配置" class="headerlink" title="集群配置"></a>集群配置</h2><p>进入hadoop的etc/hadoop</p>
-<ol>
-<li>配置hadoop-env.sh，找到被注释的JAVA_HOME与HADOOP_HOME，解开注释，修改为对应位置。</li>
-<li>修改core-site.xml,添加如下<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&lt;!-- 指定HDFS中的NameNode地址 --&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">&lt;name&gt;fs.defaultFS&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;hdfs:&#x2F;&#x2F;centos1:9000&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;!-- 指定hadoop运行时产生的临时文件 --&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">&lt;name&gt;hadoop.tmp.dir&lt;&#x2F;name&gt;</span><br><span class="line">   &lt;value&gt;&#x2F;home&#x2F;centos&#x2F;hadoop&#x2F;data&#x2F;hadoopdata&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
-<li>修改hdfs-site.xml，添加如下<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">	&lt;name&gt;dfs.namenode.secondary.http-address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos3:50090&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;secondarynamenode运行节点的信息,和namenode不同节点&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.replication&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;3&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;HDFS的数据块副本存储个数&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">	&lt;name&gt;dfs.namenode.http-address&lt;&#x2F;name&gt;</span><br><span class="line">	&lt;value&gt;centos1:50070&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.namenode.name.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;home&#x2F;centos&#x2F;hadoop&#x2F;data&#x2F;name&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;namenode的数据存储目录&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;dfs.datanode.data.dir&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;&#x2F;home&#x2F;centos&#x2F;hadoop&#x2F;data&#x2F;data&lt;&#x2F;value&gt;</span><br><span class="line">	&lt;description&gt;datanode的数据存储目录&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
-<li>修改yarn-site.xml，添加如下<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.resourcemanager.hostname&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos2&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;yarn.nodemanager.aux-services&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;mapreduce_shuffle&lt;&#x2F;value&gt;</span><br><span class="line">        &lt;description&gt;yarn集群为mapreduce程序提供的shuffle服务&lt;&#x2F;description&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
-有时候，有的yarn还是什么日志报错，具体问题忘了，是需要配置<code>yarn.application.classpath</code>的属性，它的值通过<code>hadoop classpath</code>命令打出来<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">&lt;name&gt;yarn.application.classpath&lt;&#x2F;name&gt;</span><br><span class="line">&lt;value&gt;&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;etc&#x2F;hadoop:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;lib&#x2F;*:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;common&#x2F;*:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;hdfs:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;hdfs&#x2F;lib&#x2F;*:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;hdfs&#x2F;*:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;mapreduce&#x2F;lib&#x2F;*:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;mapreduce&#x2F;*:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;yarn:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;yarn&#x2F;lib&#x2F;*:&#x2F;home&#x2F;hadoop&#x2F;install&#x2F;hadoop&#x2F;share&#x2F;hadoop&#x2F;yarn&#x2F;*&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure></li>
-<li>修改mapred-site.xml，添加如下<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.framework.name&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;yarn&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.jobhistory.address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos1:10020&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br><span class="line">&lt;property&gt;</span><br><span class="line">        &lt;name&gt;mapreduce.jobhistory.webapp.address&lt;&#x2F;name&gt;</span><br><span class="line">        &lt;value&gt;centos1:19888&lt;&#x2F;value&gt;</span><br><span class="line">&lt;&#x2F;property&gt;</span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
-<h2 id="hadoop拷贝到centos2和centos3"><a href="#hadoop拷贝到centos2和centos3" class="headerlink" title="hadoop拷贝到centos2和centos3"></a>hadoop拷贝到centos2和centos3</h2><p>之前的克隆的时候的从centos1中克隆来的，但没有配置，在这里，先把centos2和centos3的hadoop目录删了，通过命令吧刚配置的centos1的hadoop拷贝过去。当前，如果读到这，你还没有克隆的话，先把这里的配置配了再克隆吧</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">scp -r .&#x2F;hadoop centos@centos2:~&#x2F;</span><br><span class="line">scp -r .&#x2F;hadoop centos@centos3:~&#x2F;</span><br></pre></td></tr></table></figure>
-<h2 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h2><ol>
-<li>首先执行一次格式化hdf,centos1中(namenode)<br>这是必须的，但下此再要重启服务的话就不需要了。<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[centos@centos1 hadoop]$ hdfs namenode -format</span><br><span class="line">2019-12-06 08:00:49,798 INFO namenode.NameNode: STARTUP_MSG: </span><br><span class="line">/************************************************************</span><br><span class="line">STARTUP_MSG: Starting NameNode</span><br><span class="line">STARTUP_MSG:   host = centos1/192.168.181.129</span><br><span class="line">STARTUP_MSG:   args = [-format]</span><br><span class="line">STARTUP_MSG:   version = 3.1.3</span><br><span class="line">STARTUP_MSG:   classpath = /home/centos/hadoop/etc/hadoop:/home/ce</span><br><span class="line">....省略</span><br></pre></td></tr></table></figure></li>
-<li>启动start-dfs,start-yarn</li>
-</ol>
-<p>在centos1中，也就是namenode中启动<code>start-dfs.sh</code>,必须在namenode中启动<br>然后去centos2,也就是resourceManager，<code>start-yarn.sh</code>,必须在resourceManager上启动<br>以上的启动位置，是强制的，否则出现服务启动缺失等其他异常情况。</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">[centos@centos1 hadoop]$ start-dfs.sh </span><br><span class="line">Starting namenodes on [centos1]</span><br><span class="line">Starting datanodes</span><br><span class="line">Starting secondary namenodes [centos3]</span><br><span class="line">[centos@centos2 hadoop]$ start-yarn.sh </span><br><span class="line">Starting resourcemanager</span><br><span class="line">Starting nodemanagers</span><br><span class="line">[centos@centos1 hadoop]$ jps</span><br><span class="line">15426 NameNode</span><br><span class="line">15938 Jps</span><br><span class="line">15561 DataNode</span><br><span class="line">15868 NodeManager</span><br><span class="line">[centos@centos2 hadoop]$ jps</span><br><span class="line">15028 ResourceManager</span><br><span class="line">15428 Jps</span><br><span class="line">14872 DataNode</span><br><span class="line">15161 NodeManager</span><br><span class="line">[centos@centos3 hadoop]$ jps</span><br><span class="line">14214 SecondaryNameNode</span><br><span class="line">14104 DataNode</span><br><span class="line">14317 NodeManager</span><br><span class="line">14414 Jps</span><br></pre></td></tr></table></figure>
-<p>这里，因为测试的时候忘记执行<code>hdfs namenode -format</code>命令了，所以出现了错误，所以日志目录没有删除，这里如果第一次启动的话会提示WARN没有logs文件，会自动创建。不必在意。</p>
-<p>以上服务，一个都不能少。如果少了哪个，则查看nameNode机器的日志或其他节点的日志。<br>如果集群启动失败，则必须把服务先关停，然后删除每个节点的data 和logs目录，然后再hdfs namenode -format。</p>
-<p>记得关闭防火墙，避免无法访问web服务，如果不想关闭，那么去开放端口吧。每次重启需要执行关闭命令，也可以永久关闭。</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># 查看状态</span><br><span class="line">systemctl status firewalld.service</span><br><span class="line"># 临时关闭</span><br><span class="line">systemctl stop firewalld.service</span><br></pre></td></tr></table></figure>
-<p>然后可以再宿主机上，通过访问centos1的ip地址:50070端口即可访问web页面。这里的地址是192.168.181.129:50070.<br>进入后选择最后一项Utilities，选择呢Brower the file system即可看到HDFS文件系统。</p>
-<h2 id="HDFS文件测试"><a href="#HDFS文件测试" class="headerlink" title="HDFS文件测试"></a>HDFS文件测试</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">hdfs dfs -mkdir -p &#x2F;user&#x2F;input</span><br><span class="line">hdfs dfs -put abc.txt &#x2F;user&#x2F;input</span><br><span class="line"></span><br><span class="line">hdfs dfs -mkdir -p &#x2F;user&#x2F;package</span><br><span class="line">hdfs dfs -put ~&#x2F;jdk-8u231-linux-x64.tar.gzip &#x2F;user&#x2F;package</span><br></pre></td></tr></table></figure>
-<p>上传了一个小文件，一个大文件。查看centos1:50070,发现是有的。以128M为一个block，abc.txt占用一个块，jdk为俩个块。</p>
-<p>如何在本地查找,进入到data目录中找<br><code>/home/centos/hadoop/data/data/current/BP-2112740988-192.168.181.129-1562738006972/current/finalized/subdir0/subdir0</code></p>
 
       
       <!-- reward -->
