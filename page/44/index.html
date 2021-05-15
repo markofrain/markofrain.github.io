@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Oracle/Oracle PLSQL结构控制" class="article article-type-post" itemscope
+    <article id="post-Oracle/Oracle序列Sequence" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E7%BB%93%E6%9E%84%E6%8E%A7%E5%88%B6/"
-    >Oracle PL/SQL结构控制</a
+  <a class="article-title" href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/"
+    >Oracle序列Sequence</a
   >
 </h2>
   
@@ -97,8 +97,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E7%BB%93%E6%9E%84%E6%8E%A7%E5%88%B6/" class="article-date">
-  <time datetime="2018-06-26T06:47:35.000Z" itemprop="datePublished">2018-06-26</time>
+      <a href="/2018/06/27/Oracle/Oracle%E5%BA%8F%E5%88%97Sequence/" class="article-date">
+  <time datetime="2018-06-27T10:18:05.000Z" itemprop="datePublished">2018-06-27</time>
 </a>
       
   <div class="article-category">
@@ -119,152 +119,60 @@
       
 
       
-      <h3 id="PL-SQL结构控制"><a href="#PL-SQL结构控制" class="headerlink" title="PL/SQL结构控制"></a>PL/SQL结构控制</h3><h4 id="IF条件控制"><a href="#IF条件控制" class="headerlink" title="IF条件控制"></a>IF条件控制</h4><p><strong>条件语句，控制流程</strong> IF语句的三种方式:IF…、IF…ELSE…、IF…ELSIF…。根据实际业务灵活选择。 <strong>语法:</strong></p>
-<pre><code>IF condition THEN
-    statements;
-END IF;
-
-
-IF condition THEN
-    statements;
- ELSE
-    statements;
- END IF;
-
-
-IF condition THEN
-    statements;
-ELSIF condition THEN
-    statements;
-...
-[ELSE statements;]
-END IF;</code></pre><ol>
-<li><p>对于这三种IF的使用不需要多说，不管什么面向对象的解释语言，基础都有控制结构的。</p>
-</li>
-<li><p>而你只需要记住语法结构，最后会有END IF。而ELSIF一定不要写错。</p>
-</li>
-<li><p>关于数值表达式+、-、<em>、/、*</em>都可以用。以及关系表达式和逻辑表达式NOT、OR、AND。</p>
-</li>
-<li><p>condition可以使用任何表达式和变量，常量等。</p>
-</li>
-</ol>
-<h4 id="CASE条件控制"><a href="#CASE条件控制" class="headerlink" title="CASE条件控制"></a>CASE条件控制</h4><p>与IF语句有同样的效果。</p>
-<h5 id="简单CASE控制"><a href="#简单CASE控制" class="headerlink" title="简单CASE控制"></a>简单CASE控制</h5><p>只有当CASE子句中表达式的值等于某个WHEN的表达式的值时，才执行响应的THEN子句。 <strong>语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-CASE case_operand
-WHEN when_operand THEN
-    statements;
-[
-    WHEN when_operand THEN
-        statements;
-] ...
-[ELSE statements]
-END CASE [label_name];</code></pre><p><strong>语法说明:</strong></p>
+      <h3 id="序列"><a href="#序列" class="headerlink" title="序列"></a>序列</h3><p>序列是一个数据库对象，对个用户可以从种生成唯一整数。我们可以使用序列自动生成主键值。 生成序列时，顺序会递增，而与事务提交或回滚无关。</p>
+<h4 id="创建序列"><a href="#创建序列" class="headerlink" title="创建序列"></a>创建序列</h4><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/create_sequence.gif" alt=""> <strong>语法:</strong></p>
+<pre><code>CREATE SEQUENCE [schema.]sequence_name
+    [START WITH integer]     
+    [INCREMENT BY integer]     
+    [MAXVALUE integer | [NOMAXVALUE]]
+    [MINVALUE integer | [NOMINVALUE]]
+    [CYCLE | NOCYCLE]   
+    [CACHE integer | NOCACHE]
+    [ORDER | NOORDER]
+    [KEEP | NO KEEP]
+    [SESSION | GLOBAL]</code></pre><p><strong>语法说明:</strong></p>
 <ul>
-<li>&lt;<label_name>&gt;：一个CASE标签，可用于结束当前这个CASE语句。</li>
-<li>case_operand：表达式，通常是一个变量。除了BLOB、BFILE、对象类型、记录类型、索引表、变长数组或嵌套表，其他类型都允许。</li>
-<li>when_operand ：case_operand对应结果，如果两者值相同，则执行statement语句。可以有多个WHEN..THEN</li>
-<li>ELSE statement：当所有值都不能对应上时，执行此处的语句。</li>
+<li><p>START WITH integer：生成的第一个列序号，对于升序默认为序列最小值，降序默认为序列最大值</p>
+</li>
+<li><p>INCREMENT BY integer：增量，默认１，为正则升序，为负为降序</p>
+</li>
+<li><p>MAXVALUE integer | [NOMAXVALUE]：生成最大值 ,NOMAXVALUE指默认升序最大10的27次方,降序最大-1</p>
+</li>
+<li><p>MINVALUE integer | [NOMINVALUE]：生成最小值,NOMINVALUE默认升序最小1,降序最小负10的26次方</p>
+</li>
+<li><p>CYCLE | NOCYCLE：那个序列达到最小或最大后，是否继续从头开始生成，默认CYCLE</p>
+</li>
+<li><p>CACHE integer | NOCACHE：加快速度，预先分配列序号，默认缓存20个</p>
+</li>
+<li><p>ORDER | NOORDER：是否按请求顺序生成序列号，默认NOORDER</p>
+<p>CREATE SEQUENCE seq_pri</p>
+<pre><code>START WITH 10
+INCREMENT BY 1
+MAXVALUE 2000
+NOCYCLE
+CACHE 30;</code></pre></li>
 </ul>
-<p><strong>CASE示例</strong> 模拟获得当前日期得到月份</p>
-<pre><code>DECLARE
-  v_month nvarchar2(3);
-BEGIN
-  SELECT trim(to_char(sysdate,&apos;MONTH&apos;)) INTO v_month FROM product WHERE productId=1;
-
-  CASE v_month
-  WHEN &apos;1月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;一月&apos;);
-  WHEN &apos;2月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;二月&apos;);
-  WHEN &apos;3月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;三月&apos;);
-  WHEN &apos;4月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;四月&apos;);
-  WHEN &apos;5月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;五月&apos;);
-  WHEN &apos;6月&apos; THEN
-    DBMS_OUTPUT.PUT_LINE(&apos;六月&apos;);
-  ELSE
-    DBMS_OUTPUT.PUT_LINE(&apos;不在一到六月&apos;);
-END CASE;
-
-END;</code></pre><p>CASE语句执行的顺序是从上往下的顺序，当WHEN子句的语句被执行后，CASE结构就执行完毕。</p>
-<h5 id="搜索式的CASE语句"><a href="#搜索式的CASE语句" class="headerlink" title="搜索式的CASE语句"></a>搜索式的CASE语句</h5><p>这种与IF非常非常类似,将<strong>WHEN子句的表达式只能是布尔值，布尔表达式</strong>。这与IF相同 <strong>语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-CASE
-WHEN boolean_expression THEN statement;
-[WHEN boolean_expression THEN statement;]...
-[ELSE statement];
-END CASE [label_name];</code></pre><h4 id="LOOP循环控制"><a href="#LOOP循环控制" class="headerlink" title="LOOP循环控制"></a>LOOP循环控制</h4><p>LOOP语句也就是循环语句，能重复的执行指定的语句。有四种形式的LOOP。</p>
+<h4 id="使用序列"><a href="#使用序列" class="headerlink" title="使用序列"></a>使用序列</h4><p>使用NEXTVAL和CURRVAL伪列来访问该序列的值，可以从伪列中选择值，但不能操作它们的值。</p>
 <ul>
-<li>LOOP;</li>
-<li>WHILE…LOOP;</li>
-<li>FOR…LOOP;</li>
-<li>CURSOR FOR LOOP;</li>
+<li><p>NEXTVAL：创建序列后第一次使用返回初始值，再引用时通过INCREMENT BY增加序列值。</p>
+</li>
+<li><p>CURRVAL：返回序列的当前值</p>
+<p>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易小风扇’,59.00,255,NULL);<br>INSERT INTO product VALUES(seq_pri.NEXTVAL,’网易黑凤梨女生版’,129.00,1200,NULL);<br>COMMIT;</p>
+</li>
 </ul>
-<h5 id="基本LOOP循环"><a href="#基本LOOP循环" class="headerlink" title="基本LOOP循环"></a>基本LOOP循环</h5><p>基本的LOOP语句本身没有包含中断循环的条件，通常情况下利用EXIT、GOTO等可以中断LOOP循环使用。异常也使LOOP语句中断。 <strong>基本LOOP循环语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-LOOP
-    statement...
-END LOOP;</code></pre><h6 id="1-通过IF语句和EXIT的组合结束循环"><a href="#1-通过IF语句和EXIT的组合结束循环" class="headerlink" title="1. 通过IF语句和EXIT的组合结束循环"></a>1. 通过IF语句和EXIT的组合结束循环</h6><p>EXIT必须在循环体内部，它可以是循环正常无条件终止循环，而终止循环后会正常执行循环外的语句 <strong>操作示例:</strong> 循环变量，当变量值大于某值时退出循环。</p>
-<pre><code>DECLARE
-    v_num NUMBER(8) := 1;       --声明并初始化变量
-BEGIN
-    &lt;&lt;basic_loop&gt;&gt;
-    LOOP
-        v_num := v_num+1;   --循环中，自增1
-        IF v_num&gt;5 THEN         --判断条件，是否需要退出
-            EXIT basic_loop;
-        END IF;
-    END LOOP;
-    DBMS_OUTPUT.PUT_LINE(&apos;LOOP循环已经结束,v_num的值为&apos; || v_num);
-END;</code></pre><p>一般像有多个嵌套的循环的话，建议还是加上LOOP标签的，这样能更直观的看出退出的是哪个循环</p>
-<h6 id="2-通过EXIT…WHEN语句退出循环"><a href="#2-通过EXIT…WHEN语句退出循环" class="headerlink" title="2. 通过EXIT…WHEN语句退出循环"></a>2. 通过EXIT…WHEN语句退出循环</h6><p>就是和IF EXIT差不多意思的退出，当什么条件的时候退出。没有loop标签也是可以的。</p>
-<pre><code>DECLARE
-    v_num NUMBER(8) := 1;       --声明并初始化变量
-BEGIN
-    &lt;&lt;basic_loop&gt;&gt;
-    LOOP
-        v_num := v_num+1;   --循环中，自增1
-        EXIT basic_loop WHEN v_num&gt;5;       
-    END LOOP;
-    DBMS_OUTPUT.PUT_LINE(&apos;LOOP循环已经结束,v_num的值为&apos; || v_num);
-END;</code></pre><h5 id="WHILE…LOOP循环语句"><a href="#WHILE…LOOP循环语句" class="headerlink" title="WHILE…LOOP循环语句"></a>WHILE…LOOP循环语句</h5><p>该语句本身可以终止LOOP循环，当WHILE后的布尔值为TRUE时，将执行一次，然后重新判断是否为TRUE，否则直接退出循环。 <strong>语法结构:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-WHILE boolean_expression
-LOOP
-    statement...
-END LOOP [label_name];</code></pre><p><strong>WHILE…LOOP示例</strong> 输出20以内被3整除的数</p>
-<pre><code>DECLARE
-    v_num NUMBER(8) := 1;
-BEGIN
-    WHILE v_num&lt;=20
-    LOOP
-        IF MOD(v_num,3) = 0 THEN
-            DBMS_OUTPUT.PUT_LINE(v_num);
-        END IF;
-        v_num := v_num+1;
-    END LOOP;
-END;</code></pre><h5 id="FOR…LOOP循环语句"><a href="#FOR…LOOP循环语句" class="headerlink" title="FOR…LOOP循环语句"></a>FOR…LOOP循环语句</h5><p>语句循环遍历指定范围内的整数，主要用于固定次数的循环。 <strong>语法:</strong></p>
-<pre><code>[&lt;&lt;label_name&gt;&gt;]
-FOR index_name IN [REVERSE] lower .. upper LOOP
-    statement..
-END LOOP [label_name];</code></pre><p><strong>语法说明</strong></p>
+<h4 id="修改序列"><a href="#修改序列" class="headerlink" title="修改序列"></a>修改序列</h4><p><strong>语法:</strong></p>
+<pre><code>ALTER SEQUENCE [schema.]sequence_name
+    [INCREMENT BY integer]
+    [MAXVALUE integer | NOMAXVALUE]
+    [MINVALUE integer |  NOMINVALUE]
+    [CYCLE | NOCYCLE]
+    [CACHE integer | NOCACHE]
+    ...;</code></pre><p>对于已经创建的序列，无法修改初始值。</p>
+<h4 id="删除序列"><a href="#删除序列" class="headerlink" title="删除序列"></a>删除序列</h4><pre><code>DROP SEQUENCE [schema.]sequence_name;</code></pre><p>可以为一个或多个表使用相同的序列。 单个序列号可能会跳过，导致不连续情况，一般情况有:</p>
 <ul>
-<li>index_name：循环计数器，通过该值得到当前的循环次数。</li>
-<li>REVERSE：指定循环方式，从lower到upper，还是相反。使用REVERSE关键字，循环方式正好相反</li>
-<li>lower..upper：循环范围的下标界到上标界，中间的两个点是必须的，不能省略。</li>
+<li>如果事务回滚，且依然连续使用NEXTVAL会导致序列不连续，导致除 回滚前最后一条NEXTVAL语句 之前的序列号断掉。你只能获得最后一条的值，通过CURRVAL得到。</li>
+<li>大量请求是，为了申请序列更快，允许通过CACHE提前将n个序列存到内存中，而如果数据库服务器重启，断点等情况也会导致内存序列丢失。</li>
 </ul>
-<p><strong>FOR…LOOP示例:</strong> 1-20的整数的和</p>
-<pre><code>DECLARE
-    v_num number(8) := 0;
-BEGIN
-    FOR idx IN 1..20 LOOP
-        v_num := v_num + idx;
-    END LOOP;
-    DBMS_OUTPUT.PUT_LINE(&apos;LOOP循环结束，值为&apos; || v_num);
-END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变量代替，而当两者相等时，只循环一次。</p>
 
       
       <!-- reward -->
@@ -294,7 +202,7 @@ END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变�
 
 </article>
     
-    <article id="post-Oracle/Oracle PLSQL介绍，声明部分的标量和复合变量" class="article article-type-post" itemscope
+    <article id="post-Oracle/Oracle事务和锁" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -302,8 +210,8 @@ END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变�
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%BB%8B%E7%BB%8D%EF%BC%8C%E5%A3%B0%E6%98%8E%E9%83%A8%E5%88%86%E7%9A%84%E6%A0%87%E9%87%8F%E5%92%8C%E5%A4%8D%E5%90%88%E5%8F%98%E9%87%8F/"
-    >Oracle PL/SQL介绍，声明部分的标量和复合变量</a
+  <a class="article-title" href="/2018/06/27/Oracle/Oracle%E4%BA%8B%E5%8A%A1%E5%92%8C%E9%94%81/"
+    >Oracle事务和锁</a
   >
 </h2>
   
@@ -313,8 +221,8 @@ END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变�
 
     
     <div class="article-meta">
-      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%BB%8B%E7%BB%8D%EF%BC%8C%E5%A3%B0%E6%98%8E%E9%83%A8%E5%88%86%E7%9A%84%E6%A0%87%E9%87%8F%E5%92%8C%E5%A4%8D%E5%90%88%E5%8F%98%E9%87%8F/" class="article-date">
-  <time datetime="2018-06-26T03:25:08.000Z" itemprop="datePublished">2018-06-26</time>
+      <a href="/2018/06/27/Oracle/Oracle%E4%BA%8B%E5%8A%A1%E5%92%8C%E9%94%81/" class="article-date">
+  <time datetime="2018-06-27T09:00:53.000Z" itemprop="datePublished">2018-06-27</time>
 </a>
       
   <div class="article-category">
@@ -335,744 +243,586 @@ END;</code></pre><p>对于循环范围lower和upper可以使用数值型的变�
       
 
       
-      <h3 id="PL-SQL"><a href="#PL-SQL" class="headerlink" title="PL/SQL"></a>PL/SQL</h3><h4 id="什么是PL-SQL"><a href="#什么是PL-SQL" class="headerlink" title="什么是PL/SQL"></a>什么是PL/SQL</h4><p>PL/SQL(Procedural Language/Structured Query Language)是Oracle公司在标准SQL语言基础上进行拓展而形成的一种可以在数据库上进行设计编程的语言，通过Oracle公司的PL/SQL引擎执行。 PL/SQL完全可以像Java语言一样实现逻辑判断、条件循环以及异常处理等。 PL/SQL有以下几个特点:</p>
+      <h3 id="什么是事务"><a href="#什么是事务" class="headerlink" title="什么是事务"></a>什么是事务</h3><p>事务在数据库中主要用于保证数据的一致性，防止出现错误的数据。事务内的语句被看成一个单元，一旦有一个失败，那么所有的都会失败。在编程过程中经常用到事务。</p>
+<h4 id="认识事务"><a href="#认识事务" class="headerlink" title="认识事务"></a>认识事务</h4><p>事务就是一组包含一条或多条语句的逻辑单元，事务中的与具备作为一个整体，要么一起被提交，要么回滚。提交后数据将会永久保存。 对于银行转账操作中的事务来说，有以下3步完成: 1. 源账户减少金额1000 2. 目标账户增加存储金额1000 3. 事务日志中记录该事务 在整个交易过程，我们看做一个事务，如果操作失败事务便会回滚，将事务中的操作撤销，回到原始情况，如果操作成功则对数据库永久修改。一旦事务提交就不能回滚了。 Oracle控制事务的语句有以下几个:</p>
 <ul>
-<li>支持事务控制和SQL数据操作命令</li>
-<li>支持SQL的数据类型、并且在此基础上扩展了新的数据类型，也支持SQL的函数以及运算符。</li>
-<li>PL/SQL可以存储在Oracle服务器中</li>
-<li>Oracle有自己的DBMS包，可以处理数据的控制和定义命令</li>
+<li>SET TRANSACTION：设置事务的属性</li>
+<li>COMMIT：提交事务</li>
+<li>SAVEPOINT：设置保存点</li>
+<li>ROLLBACK：回滚事务</li>
+<li>ROLLBACK TO SAVEPOINT：回滚至保存点</li>
 </ul>
-<h4 id="PL-SQL的优势"><a href="#PL-SQL的优势" class="headerlink" title="PL/SQL的优势"></a>PL/SQL的优势</h4><ol>
-<li><p>提高程序运行性能 标准的SQL被执行时，只能一条一条的向服务器发送,多次连接数据库服务器很耗费资源。如果使用PL/SQL，<strong>PL/SQL的语句块可以包含多条SQL语句，而语句块可以嵌入到程序中，</strong>甚至存储在Oracle服务器上，用户只需一次连接，就可以在Oracle内部执行。</p>
+<h5 id="事务的使用类型"><a href="#事务的使用类型" class="headerlink" title="事务的使用类型"></a>事务的使用类型</h5><ol>
+<li><p><strong>显式方式：</strong>显式事务，就是手动通过命令完成</p>
 </li>
-<li><p>使程序模块化 在程序块中可以实现一个或几个功能。我们可以把多张表的操作都放在一个块里，而对外只需要提供一个调用方法和需要传递的参数。这种操作就是通过存储过程完成。</p>
-</li>
-<li><p>采用逻辑控制语言控制程序结构 PL/SQL语句块中可以通过if判断，循环等等，通过限制语句的执行，从而完成复杂的业务。</p>
-</li>
-<li><p>利用处理运行时的错误信息 标准SQL在遇到错误时会提示异常，但提示却非常不友好，并不能直接告诉你错误的准确位置，并且批量执行SQL出现错误时导致SQL执行终止。而PL/SQL语句块中可以处理一些程序上的异常，不至于因SQL操作，而造成调用的SQL页出现错误提示。</p>
+<li><p><strong>隐式方式：</strong>该类型的事务没有明确的开始和结束标志，由数据库自动开启，设置AUTOCOMMIT设置是否自动提交。</p>
 </li>
 </ol>
-<h4 id="PL-SQL的结构"><a href="#PL-SQL的结构" class="headerlink" title="PL/SQL的结构"></a>PL/SQL的结构</h4><p>PL/SQL程序的基本单位是块(block)，PL/SQL块很明确的分三部分，其中包括声明部分、执行部分和异常处理部分。</p>
-<pre><code>[DECLARE]       --声明部分的关键字
-                        /*声明部分的代码，用于声明变量、常量以及类型*/
-BEGIN               --执行部分的关键字
-                        /*执行部分，也是PL/SQL的主体部分，包括SQL语句以及逻辑控制语句*/
-[EXCEPTION] --异常部分关键字
-                        /*异常处理部分，当出现异常时，程序将进入此处*/
-END;                    --执行结束关键字，程序结束</code></pre><p><strong>示例:</strong></p>
-<pre><code>BEGIN
-    DBMS_OUTPUT.PUT_LINE(&apos;这是执行部分&apos;);
+<pre><code>SET AUTOCOMMIT ON/OFF</code></pre><p>默认为关闭状态，当程序执行DDL语言时会自动提交，失败会自动回滚。只有打开后每次执行的DML操作才会自动提交。 什么时候事务会结束:</p>
+<ul>
+<li>使用COMMIT事务提交或ROLLBACK事务回滚</li>
+<li>执行DDL语句，事务自动提交。数据定义语言，CREATE、DROP、GRANT等</li>
+<li>正常退出SQL*Plus时自动提交事务，非正常退出则ROLLBACK事务回滚</li>
+</ul>
+<h4 id="事务ACID特性"><a href="#事务ACID特性" class="headerlink" title="事务ACID特性"></a>事务ACID特性</h4><p><strong>Atomic原子性</strong> 指事务是数据库的逻辑工作单位，事务包含的所有操作要么都完成，要么都不完成 <strong>Consistency一致性</strong> 事务的执行结果必须从一个一致性状态转换为另一个一致性状态，也就是说，在事务之前数据库的数据与事务之后数据数据处于一致，不能A账户+1000，B账户确被迫中断没有更改，这样就处于了不一致性。 <strong>lsolation隔离性</strong> 一个事务的执行不能被其他事务干扰，当多个用户并发访问数据库，操作同一张表，数据库为每个用户开启的事务，不能被其他事务干扰，多个事物之间要相互隔离。对于数据库的隔离级别，数据库提供了多种隔离级别。 <strong>Durability持久性</strong> 事务一旦被提交了，那么对数据库的改变将是永久的，即便在断电或数据库系统故障下也不会丢失提交事务的操作。</p>
+<h3 id="锁"><a href="#锁" class="headerlink" title="锁"></a>锁</h3><p>锁出现在数据共享的环境中，它是一种机制，在访问相同资源时，可以防止事务之间的破坏性交互。在多个会话同时操作某表时，优先操作的回话需要对其锁定。</p>
+<h4 id="锁的分类"><a href="#锁的分类" class="headerlink" title="锁的分类"></a>锁的分类</h4><p>Oracle中分为两种模式的锁，一种是排它锁(X锁)，另一种是共享锁(S锁)。</p>
+<ul>
+<li>排它锁也叫写锁。它禁止资源的共享，用作数据的修改。假如有事务T给数据A加上该锁，那么么其他事务将不能为A添加任何锁，因此只允许T对该数据进行读取和修改，直到失误完成将该锁释放为止。</li>
+<li>共享锁也叫读锁。该模式下的数据只能被读取，不能被修改。如果有事务T给数据A加上共享锁后，那么其他事务不能对其加排它锁，只能加共享锁。加了该锁的数据可以被并发地读取。</li>
+</ul>
+<p>锁是实现并发地主要手段。</p>
+<h4 id="锁的类型"><a href="#锁的类型" class="headerlink" title="锁的类型"></a>锁的类型</h4><p>Oracle为了使数据库实现高度的并发访问，它使用了不同类型的锁来管理并发会话对数据对象操作。按作用对象分为以下几种:</p>
+<ul>
+<li>DML锁：该类型的锁被称为数据锁，用于保护数据。</li>
+<li>DDL锁：可以保护模式中的对象结构。</li>
+<li>内部锁：保护数据库的内部结构。</li>
+</ul>
+<p>其中DML锁保证的并发访问时数据的完整性。如果再细分可分为以下两种：</p>
+<ol>
+<li><p>行级锁(TX),也可以成为事务锁。当修改表中的某行记录时，需要对将要修改的记录加行级锁，防止两个事务同时修改相同记录，事务结束，该锁也会释放，是粒度最小的锁。该锁只能属于排它锁(X锁)。</p>
+</li>
+<li><p>表级锁(TM)，主要作用是防止在修改表的数据时，表的结构发生变化。</p>
+</li>
+</ol>
+<p>表级锁包含如下几种模式:</p>
+<ul>
+<li>ROW SHARE，行级共享锁(RS)。该模式下不许与其他并行会话对同一张表使用排他锁，但允许利用DML语句或lock命令锁定同一张表的其他记录。</li>
+<li>ROW EXCLUSIVE，行级排他锁(RX)。该模式下允许并行会话对同一张表的其他数据进行修改，但不允许并行会话对同一张表使用排他锁。</li>
+<li>SHARE，共享锁(S)。该模式下，不允许会话更新表，但允许对表添加RS锁。</li>
+<li>SHARE ROW EXCLUSIVE，共享行级排他锁(SRX)。该模式下，不能对同一张表进行DML操作，也不能添加S锁。</li>
+<li>EXCLUSIVE,排他锁(X)。该模式下，其他的并行会话不能对表进行DML和DDL操作。该表只能读。</li>
+</ul>
+<p>在Oracle中除了执行DML时自动为表添加TM锁外，也可以主动的为表添加TM锁。 <strong>语法:</strong></p>
+<pre><code>LOCK TABLE tablename IN
+    [EXCLUSIVE]
+    [SHARE]
+    [ROW EXCLUSIVE]
+    [SHARE ROW EXCLUSIVE]
+    [ROW SHARE* | SHARE UPDATE*]
+    MODE [NOWAIT]</code></pre><p>要释放它们，需要使用ROLLBACK命令。</p>
+<h4 id="锁等待与死锁"><a href="#锁等待与死锁" class="headerlink" title="锁等待与死锁"></a>锁等待与死锁</h4><p>在某些情况下，由于占用的资源不能及时释放，而造成锁等待，也可叫锁冲突。所等待会严重得影响数据库性能和日冲工作。 死锁是锁等待的一个特例，通常发生在两会话之间。A,B两个会话互相占用都占用相同的两个资源，一个资源被A锁定，一个被B锁定，而A要获得另一个资源时，因为B已经锁了，而B要获得另一个资源时，A所占的资源也锁了。两边都锁了，两个会话都不能得到想要的对象，于是出现了死锁。 此时Oracle自动做出处理，并重新回到锁等待的情况。出现锁等待应尽快找出错误原因并对其处理。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle PLSQL 游标" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/27/Oracle/Oracle%20PLSQL%20%E6%B8%B8%E6%A0%87/"
+    >Oracle PL/SQL 游标</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/27/Oracle/Oracle%20PLSQL%20%E6%B8%B8%E6%A0%87/" class="article-date">
+  <time datetime="2018-06-27T08:58:23.000Z" itemprop="datePublished">2018-06-27</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>###游标的概念 游标的使用可以让用户像操作数组一样操作查询出来的数据集。 把游标形象的看成一个变动的光标，实际上是一个指针，它在Oracle存放数据查询结果集的内存中，每当指针指向一条记录，就可以得到所指向的数据，初始时，它指向第一条记录的之前</p>
+<h4 id="游标可分为静态游标和REF游标"><a href="#游标可分为静态游标和REF游标" class="headerlink" title="游标可分为静态游标和REF游标"></a>游标可分为静态游标和REF游标</h4><p>静态游标就像是一个数据快照，打开游标后的结果集是对数据数据的备份，数据不随着对标执行DML操作而改变。</p>
+<h4 id="静态游标"><a href="#静态游标" class="headerlink" title="静态游标"></a>静态游标</h4><p>包括两种类型：显式游标和隐式游标 1. <strong>显示游标</strong> 显式游标是用户或开发者管理的游标，在使用前<strong>必须有明确的游标声明和定义，这样的游标会关联数据查询语句，打开游标后，用户可利用游标的位置对结果集检索，返回单一行记录，关闭游标后不能进行任何操作。一切由用户自己完成。</strong></p>
+<ol start="2">
+<li><strong>隐式游标</strong> 隐式游标也成为SQL游标，由PL/SQL构造和管理，该游标用户无法控制，但能得到它的属性信息。</li>
+</ol>
+<h4 id="显示游标"><a href="#显示游标" class="headerlink" title="显示游标"></a>显示游标</h4><p>通过显式游标，用户可以操作返回的数据。 通常以如下方式处理查询结果集:</p>
+<ul>
+<li>打开显式游标(OPEN语句)，从结果集中获取行(FETCH语句)，关闭显式游标(CLOSE语句)</li>
+<li>在FOR LOOP语句中使用显式游标，更加方便</li>
+</ul>
+<ol>
+<li><p>要使用游标必须声明并定义游标变量</p>
+<p>—声明游标<br>CURSOR cursor_name [parameter_list] RETURN return_type;<br>—定义游标<br>CURSOR cursor_name [ parameter_list ] [ RETURN return_type ]<br>  IS select_statement;</p>
+</li>
+</ol>
+<p><strong>示例:游标声明</strong></p>
+<pre><code>DECLARE
+    CURSOR c1 RETURN product%ROWTYPE;       --声明c1
+
+    CURSOR c2 IS SELECT *  FROM product WHERE productPrice&gt;10;      --声明并定义c2,省略返回类型
+
+
+BEGIN
+    NULL;       --NULL表示跳过此处
+END;</code></pre><ol start="2">
+<li><p>打开游标 对数据集操作，必须先打开游标初始化了游标指针，一旦打开，其结果集都是静态的</p>
+<p>OPEN cursor_name;</p>
+</li>
+</ol>
+<ol start="3">
+<li><p>提取游标，读取数据 该语句检索结果集的当前行，将该行的列值存储到变量或记录中，并将游标指针移动到下一行。一般与循环语句一起使用，使用FETCH时游标属性%ROWCOUNT会不断累加。</p>
+<p>FETCH cursor_name INTO variables;</p>
+</li>
+</ol>
+<ol start="4">
+<li>关闭游标 关闭后无法从结果集中提取记录或引用其属性，如果尝试操作则引发预定义异常INVALID_CURSOR。</li>
+</ol>
+<p>当然你可以重新打开一个已经关闭的游标，在重新打开它之前，你必须关闭显示游标，否则引发CURSOR_ALREADY_OPEN预定义异常。</p>
+<pre><code>CLOSE cursor_name;</code></pre><p><strong>示例：使用LOOP语句提取游标</strong> 获得产品名称和产品价格</p>
+<pre><code>DECLARE
+    v_name product.productName%TYPE;
+    v_price product.productPrice%TYPE;
+    CURSOR cur_nameAndPrice IS SELECT  productName,productPrice FROM product;
+BEGIN
+    OPEN cur_nameAndPrice;
+    LOOP
+        FETCH cur_nameAndPrice INTO v_name,v_price;
+        EXIT WHEN cur_nameAndPrice%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(v_name || &apos;----&apos; || v_price);
+    END LOOP;
+    CLOSE cur_nameAndPrice;
+END;</code></pre><h5 id="显式游标的属性"><a href="#显式游标的属性" class="headerlink" title="显式游标的属性"></a>显式游标的属性</h5><p>利用游标属性可以获得游标执行的相关信息。</p>
+<ul>
+<li>%ISOPEN：用于判断游标是否打开，如果已经打开则返回TRUE，否则返回FALSE。</li>
+<li>%FOUND：检测行数据是否有效，有效则返回TRUE，否则返回FALSE</li>
+<li>%NOTFOUND：与%FOUND相反。</li>
+<li>%ROWCOUNT：累积到当前为止，使用FETCH提取数据的行数。</li>
+</ul>
+<p><strong>示例:显式游标属性</strong></p>
+<pre><code>DECLARE
+    v_product product%ROWTYPE;
+    CURSOR cur_product IS SELECT *  FROM product;
+BEGIN
+    OPEN cur_product;                                       --打开游标
+    IF cur_product%ISOPEN THEN                  --判断是否打开游标
+        LOOP                                                        ---循环
+            FETCH cur_product INTO v_product;       ---提取数据
+            IF cur_product%FOUND THEN
+                DBMS_OUTPUT.PUT_LINE(&apos;第&apos; || cur_product%ROWCOUNT || &apos;条数据,产品名称=&apos; || v_product.productName || &apos;,价格=&apos; || v_product.productPrice);
+            ELSE
+                EXIT;                                       --当%FOUND返回FALSE时，说明无数据了，退出循环
+            END IF;
+        END LOOP;
+    END IF;
+    CLOSE cur_product;
+END;</code></pre><h5 id="BULK-COLLECT提取数据"><a href="#BULK-COLLECT提取数据" class="headerlink" title="BULK COLLECT提取数据"></a>BULK COLLECT提取数据</h5><p>通常使用FETCH…INTO…语句提取数据，这种方式是提取单条数据，在数据量大的情况下，执行效率不是很理想。而BULK COLLECT语句可以批量提取数据，在数据量大的情况下，效率会比单条数据高。 <strong>示例：BULK COLLECT提取数据</strong></p>
+<pre><code>DECLARE
+    TYPE proc_tab IS TABLE OF product%ROWTYPE;      --定义索引表
+    v_product proc_tab;                                                     --声明索引表变量
+    CURSOR cur_product IS SELECT *  FROM product;   --声明并定义游标变量
+BEGIN
+    OPEN cur_product;
+
+    LOOP                                                                            --外层LOOP批量提取数据
+        FETCH cur_product BULK COLLECT INTO v_product LIMIT 2;  --批量提取两条数据
+        FOR i IN 1..v_product.count LOOP                                    --内层FOR LOOP对一次批量提取的数据进行循环处理
+            DBMS_OUTPUT.PUT_LINE(&apos;产品ID=&apos; || v_product(i).productId || &apos;，产品名称=&apos; || v_product(i).productName || &apos;,产品价格=&apos; || v_product(i).productPrice);
+        END LOOP;
+        EXIT WHEN cur_product%NOTFOUND;                     --无数据后退出
+    END LOOP;
+
+    CLOSE cur_product;
+END;</code></pre><p>该案例使用索引表来存储每次提取出的数据，LIMIT 表示每次提取2条数据，v_product.count表示获得索引表中的记录数。</p>
+<h5 id="使用CURSOR-FOR-LOOP循环简化游标的读取"><a href="#使用CURSOR-FOR-LOOP循环简化游标的读取" class="headerlink" title="使用CURSOR FOR LOOP循环简化游标的读取"></a>使用CURSOR FOR LOOP循环简化游标的读取</h5><p>使用 CURSOR FOR LOOP的方式，它并不需要特别声明变量。不需要手动打开游标，且自动从集中获取行，处理完成后自动关闭。</p>
+<pre><code>DECLARE
+    CURSOR cur_product  IS SELECT *  FROM product;
+BEGIN
+    FOR prod_record IN cur_product LOOP
+        DBMS_OUTPUT.PUT_LINE(&apos;产品ID=&apos; || prod_record.productId || &apos;，产品名称=&apos; || prod_record.productName || &apos;,产品价格=&apos; || prod_record.productPrice);
+    END LOOP;
+END;</code></pre><p>FOR LOOP循环中的prod_record变量就是自动声明的记录变量，类型为%ROWTYPE。 <strong>注意：</strong>该CURSOR FOR LOOP与循环结构中的FOR LOOP语句是不一样的，所以在循环控制中，关于游标的FOR LOOP没有说，才放到这里解释。</p>
+<h5 id="带参数的游标"><a href="#带参数的游标" class="headerlink" title="带参数的游标"></a>带参数的游标</h5><p>使用显示游标可以指定参数，指定的参数包括参数的顺序和参数的类型。参数可以传递给游标在查询是使用，这样就方便了使用不同条件的查询，也方便了游标在存储过程中使用。 简而言之，如果你学过Java语言或其他语言，那么他就相当于方法差不多的情况，具有形参和实参的说法，定义游标时的形参以及FETCH游标时传递的实参。 <strong>示例：带参数的游标</strong></p>
+<pre><code>DECLARE
+    v_name product.productName%TYPE := &apos;晨光&apos;;    --程序变量
+    v_product product%ROWTYPE;                      ---行记录类型
+    CURSOR cur_product (name VARCHAR2)      ---声明定义带参数的游标
+        IS SELECT *  FROM product WHERE productName LIKE name||&apos;%&apos;;
+BEGIN
+    OPEN cur_product(v_name);                   --添加实参并开启游标
+
+    LOOP
+        FETCH cur_product INTO v_product;   
+        EXIT WHEN cur_product%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(&apos;产品ID=&apos; || v_product.productId || &apos;，产品名称=&apos; || v_product.productName || &apos;,产品价格=&apos; || v_product.productPrice);
+    END LOOP;
+
+    CLOSE cur_product;
+END;</code></pre><p>当然可以添加默认值，如果不在开启游标时传递实参的话将使用默认值。 <strong>示例：默认参数</strong></p>
+<pre><code>----游标声明定义处
+CURSOR cur_product (name VARCHAR2 DEFAULT &apos;HUAWEI&apos;)         ---声明定义带参数的游标
+        IS SELECT *  FROM product WHERE productName LIKE name||&apos;%&apos;;
+
+----开启游标处
+OPEN cur_product;</code></pre><p>当然，如果定义时有参数，且没有默认值，而开启游标时不赋予实参，则会发生错误。  </p>
+<h4 id="隐式游标"><a href="#隐式游标" class="headerlink" title="隐式游标"></a>隐式游标</h4><p>每当运行SELECT或DML语句时，PL/SQL会打开一个隐式游标，隐式游标受用户控制，隐式游标与显式游标的不同之处:</p>
+<ul>
+<li>隐式游标由PL/SQL自动管理</li>
+<li>隐式游标的默认名称是SQL</li>
+<li>SELECT或DML操作产生隐式游标</li>
+<li>隐式游标的属性值始终是最新执行的SQL语句</li>
+</ul>
+<p><strong>隐式游标的属性</strong> 虽然与显式游标属性相似，但却有不同之处。</p>
+<ul>
+<li>SQL%ISOPEN属性：总返回FALSE，隐式游标在关联语句运行后总是关闭</li>
+<li>SQL%FOUND属性：是否受到行影响。没有SELECT或DML语句运行则返回NULL，如果SELECT或DML返回影响多行数据则返回TRUE，否则返回FALSE</li>
+<li>SQL%NOTFOUND：当没有受影响行时，返回TRUE，否则返回FALSE；</li>
+<li>SQL%ROWCOUNT：返回受影响的行数</li>
+</ul>
+<ol>
+<li><p><strong>示例:SQL%FOUND</strong></p>
+<p>DECLARE<br>  v_product product%ROWTYPE;<br>BEGIN<br>  SELECT * INTO v_product FROM product WHERE productId=1;<br>  IF SQL%FOUND THEN</p>
+<pre><code>DBMS_OUTPUT.PUT_LINE(&apos;得到受影响行数，受影响行数为&apos; || SQL%ROWCOUNT);</code></pre><p>  ELSE</p>
+<pre><code>DBMS_OUTPUT.PUT_LINE(&apos;未收到行影响&apos;);</code></pre><p>  END IF;<br>END;</p>
+</li>
+</ol>
+<ol start="2">
+<li><strong>SQL%NOTFOUND属性</strong> SQL%NOTFOUND与SQL%FOUND相反。</li>
+</ol>
+<p>但SQL%NOTFOUND属性对PL/SQL SELECT INTO语句无用。因为如果SELECT INTO不返回行会先引发NO_DATA_FOUND预定义异常，然后才能检查SQL%NOTFOUND。而如果只要使用聚合函数总会返回一个值，则SQL%NOTFOUND总是为FALSE。</p>
+<ol start="3">
+<li><strong>SQL%ROWCOUNT</strong> SQL%ROWCOUNT属性的值与事务的状态无关。因此：</li>
+</ol>
+<ul>
+<li><p>当事务回滚到保存点时，值SQL%ROWCOUNT不会恢复到保存点之前的值。</p>
+</li>
+<li><p>当事务结束时，SQL%ROWCOUNT不会恢复到父事务中的原始值。</p>
+<p>CREATE TABLE product_temp AS SELECT *  FROM PRODUCT;</p>
+<p>DECLARE</p>
+<pre><code>v_num number(6) := 5;</code></pre><p>BEGIN</p>
+<pre><code>DELETE FROM product_temp WHERE productId=v_num;
+DBMS_OUTPUT.PUT_LINE(&apos;删除产品数量&apos; || to_char(SQL%ROWCOUNT));
+COMMIT;</code></pre><p>END;</p>
+</li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle PLSQL异常处理" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"
+    >Oracle PL/SQL异常处理</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="article-date">
+  <time datetime="2018-06-26T13:59:17.000Z" itemprop="datePublished">2018-06-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="PL-SQL异常"><a href="#PL-SQL异常" class="headerlink" title="PL/SQL异常"></a>PL/SQL异常</h3><p>PL/SQL运行过程中可能出现错误，有程序本身原因或者来自法开发人员自定义的数据，而所有的这些错误我们称为异常。 为了使程序更具有健壮性，需要捕获这些异常并进行处理。当异常发生时，程序会调到异常块处，将控制权限交给异常处理程序。 例如一个数除以0时，会导致异常发生，并提示出错误号。而除以0的异常属于Oracle内部定义异常。 <strong>处理异常的语法:</strong></p>
+<pre><code>EXCEPTION
+    WHEN exception1 [OR exception2...] THEN
+        statement...
+    WHEN exception3 [OR exception4...] THEN
+        statement...
+    [WHEN OTHERS THEN statement..]</code></pre><p><strong>语法解释:</strong></p>
+<ul>
+<li>EXCEPTION表示异常块的关键字</li>
+<li>WHEN exception THEN则是用来匹配异常名称，并执行对应的语句</li>
+<li>WHEN OTHERS THEN则表示当其他异常都不匹配时，执行对应的语句</li>
+</ul>
+<p>这个异常代码放在那，在最开始PL/SQL结构中就写了,加上EXCEPTION,通常就是这样的:</p>
+<pre><code>DECLARE
+BEGIN
+EXECEPTION
+END;</code></pre><p>Oracle中的异常分为三类:</p>
+<ul>
+<li>预定义异常</li>
+<li>非预定义异常(官网的说法是<strong>内部定义异常</strong>)</li>
+<li>自定义异常</li>
+</ul>
+<h4 id="预定义异常"><a href="#预定义异常" class="headerlink" title="预定义异常"></a>预定义异常</h4><p>Oracle中为每个错误提供一个错误号，而捕获异常则需要异常有名称。Oracle提供了一些已经定义好名称的常用异常，就是预定义异常。</p>
+<p>Exception</p>
+<p>ORA Error</p>
+<p>Condition</p>
+<p>CASE_NOT_FOUND</p>
+<p>ORA-06592</p>
+<p>case语句中，when子句没有匹配条件，且没有else语句，则触发该异常</p>
+<p>NO_DATA_FOUND</p>
+<p>ORA-01403</p>
+<p>不存在请求的行时出现，当引用引用已删除的元素时，也会触发</p>
+<p>TOO_MANY_ROWS</p>
+<p>ORA-01422</p>
+<p>执行SELECT INTO语句后返回多行时出现</p>
+<p>DUP_VAL_ON_INDEX</p>
+<p>ORA-00001</p>
+<p>试图将重复值插入在唯一索引的列时触发异常</p>
+<p>VALUE_ERROR</p>
+<p>ORA-06502</p>
+<p>赋值时，产生大小错误限制或变量长度不够时，引发异常</p>
+<p>ZERO_DIVIDE</p>
+<p>ORA-01476</p>
+<p>除数为0的时候引发该异常</p>
+<p>STORAGE_ERROR</p>
+<p>ORA-6500</p>
+<p>内存溢出或破坏时引发</p>
+<p>TIMEOUT_ON_RESOURCE</p>
+<p>ORA-00051</p>
+<p>等待资源超时引发该异常</p>
+<p>CURSOR_ALREADY_OPEN</p>
+<p>ORA-06511</p>
+<p>打开一个已经打开的游标引发该异常</p>
+<p>INVALID_CURSOR</p>
+<p>ORA-1001</p>
+<p>执行一个未打开的游标时出现</p>
+<p>ACCESS_INTO_NULL</p>
+<p>ORA-6530</p>
+<p>未初始化对象时</p>
+<p>当然，预定义异常也不止这些，这些只是在开发中比较常用的异常。到Oracle12c为止，一共提供了25中预定义异常。利用下面的语句可查看Oracle的预定义异常。</p>
+<pre><code>SELECT *  FROM DBA_SOURCE WHERE NAME=&apos;STANDARD&apos; AND TEXT LIKE &apos;%EXCEPTION_INIT%&apos;;</code></pre><p><strong>示例:</strong> 就拿除以0的例子.</p>
+<pre><code>DECLARE
+    v_num number(8);
+BEGIN
+    v_num := 20/0;
+EXCEPTION
+    WHEN ZERO_DIVIDE THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;除数为0&apos;);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;其他异常&apos;);
+END;</code></pre><p>当除数出现0时，程序会马上进入异常捕获部分，当发生的异常和列表中的异常名称匹配成功时，执行对应语句，异常匹配的顺序是从上往下的,所以尽量把合适的异常放在第一位。</p>
+<h4 id="非预定义异常-内部定义异常"><a href="#非预定义异常-内部定义异常" class="headerlink" title="非预定义异常(内部定义异常)"></a>非预定义异常(内部定义异常)</h4><p>Oracle中有很多异常都是非预定义异常。他们只有错误编号和错误描述，而没有名称是不能被异常捕获的。 为了解决该问题，Oralce允许开发人员为这些异常添加一个名称，使它们被异常捕获到。 <strong>注：用户声明名称的内部定义异常仍然是内部定义的异常，而不是用户定义的异常</strong> 为一个非预定义异常定义名称需要如下步骤: 1. 声明一个异常的名称 2. 把名称与异常编号相互关联 <strong>声明部分定义异常名称:</strong></p>
+<pre><code>exception_name EXCEPTION;</code></pre><p>将定义好的异常与错误编号关联起来，需使用如下语句</p>
+<pre><code>PRAGMA EXCEPTION_INIT(exception_name,exception_code)； </code></pre><p><strong>示例:</strong></p>
+<pre><code>DECLARE
+    v_id provider.providerId%TYPE :=456;
+    my_exception EXCEPTION;
+    PRAGMA EXCEPTION_INIT(my_exception, -2291);
+BEGIN
+    UPDATE PRODUCT SET providerId = v_id where productId = 8;
+EXCEPTION
+    WHEN my_exception THEN
+      DBMS_OUTPUT.PUT_LINE(&apos;违反完整约束条件&apos;);
+      DBMS_OUTPUT.PUT_LINE(SQLCODE);
+      DBMS_OUTPUT.PUT_LINE(SQLERRM);
+      ROLLBACK;
+END;</code></pre><p>这样可以捕获异常，可能你会不太清楚SQL CODE是多少，没办法关联。我似乎也没有找到办法。只能在开发时尝试通过SQLCODE函数获得错误号，SQLERRM获得错误信息。</p>
+<h4 id="自定义异常"><a href="#自定义异常" class="headerlink" title="自定义异常"></a>自定义异常</h4><p>通常我们想自己定义异常，来控制自己的业务情况，比如产品数量不为负数，生产日期等，预定义和非预定义都无法捕获。 <strong>语法:</strong></p>
+<pre><code>--声明异常
+exception_name EXCEPTION;
+--抛出异常
+RAISE exception_name;</code></pre><p><strong>自定义异常示例:</strong></p>
+<pre><code>DECLARE
+    v_price product.productPrice%TYPE;      ---产品数量
+    my_price_excep EXCEPTION;
+BEGIN
+    select productPrice INTO v_price FROM product WHERE productId=1;
+    IF v_price&lt;=0 THEN
+        RAISE my_price_excep;
+    END IF;
+EXCEPTION
+    WHEN my_price_excep THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;价格不正确，需大于0&apos;);
+    WHEN OTHERS THEN
+        DBMS_OUTPUT.PUT_LINE(&apos;出现其他错误&apos;);
+END;</code></pre><p>该例子看起来似乎没有什么意义，只是介绍如何使用。</p>
+<h4 id="重新定义错误消息"><a href="#重新定义错误消息" class="headerlink" title="重新定义错误消息"></a>重新定义错误消息</h4><p>RAISE_EXCEPTION_ERROR存储过程可以重新定义异常错误信息。用于抛出一个异常并给异常赋予一个错误号以及错误信息。</p>
+<pre><code>RAISE_EXCEPTION_ERROR(error_number,error_message[,&#123; TRUE | FALSE &#125;]);</code></pre><p>错误号的范围是-20,000到-20,999。错误信息是文本字符串，最多为2048字节。 TRUE和FALSE表示是添加(TRUE)进错误堆(ERROR STACK)还是覆盖(overwrite)错误堆(FALSE)。缺省情况下是FALSE。 <strong>示例:</strong></p>
+<pre><code>DECLARE
+    v_num number(8);
+BEGIN
+    v_num := 20;
+  IF v_num&gt;10 THEN
+    raise_application_error(-20000,&apos;错误&apos;);
+  END IF;
+END;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle PLSQL中执行DML数据操作语言和DDL数据定义语言" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%B8%AD%E6%89%A7%E8%A1%8CDML%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80%E5%92%8CDDL%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80/"
+    >Oracle PL/SQL中执行DML数据操作语言和DDL数据定义语言</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%B8%AD%E6%89%A7%E8%A1%8CDML%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80%E5%92%8CDDL%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80/" class="article-date">
+  <time datetime="2018-06-26T08:21:08.000Z" itemprop="datePublished">2018-06-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="PL-SQL中使用DML和DDL语言"><a href="#PL-SQL中使用DML和DDL语言" class="headerlink" title="PL/SQL中使用DML和DDL语言"></a>PL/SQL中使用DML和DDL语言</h3><p>PL/SQL中除了可以执行查询语句外，还可以执行DML数据操纵语言和DDL数据定义语言。</p>
+<h4 id="DML数据操作语言语句的使用"><a href="#DML数据操作语言语句的使用" class="headerlink" title="DML数据操作语言语句的使用"></a>DML数据操作语言语句的使用</h4><p><strong>示例:</strong> 添加一条新纪录，编号为表中最大编号+1</p>
+<pre><code>DECLARE
+    v_new_id product.productId%TYPE;
+BEGIN
+    SELECT MAX(productId) INTO v_new_id FROM product;
+    v_new_id := v_new_id+1;
+    INSERT INTO product VALUES(v_new_id,&apos;MacBook Pro 13.3&apos;,12000,1500,NULL);
+    COMMIT;
+END;</code></pre><h4 id="DDL数据定义语言的使用"><a href="#DDL数据定义语言的使用" class="headerlink" title="DDL数据定义语言的使用"></a>DDL数据定义语言的使用</h4><p>要想在PL/SQL中使用，需要一条命令来执行，该命令是<strong>EXECUTE IMMEDIATE</strong>,利用它可以执行动态的SQL语句，也就是不仅可以执行DDL语句，也可以执行DML语句。 <strong>示例</strong></p>
+<pre><code>DECLARE
+    prod_createStr varchar2(200);
+BEGIN
+    prod_createStr := &apos;CREATE TABLE TAB_STUDENT
+                                (
+                                    STUDENTID number(8) primary key,
+                                    STUDENTNAME varchar2(20),
+                                    AGE nchar(2)
+                                )&apos;;
+
+    EXECUTE IMMEDIATE prod_createStr;
 END;
 
 
 DECLARE
-    v_result NUMBER(8,2);
+  v_alter_address varchar2(200);
 BEGIN
-    v_result := 100/6;
-    DBMS_OUTPUT.PUT_LINE(&apos;结果是:&apos; || v_result);
-END;</code></pre><h4 id="PL-SQL基本规则"><a href="#PL-SQL基本规则" class="headerlink" title="PL/SQL基本规则"></a>PL/SQL基本规则</h4><ul>
-<li>标识符不分大小写</li>
-<li>标识符中只允许字母、数字、下划线、字母开头</li>
-<li>不能使用保留字</li>
-<li>语句使用分号结束</li>
-</ul>
-<p>建议要求:</p>
-<ul>
-<li>每行只写一条语句</li>
-<li>全部保留字、关键字、内置函数、程序包以及用户定义的数据类型都是用大写</li>
-<li>所有过程名大写</li>
-<li>命名以”_”连接，且均有意义，看下图命名方式</li>
-<li>建议添加注释</li>
-</ul>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/Oracle%E5%8F%98%E9%87%8F%E5%91%BD%E5%90%8D%E8%A7%84%E5%88%99.png" alt=""> <strong>注释</strong> 1. 单行注释 使用两个短横线开头”–”,可以注释掉后面的语句</p>
-<ol start="2">
-<li>多行注释 使用“/<em>…</em>/”可以注释掉中间的部分，与java多行注释一样。</li>
-</ol>
-<p><strong>示例</strong></p>
-<pre><code>DECLARE
-    v_result NUMBER(8,2);
-BEGIN
-    --为变量赋值
-    v_result := 100/6;
-    /*
-        打印结果
-    */
-    DBMS_OUTPUT.PUT_LINE(&apos;结果是:&apos; || v_result);
-END;</code></pre><h3 id="PL-SQL声明部分，标量，复合变量的使用"><a href="#PL-SQL声明部分，标量，复合变量的使用" class="headerlink" title="PL/SQL声明部分，标量，复合变量的使用"></a>PL/SQL声明部分，标量，复合变量的使用</h3><h4 id="声明部分变量，常量使用"><a href="#声明部分变量，常量使用" class="headerlink" title="声明部分变量，常量使用"></a>声明部分变量，常量使用</h4><ol>
-<li><p>变量声明语法结构</p>
-<p>variable_name datatype<br>[</p>
-<pre><code>[NOT NULL]
-&#123;:= | DEFAULT&#125; expression;</code></pre><p>];</p>
-</li>
-</ol>
-<p><strong>语法说明:</strong></p>
-<ul>
-<li>variable_name:变量名称</li>
-<li>datatype:变量的数据类型</li>
-<li>NOT NULL:非空约束</li>
-<li>{:= | DEFAULT} express : “:=”表示为变量在声明时直接赋值的符号，而DEFAULT表示无值,默认值的关键字。值为express,可以是表达式或函数</li>
-</ul>
-<ol start="2">
-<li><p>常量声明语法结构</p>
-<p>constant_name CONSTANT datatype<br>[NOT NULL]<br>{ := | DEFAULT} expression;</p>
-</li>
-</ol>
-<p>结构与常量类似，只不过多了一个常量关键字CONSTANT。</p>
-<h4 id="标量类型的变量"><a href="#标量类型的变量" class="headerlink" title="标量类型的变量"></a>标量类型的变量</h4><p>表量类型的变量是最简单类型的变量，也是最常用的变量类型，<strong>它本身是一个单一值，不包含任何的类型组合</strong>。标量类型主要包含数值类型、字符类型、布尔类型和日期类型，还有一种<strong>特殊声明变量类型的方式，就是利用%TYPE。</strong> 其他的不再说，就说一下 %TYPE方式定义变量类型。 <strong>%TYPE引用:</strong> <strong>它利用已存在的数据类型来定义新数据的数据类型</strong>。例如：当定义多个相同类型的变量常量时，第一个定义变量，后面的只需要利用%TYPE引用。<strong>最常见的就是表中的字段类型作为变量或常量的数据类型</strong>,这样可以保证定义变量类型可以与表中字段类型同步，避免字段类型发生变化而修改。 <strong>示例:</strong></p>
-<pre><code>DECLARE
-  v_productId product.productId%TYPE;       --产品编号
-  v_productName varchar2(18);                   --产品名称
-  v_productPrice number(8,2);                       --产品价格
-  v_test CONSTANT v_productName%TYPE:=&apos;测试&apos;;
-  v_date date DEFAULT sysdate;                  --默认值为当前日期
-BEGIN
-  SELECT productId,productName,productPrice INTO v_productId,v_productName,v_productPrice FROM product WHERE productId=1;
+  v_alter_address := &apos;ALTER TABLE TAB_STUDENT ADD ADDRESS VARCHAR2(50)&apos;;
 
-  DBMS_OUTPUT.PUT_LINE(&apos;v_productId=&apos; || v_productId);
-  DBMS_OUTPUT.PUT_LINE(&apos;v_productName=&apos; || v_productName);
-  DBMS_OUTPUT.PUT_LINE(&apos;v_productPrice=&apos; || v_productPrice);
-  DBMS_OUTPUT.PUT_LINE(&apos;v_test=&apos; || v_test);
-  DBMS_OUTPUT.PUT_LINE(&apos;v_date=&apos; || v_date);
-END;</code></pre><p><strong>代码说明:</strong> 1. 代码运行在PL/SQL Developer软件中，新建SQL窗口，SQL页执行，输出页查看输出内容。 2. 代码第二行表示v_productId的类型为product表中中productId字段的类型 3. 代码第五行表示声明常量v_test，变量类型为v_productName的变量类型 4. 代码第六行表示变量v_date为date类型，且默认值为sysdate函数的值 5. 变量不仅可以在声明部分赋值也可以在主体BEGIN中赋值，但是前提是必须声明了才能赋值。 6. BEGIN中SELECT代码，INTO关键字，表示将前面的表字段值赋值给后面的变量，顺序需要一一对应，且只能返回一行数据 7. 最后几行DBMS库的PUT_LINE来输出一行，在输出选项框查看。</p>
-<h4 id="复合类型的变量"><a href="#复合类型的变量" class="headerlink" title="复合类型的变量"></a>复合类型的变量</h4><p>复合类型就是，每个变量包含几个元素，可以存储多个值。与标量类型有差异，需先定义才能声明。 最常用的三种类型，<strong>记录类型，索引表类型，VARRAY数组。</strong></p>
-<h5 id="记录类型"><a href="#记录类型" class="headerlink" title="记录类型"></a>记录类型</h5><p>该类型可以包含多个成员，每个成员的类型可以不同，成员可以是标量类型，也可以是引用其他变量的类型(%TYPE)。 该类型比较适合处理查询语句中有多个列的情况，就如上面的例子，多个列都在同一张表或多张表中。 然后想要得到成员的值，可以通过“变量名称.成员名称”的方式。 <strong>两种声明方式:</strong> 1. <strong>记录定义</strong> <strong>语法结构:</strong></p>
-<pre><code>TYPE type_name IS RECORD
-(
-field_name datatype
-[ [NOT NULL] &#123; := | DEFAULT &#125; expression ]
-
-[,...]
-);</code></pre><p><strong>语法说明:</strong></p>
-<ul>
-<li>TYPE关键字表示类型，IS是固定的关键字，RECORD关键字证明了定义该类型为记录类型。</li>
-<li>成员属性的写法和变量声明是一样的，可以有多个成员属性</li>
-<li>另外，注意，跟创建表差不太远，成员属性后跟的是逗号，不是分号了。</li>
-</ul>
-<p><strong>示例:定义“记录类型”变量</strong></p>
-<pre><code>DECLARE
-TYPE product_record IS RECORD
-(
-  v_productId product.productId%TYPE,       --编号
-  v_productName varchar2(18),               --名称
-  v_productPrice number(8,2)                --价格
-);
-v_product product_record;
-BEGIN
-    SELECT productId,productName,productPrice INTO v_product FROM product WHERE productId=1;
-
-    DBMS_OUTPUT.PUT_LINE(&apos;v_productId=&apos; || v_product.v_productId);
-    DBMS_OUTPUT.PUT_LINE(&apos;v_productName=&apos; || v_product.v_productName);
-    DBMS_OUTPUT.PUT_LINE(&apos;v_productPrice=&apos; || v_product.v_productPrice);
-END;</code></pre><p><strong>代码解释:</strong>注意在定义时，不要忘记成员属性后加逗号，定义结束后加分号，少一个符号都会导致错误。尽管已经定义了记录类型，但是仍然摆脱不了顺序的问题，仍需要跟定义记录中的成员属性顺序保持一致。</p>
-<ol start="2">
-<li><strong>使用%ROWTYPE声明记录类型数据</strong> 利用%ROWTYPE，这种声明方式可以<strong>直接引用表中的行作为变量类型</strong>，与%TYPE类似，它将得到整个行的数据类型。</li>
-</ol>
-<p><strong>%ROWTYPE示例</strong></p>
-<pre><code>DECLARE
-    v_product product%ROWTYPE;
-BEGIN
-    SELECT *  INTO v_product FROM product WHERE productId=2;
-
-    DBMS_OUTPUT.PUT_LINE(&apos;v_productId=&apos; || v_product.productId);
-    DBMS_OUTPUT.PUT_LINE(&apos;v_productName=&apos; || v_product.productName);
-    DBMS_OUTPUT.PUT_LINE(&apos;v_productPrice=&apos; || v_product.productPrice);
-END;</code></pre><p><strong>代码说明:</strong>变量v_product的数据类型是表product的行记录类型，用%ROWTYPE方式声明了变量数据类型。仅此可以通过*把所有字段都赋值给v_product,而调用时，因为使用的是product的行记录类型，所以直接“.表字段名”即可。 这张方法较为方便，不过如果表字段很多很多，只需要用到几个字段的话，就未免有些浪费了。</p>
-<h5 id="索引表类型"><a href="#索引表类型" class="headerlink" title="索引表类型"></a>索引表类型</h5><p>该类型与数组类似，利用键值查找对应的值。但这里的键可以使用字符串，且长度不固定而自动增长。 键可以是数值或字符串，值可以是标量类型或记录类型。如果某键已有对应数据，那么将会覆盖更改。 <strong>定义语法:</strong></p>
-<pre><code>TYPE type_name IS TABLE OF
-&#123;
-    column_type | variable_name%TYPE | table_name.colum_name%TYPE | table_name%ROWTYPE
-&#125;
-[NOT NULL]
-INDEX BY &#123;PLS_INTEGER | BINARY_INTEGER | VARCHAR2(v_size)&#125;;</code></pre><p><strong>语法解释：</strong> 1. 花括号中表示索引表中的数据类型，可以是标量类型，通过%TYPE引用变量的类型，表字段的类型和%ROWTYPE行记录类型。 2. INDEX BY后面表示数组下标的数据类型。PLS_INTEGER和BINARY_INTEGER是属于数值类型，也算是标量类型中。 3. 这只是定义，接下来就可以声明变量了。 <strong>PLS_INTEGER和BINARY_INTEGER类型延伸</strong></p>
-<blockquote>
-<p>两个类型通常可以认为是一样的类型。存储有符号的整形值，范围在，-2^31~2^31-1之间。 不一样的地方就是BINARY_INTEGER发生溢出时能指派NUMBER类型(不超出NUMBER精度范围)而不至于发生异常,而PLS_INTEGER运算溢出时会触发异常，建议使用PLS_INTEGER。 SIMPLE_INTEGER类型属于PLS_INTEGER的子类型取值范围与PLS_INTEGER相同，只是<strong>该类型不允许为空。如果数据本身不需要溢出检查而且也不可能为空，则选择该类型，该类型性能比PLS_INTEGER高。</strong></p>
-</blockquote>
-<p><strong>示例:</strong></p>
-<pre><code>DECLARE
-TYPE product_table_fst IS TABLE OF product%ROWTYPE      --定义索引表，类型%ROWTYPE,索引类型PLS_INTEGER
-    INDEX BY PLS_INTEGER;
-TYPE product_table_sec IS TABLE OF nvarchar2(20)                --定义索引表，类型nvarchar2(20),索引类型PLS_INTEGER
-    INDEX BY PLS_INTEGER;
-
-v_product_row product_table_fst;
-v_char product_table_sec;
-BEGIN
-    v_char(1) := &apos;第一位&apos;;
-    v_char(-1) := &apos;也可以是正数或负数，但不能溢出&apos;;
-
-    SELECT *  INTO v_product_row(1) FROM product WHERE productId=1;
-
-    DBMS_OUTPUT.PUT_LINE(&apos;行数据v_product_row(1)的值为&apos; || &apos;---&apos; || v_product_row(1).productId || v_product_row(1).productName);
-    DBMS_OUTPUT.PUT_LINE(&apos;v_char(1)---&apos; || v_char(1));
-    DBMS_OUTPUT.PUT_LINE(&apos;v_char(-1)---&apos; || v_char(-1));
-END;</code></pre><h5 id="VARRAY数组"><a href="#VARRAY数组" class="headerlink" title="VARRAY数组"></a>VARRAY数组</h5><p>该类型的元素个数时需要限制的，是一个存储有序元素的集合。集合下标从1开始，适合较少数据的使用。 <strong>语法声明:</strong></p>
-<pre><code>TYPE type_name IS   &#123; VARRAY | VARYING ARRAY&#125; (size)
-    OF element_type [NOT NULL];</code></pre><p><strong>语法说明:</strong></p>
-<ul>
-<li>type_name : VARRAY数组名称</li>
-<li>VARRAY | VARYING ARRAY：两者一个意思，varying array简写为varray</li>
-<li>size：数组长度</li>
-<li>element_type：数组中元素类型</li>
-</ul>
-<p><strong>示例:</strong></p>
-<pre><code>DECLARE
-    TYPE varr IS VARRAY(100) OF product.productName%TYPE;
-
-    v_test varr := varr(&apos;a&apos;,&apos;b&apos;);
-BEGIN
-    SELECT productName INTO v_test(1) FROM product WHERE productId=3;
-    v_test(2) := &apos;This chanage&apos;;
-
-    DBMS_OUTPUT.PUT_LINE(&apos;productName--&apos; || v_test(1));
-    DBMS_OUTPUT.PUT_LINE(&apos;v_test(2)--&apos; || v_test(2));
-
-END;</code></pre><p>第三行v_test赋初始值，varr是VARRAY数组的类型名称，通过上面那种方式，直接赋值。使用 变量名(i)赋值或调用。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle字符数值日期等常用SQL函数" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/23/Oracle/Oracle%E5%AD%97%E7%AC%A6%E6%95%B0%E5%80%BC%E6%97%A5%E6%9C%9F%E7%AD%89%E5%B8%B8%E7%94%A8SQL%E5%87%BD%E6%95%B0/"
-    >Oracle字符数值日期等常用SQL函数</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/23/Oracle/Oracle%E5%AD%97%E7%AC%A6%E6%95%B0%E5%80%BC%E6%97%A5%E6%9C%9F%E7%AD%89%E5%B8%B8%E7%94%A8SQL%E5%87%BD%E6%95%B0/" class="article-date">
-  <time datetime="2018-06-23T13:51:03.000Z" itemprop="datePublished">2018-06-23</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="SQL函数"><a href="#SQL函数" class="headerlink" title="SQL函数"></a>SQL函数</h3><h4 id="数值函数"><a href="#数值函数" class="headerlink" title="数值函数"></a>数值函数</h4><p>函数名</p>
-<p>说明</p>
-<p>示例</p>
-<p>ABS(n)</p>
-<p>绝对值</p>
-<p>MOD(n2,n1)</p>
-<p>n2除以n1取余</p>
-<p>sign(n)</p>
-<p>返回参数n的符号，正数返回1，负数返回-1</p>
-<p>cos(n)</p>
-<p>余弦值</p>
-<p>sin(n)</p>
-<p>正弦值</p>
-<p>tan(n)</p>
-<p>正切值</p>
-<p>sqrt(n)</p>
-<p>返回n的平方根</p>
-<p>power(n2,n1)</p>
-<p>返回n2的n1次幂</p>
-<p>exp(n)</p>
-<p>返回e的n次幂，e为数学常量,e=2.71828183…</p>
-<p>log(n1,n2)</p>
-<p>返回以n1为底n2的对数</p>
-<p>ceil(n)</p>
-<p>向上取整，大于n的最小整数值</p>
-<p><a href="#n1">示例</a></p>
-<p>floor(n)</p>
-<p>向下取整,小于n的最大整数值</p>
-<p><a href="#n1">示例</a></p>
-<p>round(n[,i])</p>
-<p>四舍五入</p>
-<p><a href="#n2">示例</a></p>
-<p>trunc(n[,i])</p>
-<p>数字截取</p>
-<p><a href="#n3">示例</a></p>
-<h5 id="向上向下取整函数"><a href="#向上向下取整函数" class="headerlink" title="向上向下取整函数"></a>向上向下取整函数</h5><pre><code>select ceil(-23.4),ceil(23.4),floor(23.5),floor(-23.4) from product where productId=1</code></pre><p>由此可见，ceil函数不管n是正数还是负数都往大的走，floor都往小的走。</p>
-<h5 id="四舍五入函数"><a href="#四舍五入函数" class="headerlink" title="四舍五入函数"></a>四舍五入函数</h5><p><strong>语法：</strong>round(n[,i])</p>
-<pre><code>select round(3.14),round(3.14159,2),round(3151.5926,-2),round(3141.5926,-5) from product where productId=1</code></pre><ol>
-<li>将n四舍五入，可选参数i表示要保留的位数，不指定则不保留小数。</li>
-<li>参数i要求为整数，若为正数，则保留i为小数，</li>
-<li>负数则虚拟小数点向左i位，虚拟小数点后的一位四舍五入，虚拟小数点至源小数点之间的数变为0，舍去源小数部分。(废话较多理解就好)</li>
-<li>如果i为负数且绝对值大于等于整数部分的长度，则为0</li>
-</ol>
-<h5 id="数字截取函数"><a href="#数字截取函数" class="headerlink" title="数字截取函数"></a>数字截取函数</h5><p><strong>语法：</strong>trunc(n[,i]) 效果与round函数类似，不过小数点后一位并不会四舍五入，而直接截断</p>
-<pre><code>select trunc(3.14),trunc(3.14159,3),trunc(3151.5926,-2),trunc(3141.5926,-5) from product where productId=1</code></pre><h4 id="字符串函数"><a href="#字符串函数" class="headerlink" title="字符串函数"></a>字符串函数</h4><p>函数名</p>
-<p>说明</p>
-<p>示例</p>
-<p>chr(n)</p>
-<p>把给定ASCII码转换为字符</p>
-<p>ascii(char)</p>
-<p>返回参数首字母的ASCII码</p>
-<p>length(char)</p>
-<p>获取字符串长度,一个中文一个长度</p>
-<p>substr(type,char,position[,substring_length])</p>
-<p>根据类型截取</p>
-<p><a href="#1">示例</a></p>
-<p>concat(char1,char2)</p>
-<p>将char2连接到char1的尾部，效果与“||”相似</p>
-<p>instr(type,str,substring[,position[,occurrence]])</p>
-<p>在字符串中搜索是否存在另一个字符串</p>
-<p><a href="#2">示例</a></p>
-<p>upper(char)</p>
-<p>指定参数全部转换为大写字母</p>
-<p>lower(char)</p>
-<p>指定参数全部转换成小写字母</p>
-<p>initcap(char)</p>
-<p>单词首字母大写,空格或逗号或点分割的字符串</p>
-<p><a href="#3">示例</a></p>
-<p>replace(char,search_string[,replacement_string])</p>
-<p>字符串替换</p>
-<p><a href="#4">示例</a></p>
-<p>rpad(expr1,n[,expr2])</p>
-<p>字符串填充函数</p>
-<p><a href="#5">示例</a></p>
-<p>trim(char)</p>
-<p>删除首尾空格或字符</p>
-<p><a href="#6">示例</a></p>
-<p>rtrim(char[,set])</p>
-<p>将char右边出现在set中的字符删除</p>
-<p>ltrim(char[,set])</p>
-<p>将char左边出现在set中的字符删除</p>
-<pre><code>select chr(97),ascii(&apos;abc&apos;),length(&apos;abc我们666&apos;) from product where productId=2;</code></pre><p>chr函数与ascii函数相反,length函数中，汉字字母数字都占一个长度。</p>
-<h5 id="字符串截取函数substr"><a href="#字符串截取函数substr" class="headerlink" title="字符串截取函数substr"></a>字符串截取函数substr</h5><p>字符串截取函数不光有按字符的，还有字节的等等。 <strong>语句结构为</strong> {[substr|substrb|substrc|substr2|substr4]}(char,posistion[,substring_length]) 各参数如下:</p>
-<ul>
-<li><p>substr：以字符为单位,中文为一个字符</p>
-</li>
-<li><p>substrb：以字节为单位，中文需要三个字节</p>
-</li>
-<li><p>substrc：以unicode字符为单位</p>
-</li>
-<li><p>substr2：UCS2代码点为单位</p>
-</li>
-<li><p>substr4：以UCS4代码点为点位</p>
-</li>
-<li><p>char：被截取的字符串</p>
-</li>
-<li><p>posistion:要截取的开始位置，初始值为1，第一个字符字节均为1，若为负数则从右往左</p>
-</li>
-<li><p>substring_length：截取的长度，无值截取到末尾。根据截取的类型，如果字节截到汉字时需要3个才能截出来，否则无这个中文。</p>
-<p>select substr(‘abcd我爱你’,2,5),substrb(‘abcd我爱你’,2,5),substrc(‘abcd我爱你’,2,5) from product where productId=1;</p>
-</li>
-</ul>
-<pre><code>select substr(&apos;abcd我爱你&apos;,-2,5),substrb(&apos;abcd我爱你&apos;,-3,5),substrc(&apos;abcd我爱你&apos;,-2,5) from product where productId=2;</code></pre><h5 id="字符串搜索函数"><a href="#字符串搜索函数" class="headerlink" title="字符串搜索函数"></a>字符串搜索函数</h5><p>instr函数，在指定的字符串中搜索另一个字符串的，不存在返回0，存在<strong>返回首字符位置</strong> <strong>语句结构</strong> {[substr|substrb|substrc|substr2|substr4]}(string,substring[,posistion[,occurence]]) 语法参数</p>
-<ul>
-<li><p>搜索函数的类型与字符串截取一致</p>
-</li>
-<li><p>string：待搜索字符擦混</p>
-</li>
-<li><p>substring：要搜索的字符串</p>
-</li>
-<li><p>position：搜索开始的位置，默认为1</p>
-</li>
-<li><p>occurence：第几次出现,默认为1</p>
-<p>select instr(‘dabc我爱abc你’,’abc’,1,1),instr(‘dabc我爱abc你’,’abc’,1,2),instr(‘dabc我爱abc你’,’abc’,-1,1) from product where productId=2;</p>
-</li>
-</ul>
-<p>以此为例，最后一个参数设为1(默认为1),则检索第一个匹配的字符串获得位置，在2 检索第二次匹配，字符串的位置是7 那我将position设置为-1，从右往左检索，则第一个匹配到abc的就是位置为7的了。</p>
-<h5 id="字母大小写转换"><a href="#字母大小写转换" class="headerlink" title="字母大小写转换"></a>字母大小写转换</h5><p>upper,lower,initcap函数</p>
-<pre><code>select upper(&apos;etvhERGdg&apos;),lower(&apos;etvhERGdg&apos;),initcap(&apos;this,is,a,test&apos;) from product where productId=2;</code></pre><p>initcap函数，只要字符串里，几个字符串通过空格，逗号，点 分隔开，则每个字符串的首字母为大写 一般用于标题大写。</p>
-<h5 id="字符串替换函数"><a href="#字符串替换函数" class="headerlink" title="字符串替换函数"></a>字符串替换函数</h5><p><strong>语法:</strong> replace(char,search_string[,replacement_string])</p>
-<ul>
-<li><p>char：表示搜索的目标字符串</p>
-</li>
-<li><p>search_string：目标字符串中要搜索的字符串</p>
-</li>
-<li><p>replacement_string：可选，用来替代被搜索的字符串，如无此参数，则删除搜索的字符串</p>
-<p>select replace(‘this is a abcTest’,’abc’),replace(‘this is a abcTest’,’abc’,12) from product where productId=1;</p>
-</li>
-</ul>
-<h5 id="字符串填充函数"><a href="#字符串填充函数" class="headerlink" title="字符串填充函数"></a>字符串填充函数</h5><p>rpad(expr1,n[,expr2]) 在字符串expr1的右边用字符串expr2填充，直到字符串长度为n为止，如果expr2不存在则空格填充。 如果n小于字符串expr1的长度，则从左至右截取为n个长度。</p>
-<pre><code>select rpad(&apos;this is a abcTest&apos;,3,&apos;1&apos;),rpad(&apos;this is a abcTest&apos;,20,&apos;1&apos;) from product where productId=1;</code></pre><h5 id="字符串首尾空格清除函数"><a href="#字符串首尾空格清除函数" class="headerlink" title="字符串首尾空格清除函数"></a>字符串首尾空格清除函数</h5><p>trim,rtrim,ltrim函数 <strong>语法:</strong> TRIM([LEADING|TRAILING|BOTH] [trim_character FROM] trim_source)</p>
-<ul>
-<li><p>LEADING：删除trim_source的前缀字符</p>
-</li>
-<li><p>TRAILING：删除trim_source的后缀字符</p>
-</li>
-<li><p>BOTH：删除trim_source的前缀和后缀字符</p>
-</li>
-<li><p>trim_character:删除的指定字符，默认删除空格,只能是单个字符</p>
-</li>
-<li><p>trim_source：被操作的字符串</p>
-<p>select trim(‘    abcdefga  ‘),trim(leading ‘a’ from ‘abcdefga’),trim(trailing from ‘    abcdefga  ‘) from product where productId=2;</p>
-</li>
-</ul>
-<p>如果使用LEADING、TRAILING、BOTH，则必须要使用FROM关键字,但是删除指定字符可以是默认空格。 <strong>语法:</strong> {[RTRIM|LTRIM]|(char,[set]) 右清除和左清除空格函数 1. 默认无set可选参数，则清除左边或右边全部空格 2. 设置set字符为要删除的字符</p>
-<pre><code>select ltrim(&apos;   my name is abc  &apos;),ltrim(&apos;aaaa name is abc&apos;,&apos;a&apos;),rtrim(&apos;   my name is abc  &apos;),rtrim(&apos;my name is abc&apos;,&apos;abc&apos;) from product where productId=1;</code></pre><h4 id="日期函数"><a href="#日期函数" class="headerlink" title="日期函数"></a>日期函数</h4><p>函数名</p>
-<p>说明</p>
-<p>示例</p>
-<p>sysdate</p>
-<p>获得当前日期</p>
-<p><a href="#d1">示例</a></p>
-<p>systimestamp</p>
-<p>获得系统时间包含时区信息精确到微秒</p>
-<p>add_months(date,integer)</p>
-<p>返回指定日期加上一个月份数后的日期</p>
-<p><a href="#d2">示例</a></p>
-<p>last_day(date)</p>
-<p>返回指定日期对应月份的最后一天</p>
-<p>next_day(date,char)</p>
-<p>返回当前日期的下一周几的对应日期,char为星期几</p>
-<p><a href="#d3">示例</a></p>
-<p>extract(type FROM datetime)</p>
-<p>提取指定日期的特定部分</p>
-<p><a href="#d4">示例</a></p>
-<p>months_between(date1,date2)</p>
-<p>date1-date2相差月份数,可能为小数</p>
-<p>h5 id=”d1”&gt;获得当前日期、时区时间函数</p>
-<pre><code>select sysdate,systimestamp from product where productId=2;</code></pre><h5 id="为日期加上指定月份函数"><a href="#为日期加上指定月份函数" class="headerlink" title="为日期加上指定月份函数"></a>为日期加上指定月份函数</h5><p><strong>语法：</strong> ADD_MONTHS(date,integer)</p>
-<ul>
-<li><p>date：指定的日期</p>
-</li>
-<li><p>integer：要加的月份数，如果为负数，则减月份数</p>
-<p>select add_months(sysdate,2),add_months(‘2018-11-8’,-2) from product where productId=2;</p>
-</li>
-</ul>
-<h5 id="指定日期的下星期几对应的日期"><a href="#指定日期的下星期几对应的日期" class="headerlink" title="指定日期的下星期几对应的日期"></a>指定日期的下星期几对应的日期</h5><p><strong>语法:</strong> next_day(date,char)</p>
-<ul>
-<li><p>date：当前指定日期</p>
-</li>
-<li><p>char：星期几，值可以为，’星期一’ –’星期日’’，以外国<strong>周日为每星期的第一天</strong>,为空则返回空</p>
-<p>select next_day(sysdate,’’),next_day(sysdate,’星期日’) from product where productId=2;</p>
-</li>
-</ul>
-<h5 id="提取指定日期的特定部分"><a href="#提取指定日期的特定部分" class="headerlink" title="提取指定日期的特定部分"></a>提取指定日期的特定部分</h5><p><strong>语法：</strong> EXTRACT(YEAR|MONTH|DAY FROM datetime)</p>
-<pre><code>select extract(year from sysdate),extract(month from sysdate),extract(day from sysdate) from product where productId=2;</code></pre><p>通过指定类型获得当前日期的年、月、日。</p>
-<h4 id="转换函数"><a href="#转换函数" class="headerlink" title="转换函数"></a>转换函数</h4><p>函数名</p>
-<p>说明</p>
-<p>示例</p>
-<p>cast(expr as type_name)</p>
-<p>类型转换,基本上是数字与字符，日期与字符之间</p>
-<p><a href="#z1">示例</a></p>
-<p>to_char(n[,fmt[,nlsparam]])</p>
-<p>数值或日期转换为字符串</p>
-<p><a href="#z2">示例</a></p>
-<p>to_date(char[,fmt])</p>
-<p>字符串转换为日期</p>
-<p><a href="#z3">示例</a></p>
-<p>to_number(expr[,fmt[,nls]])</p>
-<p>字符串转数字，一般直接可转换</p>
-<p><a href="#z4">示例</a></p>
-<h5 id="数据类型转换函数"><a href="#数据类型转换函数" class="headerlink" title="数据类型转换函数"></a>数据类型转换函数</h5><p><strong>示例:</strong></p>
-<pre><code>select cast(123 as varchar2(3)),cast(sysdate as varchar2(20))  from product where productId=1;</code></pre><h5 id="字符转换函数"><a href="#字符转换函数" class="headerlink" title="字符转换函数"></a>字符转换函数</h5><ol>
-<li>TO_CHAR(number[,fmt[,nls]])</li>
-</ol>
-<ul>
-<li><p>number:数值型数据</p>
-</li>
-<li><p>fmt：转换成字符串的格式</p>
-<p>select to_char(168.568),to_char(168.568,’999.99’),to_char(168.568,’$999.99’) from product where productId=1;</p>
-</li>
-</ul>
-<ol start="2">
-<li>TO_CHAR(date[,fmt[,nls]])</li>
-</ol>
-<ul>
-<li><p>nls:使用的语言类型</p>
-<p>select to_char(sysdate),to_char(sysdate,’YYYY-MM-DD’),to_char(sysdate,’HH24:MI:SS’),to_char(sysdate,’J’),<br>to_char(sysdate,’MONTH’),to_char(sysdate,’Month’,’NLS_DATE_LANGUAGE=ENGLISH’)<br>from product where productId=’1’;</p>
-</li>
-</ul>
-<p>fmt可取值有</p>
-<ul>
-<li>YYYY-MM-DD：年月日</li>
-<li>HH24:MI:SS：时分秒</li>
-<li>YEAR：年份，英文方式,twenty eighteen</li>
-<li>MONTH：月,6月</li>
-<li>DAY：星期,星期六</li>
-<li>J：公元制时间戳</li>
-<li>YYYY/MM/DD：返回的值为纯数字,年份四位，月日两位</li>
-<li>……</li>
-</ul>
-<h5 id="日期转换函数"><a href="#日期转换函数" class="headerlink" title="日期转换函数"></a>日期转换函数</h5><p><strong>语法:</strong> TO_DATE(char[,fmt[,nls]])</p>
-<ul>
-<li><p>char：待转换的字符，可以使CHAR、VARCHAR2、NCHAR、NVARCHAR2</p>
-</li>
-<li><p>fmt：转换格式</p>
-</li>
-<li><p>nls：控制格式化时使用语言类型</p>
-<p>SELECT TO_DATE(‘2018-6-23’,’YYYY-MM-DD’),TO_DATE(‘2458293’,’J’) from product where productId=1;</p>
-</li>
-</ul>
-<p>公元制时间戳反过来可以转换成日期</p>
-<h5 id="数字转换函数"><a href="#数字转换函数" class="headerlink" title="数字转换函数"></a>数字转换函数</h5><p><strong>语法:</strong> TO_NUMBER(char[,fmt[,nls]]) 最简单的数字转字符，不需要函数，直接就自动转换</p>
-<pre><code>SELECT TO_NUMBER(&apos;2345.304&apos;),TO_NUMBER(&apos;2345.304&apos;,&apos;9999.999&apos;) FROM product where productId=1;</code></pre><h4 id="其他函数"><a href="#其他函数" class="headerlink" title="其他函数"></a>其他函数</h4><p>函数名</p>
-<p>说明</p>
-<p>NVL(expr1,expr2)</p>
-<p>如果expr1的值为NULL，则返回expr2，否则返回expr1</p>
-<p>NVL2(expr1,expr2,expr3)</p>
-<p>如果expr1为NULL，则返回expr3，否则返回expr2</p>
-<p>DECODE(value,if1,then1,if2,then2,…,else)</p>
-<p>如果value的值为if1，则返回then1；如果值为if2，则返回then2，…，否则返回else</p>
-<p>COALESCE(expr)</p>
-<p>返回列表中第一个不为NULL的表达式,参数必须是同一类型。</p>
-<p><strong>示例:</strong></p>
-<pre><code>select nvl(null,&apos;abc&apos;),nvl2(&apos;0&apos;,&apos;abc&apos;,123),coalesce(null,5,158) from product where productId=1;</code></pre><p>案例较为简单</p>
-<pre><code>select decode(to_char(sysdate,&apos;MM&apos;),&apos;01&apos;,&apos;一月&apos;,&apos;02&apos;,&apos;二月&apos;,&apos;06&apos;,&apos;六月&apos;,&apos;其他月份&apos;) from product where productId=1;</code></pre><p>to_char()函数中，获得值为06，则返回六月。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle相关子查询与非相关子查询" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/18/Oracle/Oracle%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%B8%8E%E9%9D%9E%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2/"
-    >Oracle相关子查询与非相关子查询</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/18/Oracle/Oracle%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2%E4%B8%8E%E9%9D%9E%E7%9B%B8%E5%85%B3%E5%AD%90%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-06-18T10:21:19.000Z" itemprop="datePublished">2018-06-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="子查询"><a href="#子查询" class="headerlink" title="子查询"></a>子查询</h3><p>子查询就是嵌套查询，嵌套在另外一个语句中的SELECT语句。为何有这种情况？因为where子句可能是不固定的，需要select查询得到值作为父select的where条件。</p>
-<h4 id="相关子查询"><a href="#相关子查询" class="headerlink" title="相关子查询"></a>相关子查询</h4><p>相关子查询的执行依赖于外部查询。多数情况下是子查询的WHERE子句中引用了外部查询表。 <strong>1.子查询返回单行</strong></p>
-<pre><code>SELECT *  FROM product WHERE productId = (SELECT productId FROM product WHERE productName=&apos;晨光签字笔&apos;);</code></pre><p>一般像子查询而言，都先执行括号里的，执行子SELECT，得到值后作为父SELECT的条件再进行查询。 <strong>2.子查询返回多行</strong></p>
-<pre><code>SELECT *  FROM product WHERE productId IN (SELECT productId FROM product WHERE productName=&apos;晨光签字笔&apos; OR productName=&apos;康师傅矿泉水&apos;);</code></pre><p>子查询返回的值为多行值，需要用到IN关键字，用法与前面一致，只是括号中返回多行时不能用“=”号。 除此之外也可以使用比较关键字SOME,ANY,ALL，需要配合&lt;、、&gt;=使用。</p>
-<ul>
-<li>ANY:满足子查询结果的任意一个,与&gt;、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询中的最小值</strong>。&lt;、、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询列表中的最大值</strong>。</li>
-<li>SOME:与ANY类似</li>
-<li>ALL:满足子查询的所有结果,与&gt;、&gt;=搭配表示查询列表中 条件 <strong>大于等于子查询列表中的最大值</strong>。</li>
-</ul>
-<p><strong>ANY示例:</strong></p>
-<pre><code>select *  from product where providerId &gt;any (select providerId from provider where providerId != 1);</code></pre><p>子查询中供应商编号！=1，返回2,3,4号，那么将返回产品中对应供应商编号大于最小值(2)的数据,即返回的产品都是编号为3和4的。 <strong>SOME示例:</strong></p>
-<pre><code>select * from product where productPrice =some(select productPrice from product where productId=3) and productId!=3;</code></pre><p>SOME与ANY用法一样，只不过ANY多用于非“=”的环境。 该语句表示的是，产品价格为 编号3价格 的产品，但不包括编号3。它将返回其他与产品3价格相等的产品。 <strong>ALL示例：</strong></p>
-<pre><code>select  * from product where productPrice &lt; ALL (select productPrice from product where productId=3);</code></pre><p>找出比指定产品的价格低的产品。 当然，这个语句里完全可以不使用ALL关键字，因为子查询结果只返回了一行。</p>
-<h4 id="非相关子查询"><a href="#非相关子查询" class="headerlink" title="非相关子查询"></a>非相关子查询</h4><p>EXISTS与NOT EXISTS关键字 EXISTS用于检查子查询是否至少会返回一行数据，该子查询实际上并不返回任何数据，而是返回值True或False EXISTS 指定一个子查询，检测 行 的存在。</p>
-<pre><code>select  * from product where exists (select productName from product where productId=1);</code></pre><p>NOT EXISTS则与之相反</p>
-<h4 id="子查询应用于FROM子句"><a href="#子查询应用于FROM子句" class="headerlink" title="子查询应用于FROM子句"></a>子查询应用于FROM子句</h4><p>同时，子查询，子SELECT语句不仅可以放在条件，也可以放在seelct列表中，FROM子句中。 <strong>FROM示例:</strong> 查询员工的编号，姓名，以及对应部门id，和部门平均薪资</p>
-<pre><code>select emp.eId,emp.eName,d_avg_sal.deptId,d_avg_sal.avgsal from emp,(select deptId,avg(sal) avgsal from dept group by deptId) d_avg_sal where emp.deptId=d_avg_sal.deptId;</code></pre><p>我们只需要将FROM子句中子查询查出来的数据作为一张表来看。</p>
-<h4 id="通过子查询创建表"><a href="#通过子查询创建表" class="headerlink" title="通过子查询创建表"></a>通过子查询创建表</h4><pre><code>CREATE TABLE semp
-as
-select * from emp where empId&gt;100;</code></pre><p>而当然，像这些语句也能使用表连接查询，那既然表连接能办到还需要子查询呢，因为子查询能办到的表连接不一定可以。 <strong>其实两者各有使用情况:</strong></p>
-<ul>
-<li>如果SELECT列表中包含的列来自多个表，那么这时连接的优势比较大。</li>
-<li>如果需要及时计算聚集值并用于外部查询比较时，子查询就比较优势，如max(column)列值作为父查询的条件值。</li>
-</ul>
-<p>不过，仍要考虑其效率和难易程度。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle表连接查询" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/18/Oracle/Oracle%E8%A1%A8%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2/"
-    >Oracle表连接查询</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/18/Oracle/Oracle%E8%A1%A8%E8%BF%9E%E6%8E%A5%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-06-18T10:19:27.000Z" itemprop="datePublished">2018-06-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h4 id="表连接"><a href="#表连接" class="headerlink" title="表连接"></a>表连接</h4><p><strong>表文件:</strong></p>
-<pre><code>create table product
-(
-productId number(6) not null,
-productName nvarchar2(20) not null,
-productPrice number(8,2),
-productWeight number(6,2),
-providerId number(6),
-constraint pk_productId primary key(productId)
-);
-
-CREATE TABLE provider
-(
-providerId number(6) not null,
-providerName nvarchar2(20) not null,
-CONSTRAINT pk_providerId primary key(providerId)
-);
-
-ALTER TABLE product ADD CONSTRAINT fk_provider_product FOREIGN KEY(providerId) REFERENCES provider(providerId);
-
-insert into provider values(1,&apos;晨光文具店&apos;);
-insert into provider values(2,&apos;康师傅实体店&apos;);
-insert into provider values(3,&apos;当当网&apos;);
-insert into provider values(4,&apos;三只松鼠旗舰店&apos;);
-
-insert into product values(1,&apos;晨光签字笔&apos;,12,120,1);
-insert into product values(2,&apos;康师傅矿泉水&apos;,2.5,550,2);
-insert into product values(3,&apos;《少有人走的路》白金版&apos;,34,430,3);
-insert into product values(4,&apos;《少有人走的路》白金版&apos;,34,430,3);
-insert into product values(5,&apos;康师傅红烧牛肉面&apos;,4,120,2);
-insert into product values(6,&apos;皇冠笔&apos;,7.8,60,1);
-insert into product(productId,productName,productPrice,productWeight) values(7,&apos;HUAWEI Mate10&apos;,4199,320);</code></pre><p>连接查询是关系型数据库中最重要的查询，主要包括内连接，外连接，全连接等。</p>
-<h5 id="内连接"><a href="#内连接" class="headerlink" title="内连接"></a>内连接</h5><p>即把两个或多个表进行连接，只查询出匹配的记录，不匹配的记录无法查询 如图1 [caption id=”attachment_175” align=”alignnone” width=”300”]<img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/1516281310252_13.png?x-oss-process=image/resize,m_fill,w_300,h_197" alt=""> 内连接示意图[/caption] <strong>语法:</strong></p>
-<pre><code>//等值连接
-select &lt;select_list&gt; from TableA A,TableB B where A.key=B.key
-
-//内连接
-select &lt;select_list&gt; from TableA A INNER JOIN TableB B on A.key=B.key
-
-
-select *  from product,provider where product.providerId=provider.providerId;
-
-select  * from product pd inner join provider pv on pd.providerId=pv.providerId;</code></pre><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/.png?x-oss-process=image/resize,m_fill,w_300,h_41" alt=""></p>
-<h5 id="外连接"><a href="#外连接" class="headerlink" title="外连接"></a>外连接</h5><p>外连接分为左外连接、右外连接、全外连接。 <strong>1.左外连接</strong> 返回结果为左边全部记录，如果左表的记录在右表没有匹配项，则在返回列表中右表的所有选择列表为均为NULL。 如图2 [caption id=”attachment_177” align=”alignnone” width=”300”]<img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/1516281310214_12.png?x-oss-process=image/resize,m_fill,w_300,h_197" alt=""> 左外连接示意图[/caption] <strong>语法:</strong></p>
-<pre><code>select &lt;select_list&gt; from TableA A LEFT JOIN TableB B on A.key=B.key
-
-
-select  * from product pd left join provider pv on pd.providerId=pv.providerId;</code></pre><p>HUAWEI Mate10并未与provider中的任何一项关联，所以此左表查询中，该条数据右表选择列表为NULL。 <strong>2.右外连接</strong> 返回结果为右表全部记录，如果右表的记录在左表没有匹配项，则返回列表中左表的所有选择列表项均为NULL。 如图3 [caption id=”attachment_178” align=”alignnone” width=”300”]<img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/1516281310671_15.jpeg?x-oss-process=image/resize,m_fill,w_300,h_197" alt=""> 右外连接示意图[/caption] <strong>语法:</strong></p>
-<pre><code>select &lt;select_list&gt; from TableA A RIGHT JOIN TableB B on A.key=B.key
-
-
-select  * from product pd left join provider pv on pd.providerId=pv.providerId;</code></pre><p>供应商 三只松鼠没有与商品中匹配的，所以左表都是空的。 <strong>3.全外连接</strong> 除了返回内连接匹配的数据之外，也返回两表中不匹配的数据 如图4 [caption id=”attachment_179” align=”alignnone” width=”300”]<img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/06/1516281310164_10.png?x-oss-process=image/resize,m_fill,w_300,h_197" alt="全外连接示意图"> 全外连接示意图[/caption] <strong>语法:</strong></p>
-<pre><code>select &lt;select_list&gt; from TableA A FULL JOIN TableB B on A.key=B.key
-
-
-select  * from product pd left join provider pv on pd.providerId=pv.providerId;</code></pre><p>将返回内连接的匹配的项和左右表的不匹配项。</p>
+  EXECUTE IMMEDIATE v_alter_address;
+END;</code></pre><p>需要注意，将数据定义语言作为字符串，通过EXECUTE IMMEDATE动态执行的时候，最后的分号要去掉，否则错误，这是与一般执行DDL的不同之处。 通常情况下，利用EXECUTE IMMEDATE命令执行DDL语句用在存储过程当中。</p>
 
       
       <!-- reward -->
@@ -1108,7 +858,7 @@ select  * from product pd left join provider pv on pd.providerId=pv.providerId;<
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/43/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="page-number" href="/page/43/">43</a><span class="page-number current">44</span><a class="page-number" href="/page/45/">45</a><a class="page-number" href="/page/46/">46</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/45/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/43/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/42/">42</a><a class="page-number" href="/page/43/">43</a><span class="page-number current">44</span><a class="page-number" href="/page/45/">45</a><a class="page-number" href="/page/46/">46</a><span class="space">&hellip;</span><a class="page-number" href="/page/50/">50</a><a class="extend next" rel="next" href="/page/45/">下一页</a>
   </nav>
   
 </section>

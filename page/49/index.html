@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Vue/Vue2.0起步" class="article article-type-post" itemscope
+    <article id="post-Vue/Vue2.0Ajax，JSONP跨域" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E8%B5%B7%E6%AD%A5/"
-    >Vue2.0起步</a
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/"
+    >Vue2.0Ajax，JSONP跨域</a
   >
 </h2>
   
@@ -97,8 +97,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/05/28/Vue/Vue2.0%E8%B5%B7%E6%AD%A5/" class="article-date">
-  <time datetime="2018-05-28T13:16:16.000Z" itemprop="datePublished">2018-05-28</time>
+      <a href="/2018/05/28/Vue/Vue2.0Ajax%EF%BC%8CJSONP%E8%B7%A8%E5%9F%9F/" class="article-date">
+  <time datetime="2018-05-28T14:02:16.000Z" itemprop="datePublished">2018-05-28</time>
 </a>
       
   <div class="article-category">
@@ -119,24 +119,86 @@
       
 
       
-      <h3 id="起步"><a href="#起步" class="headerlink" title="起步"></a>起步</h3><p>同其他jquery一样，Vue也是需要引用的通过\<script>标签引入js文件</p>
-<pre><code>&lt;script src=&quot;js/vue.js&quot;&gt;&lt;/script&gt;</code></pre><p>你可以去github下载，也可以直接引用Vue的js</p>
-<pre><code>https://github.com/vuejs/vue/releases
-或
-&lt;script src=&quot;https://cdn.jsdelivr.net/npm/vue&quot;&gt;&lt;/script&gt;</code></pre><h3 id="声明式渲染"><a href="#声明式渲染" class="headerlink" title="声明式渲染"></a>声明式渲染</h3><p>一个简单的HelloWorld 1.创建html，引入vue.js，只需要在script中编写如下代码</p>
-<pre><code>var vm = new Vue(&#123;
-    el:&apos;#app&apos;,
-    data:&#123;
-        message:&apos;HelloWorld&apos;
-    &#125;
-&#125;)</code></pre><p>2.然后在body中添加div标签，并添加id为app,如下代码:</p>
-<pre><code>&lt;div id=&apos;app&apos;&gt;
-    &#123; &#123;message&#125;&#125;
-&lt;div&gt;</code></pre><p>3.注意DOM编译顺序，按需添加windows.onload方法。 Vue 在背后做了大量工作。现在数据和 DOM 已经被建立了关联，所有东西都是响应式的</p>
-<blockquote>
-<p>new Vue({})即表示一个实例对象，el选项为Vue实例挂载的目标，实例挂载后，元素可用vm.$el访问。具体更多选项在后篇文章。</p>
-</blockquote>
-<p>接下来，我将一篇篇的写下自己的笔记。</p>
+      <h3 id="Ajax实现"><a href="#Ajax实现" class="headerlink" title="Ajax实现"></a>Ajax实现</h3><p>vue本身不支持发送AJAX请求，需要使用vue-resource、axios等插件实现。 axios是一个基于Promise的HTTP请求客户端，用来发送请求，也是vue2.0官方推荐的，同时不再对vue-resource进行更新和维护。 参考GitHub上的<a target="_blank" rel="noopener" href="https://github.com/axios/axios">axios</a>,dist目录下的文件就是axios.min.js。 语法:</p>
+<pre><code>axios([options])
+axios.get(url[,options])
+    传参方式:
+        1.通过url传参
+        2.通过params选项传参</code></pre><h4 id="案例-axios-options"><a href="#案例-axios-options" class="headerlink" title="案例:axios([options])"></a>案例:axios([options])</h4><pre><code>data:&#123;
+            id:1001
+        &#125;,
+    methods:&#123;
+            sendAjax()&#123;
+                axios(&#123;
+                    method:&apos;get&apos;,
+                    url:&apos;https://api.github.com/users/&apos; + vm.id
+                &#125;).then(function(resp)&#123; //表示请求成功，将执行的回调函数
+                    console.log(resp.data);
+                    vm.user=resp.data;
+                &#125;).catch(function()&#123;  //请求失败，将执行的回调函数
+                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+                &#125;);
+            &#125;
+        &#125;</code></pre><p>在这个代码中，github是一个开源网站，所以可以访问到用户的信息。 1.vm.id表示vm引用当前Vue实例的属性，在后面Vue实例中说明。 2.axios表示执行ajax请求，method选项表示请求方式，url表示请求路径。 3..then回调函数，表示请求成功将被执行,resp为请求成功返回的数据。 4.catch表示请求失败将被执行的回调函数。。</p>
+<h4 id="axiso-get-url-options"><a href="#axiso-get-url-options" class="headerlink" title="axiso.get(url[,options])"></a>axiso.get(url[,options])</h4><p>与其类似，但需要注意，第一个参数为url，后面才是选项。</p>
+<pre><code>sendAjaxGet()&#123;
+                axios.get(&apos;/user&apos;,&#123;
+                    params:&#123;
+                        id:1001
+                    &#125;
+                &#125;).then(function(resp)&#123;
+                    console.log(resp.data);
+                    vm.user=resp.data;
+                &#125;).catch(function()&#123;
+                    console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+                &#125;);
+            &#125;</code></pre><h4 id="axios-post-url-data-options"><a href="#axios-post-url-data-options" class="headerlink" title="axios.post(url,data,[options])"></a>axios.post(url,data,[options])</h4><p>post方式请求，第一个参数为请求路径，第二个参数直接就是需要传递的数据，格式为json格式，后面的为选项。</p>
+<pre><code>sendAjaxPost()&#123;
+    axios.post(&apos;server.php&apos;,&#123;
+        name:&apos;KaiEr&apos;,
+        age:19
+    &#125;).then(function(resp)&#123;
+        console.log(resp.data);
+    &#125;).catch(function()&#123;
+        console.log(&apos;请求失败&apos; + resp.status + &apos;,&apos; + resp.statusText);
+    &#125;);
+&#125;</code></pre><p>还有其他的Request Config请求配置 如:<strong>transformRequest</strong></p>
+<pre><code>transformRequest: [function (data, headers) &#123;
+    // Do whatever you want to transform the data
+    return data;
+  &#125;],</code></pre><p>按照文档的意思是说，在请求数据发到服务器之前对其进行更改，仅适用于’PUT’,’POST’和’PATCH’。 该值为数组， 数组中最后一个函数应返回一个字符串或Buffer，ArrayBuffer实例。其实返回字符串就可以。 该函数接收的data参数表示传递的数据，即post方式请求的第二个参数。<br>还有如 + timeout：表示请求超时的毫秒数 + heads：自定义头部文件 + responseType：响应类型 + responseEncoding：响应编码格式 等等，都可以在Github的axios项目的README.md文件中查看文档。 <a target="_blank" rel="noopener" href="https://github.com/axios/axios">GitHub的axios开源项目</a></p>
+<h3 id="JSONP跨域请求"><a href="#JSONP跨域请求" class="headerlink" title="JSONP跨域请求"></a>JSONP跨域请求</h3><p>axios本身并不支持发送跨域的请求，没有提供相应的API。 尽管vue-resource不再维护，但是还可以使用它来进行跨域请求。 您可以考虑使用Jquery.js来进行跨域请求和Ajax请求。然而还有其他使用ajax跨域的更好方法。我们只是说明Vue也可以支持此功能，但如果需要，你任然可以选择。 引入vue-resource.js文件,可以访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> <strong>文档语法</strong>:</p>
+<pre><code>this.$http.jsonp(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);
+this.$http.get(&apos;/someUrl&apos;, [config]).then(successCallback, errorCallback);</code></pre><ul>
+<li>get(url, [config])</li>
+<li>head(url, [config])</li>
+<li>delete(url, [config])</li>
+<li>jsonp(url, [config])</li>
+<li>post(url, [body], [config])</li>
+<li>put(url, [body], [config])</li>
+<li>patch(url, [body], [config])</li>
+</ul>
+<p><strong>Example</strong>:</p>
+<pre><code>&#123;
+  // GET /someUrl
+  this.$http.get(&apos;/someUrl&apos;).then(response =&gt; &#123;
+    // get body data
+    this.someData = response.body;
+  &#125;, response =&gt; &#123;
+    // error callback
+  &#125;);
+&#125;</code></pre><p>案例: 通过跨域请求Baidu的搜索,打开百度，F12，输入a字符，搜索，Ajax请求，network中找到这样一条请求。 <a href="#">https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su?wd=a&amp;json=1&amp;p=3&amp;sid=1444_12897_21084_26182_22158&amp;req=2&amp;csor=1&amp;cb=jQuery110209410333632536945_1523889174484&amp;_=1523889174489</a> wd代表搜索的单词a,我们只需要前边的。 另外我们可以在heads中看到百度使用的jsonp参数名为cb，所以需要修改。</p>
+<pre><code>sendJsonp()&#123;
+    this.$http.jsonp(&apos;https://sp0.baidu.com/5a1Fazu8AA54nxGko9WTAnF6hhy/su&apos;,&#123;
+        params:&#123;
+            wd:&apos;a&apos;
+        &#125;,
+        jsonp:&apos;cb&apos; //百度使用的jsonp参数名为cb，所以需要修改
+        &#125;).then(resp =&gt; &#123;
+            console.log(resp.data.s);
+        &#125;);
+&#125;</code></pre><p>通过测试，发现可以得到结果</p>
+<pre><code>(10) [&quot;爱奇艺&quot;, &quot;阿里云&quot;, &quot;安居客&quot;, &quot;阿里巴巴&quot;, &quot;阿里巴巴批发网&quot;, &quot;爱奇艺网&quot;, &quot;阿里云邮箱&quot;, &quot;安卓模拟器&quot;, &quot;爱思助手&quot;, &quot;acfun&quot;]</code></pre><p>文档访问<a target="_blank" rel="noopener" href="https://github.com/pagekit/vue-resource">Github的vue-resource项目</a> 另外，我也不怎么建议使用这个跨域，况且也不是经常用到。 可以使用<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000011145364">Jquery，document.domain + iframe跨域以及nodejs中间件代理跨域</a></p>
 
       
       <!-- reward -->
@@ -166,13 +228,523 @@
 
 </article>
     
+    <article id="post-Vue/Vue2.0{{}}模板与自定义过滤器" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/"
+    >Vue2.0{{}}模板与自定义过滤器</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/" class="article-date">
+  <time datetime="2018-05-28T13:59:06.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="模板语法"><a href="#模板语法" class="headerlink" title="模板语法"></a>模板语法</h3><p>让我们回到最开始</p>
+<pre><code>    &lt;div id=&quot;app&quot;&gt;
+        &lt;h1&gt;&#123; &#123;message&#125;&#125;&lt;/h1&gt;
+    &lt;/div&gt;
+&lt;script&gt;
+    var vm = new Vue(&#123;
+        el:&apos;#app&apos;,
+        data:&#123;
+            message:&apos;HelloWorld&apos;
+        &#125;
+    &#125;)
+&lt;/script&gt;</code></pre><p>这是一个HelloWorld，简单的通过模板输出。我们称之为数据绑定，而最常见的就是“Mustache”语法 (双大括号) 。 <strong>v-once</strong>指令，前面介绍过，一次性绑定，数据改变时，绑定的值是不会改变的。</p>
+<pre><code>&lt;span v-once&gt;这个将不会改变&#123; &#123;message&#125;&lt;/span&gt;</code></pre><h4 id="原始HTML"><a href="#原始HTML" class="headerlink" title="原始HTML"></a>原始HTML</h4><p>使用{ {}}语法，输出时普通文本，而如果要输出带有HTML的，则要使用<strong>v-html</strong>指令</p>
+<pre><code>data:&#123;
+    message:&apos;HelloWorld&apos;,
+    htmlText:&apos;&lt;h2&gt;这是一个标题,h2的标题&lt;/h2&gt;&apos;
+&#125;
+
+&#123; &#123;htmlText&#125;&#125;&lt;br/&gt;
+&lt;span v-html=&quot;htmlText&quot;&gt;&lt;/span&gt;</code></pre><p>这个 span 的内容将会被替换成为属性值 htmlText</p>
+<h4 id="不编译模板"><a href="#不编译模板" class="headerlink" title="不编译模板"></a>不编译模板</h4><p><strong>v-pre</strong>指令，可以跳过该元素和它子元素的编译过程，来显示原始的Mustache标签</p>
+<pre><code>&lt;span v-pre&gt;&#123; &#123;message&#125;&#125;&lt;/span&gt;</code></pre><p>输出的结果是{ {message}}，不对其进行编译。</p>
+<h4 id="延缓显示"><a href="#延缓显示" class="headerlink" title="延缓显示"></a>延缓显示</h4><p><strong>v-cloak</strong>指令保持在元素上直到关联实例结束编译。 CSS 规则如 [v-cloak] { display: none } 一起用时，这个指令可以隐藏未编译的 Mustache 标签直到实例准备完毕。</p>
+<pre><code> &lt;div v-cloak&gt;
+    &#123; &#123;message&#125;&#125;
+&lt;/div&gt;
+
+
+    [v-cloak]&#123;
+        display:none;
+    &#125;</code></pre><p>当DOM运行到此处时，该模板还未编译，所以将其隐藏，等实例准备完毕后，显示。</p>
+<h3 id="自定义过滤器"><a href="#自定义过滤器" class="headerlink" title="自定义过滤器"></a>自定义过滤器</h3><p>在Vue2.0中已经除去了1.0的过滤器，但是可以自定义。分为局部的和全局的。 过滤器可以用在两个地方，双花括号插值和v-bind表达式。 语法为:</p>
+<pre><code>&lt;!-- 在双花括号中 --&gt;
+&#123; &#123; message | capitalize &#125;&#125;
+&lt;!-- 在 `v-bind` 中 --&gt;
+&lt;div v-bind:id=&quot;rawId | formatId&quot;&gt;&lt;/div&gt;</code></pre><p>“|”符号 左侧为需要过滤的数据，右侧为过滤器名称。 <strong>另外注意,使用过滤器后，需要返回值，才能正常显示。</strong></p>
+<h4 id="局部过滤器定义"><a href="#局部过滤器定义" class="headerlink" title="局部过滤器定义"></a>局部过滤器定义</h4><p>局部过滤器定义在实例中的filters选项中。 示例:过滤数字，四舍五入。</p>
+<pre><code>filters:&#123;    //局部过滤器，仅当前Vue实例可用
+    number:(data,n) =&gt; &#123;
+        return data.toFixed(n);  //四舍五入,参数为保留的位数
+    &#125;
+&#125;
+
+&#123; &#123;12.356 | number(2)&#125;&#125;</code></pre><p>过滤器方法声明，第一个参数始终未为传递来的数据，后面的参数一次为方法传递的参数。</p>
+<h4 id="全局过滤器"><a href="#全局过滤器" class="headerlink" title="全局过滤器"></a>全局过滤器</h4><p>语法：Vue.filter( id, [definition] )</p>
+<pre><code>// 注册
+Vue.filter(&apos;my-filter&apos;, function (value) &#123;
+  // 返回处理后的值
+&#125;)
+
+// getter，返回已注册的过滤器
+var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
+<pre><code>Vue.filter(&apos;formatDate&apos;,function(val)&#123;
+        var d = new Date(val);
+        return d.getFullYear() + &apos;-&apos; + (d.getMonth()+1) + &apos;-&apos; + d.getDate() + &apos; &apos; + d.getHours() + &apos;:&apos; + d.getMinutes();
+    &#125;);
+
+&lt;h3&gt;时间:&lt;span&gt;&#123; &#123;currentDate | formatDate&#125;&#125;&lt;/span&gt;&lt;/h3&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0属性绑定和Class与Style绑定" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E5%B1%9E%E6%80%A7%E7%BB%91%E5%AE%9A%E5%92%8CClass%E4%B8%8EStyle%E7%BB%91%E5%AE%9A/"
+    >Vue2.0属性绑定和Class与Style绑定</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E5%B1%9E%E6%80%A7%E7%BB%91%E5%AE%9A%E5%92%8CClass%E4%B8%8EStyle%E7%BB%91%E5%AE%9A/" class="article-date">
+  <time datetime="2018-05-28T13:56:32.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="属性绑定"><a href="#属性绑定" class="headerlink" title="属性绑定"></a>属性绑定</h3><p>通过指令v-bind可以绑定属性,该指令同v-on一样，也有一个简写，“：”冒号。 绑定元素的属性，并且可与元素的原属性共存。当原属性有值时则显示原属性的值，无值则使用绑定的值。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;img :src=&quot;url&quot; :width=&quot;width&quot; width=&quot;800&quot; :height=&quot;height&quot;/&gt;
+&lt;/div&gt;
+
+data:&#123;
+    url:&quot;https://www.baidu.com/img/bd_logo1.png&quot;,
+    width:300,
+    height:300
+&#125;</code></pre><p>这是属性绑定的用法。</p>
+<h3 id="Class与Style绑定"><a href="#Class与Style绑定" class="headerlink" title="Class与Style绑定"></a>Class与Style绑定</h3><p>我们同常绑定class时，直接写在class中,这是普通的css绑定。</p>
+<pre><code>&lt;style&gt;
+    .aa&#123;
+        color: red;
+    &#125;
+    .bb&#123;
+        color: blue;
+    &#125;
+&lt;/style&gt;
+
+&lt;p class=&quot;aa&quot;&gt;这是一段文字，用来测试Class与Style绑定&lt;/p&gt;</code></pre><p>而如果将这种普通绑定应用在Vue中是不行的。不能直接写:class=’aa’</p>
+<pre><code>&lt;p :class=&quot;aa&quot;&gt;这是一段文字，用来测试Class与Style绑定&lt;/p&gt;</code></pre><p>这样做它是不会显示出来的。 我们需要通过Vue数据data来动态实现。</p>
+<h4 id="直接通过data选项中变量-的方式"><a href="#直接通过data选项中变量-的方式" class="headerlink" title="直接通过data选项中变量 的方式"></a>直接通过data选项中变量 的方式</h4><p>先定义class样式，然后再:class里填写与样式名绑定的名称</p>
+<pre><code>data:&#123;
+    color:&apos;aa&apos;
+&#125;
+&lt;p :class=&quot;color&quot;&gt;通过Vue中data选项的变量来动态控制&lt;/p&gt;</code></pre><p>此时color值为aa，那么么颜色就是red,如果动态的为color属性值赋值为bb，那么字体颜色就为blue了。</p>
+<h4 id="通过数组的方式"><a href="#通过数组的方式" class="headerlink" title="通过数组的方式"></a>通过数组的方式</h4><pre><code>.line&#123;
+        text-decoration: underline;
+    &#125;
+&lt;p :class=&quot;[color,line]&quot;&gt;通过数组的方式来控制多个&lt;/p&gt;</code></pre><p>另外，指令中是可以有表达式的，就如上面的数组，还可以对data选项的某个number类型的属性进行数据操作，它仅能实现小的操作，而不能去实现语句。</p>
+<h4 id="通过json格式的方式绑定"><a href="#通过json格式的方式绑定" class="headerlink" title="通过json格式的方式绑定"></a>通过json格式的方式绑定</h4><p>这次可以不与data选项的属性有牵扯,直接通过设置类样式的值为true|false 为true则使用这个样式，为false则不使用这个样式，通过true|false来判定是否出现样式。这种方式也是最佳常用的。</p>
+<pre><code>&lt;p :class=&quot;&#123;bb:false,line:true&#125;&quot;&gt;通过json的方式来绑定class&lt;/p&gt;</code></pre><p>由于，值为true|false，那么么我们也可以通过值大小的方式给定true或false。</p>
+<pre><code>data:&#123;
+    num:-99
+&#125;
+&lt;p :class=&quot;&#123;bb:false,line:num&gt;0&#125;&quot;&gt;通过json的方式来绑定class&lt;/p&gt;</code></pre><p>此时line的属性值是返回false，此时不会显示下划线。</p>
+<h4 id="通过变量引用json形式"><a href="#通过变量引用json形式" class="headerlink" title="通过变量引用json形式"></a>通过变量引用json形式</h4><p>就是不把json数据写在：class中了，而是定义为实例的一个属性，放在data中。 格式还是这样，不过是放在一个属性中。</p>
+<pre><code>data:&#123;
+    line_blue:&#123;aa:true,line:true&#125;
+&#125;
+&lt;p :class=&quot;line_blue&quot;&gt;通过json变量的方式来绑定&lt;/p&gt;</code></pre><blockquote>
+<p>另外，在数组和json中都可以使用三元表达式？ ：的方式。</p>
+</blockquote>
+<h3 id="绑定内联样式"><a href="#绑定内联样式" class="headerlink" title="绑定内联样式"></a>绑定内联样式</h3><p>即通过绑定style, :style方式</p>
+<pre><code>data:&#123;
+    color:red,
+    fontSize:20,
+
+&#125;
+&lt;p :style=&quot;&#123;color:color,fontSize:fontSize + &apos;px&apos;&#125;&quot;&gt;绑定内联&lt;/p&gt;</code></pre><p>因为内联的style可以直接在元素中写，所以json中的key都是css属性，color,textDecoration,fontSize这些内联的样式，(内联的和style文件内的样式名不一样,文件里是横杠，内联是驼峰首字母大写)。 另一个就是直接通过属性的方式了，把json赋值给属性。</p>
+<pre><code>data:&#123;
+    style1:&#123;color:&apos;blue&apos;,fontSize:&apos;15px&apos;&#125;
+&#125;
+&lt;p :style=&quot;style1&quot;&gt;绑定内联&lt;/p&gt;</code></pre><p>同样，数组也是可以的。</p>
+<h4 id="多重值"><a href="#多重值" class="headerlink" title="多重值"></a>多重值</h4><p>绑定中的属性提供一个包含多个值的数组，常用于提供多个带前缀的值</p>
+<pre><code>&lt;div :style=&quot;&#123; display: [&apos;-webkit-box&apos;, &apos;-ms-flexbox&apos;, &apos;flex&apos;] &#125;&quot;&gt;&lt;/div&gt;</code></pre><p>这样写只会渲染数组中最后一个被浏览器支持的值。在本例中，如果浏览器支持不带浏览器前缀的 flexbox，那么就只会渲染 display: flex。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0事件对象，事件冒泡，默认行为及键盘事件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E4%BA%8B%E4%BB%B6%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1%EF%BC%8C%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA%E5%8F%8A%E9%94%AE%E7%9B%98%E4%BA%8B%E4%BB%B6/"
+    >Vue2.0事件对象，事件冒泡，默认行为及键盘事件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E4%BA%8B%E4%BB%B6%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1%EF%BC%8C%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA%E5%8F%8A%E9%94%AE%E7%9B%98%E4%BA%8B%E4%BB%B6/" class="article-date">
+  <time datetime="2018-05-28T13:35:46.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="事件对象"><a href="#事件对象" class="headerlink" title="事件对象"></a>事件对象</h3><p>关于事件即v-on在指令中已经介绍过，@简写也说过,就不再说明如何声明使用了。 我们可以在调用事件方法是为方法添加参数 $event,表示一个事件实例。 在处理方法中，得到这个实参，可通过这个对象获得一些方法和作用。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;button @click=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;
+&lt;/div&gt;
+
+methods:&#123;
+            clickPrint(e,str)&#123;
+                console.log(str);
+                console.log(e);
+                console.log(e.type);
+                console.log(e.target);//获得事件的目标对象DOM
+            &#125;
+&#125;</code></pre><p>如果有多个参数，那么将$event设置为第一个参数。</p>
+<h3 id="事件冒泡"><a href="#事件冒泡" class="headerlink" title="事件冒泡"></a>事件冒泡</h3><p>当事件发生后，这个事件就要开始传播(从里到外或者从外向里)，如何阻止事件冒泡，在js中是通过stopPropagation()方法来阻止事件冒泡的。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+        &lt;div @click=&quot;printD()&quot;&gt;
+            &lt;p @click=&quot;printP()&quot;&gt;
+                &lt;button @click=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;
+            &lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</code></pre><p>此时将会出现向上冒泡情况。 只需在触发事件的指令后添加修饰符.stop</p>
+<pre><code>&lt;button @click.stop=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;</code></pre><h3 id="默认行为"><a href="#默认行为" class="headerlink" title="默认行为"></a>默认行为</h3><p>阻止默认行为，在js中调用event.preventDefault(),在Vue中，添加修饰符.prevent</p>
+<pre><code>&lt;a href=&quot;http://www.baidu.com&quot; target=&quot;_blank&quot; @click.stop=&quot;study&quot;&gt;链接&lt;/a&gt;</code></pre><p>此时添加.stop将不会链接到百度的主页面。 当然也可以通过串联的方式</p>
+<pre><code>&lt;a href=&quot;http://www.baidu.com&quot; target=&quot;_blank&quot; @click.stop.prevent=&quot;study&quot;&gt;链接&lt;/a&gt;</code></pre><p>还有，如：.once，只触发一次事件</p>
+<pre><code>&lt;button v-on:click.once=&quot;clickOnce()&quot;&gt;该事件只触发一次&lt;/button&gt;</code></pre><h3 id="键盘事件"><a href="#键盘事件" class="headerlink" title="键盘事件"></a>键盘事件</h3><p>{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。 键盘事件有@keydown,@keypress,@keyup 案例:</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+        &lt;input type=&quot;text&quot; name=&quot;username&quot; @keydown=&quot;show($event)&quot;/&gt;&lt;br/&gt;
+        &lt;input type=&quot;text&quot; name=&quot;name&quot; @keydown.enter=&quot;print($event)&quot;/&gt;&lt;br/&gt;
+        &lt;input type=&quot;text&quot; name=&quot;one&quot; @keydown.up=&quot;print($event)&quot;/&gt;&lt;br/&gt;
+&lt;/div&gt;
+
+methods:&#123;
+    show(e)&#123;
+        console.log(e.target.value);
+    &#125;,
+    print(e)&#123;
+        console.log(e.keyCode);
+    &#125;
+&#125;</code></pre><p>我们运行这个例子，第一个文本框中，每更改一次文本值就会触发一次事件 第二个文本框中，无论如何更改，只要按下enter键才能触发事件，这个.enter是内置的。下面的.up也是内置的，还可以使用keyCode值,如13是enter，使用.13也可以代表enter。 还有许多内置的，可以一一试试，也可以自定义全局的。</p>
+<h4 id="全局配置keyCodes"><a href="#全局配置keyCodes" class="headerlink" title="全局配置keyCodes"></a>全局配置keyCodes</h4><p>类型：{ [key: string]: number | Array<number> } key为string类型，职位number类型或number类型的数组。 全局的，要定义在Vue实例外面</p>
+<pre><code>Vue.config.keyCode=&#123;
+    a:65,
+    space:32
+&#125;
+
+&lt;input type=&quot;text&quot; name=&quot;add&quot; @keydown.space=&quot;print($event)&quot;/&gt;
+&lt;input type=&quot;text&quot; name=&quot;add&quot; @keydown.a=&quot;print($event)&quot;/&gt;</code></pre><p>一般我们定义的这些，如果是可输出字符的键的话，就会先触发事件再输出这个字符。 配置全局的语法都是Vue.config.xxx，不只有keyCodes，还有很多。 <a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/api/#%E5%85%A8%E5%B1%80%E9%85%8D%E7%BD%AE">全局配置</a></p>
+<hr>
+<h3 id="还有其他修饰符"><a href="#还有其他修饰符" class="headerlink" title="还有其他修饰符"></a>还有其他修饰符</h3><ul>
+<li>.stop - 调用 event.stopPropagation()。</li>
+<li>.prevent - 调用 event.preventDefault()。</li>
+<li>.capture - 添加事件侦听器时使用 capture 模式。</li>
+<li>.self - 只当事件是从侦听器绑定的元素本身触发时才触发回调。</li>
+<li>.{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。</li>
+<li>.native - 监听组件根元素的原生事件。</li>
+<li>.once - 只触发一次回调。</li>
+<li>.left - (2.2.0) 只当点击鼠标左键时触发。</li>
+<li>.right - (2.2.0) 只当点击鼠标右键时触发。</li>
+<li>.middle - (2.2.0) 只当点击鼠标中键时触发。</li>
+<li>.passive - (2.3.0) 以 { passive: true } 模式添加侦听器 更多，需要查看官网<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/api/#v-on">v-on指令事件描述</a></li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0常用指令" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/"
+    >Vue2.0常用指令</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E5%B8%B8%E7%94%A8%E6%8C%87%E4%BB%A4/" class="article-date">
+  <time datetime="2018-05-28T13:22:53.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="常用指令"><a href="#常用指令" class="headerlink" title="常用指令"></a>常用指令</h2><h3 id="v-model指令"><a href="#v-model指令" class="headerlink" title="v-model指令"></a>v-model指令</h3><p>该指令用于数据的双向绑定，即通过input text文本框，和Vue进行双向的显示。 一般用于表单元素。 只需要这样编写挂载目标：</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;input type=&quot;text&quot; v-model=&quot;message&quot;/&gt;&lt;br/&gt;
+    文本框的内容为:&#123; &#123;message&#125;&#125;
+&lt;/div&gt;</code></pre><p>Vue实例的内容跟上节一样不用变。 通过对文本框的输入，Vue实例会自动解析并绑定到{ {message}}进行渲染。</p>
+<blockquote>
+<p>v-model为Vue的内部指令，到后面我们是可以指令的。</p>
+</blockquote>
+<h3 id="v-for指令"><a href="#v-for指令" class="headerlink" title="v-for指令"></a>v-for指令</h3><p>该指令，顾名思义，使用来循环的。 我们通过，手动编写和循环介绍: 1.首先在Vue实例的data选项中建立数组</p>
+<pre><code>data:&#123;
+    arr:[&apos;51CTO&apos;,&apos;走着路&apos;,&apos;Vue&apos;,&apos;v-for&apos;]
+&#125;</code></pre><p>2.然后再div中编写</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;ol&gt;
+        &lt;li&gt;51CTO博客&lt;/li&gt;
+        &lt;li&gt;走着路&lt;/li&gt;
+        &lt;li&gt;Vue&lt;/li&gt;
+        &lt;li&gt;v-for&lt;/li&gt;
+    &lt;/ol&gt;
+    &lt;hr/&gt;
+    &lt;ul&gt;
+        &lt;li v-for=&quot;val in arr&quot;&gt;&#123; &#123;val&#125;&#125;&lt;/li&gt;
+    &lt;/ul&gt;
+&lt;/div&gt;</code></pre><p>ol是手动写的有序列表，下面的ul是我们通过v-for指令的无序列表。运行可看到显示成功。 但如果想要索引和值，那么修改:</p>
+<pre><code>&lt;li v-for=&apos;(val,key) in arr&apos;&gt;&#123; &#123;key&#125;&#125;=&#123; &#123;val&#125;&#125;&lt;/li&gt;</code></pre><p>即可,注意，括号里val在前，而模板显示时时，key在前。需注意。</p>
+<h3 id="v-on指令"><a href="#v-on指令" class="headerlink" title="v-on指令"></a>v-on指令</h3><p>用于绑定事件的,类似onclick,onblur等等。 用法：v-on:事件=”函数” 既然使用事件，那么就要有一个新的选项methods来制定方法。 例如：</p>
+<pre><code>&lt;div id=&apos;app&apos;&gt;
+    &lt;button v-on:click=&quot;sayHi()&quot;&gt;点击方法，sayHi&lt;/button&gt;
+    &lt;button @mouseover=&apos;mousevoer()&apos;&gt;鼠标经过&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+    var vm = new Vue(&#123;
+        el:&apos;#app&apos;,
+        data:&#123;
+            arr:[&apos;51CTO&apos;,&apos;走着路&apos;,&apos;Vue&apos;,&apos;v-for&apos;]
+        &#125;,
+        methods:&#123;
+            sayHi:function()&#123;
+                console.log(&apos;HelloWorld&apos;);
+            &#125;,
+            mousevoer()&#123;
+                console.log(&apos;mouseover&apos;);
+            &#125;
+        &#125;
+    &#125;)
+&lt;/script&gt;</code></pre><p>然后，打开控制台，点击按钮，控制台就会显示HelloWorld，点击多次，前面会有数字显示次数。 此外还可以通过对象语法来编写事件:</p>
+<pre><code>&lt;button v-on=&quot;&#123; mousedown: doThis, mouseup: doThat &#125;&quot;&gt;&lt;/button&gt;</code></pre><p>此方式可以一次定义多个事件，在Vue实例的mothods选项中如平常一样编写。</p>
+<blockquote>
+<p>v-on指令可以简写为@</p>
+</blockquote>
+<h3 id="v-once指令"><a href="#v-once指令" class="headerlink" title="v-once指令"></a>v-once指令</h3><p>用于只绑定一次</p>
+<pre><code>&lt;input type=&quot;text&quot; v-model=&quot;message&quot;/&gt;&lt;br/&gt;
+&lt;h2 v-once&gt;&#123; &#123;message&#125;&#125;&lt;/h2&gt;
+&lt;h3&gt;&#123; &#123;message&#125;&#125;&lt;/h3&gt;</code></pre><p>尽管v-model绑定message如何更改，message值总会变，但是h2通过v-once指令，它却只能显示一次，即’HelloWorld’这个初始绑定。而h3却始终动态渲染。</p>
+<hr>
+<p>其余常用的v-if,v-show在 条件渲染 中介绍 v-bind在 Class与Style绑定 中介绍</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
   </article>
   
 
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/48/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/">47</a><a class="page-number" href="/page/48/">48</a><span class="page-number current">49</span>
+    <a class="extend prev" rel="prev" href="/page/48/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/47/">47</a><a class="page-number" href="/page/48/">48</a><span class="page-number current">49</span><a class="page-number" href="/page/50/">50</a><a class="extend next" rel="next" href="/page/50/">下一页</a>
   </nav>
   
 </section>

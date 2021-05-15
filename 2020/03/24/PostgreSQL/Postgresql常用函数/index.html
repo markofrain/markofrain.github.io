@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">581字</span>
+            <span class="post-count">820字</span>
         </span>
     </span>
 
@@ -85,7 +85,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">2分钟</span>
+            <span class="post-count">3分钟</span>
         </span>
     </span>
 </div>
@@ -145,7 +145,46 @@
 <p><strong>extract(&lt;unit&gt; from &lt;date&gt;)</strong><br>该函数表示从date中提取，unit为单位，date为日期时间。但unit中的day表示的是日不是星期</p>
 <p><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/10/functions-formatting.html">此处为日期格式化中文官方文档</a></p>
 <h2 id="常用逻辑函数"><a href="#常用逻辑函数" class="headerlink" title="常用逻辑函数"></a>常用逻辑函数</h2><h3 id="COALESCE-val-val2-val3"><a href="#COALESCE-val-val2-val3" class="headerlink" title="COALESCE(val,val2[,val3])"></a>COALESCE(val,val2[,val3])</h3><p>该函数表示为空判断，如果val为空则使用val2的值，否则使用val的值。<br>如果3个参数表示，如果不为空使用val3</p>
-<h3 id="case-when-then-else-end可使用多条件判断"><a href="#case-when-then-else-end可使用多条件判断" class="headerlink" title="case when then else end可使用多条件判断"></a>case when then else end可使用多条件判断</h3>
+<h3 id="case-when-then-else-end可使用多条件判断"><a href="#case-when-then-else-end可使用多条件判断" class="headerlink" title="case when then else end可使用多条件判断"></a>case when then else end可使用多条件判断</h3><h3 id="单条数据的列转行操作"><a href="#单条数据的列转行操作" class="headerlink" title="单条数据的列转行操作"></a>单条数据的列转行操作</h3><table>
+<thead>
+<tr>
+<th>plan_value</th>
+<th>t</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.23</td>
+<td>one</td>
+</tr>
+<tr>
+<td>0.45</td>
+<td>two</td>
+</tr>
+<tr>
+<td>0.24</td>
+<td>three</td>
+</tr>
+</tbody></table>
+<p>对该结果进行列转行，转换为</p>
+<table>
+<thead>
+<tr>
+<th>one</th>
+<th>two</th>
+<th>three</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>0.23</td>
+<td>0.45</td>
+<td>0.24</td>
+</tr>
+</tbody></table>
+<p>以上one、two、three分别为标识的每行数据</p>
+<p>转换使用case when的方式，该方式使用sum函数包裹，则会聚合函数成一行，但是如果有重复的t列标识，则不能使用sum函数。如果你要求t标识的数量，则使用count可以得到。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;one&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;one&quot;</span>,</span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;two&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;two&quot;</span>,</span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;three&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;three&quot;</span></span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	 <span class="keyword">select</span> value_plan <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;one&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value_before</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line">	 <span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">	 <span class="keyword">select</span> recentyear <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;two&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line">	 <span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">	 <span class="keyword">select</span> value_plan <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;three&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line"> ) a</span><br></pre></td></tr></table></figure>
+
+
       
       <!-- reward -->
       

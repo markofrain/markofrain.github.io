@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Javascript/jExcel web交互式电子表格" class="article article-type-post" itemscope
+    <article id="post-Spring/Spring批量文件下载，ZIP包" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/"
-    >jExcel web交互式电子表格</a
+  <a class="article-title" href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/"
+    >Spring批量文件下载，ZIP包</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/" class="article-date">
-  <time datetime="2019-08-05T08:28:12.000Z" itemprop="datePublished">2019-08-05</time>
+      <a href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/" class="article-date">
+  <time datetime="2019-09-18T01:33:36.000Z" itemprop="datePublished">2019-09-18</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>
   </div>
 
       
@@ -119,169 +119,74 @@
       
 
       
-      <p><a target="_blank" rel="noopener" href="https://bossanova.uk/jexcel/v3/"><strong>jExcel</strong></a>是一个轻量级的vanilla javascript插件，用于创建与Excel或任何其他电子表格软件兼容的基于Web的交互式表格和电子表格。可以从JS数组，JSON，CSV或XSLX文件创建在线电子表格表 。 可以从excel复制并直接粘贴到jExcel电子表格，反之亦然 。 可以创建自己的自定义列，自定义编辑器，并在应用程序中自定义任何功能 。</p>
-<p>以上官方介绍的话。并且也真的可以实现。而且仅需要进入两个js和两个css即可。</p>
-<p>可以访问gihub的地址<a target="_blank" rel="noopener" href="https://github.com/paulhodel/jexcel">https://github.com/paulhodel/jexcel</a></p>
-<p>或码云的镜像地址:<a target="_blank" rel="noopener" href="https://gitee.com/mirrors/jExcel/tree/master">https://gitee.com/mirrors/jExcel/tree/master</a></p>
-<h3 id="basic"><a href="#basic" class="headerlink" title="basic"></a>basic</h3><p>首先可以看一下官方基础的实例</p>
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-&lt;head&gt;
-    &lt;meta charset=&quot;UTF-8&quot;&gt;
-    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
-    &lt;script src=&quot;https://bossanova.uk/jexcel/v3/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;title&gt;Document&lt;/title&gt;
-&lt;/head&gt;
+      <p>核心方法，递归写文件到Zip流中</p>
+<pre><code>private static void compress(File sourceFile, ZipOutputStream zos, String name,
+                                 boolean KeepDirStructure) throws Exception &#123;
+        byte[] buf = new byte[1024];
+        if (sourceFile.isFile()) &#123;
+            if (!sourceFile.getName().contains(&quot;.zip&quot;)) &#123;
+                // 向zip输出流中添加一个zip实体，构造器中name为zip实体的文件的名字
+                zos.putNextEntry(new ZipEntry(name));
+                // copy文件到zip输出流中
+                int len;
+                FileInputStream in = new FileInputStream(sourceFile);
+                while ((len = in.read(buf)) != -1) &#123;
+                    zos.write(buf, 0, len);
+                &#125;
+                // Complete the entry
+                zos.closeEntry();
+                in.close();
+            &#125;
+        &#125; else &#123;
+            File[] listFiles = sourceFile.listFiles();
+            if (listFiles == null || listFiles.length == 0) &#123;
 
-&lt;body&gt;
-    &lt;div id=&quot;mytable&quot;&gt;&lt;/div&gt;
-    &lt;script&gt;
-        data = [
-            [&apos;Google&apos;, 1998, 807.80],
-            [&apos;Apple&apos;, 1976, 116.52],
-            [&apos;Yahoo&apos;, 1994, 38.66],
-        ];
+                // 需要保留原来的文件结构时,需要对空文件夹进行处理
+                if (KeepDirStructure) &#123;
+                    // 空文件夹的处理
+                    zos.putNextEntry(new ZipEntry(name + &quot;/&quot;));
+                    // 没有文件，不需要文件的copy
+                    zos.closeEntry();
+                &#125;
+            &#125; else &#123;
+                for (File file : listFiles) &#123;
+                    // 判断是否需要保留原来的文件结构
+                    if (KeepDirStructure) &#123;
+                        // 注意：file.getName()前面需要带上父文件夹的名字加一斜杠,
+                        // 不然最后压缩包中就不能保留原来的文件结构,即：所有文件都跑到压缩包根目录下了
+                        compress(file, zos, name + &quot;/&quot; + file.getName(), KeepDirStructure);
+                    &#125; else &#123;
+                        compress(file, zos, file.getName(), KeepDirStructure);
+                    &#125;
+                &#125;
+            &#125;
+        &#125;
+    &#125;</code></pre><p>文件下载</p>
+<pre><code>//压缩文件zip到服务器
+ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipPath));
+compress(ywhFiles,out, ywhFiles.getName(),true);
 
-        jexcel(document.getElementById(&apos;mytable&apos;), &#123;
-            data: data,
-            colWidths: [300, 80, 100]
-        &#125;);
-    &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre><p>访问这个页面，会出现一个web表格。</p>
-<ul>
-<li>选中列，右击可以进行一些列操作，导出，新增行，删除行，修改列名等</li>
-<li>选中列拷贝，可拷贝到当前表格和office excel表格中。</li>
-<li>双击列排序</li>
-<li>选中表格，右击save as可保存为cvs文件</li>
-<li>选中表格，右下角的点可以和office一样拉伸填充</li>
-<li>列宽度可以直接拉伸</li>
-<li>双击单元格可直接修改值</li>
-</ul>
-<h3 id="列类型"><a href="#列类型" class="headerlink" title="列类型"></a>列类型</h3><p>在此web电子表格中，首先与office excel不同的一点是，office的类型为单元格设置类型，而jexcel中为更简易，设置为每列为一类型，称之为列类型。作用相类似于前端table数据展示的那种，每列都是同一个属性或同一个列类型。</p>
-<pre><code>&lt;html&gt;
-    &lt;script src=&quot;jexcel-master/dist/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-
-    &lt;div id=&quot;spreadsheet&quot;&gt;&lt;/div&gt;
-
-    &lt;script&gt;
-        var data = [
-            [&apos;Jazz&apos;, &apos;Honda&apos;, &apos;2019-02-12&apos;, &apos;&apos;, true, &apos;$ 2.000,00&apos;, &apos;#777700&apos;],
-            [&apos;Civic&apos;, &apos;Honda&apos;, &apos;2018-07-11&apos;, &apos;&apos;, true, &apos;$ 4.000,01&apos;, &apos;#007777&apos;],
-        ];
-
-        jexcel(document.getElementById(&apos;spreadsheet&apos;), &#123;
-            data:data,
-            columns: [
-                &#123; type: &apos;text&apos;, title:&apos;Car&apos;, width:120 &#125;,
-                &#123; type: &apos;dropdown&apos;, title:&apos;Make&apos;, width:200, source:[ &quot;Alfa Romeo&quot;, &quot;Audi&quot;, &quot;Bmw&quot;,&apos;Honda&apos; ] &#125;,
-                &#123; type: &apos;calendar&apos;, title:&apos;Available&apos;, width:200 &#125;,
-                &#123; type: &apos;image&apos;, title:&apos;Photo&apos;, width:120 &#125;,
-                &#123; type: &apos;checkbox&apos;, title:&apos;Stock&apos;, width:80 &#125;,
-                &#123; type: &apos;numeric&apos;, title:&apos;Price&apos;, width:100, mask:&apos;$ #.##,00&apos;, decimal:&apos;,&apos; &#125;,
-                &#123; type: &apos;color&apos;, width:100, render:&apos;circle&apos;, &#125;
-                ]
-        &#125;);
-    &lt;/script&gt;
-&lt;/html&gt;</code></pre><p>以上官方示例，表示配置columns类型，按顺序进行配置，包括</p>
-<ul>
-<li>text:表示文本类型</li>
-<li>dropdown:表示下拉类型，需要设置source属性，列表</li>
-<li>calendar:表示日期类型，该日期格式可在js的323行处修改日期格式</li>
-<li>image:为图片，点击列，双击弹出的框，可选择图片，选择后，点击表格可关闭弹框并填充图片</li>
-<li>numberic:为数字类型，mask为数字格式，decimal为分隔符</li>
-<li>color:表示为颜色框，width为绘制宽度，render为为形状</li>
-</ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/bootstrap table列行都有滚动条造成查看不便" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/"
-    >bootstrap table列行都有滚动条造成查看不便</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/" class="article-date">
-  <time datetime="2019-08-05T01:00:08.000Z" itemprop="datePublished">2019-08-05</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>bootstrap table在显示数据的时候，由于列过多导致出现的横向滚动条。而页面高度又很低，所以分页时，纵向也有一个滚动条，必须滚到最下面才能拉动横向滚动条。否则只能按左右键查看数据。</p>
-<p>因此有需求取消纵向滚动条，将bootstrap table整体高度缩小到页面剩余高度，让分页框也显示在页面上。</p>
-<pre><code>$(window).resize(function () &#123;
-    //重置表格
-    $(&quot;#fwdyDetailTable&quot;).bootstrapTable(&apos;resetView&apos;);
-    initBootstrapTableHeight();
-&#125;);
-//初始化表格高度
-function initBootstrapTableHeight()&#123;
-    var total = $(window).height();//窗口高度
-    var page = $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).parent(&apos;.fixed-table-container&apos;).parent(&apos;.bootstrap-table&apos;).next(&apos;.clearfix&apos;).height();
-    $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,(total-page-100)+&quot;px&quot;);//100为固定的弹框的上标题和底部按钮高度之和。
+out.close();
+//下载文件
+try &#123;
+    // 以流的形式下载文件。
+    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(zipFile.getPath()));
+    byte[] buffer = new byte[fis.available()];
+    fis.read(buffer);
+    fis.close();
+    // 清空response
+    response.reset();
+    OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
+    response.setContentType(&quot;application/octet-stream&quot;);
+    response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment;filename=&quot; + new String(zipFile.getName().getBytes(&quot;UTF-8&quot;),&quot;ISO-8859-1&quot;));
+    toClient.write(buffer);
+    toClient.flush();
+    toClient.close();
+    zipFile.delete();        //是否将生成的服务器端文件删除
 &#125;
-$(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,($(window).height()-125)+&quot;px&quot;);</code></pre><p>我们设置其高度，只能设置class为fixed-table-body的div高度才有效。只需要给它一个合适的高度。在这里，我用的是弹框显示，所以窗口较小。需要用总高度减去分页高度和弹框标题高度和弹框底部高度。</p>
-<p>在弹出框放大缩小时，监听window.resize。刷新bootstrap table视图。并重新设置表格高度</p>
+catch (IOException ex) &#123;
+    ex.printStackTrace();
+&#125;</code></pre><p>此处使用response将流写出。如果使用springmvc的ResponseEntity返回，可能出现下载后zip包打不开的情况。</p>
 
       
       <!-- reward -->
@@ -294,6 +199,8 @@ $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;
     <footer class="article-footer">
       
       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+
 
     </footer>
 
@@ -309,7 +216,7 @@ $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;
 
 </article>
     
-    <article id="post-SpringBoot/Springboot文件上传过大无法被全局异常捕获" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/Springboot2.x打jar包本地部署https访问" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -317,8 +224,8 @@ $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/08/03/SpringBoot/Springboot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E8%BF%87%E5%A4%A7%E6%97%A0%E6%B3%95%E8%A2%AB%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/"
-    >Springboot文件上传过大无法被全局异常捕获</a
+  <a class="article-title" href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/"
+    >Springboot2.x打jar包本地部署https访问</a
   >
 </h2>
   
@@ -328,8 +235,8 @@ $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;
 
     
     <div class="article-meta">
-      <a href="/2019/08/03/SpringBoot/Springboot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E8%BF%87%E5%A4%A7%E6%97%A0%E6%B3%95%E8%A2%AB%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/" class="article-date">
-  <time datetime="2019-08-03T13:03:00.000Z" itemprop="datePublished">2019-08-03</time>
+      <a href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2019-09-15T08:03:27.000Z" itemprop="datePublished">2019-09-15</time>
 </a>
       
   <div class="article-category">
@@ -350,216 +257,416 @@ $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;
       
 
       
-      <p>Springboot配置文件上传，设置上传文件最大值，当上传文件过大时，没有进入到controller，且直接抛出异常。在配置_ControllerAdvice_异常捕获类依然无法被捕获到。</p>
-<p>具体可以有效解决的方式有两三种。其中可以设置tomcat的一个配置就可以完成。</p>
-<p>你只需要配置server.tomcat.max-swallow-size的值即可。有效的让异常处理类捕获到异常。</p>
-<p>该配置按照某博客的介绍，从google中获得的内嵌tomcat吞吐量,默认值为2MB,如果当文件上传大小这个值那么就会在controller之前抛出异常。而如果这个值设置大于上传最大值的话，那么就可以被异常捕获到。也可以设置成-1不被限制。因此只要将其值调整到较大，就可以捕获文件过大抛出的异常。更详细的可以去这里<a target="_blank" rel="noopener" href="https://weiku.co/article/198/">https://weiku.co/article/198</a>看看描述。</p>
-<p>还有一种解决方式是禁用默认的上传,<code>spring.servlet.multipart.enable</code>。使用common-upload方式上传。添加依赖，然后进行相关配置。</p>
+      <p>首先我的环境是springboot2.x的，可能配置不一样，这个可以去网上找一下。这个是我真实搭建使用的。</p>
+<p>首先具备条件：有一个域名是必须的。</p>
+<p>去域名的注册商，比如阿里或腾讯，去控制台找SSL证书配置，此处以阿里云为例，注册SSL</p>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/09/image.png?x-oss-process=image/resize,m_fill,h_392,w_1024" alt=""></p>
+<p>点击购买证书，选择最后一项，选择DV免费证书，提交订单。订单完成后，操作刚才的证书，填写绑定域名，免费证书只能绑定一个域名，所以填写你需要访问的一级或二级域名。填写信息等。然后会让你将txt记录解析到域名，点击验证按钮自动配置域名解析。然后等待审核给你发送邮箱消息。</p>
+<p>审核完成后，SSL已经成功了。点击下载，下载tomcat版本的就可以。解压会有一个pfx文件，和txt密码文件。将pfx拷贝到项目resources下。</p>
+<p>配置application.yml</p>
+<pre><code>server:
+  port: 443
+  ssl:
+    key-store: classpath:2812584_xxx.xxx.cn.pfx
+    key-store-password: 
+    key-store-type: PKCS12
+    enabled: true</code></pre><p>填写你的pfx路径，填写密码，密码就是txt文件里面的。</p>
+<p>然后创建配置类:</p>
+<pre><code>@Configuration
+public class HttpsConfig &#123;
 
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/Axis2中不支持1.8新特性" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/"
-    >Axis2中不支持1.8新特性</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/" class="article-date">
-  <time datetime="2019-07-31T09:16:35.000Z" itemprop="datePublished">2019-07-31</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>在Axis2中不能使用包括lambda表达式stream流等相关代码，否则在发布wsdl服务时会报错。</p>
-<pre><code>Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
-    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:441) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.deployment.ServiceGroupBuilder.populateServiceGroup(ServiceGroupBuilder.java:101) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    ... 31 common frames omitted
-Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
-    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:404) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    ... 32 common frames omitted
-Caused by: java.lang.IllegalStateException: Error looking for paramter names in bytecode: unexpected bytes in file
-    at org.apache.axis2.description.java2wsdl.bytecode.ClassReader.readCpool(ClassReader.java:354) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:78) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:57) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.ChainedParamReader.&lt;init&gt;(ChainedParamReader.java:52) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.bytecode.MethodTable.&lt;init&gt;(MethodTable.java:31) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.java2wsdl.DefaultSchemaGenerator.&lt;init&gt;(DefaultSchemaGenerator.java:177) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.deployment.util.Utils.fillAxisService(Utils.java:439) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:396) ~[axis2-kernel-1.7.9.jar:1.7.9]
-    ... 32 common frames omitted</code></pre><p>这是使用spring配置axis2的时候，若发布服务的类中有新特性就会出现问题，但是你可以把新特性放在其它类中，那么axis2就不会出现问题。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/axis2/" rel="tag">axis2</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-MyBatis/Mybatis对存储过程的调用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/"
-    >Mybatis对存储过程的调用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
-  <time datetime="2019-07-30T15:56:15.000Z" itemprop="datePublished">2019-07-30</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="调用存储过程，输出参数为CURSOR"><a href="#调用存储过程，输出参数为CURSOR" class="headerlink" title="调用存储过程，输出参数为CURSOR"></a>调用存储过程，输出参数为CURSOR</h3><p>使用mybatis来调用存储过程，然后输出参数为CURSOR类型，在存储过程中，输出参数为SYS_REFCURSOR类型的游标。简易存储过程如下:</p>
-<pre><code>create or replace procedure testproc(test in varchar2,RETURNVAL out sys_refcursor)
-is
-test1 VARCHAR2(50);
-begin
-open RETURNVAL for
-     select * from baowen.bizmsg where trunc(receivedate)&gt;=to_date(&apos;2019-07-12&apos;,&apos;yyyy-mm-dd&apos;);
-end;</code></pre><p>那么mybatis中调用的方式如下:</p>
-<pre><code>&lt;resultMap id=&quot;test&quot; type=&quot;hashmap&quot;&gt;
-
-&lt;/resultMap&gt;
-&lt;select id=&quot;testProcedure&quot; parameterType=&quot;map&quot; statementType=&quot;CALLABLE&quot;&gt;
-        &lt;![CDATA[
-           &#123;call baowen.TESTPROC(
-             #&#123;test,mode=IN,jdbcType=VARCHAR&#125;,
-             #&#123;v_cursor,mode=OUT,jdbcType=CURSOR,resultMap=test&#125;
-           )&#125;
-       ]]&gt;
-&lt;/select&gt;</code></pre><p>在mybatis中，dao层定义的方法是无返回值的，参数为map类型，并有test和v_cursor参数，test值设置为实际值，v_cursor值为创建一个空的ArrayList，泛型为map。注意游标接收，一定需要有resultMap指定，否则，会报错需要resultmap，resultmap只做字段映射，所以查出的字段取决于存储过程。</p>
-<pre><code>void testProcedure(Map&lt;String,Object&gt; map);
-
-HashMap&lt;String, Object&gt; hashMap = new HashMap&lt;&gt;();
-hashMap.put(&quot;test&quot;, &quot;test&quot;);
-hashMap.put(&quot;v_cursor&quot;, new ArrayList&lt;Map&lt;String, Object&gt;&gt;());
-dzjDao.testProcedure(hashMap);
-System.out.println(hashMap.get(&quot;v_cursor&quot;));</code></pre><h3 id="当数据库类型时blob时的读写以及blob类型字段转换成json"><a href="#当数据库类型时blob时的读写以及blob类型字段转换成json" class="headerlink" title="当数据库类型时blob时的读写以及blob类型字段转换成json"></a>当数据库类型时blob时的读写以及blob类型字段转换成json</h3><p><strong>读取blob，读取blob时，存储过程参数不用管，输出参数是sys_refcursor类型，在mybatis的mapperxml里游标类型肯定是要配resultMap的，你可以不用设置他的属性，他会自动转换为java.sql.Blob类型</strong></p>
-<pre><code>&lt;resultMap id=&quot;zszmInfo&quot; type=&quot;hashmap&quot;&gt;
-        &lt;result column=&quot;QLR&quot; property=&quot;qlr&quot; javaType=&quot;java.lang.String&quot;/&gt;
-        &lt;result column=&quot;GYQK&quot; property=&quot;gyqk&quot; javaType=&quot;java.lang.String&quot;/&gt;
-        &lt;result column=&quot;EWM&quot; property=&quot;ewm&quot;/&gt;
-&lt;/resultMap&gt;</code></pre><p>然后你要想转为json，那么json里肯定是字符串类型。所以讲Blob转换为base64字符串放在json中。可以通过以下方式转换,改代码将blob转为字节数组，IOUtil是common-io包的类。使用alibaba fastjson的JSON可直接将byte数组转为base64.</p>
-<pre><code>if (o instanceof Blob) &#123;
-    Blob blob = (Blob) o;
-    try &#123;
-        byte[] bytes = IOUtils.toByteArray(blob.getBinaryStream());
-        item.put(key, bytes);
-    &#125; catch (IOException e) &#123;
-        e.printStackTrace();
-    &#125; catch (SQLException e) &#123;
-        e.printStackTrace();
+    @Bean
+    public TomcatServletWebServerFactory servletContainer() &#123;
+        TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() &#123;
+            @Override
+            protected void postProcessContext(Context context) &#123;
+                SecurityConstraint securityConstraint = new SecurityConstraint();
+                securityConstraint.setUserConstraint(&quot;CONFIDENTIAL&quot;);
+                SecurityCollection collection = new SecurityCollection();
+                collection.addPattern(&quot;/*&quot;);
+                securityConstraint.addCollection(collection);
+                context.addConstraint(securityConstraint);
+            &#125;
+        &#125;;
+        tomcat.addAdditionalTomcatConnectors(getHttpConnector());
+        return tomcat;
     &#125;
-&#125;</code></pre><p><strong>写入blob类型数据时，若只需要将数据转为byte[]字节数组，若前台传递的是base64，则通过<code>new BASE64Decoder().decodeBuffer(YSXLHP);</code>转为字节数组，然后存储过程调用的参数的jdbcType设置为Blob。不需要任何转换，mybatis有Handler可以让byte数组转为Blob类型。</strong></p>
-<pre><code>&lt;![CDATA[
-   &#123;call bdcdj.LND_PROC_UPDATECERTINFO(
-     #&#123;YWH,mode=IN,jdbcType=VARCHAR&#125;,
-     #&#123;YSXLHP,mode=IN,jdbcType=BLOB&#125;,
-     #&#123;returnval,mode=OUT,jdbcType=INTEGER&#125;
-   )&#125;
-]]&gt;</code></pre>
+
+    private Connector getHttpConnector() &#123;
+        Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
+        connector.setScheme(&quot;http&quot;);
+        connector.setPort(8080);
+        connector.setSecure(false);
+        connector.setRedirectPort(443);
+        return connector;
+    &#125;
+
+&#125;</code></pre><p>以上就完成了。如果你在本地，直接使用localhost访问，不加http前缀的话是直接https访问8080不管用，默认https访问80端口然后转发到443端口中。</p>
+<p>首先我说一下上面的问题：首先我是内网映射，映射本地8080，所以如果本地localhost访问8080的话是有问题的，必须是80，因为你输入地址后直接是以https形式访问了。那么使用域名的话，内网穿透8080，访问443使用https。</p>
+<p>但是如果使用的直接是云产品，将服务部署在云服务器上，则域名绑定服务器后，域名可直接使用服务的端口访问，然后转发到443端口上,如果服务端口是80，那么么直接可访问。</p>
+<p>我的系统使用了内网映射natapp。只要在配置中开启https即可。花生壳等也是如此。云服务器使用的话，在阿里云文档有说明，也可以使用这种方式直接配置。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-开源/JFinal搭建后jar的部署" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/"
+    >JFinal搭建后jar的部署</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/" class="article-date">
+  <time datetime="2019-09-04T06:32:44.000Z" itemprop="datePublished">2019-09-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>使用jfinal开发确实是非常非常的便利，虽然我才接触了两天，看点文档和社区才把一些资源常用操作等给弄完。唯一一个不怎么舒服的就是打包了。</p>
+<p>正常springmvc或springboot打包，要么是war，要么是jar，不用做什么操作，只有有默认创建maven项目的插件，就能正常的打好包。</p>
+<p>打包里，我遇到算是最困难的就是该博客里提到的，springboot+jdk6,打的war包，要是再有个axis2的使用。就会更麻烦。</p>
+<p>虽然jfinal官方提供的打包方式很好，可以使zip，tar.gz等打包。但是关于package.xml文件配置和插件的配置始终没搞懂怎么运行。最后才在社区里找到打jar包的方法。这里我先打一个地址，行不行还得根据项目来定</p>
+<p><a target="_blank" rel="noopener" href="http://www.jfinal.com/share/422">http://www.jfinal.com/share/422</a></p>
+<p>首先按照社区的说法是要把webapp的东西放到resource中再打包。这里呢，根据上一篇的环境搭建，已经把所有的东西都放到resources了，不必大费周折。</p>
+<p>依据上一篇搭建的之后，还需要做的如下。</p>
+<ul>
+<li><p>添加jfinal的jetty依赖</p>
+<dependency>
+    <groupId>com.jfinal</groupId>
+    <artifactId>jetty-server</artifactId>
+    <version>2019.3</version>
+</dependency>
+</li>
+<li><p>配置社区里截图得maven插件</p>
+<plugins>
+    <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <version>2.3.2</version>
+        <configuration>
+            <source>1.8</source>
+            <target>1.8</target>
+            <encoding>UTF-8</encoding>
+        </configuration>
+    </plugin>
+
+<pre><code>&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
+    &lt;configuration&gt;
+        &lt;skip&gt;true&lt;/skip&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+&lt;plugin&gt;&lt;!--核心打成jar包插件--&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.6&lt;/version&gt;
+    &lt;configuration&gt;
+        &lt;archive&gt;
+            &lt;manifest&gt;
+                &lt;addClasspath&gt;true&lt;/addClasspath&gt;
+                &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;
+                &lt;mainClass&gt;com.fsats.demo.DemoConfig&lt;/mainClass&gt;
+            &lt;/manifest&gt;
+        &lt;/archive&gt;
+    &lt;/configuration&gt;
+&lt;/plugin&gt;
+&lt;plugin&gt;
+    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+    &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
+    &lt;version&gt;2.10&lt;/version&gt;
+    &lt;executions&gt;
+        &lt;execution&gt;
+            &lt;id&gt;copy-dependencies&lt;/id&gt;
+            &lt;phase&gt;package&lt;/phase&gt;
+            &lt;goals&gt;
+                &lt;goal&gt;copy-dependencies&lt;/goal&gt;
+            &lt;/goals&gt;
+            &lt;configuration&gt;
+                &lt;outputDirectory&gt;$&#123;project.build.directory&#125;/lib&lt;/outputDirectory&gt;
+            &lt;/configuration&gt;
+        &lt;/execution&gt;
+    &lt;/executions&gt;
+&lt;/plugin&gt;</code></pre></plugins>
+</li>
+<li><p>配置主启动类，就是manifest的设置。</p>
+<p>public class DemoConfig{</p>
+<pre><code>public static void main(String[] args) &#123;
+    //打包时使用
+    String baseBath = String.valueOf(DemoConfig.class.getProtectionDomain().getCodeSource().getLocation());
+    String classPath, webRootPath, jarPath;
+    if (StrKit.notBlank(baseBath) &amp;&amp; baseBath.contains(&quot;file:/&quot;)) &#123;
+        // 获取运行操作系统的运行方式  window和linux的细微区别
+        boolean windows = System.getProperties().getProperty(&quot;os.name&quot;).contains(&quot;Windows&quot;);
+        System.out.println(System.getProperties().getProperty(&quot;os.name&quot;));
+        jarPath = (windows ? &quot;&quot; : &quot;/&quot;) + baseBath.substring(&quot;file:/&quot;.length());
+        classPath = (windows ? &quot;&quot; : &quot;/&quot;) + jarPath.substring(0, jarPath.lastIndexOf(&quot;/&quot;)) + &quot;/classes&quot;;
+        System.out.println(&quot;jarPath:&quot; + jarPath);
+        System.out.println(&quot;classPath:&quot; + classPath);
+        webRootPath = classPath;
+        ZipUtil.unzip(jarPath, classPath);
+    &#125;
+    UndertowServer.start(DemoConfig.class, 80, true);
+&#125;</code></pre><p>}</p>
+</li>
+</ul>
+<p>上面的代码和社区给的有些不同</p>
+<p>PathKit似乎并没有什么用，而且社区中解压目录为class-path，这个可以再上面改，这里我改成了classes。</p>
+<p>社区里值提供了maven和启动类main方法的代码。没有继承JFinalConfig类中配置的方法出来。以目前的项目若是访问页面，可能不可行，访问的路径就有问题，访问模板路径访问不到classes，查看报错，这里被webapp替换。这是他默认的模板存放位置，就像undertow.txt中配置的resource的src/main/resources一样。但是好像读不到，所以只能修改configEngine方法，添加基础模板路径，值就是设置的最后一级目录名称。</p>
+<pre><code>public void configEngine(Engine engine) &#123;
+    engine.setBaseTemplatePath(&quot;classes&quot;);
+&#125;</code></pre><p>根据社区打包完成后，会生成一个jar包和一个lib文件夹到taraget下。你可以直接运行java -jar jar包，此时jar包里的东西就会被解压到classes目录下。</p>
+<p>其实依据之前的springboot的问题，好像可以不必要解压，而且直接将lib放在jar里，运行jar</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-开源/JFinal基础搭建" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/"
+    >JFinal基础搭建</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/" class="article-date">
+  <time datetime="2019-09-04T02:40:26.000Z" itemprop="datePublished">2019-09-04</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>创建Maven普通项目，添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
+    &lt;artifactId&gt;jfinal&lt;/artifactId&gt;
+    &lt;version&gt;4.5&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
+    &lt;artifactId&gt;jfinal-undertow&lt;/artifactId&gt;
+    &lt;version&gt;1.9&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>创建DemoConfig集成JFinalConfig类，实现所有方法</p>
+<p>创建main方法启动</p>
+<pre><code>public static void main(String[] args) &#123;
+    UndertowServer.start(DemoConfig.class, 80, true);
+&#125;</code></pre><p>在resources下创建undertow.txt文件，文件名可通过程序修改。</p>
+<pre><code># 配置 undertow
+
+undertow.devMode=true
+undertow.host=localhost
+undertow.port=80
+
+# 打成 fatjar 部署的项目开启下面的配置。。。。。第一个是模板资源存放位置，第二个是静态文件存放位置(暂时可以这么认为)
+undertow.resourcePath=src/main/resources, classpath:static</code></pre><p>这个文件会被自动加载装配，以上分别表示热部署，主机地址，端口号。</p>
+<p>undertow.resourcePath表示资源文件存放位置，目前也不具体清楚，只是测试了一下项目跑起来。src/amin/resources表示模板资源存放的位置，后面的是静态资源存放的位置。</p>
+<p>在DemoConfig里实现的方法configConstant</p>
+<pre><code>private static Prop prop;
+public void configConstant(Constants constants) &#123;
+    if (prop==null)&#123;
+        prop = PropKit.use(&quot;undertow.txt&quot;);
+    &#125;
+    constants.setDevMode(prop.getBoolean(&quot;undertow.devMode&quot;));
+    constants.setViewType(ViewType.JFINAL_TEMPLATE);
+&#125;</code></pre><p>上面的代码表示，获取文件并设置属性</p>
+<p>配置configRoute方法</p>
+<pre><code>public void configRoute(Routes routes) &#123;
+    routes.setBaseViewPath(&quot;/template&quot;);//设置视图基础路径
+    routes.add(&quot;/&quot;,DemoController.class);
+&#125;</code></pre><p>需要创建DemoController类</p>
+<pre><code>@Log4j
+public class DemoController extends Controller &#123;
+
+    public void index()&#123;
+        set(&quot;name&quot;,&quot;chen&quot;);
+        log.info(&quot;inf&quot;);
+        log.error(&quot;error&quot;);
+        render(&quot;index.html&quot;);
+    &#125;
+&#125;</code></pre><p>render方法可传入视图名称，可直接返回到视图中。</p>
+<p>那么模板和静态文件的存储位置为</p>
+<ul>
+<li>模板位置:resources/template/index.html(因为上面设置了BaseViewPath所以有template目录，然后因为路由直接设置的是/所以没有目录，直接index.html)</li>
+<li>静态资源位置:resources/static/index.js</li>
+</ul>
+<p>如何在页面中访问静态资源。通过以上的配置之后，在index.html可直接通过/static/index.js获取script文件</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-other/IDEA打断点也无法debug问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/"
+    >IDEA打断点也无法debug问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2019-08-07T02:26:40.000Z" itemprop="datePublished">2019-08-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>首先，出现这个问题肯定是莫名其妙的。其他项目就可以，刚导入这个项目就不可以。</p>
+<p>去google搜索，搜索到低级问题，是点击了左边的禁用断点。</p>
+<p>然后还有的就是springboot-devtool的问题</p>
+<p>我的问题是catalina.bat设置的java_opts问题,因为设置了这个，导致的无法启动断点。但是之前的项目也是使用的这个设置就没问题。莫名其妙了。</p>
+<p>检查一下catalina.bat里的SET JAVA_OPTS配置吧。</p>
+<p>原因是idea里的环境变量java_opts也有配置，导致catalina.bat里的覆盖了debug的这个配置，导致无法debug。因此在IDEA的start/connection里的配置不用改。只需要将cataina.bat的SET JAVA_OPTS = xxxxxx修改为</p>
+<p>SET JAVA_OPTS = %JAVA_OPTS% -xxxxxxx即可，这样就可以继承环境变量。</p>
+<p>但是，这个问题也会导致，你的项目启动会多启动一两次，也就是说你点了一下启动，然后控制台上走了两遍三遍项目启动。</p>
+
       
       <!-- reward -->
       
@@ -592,7 +699,7 @@ System.out.println(hashMap.get(&quot;v_cursor&quot;));</code></pre><h3 id="当�
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/25/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><span class="space">&hellip;</span><a class="page-number" href="/page/49/">49</a><a class="extend next" rel="next" href="/page/27/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/25/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/24/">24</a><a class="page-number" href="/page/25/">25</a><span class="page-number current">26</span><a class="page-number" href="/page/27/">27</a><a class="page-number" href="/page/28/">28</a><span class="space">&hellip;</span><a class="page-number" href="/page/50/">50</a><a class="extend next" rel="next" href="/page/27/">下一页</a>
   </nav>
   
 </section>

@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    PostgreSQL 相关操作 |  雪里
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-PostgreSQL/PostgreSQL-相关操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  PostgreSQL 相关操作
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/05/15/PostgreSQL/PostgreSQL-%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2021-05-15T04:00:00.000Z" itemprop="datePublished">2021-05-15</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/PostgreSQL/">PostgreSQL</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.7k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">10分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <blockquote>
+<p>pg系统表:<a target="_blank" rel="noopener" href="https://www.php.cn/manual/view/20908.html">https://www.php.cn/manual/view/20908.html</a></p>
+</blockquote>
+<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><h3 id="数据库、模式、角色、search-path、currentSchema"><a href="#数据库、模式、角色、search-path、currentSchema" class="headerlink" title="数据库、模式、角色、search_path、currentSchema"></a>数据库、模式、角色、search_path、currentSchema</h3><h4 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h4><p>一个数据库可以对应一个应用，各个数据库是独立的。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建数据库</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> db [OWNER <span class="keyword">ROLE</span>]</span><br><span class="line"><span class="comment">-- 更改数据库所有者</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">DATABASE</span> db OWNER <span class="keyword">TO</span> <span class="keyword">role</span>;</span><br></pre></td></tr></table></figure>
+
+<h4 id="角色与用户"><a href="#角色与用户" class="headerlink" title="角色与用户"></a>角色与用户</h4><p>角色是相对于整个数据库实例的，每个数据库都可以通过pg_roles查询到。几乎与用户相同，角色可以是一个用户<code>create user命令等同于create role</code></p>
+<p>除了一点:create user有隐含的login权限.而create role不会有该权限。也就是说通过create user创建，是可以作为用户名密码进行登录的。</p>
+<p><strong>创建用户</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> sxfk <span class="keyword">WITH</span> <span class="keyword">PASSWORD</span> <span class="string">&#x27;sxfk&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p><strong>权限</strong></p>
+<p>权限有select,delete,update,insert,execute，可以针对各个表进行设置。</p>
+<h4 id="模式-命名空间namespace"><a href="#模式-命名空间namespace" class="headerlink" title="模式(命名空间namespace)"></a>模式(命名空间namespace)</h4><p>一个数据库下可以有多个模式。可以在创建模式的时候指定模式的所有者，或创建后alter更新所有者(用户角色)。</p>
+<p>模式下可以创建任何对象，表、视图、索引、序列等。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建模式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">SCHEMA</span> temp OWNER sxkf;</span><br><span class="line"><span class="comment">-- 更新所有者</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SCHEMA</span> temp OWNER <span class="keyword">TO</span> sxkf;</span><br></pre></td></tr></table></figure>
+
+<p>每个模式下的表都是独立的，可以同名。</p>
+<p>在同一数据库下，操作其他模式的表可以通过模式点表名查询。</p>
+<h4 id="模式与角色"><a href="#模式与角色" class="headerlink" title="模式与角色"></a>模式与角色</h4><p>模式可以被指定所有者角色owner。</p>
+<p>一个角色可以绑定多个模式（当出现此情况，有同名表就需要额外注意）。</p>
+<h4 id="search-path"><a href="#search-path" class="headerlink" title="search_path"></a>search_path</h4><p>此参数作用于当前数据库。该参数表示当前查询的路径，值为模式名，默认是<code>$user,pubilc</code>，也就是说有了search_path里的模式，就不需要模式点表名了。</p>
+<p>此时current_schema函数获取当前schema模式的值为search_path值的第一个模式名，需要注意的是search_path是有顺序的。</p>
+<p>如果存在多个模式都search_path中，且多模式下有相同的表，如果不指定模式点的话，会从左到右模式一次查找表，将会匹配第一个。</p>
+<p>因此这种操作必须使用模式点表名，否则如果你想要取的不在第一个就无法得到想要的数据，而且你需要时刻注意current_schema函数返回的值永远是第一个。</p>
+<p>案例问题：</p>
+<p>生产环境当有一个数据库，只有一个角色，多个模式的时候。我们在开发的时候是不同的角色的，多个数据库，一个角色给予一个模式。所以开发在正常的情况下切换多数据源。但是现场只有一个数据库，把原有的两个库的模式融合到一个库里了，且用户只有一个。</p>
+<ol>
+<li><p>原有多数据源切换已经并没有任何作用，同一个库、同一个用户。切换相当于没切。但是因为开发环境下正常切换数据源无需使用模式点表名。但现场因为相当于没切数据源，那么就会查询public下的表，导致表不存在。</p>
+</li>
+<li><p>基于 生产环境无法改变一个库一个用户的情况。我们在不改动代码的情况下，将数据库的search_path由默认的public,增加到public,temp,current,history。此时我们就可以直接访问其他模式下的表了。</p>
+<p>但因为有些业务代码会查询current_schema函数获取切换数据源后的当前模式名，查询此模式名下所有符合条件的表名。这种情况直接拿到了public，导致没有拿到任何想要的匹配到的表。</p>
+</li>
+<li><p>为了解决这个问题。。。这个问题好像解决不了。</p>
+</li>
+<li><p>还有一个问题是，在开发环境下连到temp模式后，获取一个表的所有字段信息，我们只需要过滤角色即可，但现在所有模式都是一个角色，直接就查询除了所有模式下的同名表和字段。因此要想指定某个模式的表必须添加上过滤模式的条件。</p>
+</li>
+<li><p>另外对于search_path的顺序是至关重要的。</p>
+</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 设置search_path为public,business,temp,current</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">DATABASE</span> sxkfk <span class="keyword">set</span> search_path <span class="keyword">to</span> <span class="keyword">public</span>,business,temp,<span class="keyword">current</span>;</span><br><span class="line"><span class="comment">-- 作用于当前会话</span></span><br><span class="line"><span class="keyword">SET</span> search_path <span class="keyword">to</span> <span class="keyword">public</span>,business,temp,<span class="keyword">current</span>;</span><br></pre></td></tr></table></figure>
+
+<p>使用ALTER修改时，部分数据库，如翰高highgo，需要在未指定模式下执行才生效。</p>
+<p><strong>给用户角色增加search_path属性</strong></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> temp <span class="keyword">set</span> search_path <span class="keyword">to</span> temp,<span class="keyword">public</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> history <span class="keyword">set</span> search_path <span class="keyword">to</span> history,<span class="keyword">public</span></span><br></pre></td></tr></table></figure>
+
+<p>添加完成后的配置在pg_roles中的rolconfig字段中会显示出来。然后java应用进行数据库连接后，所指定用户名密码登录的用户角色就使用这个配置。</p>
+<p>这突然让我不知道，<code>ALTER DATABASE db set seatch_path to pubilc</code>是有什么作用了。是否应用于整个数据库？</p>
+<p>当一个数据库只有一个用户角色的情况下，这种alter user设置的和alter database设置的效果应该是一样的。</p>
+<p><strong>测试了一下</strong></p>
+<p>使用<code>ALTER DATABASE sxkfk set search_path to public,business,temp,current;</code>似乎没有任何效果，<code>alter user</code>是有效果的。</p>
+<p>但是使用<code>alter user sxkf reset search_path</code>来重置search_path，虽然pg_role看不到了。但是已经设置过的还在，没有重置，使用<code>alter database sxkfk reset search_path</code>确还原了，还原成默认<code>&quot;$user&quot;,public</code>。</p>
+<p>以上测试问题，通过postgresql.conf的参数设置章节了解到，配置文件&lt;alter database&lt;alter user&lt;set这种优先级。</p>
+<h2 id="常用查询"><a href="#常用查询" class="headerlink" title="常用查询"></a>常用查询</h2><h3 id="查询当前数据库下的各模式信息"><a href="#查询当前数据库下的各模式信息" class="headerlink" title="查询当前数据库下的各模式信息"></a>查询当前数据库下的各模式信息</h3><ol>
+<li><p>查询各模式下所有表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查询各模式下所有表的字段列</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.columns <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查询各模式下所有sequence序列</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.sequences <span class="keyword">where</span> sequence_schema=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>查询各模式下所有view视图</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.views <span class="keyword">where</span> table_schema=<span class="string">&#x27;public&#x27;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获取角色授权表关联</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.role_table_grants <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span> <span class="keyword">and</span> table_name=<span class="string">&#x27;czkfbj&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>grantor：授予者</li>
+<li>grantee：受让人</li>
+<li>privilege_type：授权类型</li>
+<li>is_grantable：是否已授权</li>
+</ul>
+</li>
+<li><p>获取角色授权列关联</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.role_column_grants <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span> <span class="keyword">and</span> table_name=<span class="string">&#x27;czkfbj&#x27;</span></span><br></pre></td></tr></table></figure>
+
+<p>权限类型有SELECT、REFERENCES、INSERT、UPDATE</p>
+</li>
+</ol>
+<p>​    </p>
+<ol>
+<li><p>查询各模式下所有表及owner</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_tables <span class="keyword">where</span> schemaname=<span class="string">&#x27;temp&#x27;</span> <span class="keyword">and</span> tableowner=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获取角色信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> rolname,<span class="keyword">oid</span> <span class="keyword">from</span> pg_roles</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>获取表信息、表关联其他属性信息</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class</span><br></pre></td></tr></table></figure>
+
+<table>
+<thead>
+<tr>
+<th>字段名</th>
+<th>关联</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>relname</td>
+<td></td>
+<td>表、索引、视图名称:star:</td>
+</tr>
+<tr>
+<td>relnamespace</td>
+<td>pg_namespace.oid</td>
+<td>命名空间(模式):star:</td>
+</tr>
+<tr>
+<td>reltype</td>
+<td>pg_type.oid</td>
+<td>对应这个表的行类型的数据类型，把表名作为数据类型</td>
+</tr>
+<tr>
+<td>relowner</td>
+<td>pg_authid.oid或pg_roles.oid</td>
+<td>所属人，pg_authid只有超级管理员角色才能访问:star:</td>
+</tr>
+<tr>
+<td>oid</td>
+<td></td>
+<td>标识id,其他表会引用</td>
+</tr>
+</tbody></table>
+<blockquote>
+<p><a target="_blank" rel="noopener" href="https://www.php.cn/manual/view/20908.html">https://www.php.cn/manual/view/20908.html</a></p>
+</blockquote>
+</li>
+<li><p>属性表、字段表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_attribute;</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>attrelid：pg_class的oid，</li>
+<li>atttypid：pg_type的oid</li>
+<li>attlen：字段长度</li>
+<li>attnum：字段位置</li>
+</ul>
+</li>
+<li><p>数据类型表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_type</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>typename：数据类型</li>
+</ul>
+</li>
+<li><p>描述注释表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_description</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li><p>classoid：pg_class的oid</p>
+</li>
+<li><p>description：描述注释</p>
+</li>
+</ul>
+</li>
+</ol>
+<table>
+<thead>
+<tr>
+<th>表名</th>
+<th>说明</th>
+<th></th>
+</tr>
+</thead>
+<tbody><tr>
+<td>pg_class</td>
+<td>class信息表，引用namepsace、type、role</td>
+<td></td>
+</tr>
+<tr>
+<td>pg_tables</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>pg_roles</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>pg_attribute</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>pg_type</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>pg_description</td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td>pg_namespace</td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+<h3 id="批量修改表的owner"><a href="#批量修改表的owner" class="headerlink" title="批量修改表的owner"></a>批量修改表的owner</h3><p>使用拼接的方式得到执行语句，并将结果列导出成sql语句即可。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">&#x27;ALTER TABLE &#x27;</span> || table_name || <span class="string">&#x27; OWNER TO temp;&#x27;</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<p>对于sequence的更改也是一样的。</p>
+<h3 id="获取数据库下，当前所有表名叫czkfbj的pg-class"><a href="#获取数据库下，当前所有表名叫czkfbj的pg-class" class="headerlink" title="获取数据库下，当前所有表名叫czkfbj的pg_class"></a>获取数据库下，当前所有表名叫czkfbj的pg_class</h3><ol>
+<li>每个模式都有角色</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class </span><br><span class="line"><span class="keyword">where</span> relowner=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_roles <span class="keyword">where</span> rolname=<span class="string">&#x27;sxkf&#x27;</span>) <span class="comment">-- 角色名</span></span><br><span class="line"><span class="keyword">and</span> relname=<span class="string">&#x27;czkfbj&#x27;</span>;</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li><p>只有一个角色，多个模式，多个相同的表</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class</span><br><span class="line"><span class="keyword">where</span> relowner=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_roles <span class="keyword">where</span> rolname=<span class="string">&#x27;sxkf&#x27;</span>) <span class="comment">-- 角色名</span></span><br><span class="line">    <span class="keyword">and</span> relname=<span class="string">&#x27;czkfbj&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;temp&#x27;</span>)<span class="comment">--模式名</span></span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="获取指定模式下，某表的所有字段"><a href="#获取指定模式下，某表的所有字段" class="headerlink" title="获取指定模式下，某表的所有字段"></a>获取指定模式下，某表的所有字段</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> a.attnum, a.attname <span class="keyword">AS</span> <span class="keyword">field</span>, t.typname <span class="keyword">AS</span> <span class="keyword">type</span>, a.attlen <span class="keyword">AS</span> <span class="keyword">length</span> <span class="keyword">from</span> pg_class c ,pg_attribute a,pg_type t</span><br><span class="line"><span class="keyword">where</span> c.relname=<span class="string">&#x27;czkfbj&#x27;</span> <span class="comment">-- 指定表</span></span><br><span class="line">    <span class="keyword">AND</span> a.attnum &gt; <span class="number">0</span></span><br><span class="line">    <span class="keyword">AND</span> a.attrelid = c.oid</span><br><span class="line">    <span class="keyword">AND</span> a.atttypid = t.oid</span><br><span class="line"><span class="keyword">and</span> c.relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;temp&#x27;</span>) <span class="comment">-- 指定了此模式下</span></span><br><span class="line">;</span><br></pre></td></tr></table></figure>
+
+<p>如果不添加模式的话，如果多个模式都有同名的表，并且字段都不一样，那么取所有的字段到某个模式下查询表的话就会出现字段不存在的情况。</p>
+<h2 id="参数设置"><a href="#参数设置" class="headerlink" title="参数设置"></a>参数设置</h2><h3 id="pg-hba-conf配置说明"><a href="#pg-hba-conf配置说明" class="headerlink" title="pg_hba.conf配置说明"></a>pg_hba.conf配置说明</h3><p>配置相关访问权限，如允许某ip/网段连接，允许哪些用户访问那些数据库，并设置连接方式(oassword,MD5,trust等)</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/hmxz2nn/article/details/83717663">https://blog.csdn.net/hmxz2nn/article/details/83717663</a></p>
+<h3 id="postgresql-conf配置说明"><a href="#postgresql-conf配置说明" class="headerlink" title="postgresql.conf配置说明"></a>postgresql.conf配置说明</h3><p><a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/config-setting.html">https://www.yiibai.com/manual/postgresql/config-setting.html</a></p>
+<h4 id="重加载配置"><a href="#重加载配置" class="headerlink" title="重加载配置"></a>重加载配置</h4><p><code>pg_ctl reload</code>命令会重新读取这个配置文件，同时主服务器进程也将这个信号广播给所有正在运行的子服务器进程，这样现有会话也能得到新值。有些参数只能在服务器启动的时候设置；对这些条目的修改将被忽略，直到下次服务器重启。</p>
+<h4 id="对于单个数据库或角色的更新覆盖"><a href="#对于单个数据库或角色的更新覆盖" class="headerlink" title="对于单个数据库或角色的更新覆盖"></a>对于单个数据库或角色的更新覆盖</h4><ol>
+<li><p>我们可以给一个用户或者一个数据库赋予一套选项设置。在一个会话开始的时候，装载所涉及到的用户和数据库的缺省设置。命令 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-alteruser.html"><em>ALTER USER</em></a> 和 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-alterdatabase.html"><em>ALTER DATABASE</em></a> 分别用于配置这些设置。针对每个数据库的设置将覆盖任何从 <code>postgres</code> 命令行或者配置文件收到的设置，然后接着又被针对每个用户的设置覆盖；最后又会都被针对每个会话的设置覆盖。</p>
+<p>也可以把一个会话缺省绑定到一个特定用户，而不是某个数据库上；参阅 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-alteruser.html"><em>ALTER USER</em></a> ，如果存在冲突，那么用户声明的设置覆盖数据库相关的设置。</p>
+</li>
+<li><p>一些选项可以在独立的 SQL 会话中修改，方法是使用 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-set.html"><em>SET</em></a> 命令，比如：</p>
+</li>
+</ol>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> ENABLE_SEQSCAN <span class="keyword">TO</span> <span class="keyword">OFF</span>;</span><br></pre></td></tr></table></figure>
+
+<p>有些参数不能通过 <code>SET</code> 改变：比如，如果这些选项不重启动 PostgreSQL 就无法合理控制其行为。同样，有些参数只能由超级用户通过 <code>SET</code> 或 <code>ALTER</code> 修改，而普通用户不能修改。</p>
+<p><a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-show.html"><em>SHOW</em></a> 命令允许检查所有参数的当前值</p>
+<p>我们也可以用虚表 <code>pg_settings</code>(在<a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/view-pg-settings.html">节43.44</a>)里描述)来显示和更新当前会话的运行时参数。它等效于 <code>SHOW</code> 和 <code>SET</code> ，但是用起来更方便，因为它可以和其它表连接起来使用，或者用任意用户需要的选择条件来查询</p>
+<p>以上两条说明，在search_path上很好地说明了情况。</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>参数</th>
+<th>是否需要重启</th>
+<th>说明</th>
+<th>默认值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td></td>
+<td>search_path</td>
+<td></td>
+<td></td>
+<td>‘“$user”, public’</td>
+</tr>
+<tr>
+<td>connection</td>
+<td>listen_address</td>
+<td>重启</td>
+<td></td>
+<td>‘*’</td>
+</tr>
+<tr>
+<td>connection</td>
+<td>port</td>
+<td>重启</td>
+<td></td>
+<td>5432</td>
+</tr>
+<tr>
+<td>connection</td>
+<td>max_connections</td>
+<td>重启</td>
+<td></td>
+<td>100</td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+<tr>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+<td></td>
+</tr>
+</tbody></table>
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2021/05/15/PostgreSQL/PostgreSQL-%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+    
+      <a href="/2021/05/14/SpringBoot/SpringSecurity-Oauth2%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">Spring Security OAuth2单点登录</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>
