@@ -78,6 +78,197 @@
     
     
     
+    <article id="post-other/使用ffmpeg转码m3u8并播放" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/09/06/other/%E4%BD%BF%E7%94%A8ffmpeg%E8%BD%AC%E7%A0%81m3u8%E5%B9%B6%E6%92%AD%E6%94%BE/"
+    >使用ffmpeg转码m3u8并播放</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/09/06/other/%E4%BD%BF%E7%94%A8ffmpeg%E8%BD%AC%E7%A0%81m3u8%E5%B9%B6%E6%92%AD%E6%94%BE/" class="article-date">
+  <time datetime="2020-09-06T04:00:00.000Z" itemprop="datePublished">2020-09-06</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>ffmgeg.exe可可以将多种格式相互转换。<br>使用方法可以到网上搜。<br>这里提供MP4转ts，到m3u8的方法</p>
+<p><strong>将MP4转换为ts文件</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -y -i 本地视频.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 转换视频.ts</span><br></pre></td></tr></table></figure>
+
+<p><strong>将ts文件分割成多个ts文件和一个m3u8索引文件。</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -i 本地视频.ts -c copy -map 0 -f segment -segment_list 视频索引.m3u8 -segment_time 5 前缀-%03d.ts</span><br></pre></td></tr></table></figure>
+
+<p>其中segment 就是切片，-segment_time表示隔几秒进行切一个文件，上面命令是隔5s，你也可以调整成更大的参数</p>
+<p><strong>使用hls.js可以直接播放</strong></p>
+<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (suf.indexOf(a)&gt;-<span class="number">1</span>) &#123;</span><br><span class="line">    layer.open(&#123;</span><br><span class="line">        type: <span class="number">1</span>,</span><br><span class="line">        area: [<span class="string">&#x27;700px&#x27;</span>, <span class="string">&#x27;500px&#x27;</span>],</span><br><span class="line">        content: <span class="string">&#x27;&lt;video id=&quot;video&quot; autobuffer autoloop loop controls height=&quot;100%&quot; width=&quot;100%&quot;&gt;&lt;/video&gt;&#x27;</span></span><br><span class="line">        <span class="comment">//content: &#x27;&lt;div id=&quot;mp4&quot; style=&quot;width:100%;height:100%&quot;&gt;&lt;/div&gt;&#x27;</span></span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">if</span> (Hls.isSupported()) &#123;</span><br><span class="line">        <span class="keyword">var</span> video = <span class="built_in">document</span>.getElementById(<span class="string">&#x27;video&#x27;</span>);</span><br><span class="line">        <span class="keyword">var</span> hls = <span class="keyword">new</span> Hls();</span><br><span class="line">        hls.loadSource(<span class="string">&#x27;/video&#x27;</span> + path);</span><br><span class="line">        hls.attachMedia(video);</span><br><span class="line">        hls.on(Hls.Events.MANIFEST_PARSED, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                video.play();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">                <span class="built_in">console</span>.log(error);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span> (video.canPlayType(<span class="string">&#x27;application/vnd.apple.mpegurl&#x27;</span>)) &#123;</span><br><span class="line">        video.src = <span class="string">&#x27;/video&#x27;</span> + pa;</span><br><span class="line">        video.addEventListener(<span class="string">&#x27;loadedmetadata&#x27;</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">            video.play();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    layer.open(&#123;</span><br><span class="line">        title:<span class="string">&#x27;提示&#x27;</span>,</span><br><span class="line">        content:<span class="string">&#x27;是否下载&#x27;</span>,</span><br><span class="line">        resize:<span class="literal">false</span>,</span><br><span class="line">        btn:[<span class="string">&#x27;下载&#x27;</span>,<span class="string">&#x27;取消&#x27;</span>],</span><br><span class="line">        yes:<span class="function"><span class="keyword">function</span> (<span class="params">index,layero</span>) </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> at = <span class="built_in">document</span>.createElement(<span class="string">&#x27;a&#x27;</span>);</span><br><span class="line">            at.setAttribute(<span class="string">&#x27;href&#x27;</span>,<span class="string">&#x27;/video/&#x27;</span>+path);</span><br><span class="line">            at.click();</span><br><span class="line">            layer.close(index);</span><br><span class="line">        &#125;,</span><br><span class="line">        btn2:<span class="function"><span class="keyword">function</span> (<span class="params">index,layero</span>) </span>&#123;</span><br><span class="line">            layer.close(index);</span><br><span class="line">        &#125;,</span><br><span class="line">        cancel:<span class="function"><span class="keyword">function</span> (<span class="params">index,layero</span>) </span>&#123;</span><br><span class="line">            layer.close(index);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p><strong>avi转mp4</strong> 占用cpu100%不可取</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg.exe ‐i test.avi ‐c:v libx264 ‐s 1280x720 ‐pix_fmt yuv420p ‐b:a 63k ‐b:v 753k ‐r 18 .\test.mp4</span><br></pre></td></tr></table></figure>
+
+<p>-c:v 视频编码为x264 ，x264编码是H264的一种开源编码格式。</p>
+<p>-s 设置分辨率</p>
+<p>-pix_fmt yuv420p：设置像素采样方式，</p>
+<p>-b 设置码率，-b:a和-b:v分别表示音频的码率和视频的码率，-b表示音频加视频的总码率。码率对一个视频质量有很大的作用，</p>
+<p>-r：帧率，表示每秒更新图像画面的次数，通常大于24肉眼就没有连贯与停顿的感觉了。</p>
+<p><strong>avi转ts</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -i input.avi -b:v 640k output.ts</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/video/" rel="tag">video</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Docker/docker部署http-SSL应用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/08/30/Docker/docker%E9%83%A8%E7%BD%B2http-SSL%E5%BA%94%E7%94%A8/"
+    >docker部署http SSL应用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/08/30/Docker/docker%E9%83%A8%E7%BD%B2http-SSL%E5%BA%94%E7%94%A8/" class="article-date">
+  <time datetime="2020-08-30T14:54:00.000Z" itemprop="datePublished">2020-08-30</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="前置准备"><a href="#前置准备" class="headerlink" title="前置准备"></a>前置准备</h2><p>首先安装Docker，申请证书即可</p>
+<h2 id="Httpd配置文件获取"><a href="#Httpd配置文件获取" class="headerlink" title="Httpd配置文件获取"></a>Httpd配置文件获取</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull httpd:2.4</span><br></pre></td></tr></table></figure>
+
+<p>获取容器内配置文件到本地</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run --rm httpd:2.4 cat &#x2F;usr&#x2F;local&#x2F;apache2&#x2F;conf&#x2F;httpd.conf &gt; my-httpd.conf</span><br><span class="line">docker run --rm httpd:2.4 cat &#x2F;usr&#x2F;local&#x2F;apache2&#x2F;conf&#x2F;extra&#x2F;httpd-ssl.conf &gt; httpd-ssl.conf</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<h2 id="修改配置文件"><a href="#修改配置文件" class="headerlink" title="修改配置文件"></a>修改配置文件</h2><h3 id="修改httpd-conf-解开以下注释"><a href="#修改httpd-conf-解开以下注释" class="headerlink" title="修改httpd.conf,解开以下注释"></a>修改httpd.conf,解开以下注释</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">...</span><br><span class="line">#LoadModule socache_shmcb_module modules&#x2F;mod_socache_shmcb.so</span><br><span class="line">...</span><br><span class="line">#LoadModule ssl_module modules&#x2F;mod_ssl.so</span><br><span class="line">...</span><br><span class="line">#Include conf&#x2F;extra&#x2F;httpd-ssl.conf</span><br><span class="line">...</span><br></pre></td></tr></table></figure>
+
+<h3 id="修改httpd-ssl-conf"><a href="#修改httpd-ssl-conf" class="headerlink" title="修改httpd-ssl.conf"></a>修改httpd-ssl.conf</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">找到&lt;VirtualHost _default_:443&gt;标签，修改一下内容</span><br><span class="line"></span><br><span class="line">ServerName   #修改为申请证书时绑定的域名www.YourDomainName1.com。                    </span><br><span class="line">DocumentRoot  &#x2F;data&#x2F;www&#x2F;hbappserver&#x2F;public #实际存储位置htdocs，一般默认不需要改</span><br><span class="line">SSLEngine on   </span><br><span class="line">SSLProtocol all -SSLv2 -SSLv3 # 添加SSL协议支持协议，去掉不安全的协议。</span><br><span class="line">SSLCipherSuite HIGH:!RC4:!MD5:!aNULL:!eNULL:!NULL:!DH:!EDH:!EXP:+MEDIUM   # 修改加密套件。</span><br><span class="line">SSLHonorCipherOrder on</span><br><span class="line"># 将domain name1_public.crt替换成您证书文件名。默认位置不需要改，只需构建镜像时COPY即可</span><br><span class="line">SSLCertificateFile cert&#x2F;domain name1_public.crt</span><br><span class="line"># 将domain name1.key替换成您证书的密钥文件名。默认位置不需要改，只需构建镜像时COPY即可</span><br><span class="line">SSLCertificateKeyFile cert&#x2F;domain name1.key  </span><br><span class="line"># 将domain name1_chain.crt替换成您证书的密钥文件名；证书链开头如果有#字符，请删除。</span><br><span class="line"># 默认位置不需要改,只需构建镜像时COPY即可</span><br><span class="line">SSLCertificateChainFile cert&#x2F;domain name1_chain.crt  </span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="构建镜像"><a href="#构建镜像" class="headerlink" title="构建镜像"></a>构建镜像</h2><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> httpd:<span class="number">2.4</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./my-httpd.conf /usr/<span class="built_in">local</span>/apache2/conf/httpd.conf</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./httpd-ssl.conf /usr/<span class="built_in">local</span>/apache2/conf/extra/httpd-ssl.conf</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./server.crt /usr/<span class="built_in">local</span>/apache2/conf/server.crt</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./server.key /usr/<span class="built_in">local</span>/apache2/conf/server.key</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./server-ca.crt /usr/<span class="built_in">local</span>/apache2/conf/server-ca.crt</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build -t chen/httpd:2.4 .</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="启动容器"><a href="#启动容器" class="headerlink" title="启动容器"></a>启动容器</h3><p>创建htdocs目录存放项目</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -dit --name my-apache-app -p 80:80 -p 443:443 -v &#x2F;root&#x2F;httpd&#x2F;htdocs&#x2F;:&#x2F;usr&#x2F;local&#x2F;apache2&#x2F;htdocs&#x2F;  chen&#x2F;httpd:2.4</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%89%8D%E7%AB%AF/" rel="tag">前端</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Java/Java操作解压ZIP,RAR,7Z文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -324,206 +515,6 @@
     <footer class="article-footer">
       
       
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringCloud/Nacos动态推送持久化配置导Sentinel" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/08/13/SpringCloud/Nacos%E5%8A%A8%E6%80%81%E6%8E%A8%E9%80%81%E6%8C%81%E4%B9%85%E5%8C%96%E9%85%8D%E7%BD%AE%E5%AF%BCSentinel/"
-    >Nacos动态推送持久化配置到Sentinel</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/08/13/SpringCloud/Nacos%E5%8A%A8%E6%80%81%E6%8E%A8%E9%80%81%E6%8C%81%E4%B9%85%E5%8C%96%E9%85%8D%E7%BD%AE%E5%AF%BCSentinel/" class="article-date">
-  <time datetime="2020-08-12T16:00:00.000Z" itemprop="datePublished">2020-08-13</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="nacos作为数据源向sentinel动态推送配置"><a href="#nacos作为数据源向sentinel动态推送配置" class="headerlink" title="nacos作为数据源向sentinel动态推送配置"></a>nacos作为数据源向sentinel动态推送配置</h2><p>首先nacos和sentinel的服务端都启动好。</p>
-<p>在需要使用sentinel服务的应用服务里添加依赖</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba.csp<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>sentinel-datasource-nacos<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>版本可以通过spring-cloud-alibaba-dependencies自动依赖。</p>
-<p>他的版本应该是基于sentinel服务端的发布版本。</p>
-<p>然后再yml里配置</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">spring:</span></span><br><span class="line">    <span class="attr">cloud:</span></span><br><span class="line">        <span class="attr">sentinel:</span></span><br><span class="line">          <span class="attr">transport:</span></span><br><span class="line">            <span class="attr">dashboard:</span> <span class="string">localhost:8080</span></span><br><span class="line">            <span class="attr">heartbeat-interval-ms:</span> <span class="number">200</span> <span class="comment"># 发送sentinel心跳间隔</span></span><br><span class="line">          <span class="attr">datasource:</span> <span class="comment"># 本地化配置限流规则等，避免配置丢失</span></span><br><span class="line">            <span class="attr">ds1:</span></span><br><span class="line">              <span class="attr">nacos:</span></span><br><span class="line">                <span class="attr">server-addr:</span> <span class="string">localhost:8848</span></span><br><span class="line">                <span class="attr">dataId:</span> <span class="string">$&#123;spring.application.name&#125;-sentinel</span></span><br><span class="line">                <span class="attr">groupId:</span> <span class="string">DEFAULT_GROUP</span></span><br><span class="line">                <span class="attr">data-type:</span> <span class="string">json</span></span><br><span class="line">                <span class="attr">rule-type:</span> <span class="string">flow</span></span><br><span class="line">          <span class="attr">eager:</span> <span class="literal">true</span> <span class="comment">#取消控制台懒加载</span></span><br></pre></td></tr></table></figure>
-
-<p>nacos的配置在bootstrap中配置。sentinel配置和sentinel-database在application.yml中配置</p>
-<h3 id="服务限流配置"><a href="#服务限流配置" class="headerlink" title="服务限流配置"></a>服务限流配置</h3><p>其中</p>
-<ul>
-<li>datasource属性是固定写法</li>
-<li>ds1为唯一的一个命名</li>
-<li>nacos为配置类型，nacos,file,zookeeper,apollo,redis,consul几种方式,在SentinelProperties中的DataSource中,需要一个map集合，值就是DataSourcePropertiesConfiguration，它会自动将你写的几类配置封装到其各自对应属性中，并加入到map集合。</li>
-<li>nacos属性中,上三个有NacosDataSourceProperties配置，后两个属性在父类AbstractDataSourceProperties的中，默认data-type为json，rule-type为规则类型，在RuleType枚举类中有定义</li>
-</ul>
-<p>此处定义的nacos配置文件为<code>$&#123;spring.application.name&#125;-sentinel</code>,然后进行创建</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">        <span class="attr">&quot;resource&quot;</span>: <span class="string">&quot;/rateLimit/byUrl&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;limitApp&quot;</span>: <span class="string">&quot;default&quot;</span>,</span><br><span class="line">        <span class="attr">&quot;grade&quot;</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="attr">&quot;count&quot;</span>: <span class="number">1</span>,</span><br><span class="line">        <span class="attr">&quot;strategy&quot;</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="attr">&quot;controlBehavior&quot;</span>: <span class="number">0</span>,</span><br><span class="line">        <span class="attr">&quot;clusterMode&quot;</span>: <span class="literal">false</span></span><br><span class="line">    &#125;</span><br><span class="line">]</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>resource表示资源名称，如果是以路径的方式则返回的限流都是默认的，如果是自定义的则使用自定义的blockHandler和fallback</li>
-<li>limitApp:访问来源，默认default，不分来源</li>
-<li>grade:限流阙值类型,QPS或线程数,默认QPS。0表示线程数，1表示QPS；</li>
-<li>strategy:控流模式，0直接，1关联，2链路</li>
-<li>controlBehavior:控流类型，0快速失败，1WramUp，2排队等待</li>
-<li>clusterMode:是否集群</li>
-</ul>
-<h3 id="服务降级配置"><a href="#服务降级配置" class="headerlink" title="服务降级配置"></a>服务降级配置</h3><p>rule-type值为degrade</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">	&#123;</span><br><span class="line">		<span class="attr">&quot;resource&quot;</span>: <span class="string">&quot;test1&quot;</span>,</span><br><span class="line">		<span class="attr">&quot;grade&quot;</span>: <span class="number">0</span>,</span><br><span class="line">		<span class="attr">&quot;count&quot;</span>: <span class="number">20</span>,</span><br><span class="line">		<span class="attr">&quot;timeWindow&quot;</span>: <span class="number">60</span></span><br><span class="line">	&#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>resource：资源名称</li>
-<li>grade：降级策略 0 RT平均响应时间,1异常比例,2异常数</li>
-<li>count: 单位数，由grade决定，分别为平均响应毫秒数，异常比例数，异常数</li>
-<li>timeWindow：时间窗口，降级时间间隔</li>
-</ul>
-<p><strong>降级策略</strong></p>
-<ul>
-<li><p>平均响应时间 (DEGRADE_GRADE_RT)：当 1s 内持续进入 5 个请求，对应时刻的平均响应时间（秒级）均超过阈值（count，以 ms 为单位），那么在接下的时间窗口（DegradeRule 中的 timeWindow，以 s 为单位）之内，对这个方法的调用都会自动地熔断（抛出 DegradeException）。注意 Sentinel 默认统计的 RT 上限是 4900 ms，超出此阈值的都会算作 4900 ms，若需要变更此上限可以通过启动配置项 -Dcsp.sentinel.statistic.max.rt=xxx 来配置</p>
-</li>
-<li><p>异常比例 (DEGRADE_GRADE_EXCEPTION_RATIO)：当资源的每秒请求量 &gt;= 5，并且每秒异常总数占通过量的比值超过阈值（DegradeRule 中的 count）之后，资源进入降级状态，即在接下的时间窗口（DegradeRule 中的 timeWindow，以 s 为单位）之内，对这个方法的调用都会自动地返回。异常比率的阈值范围是 [0.0, 1.0]，代表 0% - 100%</p>
-</li>
-<li><p>异常数 (DEGRADE_GRADE_EXCEPTION_COUNT)：当资源近 1 分钟的异常数目超过阈值之后会进行熔断。注意由于统计时间窗口是分钟级别的，若 timeWindow 小于 60s，则结束熔断状态后仍可能再进入熔断状态</p>
-</li>
-</ul>
-<h2 id="sentinel相关使用"><a href="#sentinel相关使用" class="headerlink" title="sentinel相关使用"></a>sentinel相关使用</h2><p>@SenintelReSource注解</p>
-<ul>
-<li>value:表示资源名</li>
-<li>blockHandler:限流处理方法，需在本类定义一个同方法名的方法</li>
-<li>blockHandlerClass:指定限流处理类</li>
-<li>fallback:服务熔断，异常返回函数，需在本类定义一个同方法名的方法</li>
-<li>fallbackClass:同样</li>
-</ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/nacos/" rel="tag">nacos</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/sentinel/" rel="tag">sentinel</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/Spring JMS ActiveMQ断线重连问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/08/12/Java/Spring%20JMS%20ActiveMQ%E6%96%AD%E7%BA%BF%E9%87%8D%E8%BF%9E%E9%97%AE%E9%A2%98/"
-    >Spring JMS ActiveMQ断线重连问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/08/12/Java/Spring%20JMS%20ActiveMQ%E6%96%AD%E7%BA%BF%E9%87%8D%E8%BF%9E%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2020-08-11T16:00:00.000Z" itemprop="datePublished">2020-08-12</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>连接activemq出现超时，连接失败问题，默认重试3次，服务器在这段时间断掉了。</p>
-<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line">2020-08-12 05:11:43.294  INFO 59992 --- [ActiveMQ Connection Executor: tcp:///192.168.0.37:61616@51414] o.s.j.c.CachingConnectionFactory         : Encountered a JMSException - resetting the underlying JMS Connection</span><br><span class="line"></span><br><span class="line">javax.jms.JMSException: Connection reset</span><br><span class="line">	at org.apache.activemq.util.JMSExceptionSupport.create(JMSExceptionSupport.java:54) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.ActiveMQConnection.onAsyncException(ActiveMQConnection.java:1960) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.ActiveMQConnection.onException(ActiveMQConnection.java:1979) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.TransportFilter.onException(TransportFilter.java:114) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.ResponseCorrelator.onException(ResponseCorrelator.java:126) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.TransportFilter.onException(TransportFilter.java:114) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.TransportFilter.onException(TransportFilter.java:114) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.WireFormatNegotiator.onException(WireFormatNegotiator.java:173) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.AbstractInactivityMonitor.onException(AbstractInactivityMonitor.java:345) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.TransportSupport.onException(TransportSupport.java:96) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:219) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at java.lang.Thread.run(Thread.java:745) [na:1.8.0_101]</span><br><span class="line">Caused by: java.net.SocketException: Connection reset</span><br><span class="line">	at java.net.SocketInputStream.read(SocketInputStream.java:209) ~[na:1.8.0_101]</span><br><span class="line">	at java.net.SocketInputStream.read(SocketInputStream.java:141) ~[na:1.8.0_101]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpBufferedInputStream.fill(TcpBufferedInputStream.java:50) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpTransport$2.fill(TcpTransport.java:634) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpBufferedInputStream.read(TcpBufferedInputStream.java:59) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpTransport$2.read(TcpTransport.java:619) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at java.io.DataInputStream.readInt(DataInputStream.java:387) ~[na:1.8.0_101]</span><br><span class="line">	at org.apache.activemq.openwire.OpenWireFormat.unmarshal(OpenWireFormat.java:268) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpTransport.readCommand(TcpTransport.java:240) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpTransport.doRun(TcpTransport.java:232) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	at org.apache.activemq.transport.tcp.TcpTransport.run(TcpTransport.java:215) ~[activemq-client-5.15.12.jar!/:5.15.12]</span><br><span class="line">	... 1 common frames omitted</span><br></pre></td></tr></table></figure>
-
-<p>原因，可能是网络，或者客户端很久没有接受消息断开了。</p>
-<p>解决:</p>
-<p>断线重连，使用failover机制<code>failover:(tcp://localhost:61616)</code>进行断开自动连接</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/activemq/" rel="tag">activemq</a></li></ul>
-
 
     </footer>
 

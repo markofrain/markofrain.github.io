@@ -78,6 +78,240 @@
     
     
     
+    <article id="post-XML/XML定义Schema，定义xsd文件并使用xml文件引用它" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/11/XML/XML%E5%AE%9A%E4%B9%89Schema%EF%BC%8C%E5%AE%9A%E4%B9%89xsd%E6%96%87%E4%BB%B6%E5%B9%B6%E4%BD%BF%E7%94%A8xml%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8%E5%AE%83/"
+    >XML定义Schema，定义xsd文件并使用xml文件引用它</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/11/XML/XML%E5%AE%9A%E4%B9%89Schema%EF%BC%8C%E5%AE%9A%E4%B9%89xsd%E6%96%87%E4%BB%B6%E5%B9%B6%E4%BD%BF%E7%94%A8xml%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8%E5%AE%83/" class="article-date">
+  <time datetime="2018-09-11T10:41:46.000Z" itemprop="datePublished">2018-09-11</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="本地引用"><a href="#本地引用" class="headerlink" title="本地引用"></a>本地引用</h2><p>xsd和xml文件都在本地同目录下 则引用为如下示例</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+    &lt;xs:element name=&quot;person&quot;&gt;
+        &lt;xs:complexType&gt;
+            &lt;xs:sequence&gt;
+                &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
+                &lt;xs:element name=&quot;age&quot; type=&quot;xs:int&quot;/&gt;
+                &lt;xs:element name=&quot;sex&quot;&gt;
+                    &lt;xs:simpleType&gt;
+                        &lt;xs:restriction&gt;
+                            &lt;xs:enumeration value=&quot;男&quot;/&gt;
+                            &lt;xs:enumeration value=&quot;女&quot;/&gt;
+                        &lt;/xs:restriction&gt;
+                    &lt;/xs:simpleType&gt;
+                &lt;/xs:element&gt;
+                &lt;xs:element name=&quot;height&quot; type=&quot;xs:int&quot;/&gt;
+            &lt;/xs:sequence&gt;
+        &lt;/xs:complexType&gt;
+    &lt;/xs:element&gt;
+&lt;/xs:schema&gt;
+
+
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;person xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+      xsi:noNamespaceSchemaLocation=&quot;test.xsd&quot;&gt;
+    &lt;name&gt;s&lt;/name&gt;
+    &lt;age&gt;1&lt;/age&gt;
+    &lt;sex&gt;&lt;/sex&gt;
+    &lt;height&gt;2&lt;/height&gt;
+&lt;/person&gt;</code></pre><p>本地情况下xsd文件仅定义xmlns:xs=”<a target="_blank" rel="noopener" href="http://www.w3.org/2001/XMLSchema&quot;即可">http://www.w3.org/2001/XMLSchema&quot;即可</a> xml文件 根元素，引用xmlns:xsi=”<a target="_blank" rel="noopener" href="http://www.w3.org/2001/XMLSchema-instance&quot;">http://www.w3.org/2001/XMLSchema-instance&quot;</a> xsi:noNamespaceSchemaLocation=”test.xsd”,表示没有命名空间，引用地址为该xsd文件的相对路径。且仅可使用相对路径。</p>
+<h2 id="如果你将xsd文件放在远程服务器上"><a href="#如果你将xsd文件放在远程服务器上" class="headerlink" title="如果你将xsd文件放在远程服务器上"></a>如果你将xsd文件放在远程服务器上</h2><pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;
+           targetNamespace=&quot;http://qxu1591340090.my3w.com&quot;
+           xmlns=&quot;http://qxu1591340090.my3w.com&quot;
+           elementFormDefault=&quot;qualified&quot;&gt;
+    &lt;xs:element name=&quot;person&quot;&gt;
+        &lt;xs:complexType&gt;
+            &lt;xs:sequence&gt;
+                &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
+                &lt;xs:element name=&quot;age&quot; type=&quot;xs:int&quot;/&gt;
+                &lt;xs:element name=&quot;sex&quot;&gt;
+                    &lt;xs:simpleType&gt;
+                        &lt;xs:restriction&gt;
+                            &lt;xs:enumeration value=&quot;男&quot;/&gt;
+                            &lt;xs:enumeration value=&quot;女&quot;/&gt;
+                        &lt;/xs:restriction&gt;
+                    &lt;/xs:simpleType&gt;
+                &lt;/xs:element&gt;
+                &lt;xs:element name=&quot;height&quot; type=&quot;xs:int&quot;/&gt;
+            &lt;/xs:sequence&gt;
+        &lt;/xs:complexType&gt;
+    &lt;/xs:element&gt;
+&lt;/xs:schema&gt;
+
+
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;person xmlns=&quot;http://qxu1591340090.my3w.com&quot;
+        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+        xsi:schemaLocation=&quot;http://qxu1591340090.my3w.com http://qxu1591340090.my3w.com/test2.xsd&quot;&gt;
+    &lt;name&gt;s&lt;/name&gt;
+    &lt;age&gt;1&lt;/age&gt;
+    &lt;sex&gt;男&lt;/sex&gt;
+    &lt;height&gt;2&lt;/height&gt;
+&lt;/person&gt;</code></pre><p>需要为xsd文件添加targetNamespace=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com&quot;和xmlns=&quot;http://qxu1591340090.my3w.com&quot;，值都指向你的服务器地址。">http://qxu1591340090.my3w.com&quot;和xmlns=&quot;http://qxu1591340090.my3w.com&quot;，值都指向你的服务器地址。</a> xml文件中添加xmlns=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com&quot;以及">http://qxu1591340090.my3w.com&quot;以及</a> xsi:schemaLocation=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com">http://qxu1591340090.my3w.com</a> <a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com/test2.xsd&quot;">http://qxu1591340090.my3w.com/test2.xsd&quot;</a> 第一个值为你的命名空间就是你的服务器地址，第二个值是你的xsd文件路径，如果你的xsd文件在本地，依然可以使用相对路径，这与命名空间似乎无关，如果文件在远程服务器，那么将地址改为你的远程服务器文件的路径即可。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/cannot backup or copy active file in NOARCHIVELOG mode" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/"
+    >数据库ORA-19602 cannot backup or copy active file in NOARCHIVELOG mode</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/" class="article-date">
+  <time datetime="2018-09-07T01:17:37.000Z" itemprop="datePublished">2018-09-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>此错误的起源再，使用了RMAN的backup database命令</p>
+<pre><code>RMAN&gt; backup database;
+
+Starting backup at 07-SEP-18
+using channel ORA_DISK_1
+channel ORA_DISK_1: starting full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
+ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode
+continuing other job steps, job failed will not be re-run
+channel ORA_DISK_1: starting full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+including current control file in backup set
+including current SPFILE in backup set
+channel ORA_DISK_1: starting piece 1 at 07-SEP-18
+channel ORA_DISK_1: finished piece 1 at 07-SEP-18
+piece handle=/data/oracle/flash_recovery_area/ORCL/backupset/2018_09_07/o1_mf_ncsnf_TAG20180907T090021_fs3mf6o4_.bkp tag=TAG20180907T090021 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+RMAN-00571: ===========================================================
+RMAN-00569: =============== ERROR MESSAGE STACK FOLLOWS ===============
+RMAN-00571: ===========================================================
+
+RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
+ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode</code></pre><p>​    </p>
+<p>原因是该数据库运行再非归档模式。 我们知道Oracle中 重做日志文件被分为若干组，当一组重做日志被写满，ORACLE就开始写下一组，这叫做日志切换。切换是以循环的方式进行的，即当最后一组写满后又从第一 组开始写。所以如果只有重做日志，即oracle运行在非归档模式下，当遇到数据文件丢失或损坏时，oracle很难保证能够完全恢复数据库，因为可能所 需的重做记录因为因重做日志循环被覆盖掉了。但在归档方式下，归档日志进程会把切换后的重做日志文件复制到归档日志文件，我们可以把归档日志文件看成是重 做日志文件的备份，但归档日志文件是脱机的，即除了在进行复制时，ORACLE数据库在正常运行时是不会关注归档日志文件的。 所以我们应该把数据库改为归档模式。 需要将数据库运行在归档模式</p>
+<pre><code>shutdown immediate;-- 关闭数据库
+startup mount;-- 启动数据库到mount状态
+alter database archivelog;-- 修改数据库为归档模式
+alter database open;-- 打开数据库</code></pre><p>之后便可以备份了</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Javascript/关于使用BootStrap Table出现的一些问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -363,206 +597,6 @@ $(&apos;#table&apos;).bootstrapTable(&apos;refresh&apos;);</code></pre><h3 id="�
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/关于Oracle在未删除用户时手动直接删除DBF文件引起的错误" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/18/Oracle/%E5%85%B3%E4%BA%8EOracle%E5%9C%A8%E6%9C%AA%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7%E6%97%B6%E6%89%8B%E5%8A%A8%E7%9B%B4%E6%8E%A5%E5%88%A0%E9%99%A4DBF%E6%96%87%E4%BB%B6%E5%BC%95%E8%B5%B7%E7%9A%84%E9%94%99%E8%AF%AF/"
-    >关于Oracle在未删除用户时手动直接删除DBF文件引起的错误</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/18/Oracle/%E5%85%B3%E4%BA%8EOracle%E5%9C%A8%E6%9C%AA%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7%E6%97%B6%E6%89%8B%E5%8A%A8%E7%9B%B4%E6%8E%A5%E5%88%A0%E9%99%A4DBF%E6%96%87%E4%BB%B6%E5%BC%95%E8%B5%B7%E7%9A%84%E9%94%99%E8%AF%AF/" class="article-date">
-  <time datetime="2018-08-18T06:28:03.000Z" itemprop="datePublished">2018-08-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>Oracle已经启动，可以登录，但是操作时说Oracle为打开 监听错误或者未初始化服务句柄，ORA-24324: 未初始化服务句柄， ORA-01041: 内部错误, hostdef 扩展名不存在 sqlplus命令 shutdown normal 数据库已经关闭。 已经卸载数据库。 ORACLE 例程已经关闭。 SQL&gt; startup mount ORA-12514: TNS: 监听程序当前无法识别连接描述符中请求的服务 SQL&gt; startup mount ORA-24324: 未初始化服务句柄 ORA-01041: 内部错误, hostdef 扩展名不存在 alter database open； ORA-01157: 无法标识/锁定数据文件 18 - 请参阅 DBWR 跟踪文件 ORA-01110: 数据文件 18: ‘D:\ORACLE\ORADATA\FLOW\GGSC\SYSCOM.ORA’ 此时说明，dbf数据文件已经被删除，无法启动数据库 alter database datafile ‘D:\ORACLE\ORADATA\FLOW\GGSC\SYSCOM.ORA’ offline drop 通过此解决,datafile后的路径改为上面报错的路径，然后尝试alter database open;命令，如果还有其他缺少文件错误，依然这样操作。最后就能开启。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Linux/CentOS7使用yum安装MySQL5.7命令" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/08/Linux/CentOS7%E4%BD%BF%E7%94%A8yum%E5%AE%89%E8%A3%85MySQL5.7%E5%91%BD%E4%BB%A4/"
-    >CentOS7使用yum安装MySQL5.7命令</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/08/Linux/CentOS7%E4%BD%BF%E7%94%A8yum%E5%AE%89%E8%A3%85MySQL5.7%E5%91%BD%E4%BB%A4/" class="article-date">
-  <time datetime="2018-08-08T06:10:17.000Z" itemprop="datePublished">2018-08-08</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <ol>
-<li><p>下载repo源</p>
-<p>//下载repo源<br>wget <a target="_blank" rel="noopener" href="http://repo.mysql.com/mysql57-community-release-el7-8.noarch.rpm">http://repo.mysql.com/mysql57-community-release-el7-8.noarch.rpm</a><br>//安装源<br>rpm -ivh mysql57-community-release-el7-8.noarch.rpm</p>
-</li>
-<li><p>安装mysql-server</p>
-<p>//安装mysql-server<br>yum install mysql-server</p>
-</li>
-</ol>
-<p>可能报错</p>
-<pre><code>Error: Package: 2:postfix-2.10.1-6.el7.x86_64 (@anaconda)
-           Requires: libmysqlclient.so.18()(64bit)
-           Removing: 1:mariadb-libs-5.5.44-2.el7.centos.x86_64 (@anaconda)
-               libmysqlclient.so.18()(64bit)
-           Obsoleted By: mysql-community-libs-5.7.16-1.el6.x86_64 (mysql57-community)
-              ~libmysqlclient.so.20()(64bit)
-           Updated By: 1:mariadb-libs-5.5.50-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18()(64bit)
-           Available: 1:mariadb-libs-5.5.47-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18()(64bit)
-Error: Package: 2:postfix-2.10.1-6.el7.x86_64 (@anaconda)
-           Requires: libmysqlclient.so.18(libmysqlclient_18)(64bit)
-           Removing: 1:mariadb-libs-5.5.44-2.el7.centos.x86_64 (@anaconda)
-               libmysqlclient.so.18(libmysqlclient_18)(64bit)
-           Obsoleted By: mysql-community-libs-5.7.16-1.el6.x86_64 (mysql57-community)
-               Not found
-           Updated By: 1:mariadb-libs-5.5.50-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18(libmysqlclient_18)(64bit)
-           Available: 1:mariadb-libs-5.5.47-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18(libmysqlclient_18)(64bit)
- You could try using --skip-broken to work around the problem
- You could try running: rpm -Va --nofiles --nodigest</code></pre><p>解决办法</p>
-<pre><code>//删除包依赖
-yum remove mysql-libs</code></pre><p>然后再次安装</p>
-<pre><code>yum install mysql-server</code></pre><p>报错:</p>
-<pre><code>错误显示：
-
-软件包：mysql-community-server-5.7.20-1.el6.x86_64 (mysql57-community)
-
-需要：libsasl2.so.2()(64bit)
-
-您可以尝试添加 --skip-broken 选项来解决该问题
-
-您可以尝试执行：rpm -Va --nofiles --nodigest</code></pre><p>解决办法: 修改vim /etc/yum.repos.d/mysql-community.repo 源文件 [mysql57-community] name=MySQL 5.7 Community Server</p>
-<h2 id="baseurl-http-repo-mysql-com-yum-mysql-5-7-community-el-6-basearch"><a href="#baseurl-http-repo-mysql-com-yum-mysql-5-7-community-el-6-basearch" class="headerlink" title="baseurl=http://repo.mysql.com/yum/mysql-5.7-community/el/6/$basearch/"></a>baseurl=<a target="_blank" rel="noopener" href="http://repo.mysql.com/yum/mysql-5.7-community/el/6/$basearch/">http://repo.mysql.com/yum/mysql-5.7-community/el/6/$basearch/</a></h2><p><strong>baseurl=<a target="_blank" rel="noopener" href="http://repo.mysql.com/yum/mysql-5.7-community/el/7/$basearch/">http://repo.mysql.com/yum/mysql-5.7-community/el/7/$basearch/</a></strong> enabled=1 <strong>gpgcheck=0</strong> gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql 最后在重新安装</p>
-<pre><code>yum install mysql-server</code></pre><p>有y/n提示则写y</p>
-<pre><code>yum install mysql-devel</code></pre><p>默认配置文件路径： 配置文件：/etc/my.cnf 日志文件：/var/log/var/log/mysqld.log 服务启动脚本：/usr/lib/systemd/system/mysqld.service socket文件：/var/run/mysqld/mysqld.pid 配置mysql文件:</p>
-<pre><code>cd /etc/my.cnf 
-# 加入配置参数
-&gt; character-set-server=utf8 </code></pre><p>启动服务</p>
-<pre><code>service mysqld restart</code></pre><p>重置密码</p>
-<pre><code>//获得随机密码
-[root@localhost ~]# grep &quot;password&quot; /var/log/mysqld.log
-
-mysql -u root -p //进入
-
-//修改密码,包含字母数字特殊字符，至少有一个大写字母
-alter user &apos;root&apos;@&apos;localhost&apos; identified by &apos;你的密码&apos;;
-
-//刷新权限
-flush privileges</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
 
 
     </footer>

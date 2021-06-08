@@ -78,6 +78,177 @@
     
     
     
+    <article id="post-Linux/使用Ubuntu18.04和VirtualBox虚拟软件使虚拟机之间互通和与宿主互通" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/18/Linux/%E4%BD%BF%E7%94%A8Ubuntu18.04%E5%92%8CVirtualBox%E8%99%9A%E6%8B%9F%E8%BD%AF%E4%BB%B6%E4%BD%BF%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B9%8B%E9%97%B4%E4%BA%92%E9%80%9A%E5%92%8C%E4%B8%8E%E5%AE%BF%E4%B8%BB%E4%BA%92%E9%80%9A/"
+    >使用Ubuntu18.04和VirtualBox虚拟软件使虚拟机之间互通和与宿主互通</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/18/Linux/%E4%BD%BF%E7%94%A8Ubuntu18.04%E5%92%8CVirtualBox%E8%99%9A%E6%8B%9F%E8%BD%AF%E4%BB%B6%E4%BD%BF%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%B9%8B%E9%97%B4%E4%BA%92%E9%80%9A%E5%92%8C%E4%B8%8E%E5%AE%BF%E4%B8%BB%E4%BA%92%E9%80%9A/" class="article-date">
+  <time datetime="2018-09-18T08:09:44.000Z" itemprop="datePublished">2018-09-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="使用Ubuntu18-04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问"><a href="#使用Ubuntu18-04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问" class="headerlink" title="使用Ubuntu18.04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问"></a>使用Ubuntu18.04通过VirtualBox虚拟实现虚拟机之间和宿主之间的互通访问</h1><p>直接切入操作，不讲废话，毕竟也是参考别人并尝试出来的。 1. 新建适配器网卡 首先你需要配置一个【虚拟适配器】，再【设置】，【主机网络管理器】，新建一个网络，下面【网卡选项】选择手动配置，好像创建完之后，文本框里就已经有值了，【取消启用HDCP服务器】。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918152356.png" alt=""> 每个机子的网段IP可能是不一样的，我的是192.168.135.1,你的135这个网段会变，另外第四位设置为1就好。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918152611.png" alt=""> 此时你的网络中会多出一个适配器。</p>
+<ol start="2">
+<li>配置网络网卡</li>
+</ol>
+<p>点击你已经虚拟好的机子，点击设置，配置【网络】，【网卡1】配置【网络地址转换NAT】 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918153019.png" alt=""> 【网卡2】配置，点击【启用连接】复选框，设置连接方式为【仅主机Host-Only网络】，【界面名称就是刚才创建的网络适配器，选中】 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918153046.png" alt=""> 你有两个虚拟机，你的两个虚拟机都要这样设置。如果之后你连接不上，一定要确认你的虚拟机这两个网卡的网络设置是否正确。 可以还在这个设置中看，还可以在虚拟机启动后，右下角的工具栏中显示的网络配置。</p>
+<ol start="3">
+<li>简单说一下这么配置的原因，也是引用源博主的文章。</li>
+</ol>
+<p>首先引一下图片 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/201809181536120.png" alt=""> 随后，看他说的，两个网卡分别有什么作用。 【网卡1，网络地址转换NAT】的目的是用上<strong>虚拟机与主机之间通讯</strong>，并且可以上外网。由于VirtualBox 的 NAT方式，只允许<strong>虚拟机与主机之间单向通讯</strong>（因为VirtualBox只虚拟了一个网卡，所以主机是ping不通虚拟机的。 而按图例中，虚拟机之间可以通过Host-Only和桥接方式，所以你要设置一个Host-Only，它不是刚设置的嘛，有ip4，所以它用来<strong>给两台虚拟机设置静态IP</strong>,而网卡1就是连接宿主的，可以访问网络，IP4和HDCP都是自动获取的，而且IP地址是类似10.10.x.x的。 这样的话，又能访问宿主网络，ping宿主(宿主不能ping虚拟机)，又能虚拟机之间访问，而且是静态的IP。</p>
+<ol start="4">
+<li>进入Ubuntu18.4中设置网络</li>
+</ol>
+<p>到linux里，这两个配置的网卡就变名字了，enp0s3和enp0s8，当然每个机子可能都是不一样的，也可能一样。但是有一点就是再做这个操作之前，我也分不清哪个用来虚拟机互通的，那个是用来连接虚拟机自动获取网络的。 所以先拿一台虚拟机尝试,配置 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/T20180918155055.png" alt=""> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/T20180918155233.png" alt=""></p>
+<ol>
+<li>0s3我配置的是自动连接，就是自动获取ip，DHCP，用于连接宿主，访问网络的。【身份选项】，mac地址就选择当前配置的enp0s3,ip4和ip6中都是自动，这间完成自动获取宿主连接了。</li>
+</ol>
+<p>对于enp0s8是虚拟机之间的通信，设置静态ip,【身份选项】mac选择当前对应网卡的地址enp0s8,ip4设置如下，ip6自动(文章中说NAT是无法设置IP6的) <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180918155503.png" alt=""></p>
+<ol start="2">
+<li>这个IP4的配置，ip4选手动单选，地址:192.168.x.x,第三位是创建适配器时的默认给你的，第四位就是当前机子的ip号，这个号肯定是当前ip端唯一的。子网掩码:255.255.255.0这个是不用更改的，【网关】就是创建时默认的192.168.x.1。</li>
+</ol>
+<p>好，这样一台虚拟机就配置完成了，你可以ping一下百度网址<a target="_blank" rel="noopener" href="http://www.baidu.com或者宿主ip地址，如果响应没问题就说明OK了。如果有问题，那么你就得把两个网卡的配置反过来试试吧。。。。。。。">www.baidu.com或者宿主ip地址，如果响应没问题就说明OK了。如果有问题，那么你就得把两个网卡的配置反过来试试吧。。。。。。。</a> 对于虚拟机之间的ping，就得把另一个虚拟机也配置了之后，在相互ping，如果通了，那就完成了。 该案例也是秩序配置，不需要修改什么配置文件，上午改了配置文件，改yaml文件，始终编译不成功。 参考的博客: <a target="_blank" rel="noopener" href="https://blog.csdn.net/techsupporter/article/details/51810649">https://blog.csdn.net/techsupporter/article/details/51810649</a> <a target="_blank" rel="noopener" href="https://yq.aliyun.com/articles/149551">https://yq.aliyun.com/articles/149551</a> 那么我这么做，虚拟机互相ping时干什么，恩，大数据搭建环境，额虽然大数据已经很火爆很完善了现在，但是我还在开始学啊。看后面大数据环境的配置把。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%99%9A%E6%8B%9F%E6%9C%BA/" rel="tag">虚拟机</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Javascript/在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/"
+    >在JS中关于ajax回调success函数的时间点问题和对话框内部调用外部方法问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/16/Javascript/%E5%9C%A8JS%E4%B8%AD%E5%85%B3%E4%BA%8Eajax%E5%9B%9E%E8%B0%83success%E5%87%BD%E6%95%B0%E7%9A%84%E6%97%B6%E9%97%B4%E7%82%B9%E9%97%AE%E9%A2%98%E5%92%8C%E5%AF%B9%E8%AF%9D%E6%A1%86%E5%86%85%E9%83%A8%E8%B0%83%E7%94%A8%E5%A4%96%E9%83%A8%E6%96%B9%E6%B3%95%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-09-16T11:24:23.000Z" itemprop="datePublished">2018-09-16</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/JS/">JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="关于js-ajax方法的success函数执行问题"><a href="#关于js-ajax方法的success函数执行问题" class="headerlink" title="关于js ajax方法的success函数执行问题"></a>关于js ajax方法的success函数执行问题</h2><p>首先对于ajax的success和post，get的回调函数都是同一中，都是成功后要执行的函数，这时肯定的。 那问题是什么？ 在执行ajax的success回调函数时，可能你会由返回值，由外部去获得这个值，但是外部却无法获得这个值，也不是说无法获得，只是时间点不对。当调用包含ajax方法时得到的返回值是undefined,随后执行后面的代码，当所有代码执行完成后它才返回你需要的那个返回值。 你可以写个简单的示例：</p>
+<ul>
+<li>定义一个普通方法来调用带有ajax的方法</li>
+<li>然后在该普通方法调用ajax方法之后输出这个返回值</li>
+<li>然后在ajax的方法中，在回调方法success里输出你ajax请求操作成功后返回的result值。</li>
+</ul>
+<p>通过执行你会发现，先弹出你的 返回值，而且返回值是undefined的，随后再弹出你的result值，有值。 那为什么会这样，通过js调试发现，当你执行到$.post(…),$.get(…),$.ajax({…})这行之后，它会直接跳到ajax末尾的”}”去，也就是说回掉函数没有执行，随后返回到上一级输出你的返回值，导致是未定义的变量，随后当代码执行完之后，代码又进入jquery.min.js中，弹出了回掉函数中的result的弹框。 就是这样一种情况，如果你想要获得ajax回调的返回结果，并对结果进行判断或其他操作，它是得不到值的。 那么么为什么会这样，一篇博客中说出了道理，起始也是一个ajax底层的问题，也不是多困难。 答:ajax默认是异步传递的。<strong>它不会暂停它之后代码的执行。在后面代码执行时，ajax肯定还没有返回数据</strong>。如果不理解异步传递。请记住，ajax()之后不要写需要用到ajax返回数据的代码。<strong>所有需要用到ajax返回数据的代码都要放到success回调函数中</strong>。 将后面需要用到的都放在success中，这个确实是一个方法，但可能可用性不太好。但是如果你把async设置为false，好像仍然能解决问题。 这样就引出了后面的第二个问题，因为当你在同一页面或同一层窗口中不太需要success的返回值或其他返回值，因为既然在同一页面你可以再success中判断并直接调用其他方法。所以没不要获得返回值。而另一种情况就是通过对话框做form表单操作，也就是把form的增该不单独放页面中，而是放在弹出框里，这样就相当于是一个iframe，多个一层框架，有一个父子窗口的关系。</p>
+<h2 id="父窗口与子窗口函数的互相调用"><a href="#父窗口与子窗口函数的互相调用" class="headerlink" title="父窗口与子窗口函数的互相调用"></a>父窗口与子窗口函数的互相调用</h2><p>对于这个问题，也就是刚才引出的话题。只需要调用就好。 <strong>对于子窗口调用父窗口的方法:</strong></p>
+<pre><code>window.parent.xxx;//xxx就是父窗口的的方法</code></pre><p>我为什么会用到这个，因为我需要再父窗口弹出一个右下角的提示小窗，所以如果再子窗口里，窗口大小太小，也不好看，所以操作完成后再父窗口中显示。 <strong>对于父窗口调用子窗口的方法</strong></p>
+<pre><code>document.getElementById(&quot;#iframe&quot;).contentWindow.xxx;</code></pre><p>document.getElementById(“#iframe”)就是获得子窗口的iframe Document对象，然后通过contentWindow来调用方法。 <strong>对于兄弟级别的窗口</strong> 需要先获得父级dom，再获得子窗口的dom。也相当于子窗口转到父窗口再转到另一个子窗口。</p>
+<pre><code>window.parent.$(&quot;#childFrm&quot;)[0].contentWindow.xxx;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-XML/XML XSTL技术笔记 XML样式表" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -717,240 +888,6 @@ xml中
 </li>
 </ol>
 <p>参考： <a target="_blank" rel="noopener" href="https://blog.csdn.net/zwk626542417/article/details/39667999">https://blog.csdn.net/zwk626542417/article/details/39667999</a> <a target="_blank" rel="noopener" href="http://www.cnblogs.com/xwdreamer/p/3804509.html">http://www.cnblogs.com/xwdreamer/p/3804509.html</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-XML/XML定义Schema，定义xsd文件并使用xml文件引用它" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/11/XML/XML%E5%AE%9A%E4%B9%89Schema%EF%BC%8C%E5%AE%9A%E4%B9%89xsd%E6%96%87%E4%BB%B6%E5%B9%B6%E4%BD%BF%E7%94%A8xml%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8%E5%AE%83/"
-    >XML定义Schema，定义xsd文件并使用xml文件引用它</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/11/XML/XML%E5%AE%9A%E4%B9%89Schema%EF%BC%8C%E5%AE%9A%E4%B9%89xsd%E6%96%87%E4%BB%B6%E5%B9%B6%E4%BD%BF%E7%94%A8xml%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8%E5%AE%83/" class="article-date">
-  <time datetime="2018-09-11T10:41:46.000Z" itemprop="datePublished">2018-09-11</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/XML/">XML</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="本地引用"><a href="#本地引用" class="headerlink" title="本地引用"></a>本地引用</h2><p>xsd和xml文件都在本地同目录下 则引用为如下示例</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
-&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
-    &lt;xs:element name=&quot;person&quot;&gt;
-        &lt;xs:complexType&gt;
-            &lt;xs:sequence&gt;
-                &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
-                &lt;xs:element name=&quot;age&quot; type=&quot;xs:int&quot;/&gt;
-                &lt;xs:element name=&quot;sex&quot;&gt;
-                    &lt;xs:simpleType&gt;
-                        &lt;xs:restriction&gt;
-                            &lt;xs:enumeration value=&quot;男&quot;/&gt;
-                            &lt;xs:enumeration value=&quot;女&quot;/&gt;
-                        &lt;/xs:restriction&gt;
-                    &lt;/xs:simpleType&gt;
-                &lt;/xs:element&gt;
-                &lt;xs:element name=&quot;height&quot; type=&quot;xs:int&quot;/&gt;
-            &lt;/xs:sequence&gt;
-        &lt;/xs:complexType&gt;
-    &lt;/xs:element&gt;
-&lt;/xs:schema&gt;
-
-
-&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
-&lt;person xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-      xsi:noNamespaceSchemaLocation=&quot;test.xsd&quot;&gt;
-    &lt;name&gt;s&lt;/name&gt;
-    &lt;age&gt;1&lt;/age&gt;
-    &lt;sex&gt;&lt;/sex&gt;
-    &lt;height&gt;2&lt;/height&gt;
-&lt;/person&gt;</code></pre><p>本地情况下xsd文件仅定义xmlns:xs=”<a target="_blank" rel="noopener" href="http://www.w3.org/2001/XMLSchema&quot;即可">http://www.w3.org/2001/XMLSchema&quot;即可</a> xml文件 根元素，引用xmlns:xsi=”<a target="_blank" rel="noopener" href="http://www.w3.org/2001/XMLSchema-instance&quot;">http://www.w3.org/2001/XMLSchema-instance&quot;</a> xsi:noNamespaceSchemaLocation=”test.xsd”,表示没有命名空间，引用地址为该xsd文件的相对路径。且仅可使用相对路径。</p>
-<h2 id="如果你将xsd文件放在远程服务器上"><a href="#如果你将xsd文件放在远程服务器上" class="headerlink" title="如果你将xsd文件放在远程服务器上"></a>如果你将xsd文件放在远程服务器上</h2><pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
-&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;
-           targetNamespace=&quot;http://qxu1591340090.my3w.com&quot;
-           xmlns=&quot;http://qxu1591340090.my3w.com&quot;
-           elementFormDefault=&quot;qualified&quot;&gt;
-    &lt;xs:element name=&quot;person&quot;&gt;
-        &lt;xs:complexType&gt;
-            &lt;xs:sequence&gt;
-                &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
-                &lt;xs:element name=&quot;age&quot; type=&quot;xs:int&quot;/&gt;
-                &lt;xs:element name=&quot;sex&quot;&gt;
-                    &lt;xs:simpleType&gt;
-                        &lt;xs:restriction&gt;
-                            &lt;xs:enumeration value=&quot;男&quot;/&gt;
-                            &lt;xs:enumeration value=&quot;女&quot;/&gt;
-                        &lt;/xs:restriction&gt;
-                    &lt;/xs:simpleType&gt;
-                &lt;/xs:element&gt;
-                &lt;xs:element name=&quot;height&quot; type=&quot;xs:int&quot;/&gt;
-            &lt;/xs:sequence&gt;
-        &lt;/xs:complexType&gt;
-    &lt;/xs:element&gt;
-&lt;/xs:schema&gt;
-
-
-&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
-&lt;person xmlns=&quot;http://qxu1591340090.my3w.com&quot;
-        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-        xsi:schemaLocation=&quot;http://qxu1591340090.my3w.com http://qxu1591340090.my3w.com/test2.xsd&quot;&gt;
-    &lt;name&gt;s&lt;/name&gt;
-    &lt;age&gt;1&lt;/age&gt;
-    &lt;sex&gt;男&lt;/sex&gt;
-    &lt;height&gt;2&lt;/height&gt;
-&lt;/person&gt;</code></pre><p>需要为xsd文件添加targetNamespace=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com&quot;和xmlns=&quot;http://qxu1591340090.my3w.com&quot;，值都指向你的服务器地址。">http://qxu1591340090.my3w.com&quot;和xmlns=&quot;http://qxu1591340090.my3w.com&quot;，值都指向你的服务器地址。</a> xml文件中添加xmlns=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com&quot;以及">http://qxu1591340090.my3w.com&quot;以及</a> xsi:schemaLocation=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com">http://qxu1591340090.my3w.com</a> <a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com/test2.xsd&quot;">http://qxu1591340090.my3w.com/test2.xsd&quot;</a> 第一个值为你的命名空间就是你的服务器地址，第二个值是你的xsd文件路径，如果你的xsd文件在本地，依然可以使用相对路径，这与命名空间似乎无关，如果文件在远程服务器，那么将地址改为你的远程服务器文件的路径即可。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/cannot backup or copy active file in NOARCHIVELOG mode" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/"
-    >数据库ORA-19602 cannot backup or copy active file in NOARCHIVELOG mode</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/" class="article-date">
-  <time datetime="2018-09-07T01:17:37.000Z" itemprop="datePublished">2018-09-07</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>此错误的起源再，使用了RMAN的backup database命令</p>
-<pre><code>RMAN&gt; backup database;
-
-Starting backup at 07-SEP-18
-using channel ORA_DISK_1
-channel ORA_DISK_1: starting full datafile backup set
-channel ORA_DISK_1: specifying datafile(s) in backup set
-RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
-ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode
-continuing other job steps, job failed will not be re-run
-channel ORA_DISK_1: starting full datafile backup set
-channel ORA_DISK_1: specifying datafile(s) in backup set
-including current control file in backup set
-including current SPFILE in backup set
-channel ORA_DISK_1: starting piece 1 at 07-SEP-18
-channel ORA_DISK_1: finished piece 1 at 07-SEP-18
-piece handle=/data/oracle/flash_recovery_area/ORCL/backupset/2018_09_07/o1_mf_ncsnf_TAG20180907T090021_fs3mf6o4_.bkp tag=TAG20180907T090021 comment=NONE
-channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
-RMAN-00571: ===========================================================
-RMAN-00569: =============== ERROR MESSAGE STACK FOLLOWS ===============
-RMAN-00571: ===========================================================
-
-RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
-ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode</code></pre><p>​    </p>
-<p>原因是该数据库运行再非归档模式。 我们知道Oracle中 重做日志文件被分为若干组，当一组重做日志被写满，ORACLE就开始写下一组，这叫做日志切换。切换是以循环的方式进行的，即当最后一组写满后又从第一 组开始写。所以如果只有重做日志，即oracle运行在非归档模式下，当遇到数据文件丢失或损坏时，oracle很难保证能够完全恢复数据库，因为可能所 需的重做记录因为因重做日志循环被覆盖掉了。但在归档方式下，归档日志进程会把切换后的重做日志文件复制到归档日志文件，我们可以把归档日志文件看成是重 做日志文件的备份，但归档日志文件是脱机的，即除了在进行复制时，ORACLE数据库在正常运行时是不会关注归档日志文件的。 所以我们应该把数据库改为归档模式。 需要将数据库运行在归档模式</p>
-<pre><code>shutdown immediate;-- 关闭数据库
-startup mount;-- 启动数据库到mount状态
-alter database archivelog;-- 修改数据库为归档模式
-alter database open;-- 打开数据库</code></pre><p>之后便可以备份了</p>
 
       
       <!-- reward -->

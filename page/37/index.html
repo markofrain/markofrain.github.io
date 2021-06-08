@@ -78,6 +78,264 @@
     
     
     
+    <article id="post-Java/使用javax.mail包操作邮箱发送邮件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/10/11/Java/%E4%BD%BF%E7%94%A8javax.mail%E5%8C%85%E6%93%8D%E4%BD%9C%E9%82%AE%E7%AE%B1%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6/"
+    >使用javax.mail包操作邮箱发送邮件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/10/11/Java/%E4%BD%BF%E7%94%A8javax.mail%E5%8C%85%E6%93%8D%E4%BD%9C%E9%82%AE%E7%AE%B1%E5%8F%91%E9%80%81%E9%82%AE%E4%BB%B6/" class="article-date">
+  <time datetime="2018-10-11T04:45:28.000Z" itemprop="datePublished">2018-10-11</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="使用javax-mail包操作邮箱发送邮件"><a href="#使用javax-mail包操作邮箱发送邮件" class="headerlink" title="使用javax.mail包操作邮箱发送邮件"></a>使用javax.mail包操作邮箱发送邮件</h1><h2 id="添加maven依赖"><a href="#添加maven依赖" class="headerlink" title="添加maven依赖"></a>添加maven依赖</h2><pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;javax.mail&lt;/groupId&gt;
+    &lt;artifactId&gt;mail&lt;/artifactId&gt;
+    &lt;version&gt;1.4.7&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;javax.activation&lt;/groupId&gt;
+    &lt;artifactId&gt;activation&lt;/artifactId&gt;
+    &lt;version&gt;1.1.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h2 id="简单的不带附件及图片的邮件发送"><a href="#简单的不带附件及图片的邮件发送" class="headerlink" title="简单的不带附件及图片的邮件发送"></a>简单的不带附件及图片的邮件发送</h2><p>普通文本发送，分为text方式和HTML方式，一个不支持html标签，一个支持html标签。</p>
+<pre><code>/**
+     * 发送简单的邮件
+     * @param mailBody 邮件信息实体类
+     * @param type 发送的类型，text还是html
+     * @return
+     */
+    public boolean sendSimpleMail(MailBody mailBody,String type) &#123;
+        //邮件属性设置
+        Properties prop = new Properties();
+        prop.setProperty(&quot;mail.host&quot;, &quot;smtp.qq.com&quot;);
+        prop.setProperty(&quot;mail.transport.protocol&quot;, &quot;smtp&quot;);
+        prop.setProperty(&quot;mail.smtp.auth&quot;, &quot;true&quot;);
+
+        // 使用JavaMail发送邮件的5个步骤
+        // 1、创建session
+        Session session = Session.getInstance(prop);
+        // 开启Session的debug模式，这样就可以查看到程序发送Email的运行状态
+        session.setDebug(true);
+        // 2、通过session得到transport对象
+        Transport ts;
+        try &#123;
+            ts = session.getTransport();
+            // 3、使用邮箱的用户名和密码连上邮件服务器，发送邮件时，发件人需要提交邮箱的用户名和密码给smtp服务器，用户名和密码都通过验证之后才能够正常发送邮件给收件人。
+            ts.connect(mailBody.getMailServerHost(), mailBody.getFromAddress(), mailBody.getPassword());
+            // 4、创建邮件
+            Message message = createSimpleMail(session,mailBody,type);
+            // 5、发送邮件
+            ts.sendMessage(message, message.getAllRecipients());
+            ts.close();
+        &#125; catch (NoSuchProviderException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125; catch (MessagingException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125; catch (Exception e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+        return true;
+    &#125;
+
+
+/**
+     * 创建邮件发送对象及主体
+     * @param session 邮件回话
+     * @param mailBody 邮件主体
+     * @param type 发送内容类型，text或html
+     * @return
+     * @throws Exception
+     */
+    public static MimeMessage createSimpleMail(Session session,MailBody mailBody,String type) throws Exception &#123;
+        // 创建邮件对象
+        MimeMessage message = new MimeMessage(session);
+        // 指明邮件的发件人
+        message.setFrom(new InternetAddress(mailBody.getFromAddress()));
+        // 指明邮件的收件人，现在发件人和收件人是一样的，那就是自己给自己发
+        message.setRecipient(Message.RecipientType.TO, new InternetAddress(mailBody.getToAddress()));
+        // 邮件的标题
+        message.setSubject(mailBody.getSubject());
+        // 邮件的文本内容
+        if(type.equals(&quot;html&quot;)) &#123;
+            message.setContent(mailBody.getContent(), &quot;text/html;charset=UTF-8&quot;);
+        &#125;else if(type.equals(&quot;text&quot;)) &#123;
+            message.setText(mailBody.getContent());
+        &#125;
+        // 返回创建好的邮件对象
+        return message;
+    &#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mail/" rel="tag">mail</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Activiti/ArcGIS for Javascript搭建及HelloWorld" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/29/Activiti/ArcGIS%20for%20Javascript%E6%90%AD%E5%BB%BA%E5%8F%8AHelloWorld/"
+    >ArcGIS for Javascript搭建及HelloWorld</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/29/Activiti/ArcGIS%20for%20Javascript%E6%90%AD%E5%BB%BA%E5%8F%8AHelloWorld/" class="article-date">
+  <time datetime="2018-09-29T09:23:30.000Z" itemprop="datePublished">2018-09-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/arcgis/">arcgis</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="ArcGIS-for-Javascript搭建及HelloWorld"><a href="#ArcGIS-for-Javascript搭建及HelloWorld" class="headerlink" title="ArcGIS for Javascript搭建及HelloWorld"></a>ArcGIS for Javascript搭建及HelloWorld</h1><p>首先去官网下载ArcGIS for Javascript SDK,下载前必须要登录的。 <a target="_blank" rel="noopener" href="https://developers.arcgis.com/downloads/apis-and-sdks?product=javascript">下载地址</a>,下载3.x版本。因为3.x版本和4.x版本结构会不太一样。</p>
+<ol>
+<li>下载完成后解压，将此文件夹放入tomcat webapps下</li>
+</ol>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929170547.png?x-oss-process=style/600" alt=""></p>
+<ol start="2">
+<li>修改build，构建配置选项</li>
+</ol>
+<p>打开arcgis_js_api/library/3.26/下的install_api_windows.html文件，进行谷歌翻译,然后找到此处 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929170936.png?x-oss-process=style/600" alt=""> 然后进行修改，将arcgis_js_api/library/3.26/3.26/下的init.js进行修改，打开文本编辑器，搜索[HOSTNAME_AND_PATH_TO_JSAPI],并将其替换为localhost:8080/arcgis_js_api/library/3.26/3.26/dojo,注意前面的https改成http。 同样将arcgis_js_api/library/3.26/3.26/dojo/下的dojo.js进行修改，一样搜索[HOSTNAME_AND_PATH_TO_JSAPI]，并进行替换。 注意这两个路径一定要和此arcgis_js_api放在tomcat中的路径一致，否则404。</p>
+<h2 id="HelloWorld示例"><a href="#HelloWorld示例" class="headerlink" title="HelloWorld示例"></a>HelloWorld示例</h2><p>首先废话不多说，在webapps下创建一个文件夹test，并创建文件index.html,贴上示例代码</p>
+<pre><code>&lt;html&gt;
+&lt;head&gt;
+  &lt;meta charset=&quot;utf-8&quot; /&gt;
+  &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;IE=edge&quot;&gt;
+  &lt;title&gt;Page Title&lt;/title&gt;
+  &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/esri/css/esri.css&quot;&gt;
+  &lt;link rel=&quot;stylesheet&quot; href=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/dijit/themes/tundra/tundra.css&quot;&gt;
+  &lt;style&gt;
+    html, body, #mapDiv&#123;
+      padding: 0;
+      margin: 0;
+      height: 100%;
+      width: 100%;
+    &#125;
+  &lt;/style&gt;
+  &lt;script src=&quot;http://localhost:8080/arcgis_js_api/library/3.26/3.26/init.js&quot;&gt;&lt;/script&gt;
+  &lt;script&gt;
+    require([&quot;esri/map&quot;,&quot;dojo/domReady!&quot;],
+        function(Map)&#123;
+            var myMap = new Map(&quot;mapDiv&quot;,&#123;
+                basemap:&quot;topo&quot;
+            &#125;);
+        &#125;)
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body class=tundra&gt;
+  &lt;div id=&quot;mapDiv&quot;&gt;&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</code></pre><p>这个，你仍需要注意的时，就是你的script引用地址是否正确。 通过localhost:8080/test访问即可，或者不需要tomcat，直接任意创建html文件也可以。 如果打开后出现4个框或空白，则表示可能script引入错误，F12控制台查看一下。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180929172144.png?x-oss-process=style/600" alt=""></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/arcgis/" rel="tag">arcgis</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-帆软/帆软快速入门与报表设计" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -446,402 +704,6 @@ fos.close();</code></pre><p>该案例可能有问题，官方文档中，示例�
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%86%E8%BD%AF/" rel="tag">帆软</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%8A%A5%E8%A1%A8/" rel="tag">报表</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-中间件/quartz任务调度Triggers详解" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/quartz%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Triggers%E8%AF%A6%E8%A7%A3/"
-    >quartz任务调度Triggers详解</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/quartz%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Triggers%E8%AF%A6%E8%A7%A3/" class="article-date">
-  <time datetime="2018-09-26T07:57:15.000Z" itemprop="datePublished">2018-09-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Triggers简单介绍"><a href="#Triggers简单介绍" class="headerlink" title="Triggers简单介绍"></a>Triggers简单介绍</h2><p>Trigger是一个触发器，用于设置循环时间和执行时间等。其类型常用的有SimpleTrigger和CronTrigger。</p>
-<h3 id="Trigger的公共属性"><a href="#Trigger的公共属性" class="headerlink" title="Trigger的公共属性"></a>Trigger的公共属性</h3><ul>
-<li>TriggerKey：表示trigger的身份</li>
-<li>jobKey：当trigger触发时，执行job的身份</li>
-<li>startTime：设置trigger第一次触发的时间，改属性值为java.util.Date，表示某个指定的时间点</li>
-<li>endTime：表示trigger的失效的时间点</li>
-</ul>
-<h3 id="优先级"><a href="#优先级" class="headerlink" title="优先级"></a>优先级</h3><p>++如果你的trigger很多(或者Quartz线程池的工作线程太少)，Quartz可能没有足够的资源同时触发所有的trigger++；这种情况下，你可能希望控制哪些trigger优先使用Quartz的工作线程。<strong>设置withPriority属性</strong>，只有同时触发的trigger之间才会比较优先级。trigger的默认优先级时5，可以为任意整数、正数、负数。</p>
-<h3 id="错过触发"><a href="#错过触发" class="headerlink" title="错过触发"></a>错过触发</h3><p>trigger还有一个重要的属性misfire；如果scheduler关闭了，或者Quartz线程池中没有可用的线程来执行job，此时持久性的trigger就会错过(miss)其触发时间，即错过触发(misfire)。不同类型的trigger，有不同的misfire机制。它们默认都使用“智能机制(smart policy)”，即根据trigger的类型和配置动态调整行为。当scheduler启动的时候，<strong>查询所有错过触发(misfire)的持久性trigger</strong>。然后根据它们各自的misfire机制更新trigger的信息。</p>
-<h3 id="日历示例"><a href="#日历示例" class="headerlink" title="日历示例"></a>日历示例</h3><p>Quartz的Calendar对象(不是java.util.Calendar对象)可以在定义和存储trigger的时候与trigger进行关联。Calendar用于从trigger的调度计划中排除时间段。</p>
-<pre><code>HolidayCalendar cal = new HolidayCalendar();
-cal.addExcludedDate( someDate );
-cal.addExcludedDate( someOtherDate );
-
-sched.addCalendar(&quot;myHolidays&quot;, cal, false);</code></pre><h2 id="SimpleTrigger"><a href="#SimpleTrigger" class="headerlink" title="SimpleTrigger"></a>SimpleTrigger</h2><p>SimpleTrigger可以满足的调度需求是：在具体的时间点执行一次，或者在具体的时间点执行，并且以指定的间隔重复执行若干次。</p>
-<pre><code>Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-            JobDetail jobDetail = newJob(SimpleTriggerJobTest.class).withIdentity(&quot;job1&quot;, &quot;group1&quot;).build();
-            SimpleTrigger trigger = (SimpleTrigger) newTrigger().withIdentity(&quot;trigger1&quot;, &quot;group1&quot;)
-                    .startAt(new Date())//设置开始时间
-                    .withSchedule(simpleSchedule().withIntervalInSeconds(1).withRepeatCount(10)).build();//执行每一秒一次，共10次
-            scheduler.scheduleJob(jobDetail,trigger);
-            scheduler.start();
-
-            scheduler.shutdown();
-
-
- trigger = (SimpleTrigger) newTrigger() 
-        .withIdentity(&quot;trigger5&quot;, &quot;group1&quot;)
-        .startAt(futureDate(5, IntervalUnit.MINUTE)) // 5分钟之后触发
-        .build();
-
-
-trigger = newTrigger()
-        .withIdentity(&quot;trigger7&quot;, &quot;group1&quot;)
-        .withSchedule(simpleSchedule()
-        .withIntervalInMinutes(5)
-        .repeatForever())
-        .endAt(dateOf(22, 0, 0))//每5分钟触发，知道22点结束
-        .build();
-
-
-trigger = newTrigger()
-        .withIdentity(&quot;trigger8&quot;) 
-        .startAt(evenHourDate(null))
-        .withSchedule(simpleSchedule()
-        .withIntervalInHours(2)
-        .repeatForever())//下一个整点触发，每两小时触发，evenHourDate静态方法时DateBuilder类中的
-        .build();</code></pre><h3 id="Misfire策略"><a href="#Misfire策略" class="headerlink" title="Misfire策略"></a>Misfire策略</h3><p>在SimpleScheduleBuilder类中包含众多的misfire策略 <strong>MISFIRE_INSTRUCTION_SMART_POLICY:</strong>默认且是Trigger中定义,把处理逻辑交给Quartz去决定</p>
-<ol>
-<li>如果是只执行一次的调度，使用MISFIRE_INSTRUCTION_FIRE_NOW</li>
-<li>如果是无限次的调度(repeatCount是无限的)，使用MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT</li>
-<li>否则，使用MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT</li>
-</ol>
-<p><strong>MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY:</strong>Trigger中定义，这个不是忽略已经错失的触发的意思，而是说忽略MisFire策略。它会在资源合适的时候，重新触发所有的MisFire任务，并且不会影响现有的调度时间 <strong>MISFIRE_INSTRUCTION_FIRE_NOW:</strong>忽略已经MisFire的任务，并且立即执行调度。这通常只适用于只执行一次的任务。 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_EXISTING_COUNT:</strong>在下一次调度时间点，重新开始调度任务，包括的MisFire的 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT:</strong>在下一次调度时间点执行，但会忽略已经MisFire的任务。 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT:</strong>将startTime设置当前时间，立即重新调度任务，包括的MisFire的 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_REMAINING_REPEAT_COUNT:</strong>将startTime设置当前时间，立即重新调度任务，不包括的MisFire的 后5个策略都是SimpleTrigger类中的。</p>
-<h2 id="CronTrigger"><a href="#CronTrigger" class="headerlink" title="# CronTrigger"></a># CronTrigger</h2><p>基于日历概念，使用CronTrigger，您可以指定号时间表，例如“每周五中午”或“每个工作日和上午9:30”，甚至“每周一至周五上午9:00至10点之间每5分钟”和1月份的星期五“。</p>
-<h3 id="Cron-Expressions"><a href="#Cron-Expressions" class="headerlink" title="Cron Expressions"></a>Cron Expressions</h3><p>Cron Expressions是由七个子表达式组成的字符串，用于描述日程表的各个细节。</p>
-<p>顺序</p>
-<p>时间值</p>
-<p>允许值</p>
-<p>特殊值</p>
-<p>1</p>
-<p>Seconds秒</p>
-<p>0-59</p>
-<p>, - * /</p>
-<p>2</p>
-<p>Minutes分</p>
-<p>0-59</p>
-<p>, - * /</p>
-<p>3</p>
-<p>Hours小时</p>
-<p>0-23</p>
-<p>, - * /</p>
-<p>4</p>
-<p>Day-of-Month日期</p>
-<p>1-31</p>
-<p>, - * ? / L W C</p>
-<p>5</p>
-<p>Month月份</p>
-<p>1-12</p>
-<p>, - * /</p>
-<p>6</p>
-<p>Day-of-Week星期</p>
-<p>1-7</p>
-<p>, - * ? / L C #</p>
-<p>7</p>
-<p>Year年份(可选)</p>
-<p>, - * /</p>
-<p>例如:““0 0 12？* WED”表示每个星期三12点，按顺序，从左往右依次表示0秒，0分，12点，日期无特定值，月份所有(对应每个月份)，星期三。星期可以使用英文简写。 单个表达式支持范围和/或列表，如星期可以使用“MON-FRI”,“MON,WED,FRI”甚至“MON-WED,SAT”这些表示范围和列表。</p>
-<ul>
-<li><strong>星号(*):</strong>表示在当前时间域中，对应每个允许值，例如month处为*，表示每个月.</li>
-<li><strong>问号(?):</strong>允许的日期或星期字段，表示无特定值，就如上面的示例，日期就相当于一个占用，星期三12点，自然与日期挂不上太大关系。</li>
-<li><strong>减号(-):</strong>表示一个范围，如小时，10-12，月份2-6等等</li>
-<li><strong>逗号(,):</strong>表示一个列表，如小时 1,2,3，以及上面的星期等</li>
-<li><strong>斜杠(/):</strong>指定值的增量,如果在分钟输入“0/15”,则表示“从0开始，每隔15分钟”;“3/15”表示“从3开始，每隔15分钟”</li>
-<li><strong>L:</strong>用于日期和星期字段，表示Last的意思。如果在月中使用表示31日，而非闰年的28；如果用在星期中表示星期六等同于7。如果L出现星期字段里，且前面有一个数值X，表示“这个月的最后一个星期几”，如6L表示该月最后一个星期五。</li>
-<li><strong>W:</strong>出现在日期中，表示离该日期最近的工作日，如果15W表示离该月15号最近的工作日，如果15号是星期六，则匹配14号星期五；如果15号是星期二，那就是星期二。</li>
-<li><strong>井号(#):</strong>只在星期中使用。表示本月的“第几个星期几”,如“6#3”或“FRI#3”,表示本月的第三个星期五。</li>
-</ul>
-<p>示例:</p>
-<p>示例</p>
-<p>说明</p>
-<p>0 0/5 * * * ？</p>
-<p>每5分钟就会触发一次</p>
-<p>0 30 10-13？* WED，FRI</p>
-<p>每个星期三和星期五的10:30，11:30，12:30和13:30</p>
-<p>0 0/30 8-9 5,20 *？</p>
-<p>每个月5日和20日上午8点至10点之间每半小时触发一次</p>
-<p>0 15 10 L * ?</p>
-<p>每月最后一天10:15分运行。</p>
-<p>0 15 10 ? * 6L</p>
-<p>每月最后一个星期五10:15分运行。</p>
-<p>0 15 10 ? * 6#3</p>
-<p>每月第三个星期五的10:15分运行。</p>
-<p>0 15 10 ? * 6L 2007-2009</p>
-<p>在2007,2008,2009年每个月的最后一个星期五的10:15分运行。</p>
-<p>0 0/5 14,18 * * ?</p>
-<p>每天14点到15点每5分钟运行一次，此外每天18点到19点每5钟也运行一次。</p>
-<p>另外有些虽意思上不复杂，但书写复杂不易理解的，可以使用N个简单的触发器同时运行作业。</p>
-<h3 id="构建CronTriggers"><a href="#构建CronTriggers" class="headerlink" title="构建CronTriggers"></a>构建CronTriggers</h3><p>CronTrigger实例使用TriggerBuilder（用于触发器的主要属性）和CronScheduleBuilder（对于CronTrigger特定的属性）构建. 需要静态导入</p>
-<pre><code>import  static org.quartz.TriggerBuilder.*; 
-import  static org.quartz.CronScheduleBuilder.*; 
-import  static org.quartz.DateBuilder.*:
-
-
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(cronSchedule(&quot;0 0/2 8-17 * * ?&quot;))//每天8点到17点中，每个2分钟执行一次
-    .forJob(&quot;myJob&quot;, &quot;group1&quot;)
-    .build();
-
-
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(dailyAtHourAndMinute(10, 42))//每天10点42触发
-    .forJob(myJobKey)
-    .build();
-或
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(cronSchedule(&quot;0 42 10 * * ?&quot;))
-    .forJob(myJobKey)
-    .build();
-
-
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(weeklyOnDayAndHourAndMinute(DateBuilder.WEDNESDAY, 10, 42))
-    .forJob(myJobKey)
-    .inTimeZone(TimeZone.getTimeZone(&quot;America/Los_Angeles&quot;))
-    .build();//每周三10点42分执行</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/quartz/" rel="tag">quartz</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" rel="tag">任务调度</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-中间件/任务调度Quartz的简单使用以及JobDataMap的数据" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Quartz%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E4%BB%A5%E5%8F%8AJobDataMap%E7%9A%84%E6%95%B0%E6%8D%AE/"
-    >任务调度Quartz的简单使用以及JobDataMap的数据</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/26/%E4%B8%AD%E9%97%B4%E4%BB%B6/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6Quartz%E7%9A%84%E7%AE%80%E5%8D%95%E4%BD%BF%E7%94%A8%E4%BB%A5%E5%8F%8AJobDataMap%E7%9A%84%E6%95%B0%E6%8D%AE/" class="article-date">
-  <time datetime="2018-09-26T06:08:14.000Z" itemprop="datePublished">2018-09-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="quartz任务调度框架"><a href="#quartz任务调度框架" class="headerlink" title="quartz任务调度框架"></a>quartz任务调度框架</h1><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><ol>
-<li>Quartz 是一个完全由 Java 编写的开源作业调度框架，为在 Java 应用程序中进行作业调度提供了简单却强大的机制。</li>
-<li>Quartz 可以与J2EE与 J2SE 应用程序相结合也可以单独使用。</li>
-<li>Quartz 允许程序开发人员根据时间的间隔来调度作业。</li>
-<li>Quartz 实现了作业和触发器的多对多的关系，还能把多个作业与不同的触发器关联。</li>
-</ol>
-<h2 id="核心概念"><a href="#核心概念" class="headerlink" title="核心概念"></a>核心概念</h2><ol>
-<li><p>Job:Job表示一个工作，要执行的具体内容，该接口只有一个方法</p>
-<p>void execute(JobExecutionContext context)</p>
-</li>
-<li><p>JobDetail:表示一个具体可执行的调度程序，Job是这个可执行调度程序所需要执行的内容，另外JobDetail还包括任务调度的方案和策略</p>
-</li>
-<li><p>Trigger代表一个调度参数的配置，什么时候去调度，多长时间。</p>
-</li>
-<li><p>Scheduler代表一个调度容器，一个容器中可以注册多个JobDetail和Trigger，当JobDetail与Trigger组合，就可以被Scheduler容器调度了。</p>
-</li>
-</ol>
-<h2 id="运行环境"><a href="#运行环境" class="headerlink" title="运行环境"></a>运行环境</h2><ol>
-<li>Quartz 可以运行嵌入在另一个独立式应用程序。</li>
-<li>Quartz 可以在应用程序服务器(或 servlet 容器)内被实例化，并且参与 XA 事务。</li>
-<li>Quartz 可以作为一个独立的程序运行(其自己的 Java 虚拟机内)，可以通过 RMI 使用</li>
-<li>Quartz 可以被实例化，作为独立的项目集群(负载平衡和故障转移功能)，用于作业的执行</li>
-</ol>
-<h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="配置maven和properties"><a href="#配置maven和properties" class="headerlink" title="配置maven和properties"></a>配置maven和properties</h3><p>maven:</p>
-<pre><code>&lt;dependency&gt;
-  &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-  &lt;artifactId&gt;quartz&lt;/artifactId&gt;
-  &lt;version&gt;2.3.0&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-  &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-  &lt;artifactId&gt;quartz-jobs&lt;/artifactId&gt;
-  &lt;version&gt;2.3.0&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>properties: 以quartz为文件名的properties文件是quartz的配置文件</p>
-<pre><code># 此调度程序的名称将为“MyScheduler”
-org.quartz.scheduler.instanceName = MyScheduler
-# 线程池中有3个线程，这意味着最多可以同时运行3个job。
-org.quartz.threadPool.threadCount = 3
-# quartz的所有数据，包括job和trigger的配置，都会存储在内存中（而不是数据库里）
-org.quartz.jobStore.class = org.quartz.simpl.RAMJobStore</code></pre><h3 id="案例"><a href="#案例" class="headerlink" title="案例"></a>案例</h3><p>QuartzTest.java文件如下：</p>
-<pre><code>import static org.quartz.DateBuilder.*;
-import static org.quartz.JobBuilder.*;
-import static org.quartz.SimpleScheduleBuilder.*;
-import static org.quartz.TriggerBuilder.*;
-
-public static void main(String[] args) &#123;
-    try &#123;
-        Scheduler scheduler = StdSchedulerFactory.getDefaultScheduler();
-        scheduler.start();
-
-        JobDetail job = newJob(HelloJob.class).withIdentity(&quot;job1&quot;,&quot;group1&quot;).build();
-        Trigger trigger = newTrigger().withIdentity(&quot;trigger1&quot;, &quot;group1&quot;).startNow().
-                withSchedule(simpleSchedule().withIntervalInSeconds(2).repeatForever()).build();
-        scheduler.scheduleJob(job, trigger);
-        Thread.sleep(10000);
-        scheduler.shutdown();
-    &#125; catch (SchedulerException e) &#123;
-        e.printStackTrace();
-    &#125; catch (InterruptedException e) &#123;
-        e.printStackTrace();
-    &#125;
-&#125;</code></pre><p>注意其导入的静态方法，导入了Builder类的所有静态方法。 HelloJob.java文件如下</p>
-<pre><code>public class HelloJob implements Job &#123;
-    @Override
-  public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException &#123;
-        System.out.println(&quot;--------This is Job&quot;);
-    &#125;
-&#125;</code></pre><h2 id="Quartz-API"><a href="#Quartz-API" class="headerlink" title="Quartz API"></a>Quartz API</h2><p>关键接口</p>
-<ul>
-<li>Scheduler:与调度程序交互的主要API</li>
-<li>Job:由调度组件执行的组件实现的接口</li>
-<li>JobDetail:用于定义作业的实例</li>
-<li>Trigger:定义执行给定作业的计划的组件</li>
-<li>JobBuilder:构建JobDetail实例</li>
-<li>TriggerBuilder:构建Trigger实例</li>
-</ul>
-<h2 id="JobDetail的JobDataMap与JobExecutionContext类"><a href="#JobDetail的JobDataMap与JobExecutionContext类" class="headerlink" title="JobDetail的JobDataMap与JobExecutionContext类"></a>JobDetail的JobDataMap与JobExecutionContext类</h2><p><strong>问题描述?</strong> 我们每次传给scheduler一个JobDetail实例，都会将要执行Job类名传递给JobDetail，scheduler就知道要执行何种类型的job，每当scheduler执行job时，在调用execute方法之前会创建该类的新实例，执行完毕后对该实例的引用被丢弃，实例会垃圾回收。 <strong>结果:</strong> 这样的后果是，job必须有一个无参的构造函数(别说你没有定义，其实是默认的构造)；另一个后果是在job类中，不应该定义有状态的数据属性，因为在job的多次执行中，这些属性的值不会保留。 <strong>解决</strong> 那么如果给Job添加实例属性，需要用到JobDetail类的属性JobDataMap对象,这个对象封装了对数据的存储，且间接实现Map接口。只需要使用usingJobData方法即可调用对象设置属性值。</p>
-<pre><code>JobDetail job = newJob(DumbJob.class)
-      .withIdentity(&quot;myJob&quot;, &quot;group1&quot;) // name &quot;myJob&quot;, group &quot;group1&quot;
-      .usingJobData(&quot;jobSays&quot;, &quot;Hello World!&quot;)
-      .usingJobData(&quot;myFloatValue&quot;, 3.141f)
-      .build();</code></pre><p>那么提取数据就可以通过execute方法中JobExecutionContext参数获得JobDetail实例，再获得JobDataMap对象即可获得值。 <strong>另一种方法</strong> JobExecutionContext类也可以获得JobDataMap对象，此类是JobDetail中的JobDataMap和Trigger中的JobDataMap的并集，但是如果存在相同的数据，则后者会覆盖前者的值。</p>
-<pre><code>public void execute(JobExecutionContext context)throws JobExecutionException&#123;
-    JobKey key = context.getJobDetail().getKey();
-
-    JobDataMap dataMap = context.getMergedJobDataMap();  // Note the difference from the previous example
-
-    String jobSays = dataMap.getString(&quot;jobSays&quot;);
-    float myFloatValue = dataMap.getFloat(&quot;myFloatValue&quot;);
-    ArrayList state = (ArrayList)dataMap.get(&quot;myStateData&quot;);
-    state.add(new Date());
-
-    System.err.println(&quot;Instance &quot; + key + &quot; of DumbJob says: &quot; + jobSays + &quot;, and val is: &quot; + myFloatValue);
-&#125;</code></pre><p>当然还可以通过为属性定义set方法，实现自动注入。Quartz的默认JobFactory实现在job被实例化的时候会自动调用这些set方法，这样你就不需要在execute()方法中显式地从map中取数据了。不需要获得JobDataMap，直接打印属性。</p>
-<pre><code>public class HelloJob implements Job &#123;
-    String name;
-    public void setName(String name) &#123;
-        this.name = name;
-    &#125;
-    @Override
-    public void execute(JobExecutionContext jobExecutionContext) throws JobExecutionException &#123;
-        /*JobDataMap jobDataMap = jobExecutionContext.getJobDetail().getJobDataMap();
-        String name = jobDataMap.getString(&quot;name&quot;);*/
-        //JobDataMap jobDataMap = jobExecutionContext.getMergedJobDataMap();
-        System.out.println(&quot;--------This is Job name:&quot; + name);
-    &#125;
-&#125;</code></pre><h3 id="Job状态与并发"><a href="#Job状态与并发" class="headerlink" title="Job状态与并发"></a>Job状态与并发</h3><p><strong>@DisallowConcurrentExecution</strong>:将该注解加到job类上，告诉Quartz不要并发地执行同一个job定义（这里指特定的job类）的多个实例 <strong>@PersistJobDataAfterExecution</strong>：将该注解加在job类上，告诉Quartz在成功执行了job类的execute方法后（没有发生任何异常），更新JobDetail中JobDataMap的数据，使得该job（即JobDetail）在下一次执行的时候，JobDataMap中是更新后的数据，而不是更新前的旧数据 如果使用了@PersistJobDataAfterExecution建议也加上@DisallowConcurrentExecution，因为当同一个job（JobDetail）的两个实例被并发执行时，由于竞争，JobDataMap中存储的数据很可能是不确定的。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/quartz/" rel="tag">quartz</a></li></ul>
 
 
     </footer>

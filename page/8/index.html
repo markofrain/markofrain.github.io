@@ -78,6 +78,182 @@
     
     
     
+    <article id="post-Redis/Redis缓存过期监听事件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/21/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%9B%91%E5%90%AC%E4%BA%8B%E4%BB%B6/"
+    >Java监听Redis缓存过期事件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/21/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%9B%91%E5%90%AC%E4%BA%8B%E4%BB%B6/" class="article-date">
+  <time datetime="2021-03-21T04:00:00.000Z" itemprop="datePublished">2021-03-21</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Redis/">Redis</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p><strong>使用缓存过期监听事件并不能真实意义上的TTL为0时触发过期，只是理论上的。</strong>这意味着只能将过期事件使用在，并不需要严格的业务逻辑掺杂的键上。</p>
+<p><strong>Timing of expired events</strong></p>
+<p>Keys with a time to live associated are expired by Redis in two ways:</p>
+<ul>
+<li>When the key is accessed by a command and is found to be expired.</li>
+<li>Via a background system that looks for expired keys in the background, incrementally, in order to be able to also collect keys that are never accessed.</li>
+</ul>
+<p>The <code>expired</code> events are generated when a key is accessed and is found to be expired by one of the above systems, as a result there are no guarantees that the Redis server will be able to generate the <code>expired</code> event at the time the key time to live reaches the value of zero.</p>
+<p>If no command targets the key constantly, and there are many keys with a TTL associated, there can be a significant delay between the time the key time to live drops to zero, and the time the <code>expired</code> event is generated.</p>
+<p>Basically <code>expired</code> events <strong>are generated when the Redis server deletes the key</strong> and not when the time to live theoretically reaches the value of zero.</p>
+<p><strong>Events in a cluster</strong></p>
+<p>Every node of a Redis cluster generates events about its own subset of the keyspace as described above. However, unlike regular Pub/Sub communication in a cluster, events’ notifications <strong>are not</strong> broadcasted to all nodes. Put differently, keyspace events are node-specific. This means that to receive all keyspace events of a cluster, clients need to subscribe to each of the nodes.</p>
+<p>过期:<a target="_blank" rel="noopener" href="https://redis.io/commands/expire">https://redis.io/commands/expire</a></p>
+<p>空间通知:<a target="_blank" rel="noopener" href="https://redis.io/topics/notifications">https://redis.io/topics/notifications</a></p>
+<p>文档论述到检验过期为，命令访问时，检查缓存是否过期(被动)，或通过服务端逐步查找(主动)。</p>
+<h3 id="Redis-Server设置"><a href="#Redis-Server设置" class="headerlink" title="Redis-Server设置"></a>Redis-Server设置</h3><p>在设置缓存时，会同市设置TTL缓存过期时间，当缓存过期后希望在程序中触发监听程序来获得到这个缓存。</p>
+<p>我们可以通过redis的缓存过期策略来操作，但是只能监听到redis缓存的key，而获取不到value。</p>
+<p>我们可以在redis.conf配置文件中找到<code>notify-keyspace-events</code>配置项，为其设置值为<code>Ex</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">notify-keyspace-events Ex</span><br></pre></td></tr></table></figure>
+
+<p>他的默认值是 <code>&quot;&quot;</code>，只是一个空字符串，什么都没设。</p>
+<p>对于可设置值的介绍在配置项上边的注释中可以看到。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"># K    键空间通知，以__keyspace@&lt;db&gt;__为前缀</span><br><span class="line"># E    键事件通知，以__keysevent@&lt;db&gt;__为前缀</span><br><span class="line"># g    del , expipre , rename 等类型无关的通用命令的通知, ...</span><br><span class="line"># $    String命令</span><br><span class="line"># l    List命令</span><br><span class="line"># s    Set命令</span><br><span class="line"># h    Hash命令</span><br><span class="line"># z    有序集合命令</span><br><span class="line"># x    过期事件（每次key过期时生成）</span><br><span class="line"># e    驱逐事件（当key在内存满了被清除时生成）</span><br><span class="line"># A    g$lshzxe的别名，因此”AKE”意味着所有的事件</span><br></pre></td></tr></table></figure>
+
+<p>修改完后进行重启服务</p>
+<h3 id="Java代码设置监听"><a href="#Java代码设置监听" class="headerlink" title="Java代码设置监听"></a>Java代码设置监听</h3><h4 id="继承KeyExpirationEventMessageListener类"><a href="#继承KeyExpirationEventMessageListener类" class="headerlink" title="继承KeyExpirationEventMessageListener类"></a>继承KeyExpirationEventMessageListener类</h4><p>在doRegister方法中添加的监听名称为<code>__keyevent@&lt;db&gt;__:expired</code>的这种格式，这个<code>db</code>表示Redis的第几个数据库</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* redis缓存过期事件监听</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> chen</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2021/3/10</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyKeyExpirationEventMessageListener</span> <span class="keyword">extends</span> <span class="title">KeyExpirationEventMessageListener</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Creates new &#123;<span class="doctag">@link</span> MessageListener&#125; for &#123;<span class="doctag">@code</span> __keyevent@*__:expired&#125; messages.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> listenerContainer must not be &#123;<span class="doctag">@literal</span> null&#125;.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyKeyExpirationEventMessageListener</span><span class="params">(RedisMessageListenerContainer listenerContainer)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(listenerContainer);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doRegister</span><span class="params">(RedisMessageListenerContainer listenerContainer,String dbName)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> Topic kEY_EVENT_EXPIRED_TOPIC = <span class="keyword">new</span> PatternTopic(<span class="string">&quot;__keyevent@&quot;</span>+ dbName +<span class="string">&quot;__:expired&quot;</span>);</span><br><span class="line"></span><br><span class="line">        listenerContainer.addMessageListener(<span class="keyword">this</span>, kEY_EVENT_EXPIRED_TOPIC);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="注入RedisMessageListenerContainer"><a href="#注入RedisMessageListenerContainer" class="headerlink" title="注入RedisMessageListenerContainer"></a>注入RedisMessageListenerContainer</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* redis消息监听容器bean</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> lettuceConnectionFactory</span></span><br><span class="line"><span class="comment">* <span class="doctag">@param</span> context</span></span><br><span class="line"><span class="comment">* <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> RedisMessageListenerContainer <span class="title">container</span><span class="params">(LettuceConnectionFactory lettuceConnectionFactory, ApplicationContext context)</span> </span>&#123;</span><br><span class="line">    RedisMessageListenerContainer container = <span class="keyword">new</span> RedisMessageListenerContainer();</span><br><span class="line">    container.setConnectionFactory(lettuceConnectionFactory);</span><br><span class="line">    MyKeyExpirationEventMessageListener listener = <span class="keyword">new</span> MyKeyExpirationEventMessageListener(container);</span><br><span class="line">    listener.doRegister(container,dbNum);</span><br><span class="line">    listener.setApplicationEventPublisher(context);</span><br><span class="line">    <span class="keyword">return</span> container;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用注解来监听"><a href="#使用注解来监听" class="headerlink" title="使用注解来监听"></a>使用注解来监听</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EventListener(classes = RedisKeyExpiredEvent.class)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listenerUploadFile</span><span class="params">(RedisKeyExpiredEvent event)</span> </span>&#123;</span><br><span class="line">    String id = <span class="keyword">new</span> String(event.getId());</span><br><span class="line">    String source = <span class="keyword">new</span> String(event.getSource());</span><br><span class="line">    String keyspace = event.getKeyspace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Redis/Redis安装" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/"
+    >Redis安装</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/" class="article-date">
+  <time datetime="2021-03-21T04:00:00.000Z" itemprop="datePublished">2021-03-21</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Redis/">Redis</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="centos-mini下安装redis"><a href="#centos-mini下安装redis" class="headerlink" title="centos mini下安装redis"></a>centos mini下安装redis</h3><p>由于mini安装缺少各种依赖，因此需要新下载依赖。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">sudo yum -y install gcc gcc-c++ libstdc++-devel</span><br><span class="line">sudo yum install centos-release-scl</span><br><span class="line">sudo yum install devtoolset-7-gcc*</span><br><span class="line">scl enable devtoolset-7 bash</span><br><span class="line"></span><br><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;releases&#x2F;redis-6.0.6.tar.gz</span><br><span class="line">tar xzf redis-6.0.6.tar.gz</span><br><span class="line">cd redis-6.0.6</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+
+<p>gui安装可能全部包含，直接下载编译，出现问题可在网上搜索报错信息。</p>
+<h3 id="window安装3-0-503"><a href="#window安装3-0-503" class="headerlink" title="window安装3.0.503"></a>window安装3.0.503</h3><p>github地址:<a target="_blank" rel="noopener" href="https://github.com/ServiceStack/redis-windows">https://github.com/ServiceStack/redis-windows</a></p>
+<p>下载地址:<a target="_blank" rel="noopener" href="https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip">https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip</a></p>
+<p>版本太老，仅用于缓存的存储使用。其它高级功能需要更高版本的。</p>
+<h3 id="RedisDesktopMange-windows-gui界面版redis"><a href="#RedisDesktopMange-windows-gui界面版redis" class="headerlink" title="RedisDesktopMange-windows gui界面版redis"></a>RedisDesktopMange-windows gui界面版redis</h3><p>下载地址:<a target="_blank" rel="noopener" href="https://github.com/lework/RedisDesktopManager-Windows/releases">https://github.com/lework/RedisDesktopManager-Windows/releases</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Redis/redisTemplate-java工具类" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -341,170 +517,6 @@
 <p>defaultValue为无法获得值时的默认值</p>
 <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--官方配置 start--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--保留官方配置，方便使用官方配置的特性,参考:spring-boot-2.1.0.RELEASE.jar!\org\springframework\boot\logging\logback\base.xml--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">resource</span>=<span class="string">&quot;org/springframework/boot/logging/logback/defaults.xml&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;LOG_FILE&quot;</span> <span class="attr">value</span>=<span class="string">&quot;$&#123;LOG_FILE:-$&#123;LOG_PATH:-$&#123;LOG_TEMP:-$&#123;java.io.tmpdir:-/tmp&#125;&#125;&#125;/spring.log&#125;&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">resource</span>=<span class="string">&quot;org/springframework/boot/logging/logback/console-appender.xml&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">resource</span>=<span class="string">&quot;org/springframework/boot/logging/logback/file-appender.xml&quot;</span> /&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--全局输出--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">root</span> <span class="attr">level</span>=<span class="string">&quot;warn&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;CONSOLE&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;FILE&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--官方配置 end--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--从spring配置文件中获取属性--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--&lt;springProperty scope=&quot;context&quot; name=&quot;abc&quot; default=&quot;kjgh&quot; source=&quot;abc&quot;/&gt;--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--######自定义配置  start########--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--########################kjgh包所有内容日志输出配置#################################--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 自定义配置__单独输出到一个日志文件中 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">appender</span> <span class="attr">name</span>=<span class="string">&quot;kjgh&quot;</span> <span class="attr">class</span>=<span class="string">&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">encoder</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>$&#123;FILE_LOG_PATTERN&#125;<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">encoder</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">file</span>&gt;</span>$&#123;LOG_FILE&#125;_kjgh.log<span class="tag">&lt;/<span class="name">file</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">rollingPolicy</span> <span class="attr">class</span>=<span class="string">&quot;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">fileNamePattern</span>&gt;</span>$&#123;LOG_FILE&#125;_kjgh.%d&#123;yyyy-MM-dd&#125;.%i.gz<span class="tag">&lt;/<span class="name">fileNamePattern</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">maxFileSize</span>&gt;</span>$&#123;LOG_FILE_MAX_SIZE:-10MB&#125;<span class="tag">&lt;/<span class="name">maxFileSize</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">maxHistory</span>&gt;</span>$&#123;LOG_FILE_MAX_HISTORY:-0&#125;<span class="tag">&lt;/<span class="name">maxHistory</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">rollingPolicy</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">appender</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--指定包或者类的日志配置（这里是局部配置，它能覆盖全局配置）--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 自定义配置__配置业务日志输出至单独的日志文件中 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">logger</span> <span class="attr">name</span>=<span class="string">&quot;com.jeeplus.modules.kjgh&quot;</span> <span class="attr">additivity</span>=<span class="string">&quot;false&quot;</span> <span class="attr">level</span>=<span class="string">&quot;debug&quot;</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 引用自定义的appender --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;kjgh&quot;</span>/&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 这里也引用控制台appender，才能在控制台中看到我们的日志 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;CONSOLE&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">logger</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--########################kjgh包所有内容日志输出配置#################################--&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--名称为other的业务配置--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--&lt;appender name=&quot;other&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;</span></span><br><span class="line"><span class="comment">        &lt;encoder&gt;</span></span><br><span class="line"><span class="comment">            &lt;pattern&gt;$&#123;FILE_LOG_PATTERN&#125;&lt;/pattern&gt;</span></span><br><span class="line"><span class="comment">        &lt;/encoder&gt;</span></span><br><span class="line"><span class="comment">        &lt;file&gt;$&#123;LOG_FILE&#125;_other.log&lt;/file&gt;</span></span><br><span class="line"><span class="comment">        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&quot;&gt;</span></span><br><span class="line"><span class="comment">            &lt;fileNamePattern&gt;$&#123;LOG_FILE&#125;_other.%d&#123;yyyy-MM-dd&#125;.%i.gz&lt;/fileNamePattern&gt;</span></span><br><span class="line"><span class="comment">            &lt;maxFileSize&gt;$&#123;LOG_FILE_MAX_SIZE:-10MB&#125;&lt;/maxFileSize&gt;</span></span><br><span class="line"><span class="comment">            &lt;maxHistory&gt;$&#123;LOG_FILE_MAX_HISTORY:-0&#125;&lt;/maxHistory&gt;</span></span><br><span class="line"><span class="comment">        &lt;/rollingPolicy&gt;</span></span><br><span class="line"><span class="comment">    &lt;/appender&gt;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    &lt;logger name=&quot;com.cgq.logback.other&quot; additivity=&quot;false&quot; level=&quot;debug&quot;&gt;</span></span><br><span class="line"><span class="comment">        &amp;lt;!&amp;ndash; 引用自定义的appender &amp;ndash;&amp;gt;</span></span><br><span class="line"><span class="comment">        &lt;appender-ref ref=&quot;other&quot;/&gt;</span></span><br><span class="line"><span class="comment">        &amp;lt;!&amp;ndash; 这里也引用控制台appender，才能在控制台中看到我们的日志 &amp;ndash;&amp;gt;</span></span><br><span class="line"><span class="comment">        &lt;appender-ref ref=&quot;CONSOLE&quot;/&gt;</span></span><br><span class="line"><span class="comment">    &lt;/logger&gt;--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--######自定义配置  end########--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-fultter/安装" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/14/fultter/%E5%AE%89%E8%A3%85/"
-    >filtter安装使用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/14/fultter/%E5%AE%89%E8%A3%85/" class="article-date">
-  <time datetime="2021-03-14T04:00:00.000Z" itemprop="datePublished">2021-03-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/flutter/">flutter</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h2><p><code>Navigator</code>是一个路由管理的组件，它提供了打开和退出路由页方法。<code>Navigator</code>通过一个栈来管理活动路由集合。通常当前屏幕显示的页面就是栈顶的路由。<code>Navigator</code>提供了一系列方法来管理路由栈。</p>
-<p><code>Navigator</code>提供了一系列方法来管理路由栈，在此我们只介绍其最常用的两个方法：</p>
-<ul>
-<li><p>Future push(BuildContext context, Route route)</p>
-<p>将给定的路由入栈(即打开新的页面)，返回一个<code>Future</code>对象，用以接收新路由出栈(即关闭)时返回的数据</p>
-</li>
-<li><p>bool pop(BuildContext context, [ result ])</p>
-<p>将栈顶路由出栈，result为页面关闭时返回给上一个页面的数据</p>
-</li>
-</ul>
-<p><code>Navigator</code> 还有很多其它方法，如<code>Navigator.replace</code>、<code>Navigator.popUntil</code>等。</p>
-<h3 id="命名路由"><a href="#命名路由" class="headerlink" title="命名路由"></a>命名路由</h3><p>路由配置，在MaterialApp添加属性routes，通过路由名和Widget对象，routes是一个map类型</p>
-<p>在使用路由的时候通过<code>Navigator.pushNamed(context, &quot;new_page&quot;);</code>push到新的路由界面</p>
-<h4 id="命名路由传参"><a href="#命名路由传参" class="headerlink" title="命名路由传参"></a>命名路由传参</h4><p><code>Navigator.pushNamed</code>的第三个参数是一个object类型的值，可传递参数</p>
-<h4 id="路由生成钩子"><a href="#路由生成钩子" class="headerlink" title="路由生成钩子"></a>路由生成钩子</h4><p><code>MaterialApp</code>有一个<code>onGenerateRoute</code>属性，它在打开命名路由时可能会被调用。</p>
-<p>当调用<code>Navigator.pushNamed(...)</code>打开命名路由时，如果指定的路由名在路由表中已注册，则会调用路由表中的<code>builder</code>函数来生成路由组件；如果路由表中没有注册，才会调用<code>onGenerateRoute</code>来生成路由。</p>
-<p><code>Route&lt;dynamic&gt; Function(RouteSettings settings)</code></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">onGenerateRoute:(RouteSettings settings)&#123;</span><br><span class="line"> return MaterialPageRoute(builder: (context)&#123;</span><br><span class="line">   String routeName &#x3D; settings.name;</span><br><span class="line">     &#x2F;&#x2F; 如果访问的路由页需要登录，但当前未登录，则直接返回登录页路由，</span><br><span class="line">     &#x2F;&#x2F; 引导用户登录；其它情况则正常打开路由。</span><br><span class="line">   &#125;</span><br><span class="line"> );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>在执行fultter doctor后，出现需要执行添加android-license时，说命令不正确，找不到命令，则需要再android studio处安装commandtool</p>
-<p><img src="QQ%E6%88%AA%E5%9B%BE20210314152543.png" alt=""></p>
-<p>然后再执行<code>flutter doctor --android-licenses</code></p>
-<p>这个licenses一定要执行通过的，否则AVD Manger添加的虚拟设备，在执行android studio 的fultter demo的时候不会将包安装到虚拟设备中</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Linux/windows与deepin双系统" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/06/Linux/windows%E4%B8%8Edeepin%E5%8F%8C%E7%B3%BB%E7%BB%9F/"
-    >windows与deepin双系统</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/06/Linux/windows%E4%B8%8Edeepin%E5%8F%8C%E7%B3%BB%E7%BB%9F/" class="article-date">
-  <time datetime="2021-03-06T04:00:00.000Z" itemprop="datePublished">2021-03-06</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>deepin安装失败问题？<br>说磁盘为MBR，最大支持2T，最多4个分区，最后怎么设置大小都无法安装上。</p>
-<p>window双系统安装<br>先安装windows系统，默认是UEFI引导安装，将机械硬盘整个格式化，并修改为GPT格式。<br>安装Deepin，选择手动安装，首先添加挂载/分区,然后按提示添加efi分区、swap分区</p>
-<p><a target="_blank" rel="noopener" href="https://jingyan.baidu.com/article/ea24bc394ac30c9a63b33175.html">https://jingyan.baidu.com/article/ea24bc394ac30c9a63b33175.html</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_36059638/article/details/112162511">https://blog.csdn.net/weixin_36059638/article/details/112162511</a></p>
 
       
       <!-- reward -->

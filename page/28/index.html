@@ -78,6 +78,167 @@
     
     
     
+    <article id="post-SpringBoot/Springboot文件上传过大无法被全局异常捕获" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/08/03/SpringBoot/Springboot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E8%BF%87%E5%A4%A7%E6%97%A0%E6%B3%95%E8%A2%AB%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/"
+    >Springboot文件上传过大无法被全局异常捕获</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/08/03/SpringBoot/Springboot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E8%BF%87%E5%A4%A7%E6%97%A0%E6%B3%95%E8%A2%AB%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/" class="article-date">
+  <time datetime="2019-08-03T13:03:00.000Z" itemprop="datePublished">2019-08-03</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>Springboot配置文件上传，设置上传文件最大值，当上传文件过大时，没有进入到controller，且直接抛出异常。在配置_ControllerAdvice_异常捕获类依然无法被捕获到。</p>
+<p>具体可以有效解决的方式有两三种。其中可以设置tomcat的一个配置就可以完成。</p>
+<p>你只需要配置server.tomcat.max-swallow-size的值即可。有效的让异常处理类捕获到异常。</p>
+<p>该配置按照某博客的介绍，从google中获得的内嵌tomcat吞吐量,默认值为2MB,如果当文件上传大小这个值那么就会在controller之前抛出异常。而如果这个值设置大于上传最大值的话，那么就可以被异常捕获到。也可以设置成-1不被限制。因此只要将其值调整到较大，就可以捕获文件过大抛出的异常。更详细的可以去这里<a target="_blank" rel="noopener" href="https://weiku.co/article/198/">https://weiku.co/article/198</a>看看描述。</p>
+<p>还有一种解决方式是禁用默认的上传,<code>spring.servlet.multipart.enable</code>。使用common-upload方式上传。添加依赖，然后进行相关配置。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Spring/Axis2中不支持1.8新特性" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/"
+    >Axis2中不支持1.8新特性</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/" class="article-date">
+  <time datetime="2019-07-31T09:16:35.000Z" itemprop="datePublished">2019-07-31</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>在Axis2中不能使用包括lambda表达式stream流等相关代码，否则在发布wsdl服务时会报错。</p>
+<pre><code>Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:441) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.ServiceGroupBuilder.populateServiceGroup(ServiceGroupBuilder.java:101) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 31 common frames omitted
+Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:404) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 32 common frames omitted
+Caused by: java.lang.IllegalStateException: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.description.java2wsdl.bytecode.ClassReader.readCpool(ClassReader.java:354) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:78) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:57) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ChainedParamReader.&lt;init&gt;(ChainedParamReader.java:52) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.MethodTable.&lt;init&gt;(MethodTable.java:31) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.DefaultSchemaGenerator.&lt;init&gt;(DefaultSchemaGenerator.java:177) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.util.Utils.fillAxisService(Utils.java:439) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:396) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 32 common frames omitted</code></pre><p>这是使用spring配置axis2的时候，若发布服务的类中有新特性就会出现问题，但是你可以把新特性放在其它类中，那么axis2就不会出现问题。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/axis2/" rel="tag">axis2</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-MyBatis/Mybatis对存储过程的调用" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -494,322 +655,6 @@ public class SecondaryConfig &#123;
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle数据库字符集更改" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/04/09/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%97%E7%AC%A6%E9%9B%86%E6%9B%B4%E6%94%B9/"
-    >Oracle数据库字符集更改</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/04/09/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%97%E7%AC%A6%E9%9B%86%E6%9B%B4%E6%94%B9/" class="article-date">
-  <time datetime="2019-04-09T07:42:00.000Z" itemprop="datePublished">2019-04-09</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Oracle数据库字符集更改"><a href="#Oracle数据库字符集更改" class="headerlink" title="Oracle数据库字符集更改"></a>Oracle数据库字符集更改</h2><ol>
-<li><p>sqlplus登录，输入用户名密码</p>
-</li>
-<li><p>查看NLS参数</p>
-</li>
-</ol>
-<pre><code>select * from V$NLS_PARAMETERS</code></pre><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/04/20190409153659.png" alt=""> 我们需要改的是，将NLS_CHARACTERSET的值为AL32UTF8设置为ZHS16GBK.</p>
-<ol start="3">
-<li><p>sqlplus登录后，依次执行以下命令</p>
-<p>shutdown immediate;</p>
-<p>startup mount</p>
-<p>ALTER SYSTEM ENABLE RESTRICTEDSESSION;<br>ALTER SYSTEM SETJOB_QUEUE_PROCESSES=0;<br>ALTER SYSTEM SETAQ_TM_PROCESSES=0;</p>
-<p>alter database open;</p>
-<p>ALTER DATABASE character set INTERNAL_USE ZHS16GBK;</p>
-<p>select * from v$nls_parameters;</p>
-<p>shutdown immediate;</p>
-<p>startup</p>
-</li>
-</ol>
-<p>依次步骤即可。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringBoot多模块无法扫描到问题及Spring Data JPA多数据源配置" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/04/07/SpringBoot/SpringBoot%E5%A4%9A%E6%A8%A1%E5%9D%97%E6%97%A0%E6%B3%95%E6%89%AB%E6%8F%8F%E5%88%B0%E9%97%AE%E9%A2%98%E5%8F%8ASpring%20Data%20JPA%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/"
-    >SpringBoot多模块无法扫描到问题及Spring Data JPA多数据源配置</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/04/07/SpringBoot/SpringBoot%E5%A4%9A%E6%A8%A1%E5%9D%97%E6%97%A0%E6%B3%95%E6%89%AB%E6%8F%8F%E5%88%B0%E9%97%AE%E9%A2%98%E5%8F%8ASpring%20Data%20JPA%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2019-04-07T12:26:55.000Z" itemprop="datePublished">2019-04-07</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="SpringBoot多模块，为何其他模块无法被扫描到"><a href="#SpringBoot多模块，为何其他模块无法被扫描到" class="headerlink" title="SpringBoot多模块，为何其他模块无法被扫描到"></a>SpringBoot多模块，为何其他模块无法被扫描到</h2><ol>
-<li>在项目时，通常是创建一个maven项目，然后有src啊，pom文件啊，src里的main，test，resource等，这些都创建出来了，然后用maven添加模块，然后子模块添加parent标签依赖父模块，最后DemoApplication扫描的时候就没扫到其他模块的注解类。</li>
-<li>以上是通过maven创建的，想想用IDEA 的spring initializr创建时，，只有POM文件和一个iml文件，或者还有一个src。而在之前我也是按第一种方式，以为创建的就是父模块，DemoApplication就放那。但对，他确实是父模块。而Maven对父模块的定义是只是父模块的容器，不作任何操作。因此，他只需要一个POM文件，别的都不需要，而且该POM文件里的packing一定是POM，因为他是父模块，而里面的子模块都是jar。那DemoApplication放哪，放一个单独的模块，在学Timo项目的时候发现，分模块嘛，就把DemoApplication和yml放在一个单独的模块里。</li>
-<li>都知道DemoApplication会扫描当前所在包的所有子包，而SpringBootApplication注解的指定扫描的包，但这不是重点，重点是，模块与模块之间的关系，一般除了各个子模块之间的业务关系，不需要进行依赖。而这个启动类的boot模块，<strong>需要依赖所有的子模块才能把其他的模块里的类被扫描到，并且必须要写上version值</strong>。</li>
-</ol>
-<p>总归两点，1.启动类为单独模块，2.启动类模块依赖其他子模块</p>
-<h2 id="SpringBoot多数据源配置"><a href="#SpringBoot多数据源配置" class="headerlink" title="SpringBoot多数据源配置"></a>SpringBoot多数据源配置</h2><p>我们使用Oracle和Mysql配置 yml配置如下</p>
-<pre><code>spring:
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate.dialect: com.linln.core.mysql.MySQLDialectUTF8
-      hibernate.format_sql: true
-      hibernate.enable_lazy_load_no_trans: true
-  datasource:
-    primary:
-      driver-class-name: oracle.jdbc.driver.OracleDriver
-      jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:orcl
-      username: sjbdc
-      password: sjbdc
-    secondary:
-      driver-class-name: com.mysql.jdbc.Driver
-      jdbcUrl: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;characterEncoding=utf-8
-      username: root
-      password: root</code></pre><p>我们需要一个配置数据源的配置类:</p>
-<pre><code>@Configuration
-public class DataSourceConfig &#123;
-
-    @Qualifier(&quot;primaryDataSource&quot;)
-    @Primary
-    @Bean(name = &quot;primaryDataSource&quot;)
-    @ConfigurationProperties(prefix = &quot;spring.datasource.primary&quot;)
-    public DataSource primaryDataSource()&#123;
-        return DataSourceBuilder.create().build();
-    &#125;
-
-    @Bean(name = &quot;secondaryDataSource&quot;)
-    @Qualifier(&quot;secondaryDataSource&quot;)
-    @ConfigurationProperties(prefix = &quot;spring.datasource.secondary&quot;)
-    public DataSource secondaryDataSource() &#123;
-        return DataSourceBuilder.create().build();
-    &#125;
-
-&#125;</code></pre><p>你需要使用spring data jap，还需要为每个数据源配置jpa properties,所以各需要一个jpa属性配置类</p>
-<pre><code>/**
- * 主数据源配置
- */
-@Configuration
-@EnableTransactionManagement
-@EnableJpaRepositories(
-        entityManagerFactoryRef = &quot;entityManagerFactoryPrimary&quot;,
-        transactionManagerRef = &quot;transactionManagerPrimary&quot;,
-        basePackages = &quot;com.fsats.dbanalysis.oracle&quot; //dao扫描位置
-)
-public class PrimaryConfig &#123;
-
-    @Autowired
-    @Qualifier(&quot;primaryDataSource&quot;)
-    private DataSource primaryDataSource;
-
-    @Primary
-    @Bean(name = &quot;transactionManagerPrimary&quot;)
-    public EntityManager entityManager(EntityManagerFactoryBuilder builder) &#123;
-        return entityManagerFactoryPrimary(builder).getObject().createEntityManager();
-    &#125;
-
-    @Primary
-    @Bean(name = &quot;entityManagerFactoryPrimary&quot;)
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryPrimary(EntityManagerFactoryBuilder builder) &#123;
-        return builder
-                .dataSource(primaryDataSource)
-                .properties(getVendorProperties())
-                .packages(&quot;com.fsats.dbanalysis.oracle.domain&quot;)         //设置实体类所在位置
-                .persistenceUnit(&quot;primaryPersistenceUnit&quot;)
-                .build();
-    &#125;
-
-    private Map getVendorProperties() &#123;
-        HashMap&lt;String, Object&gt; properties = new HashMap&lt;&gt;();
-        properties.put(&quot;hibernate.dialect&quot;,
-                env.getProperty(&quot;hibernate.dialect&quot;));
-        properties.put(&quot;hibernate.ddl-auto&quot;,
-                &quot;update&quot;);
-        properties.put(&quot;hibernate.physical_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&quot;);
-        properties.put(&quot;hibernate.implicit_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy&quot;);
-        return properties;
-    &#125;
-
-    @Autowired
-    private Environment env;
-
-    @Primary
-    @Bean(name = &quot;transactionManagerPrimary&quot;)
-    public PlatformTransactionManager transactionManagerPrimary(EntityManagerFactoryBuilder builder) &#123;
-        return new JpaTransactionManager(entityManagerFactoryPrimary(builder).getObject());
-    &#125;
-&#125;
-
-
-/**
- * 次数据源配置
- */
-@Configuration
-@EnableTransactionManagement
-@EnableJpaRepositories(
-        entityManagerFactoryRef = &quot;entityManagerFactorySecondary&quot;,
-        transactionManagerRef = &quot;transactionManagerSecondary&quot;,
-        basePackages = &#123;&quot;com.fsats.dbanalysis.mysql&quot;&#125;) //设置DAO接口层所在包位置
-public class SecondaryConfig &#123;
-
-    @Autowired
-    @Qualifier(&quot;secondaryDataSource&quot;)
-    private DataSource secondaryDataSource;
-
-    @Bean(name = &quot;entityManagerSecondary&quot;)
-    public EntityManager entityManager(EntityManagerFactoryBuilder builder) &#123;
-        return entityManagerFactorySecondary(builder).getObject().createEntityManager();
-    &#125;
-
-    @Bean(name = &quot;entityManagerFactorySecondary&quot;)
-    public LocalContainerEntityManagerFactoryBean entityManagerFactorySecondary(EntityManagerFactoryBuilder builder) &#123;
-        return builder
-                .dataSource(secondaryDataSource)
-                .properties(getVendorProperties())
-                .packages(&quot;com.fsats.dbanalysis.mysql.domain&quot;)        //设置实体类所在包的位置
-                .persistenceUnit(&quot;primaryPersistenceUnit&quot;)
-                .build();
-    &#125;
-
-    private Map getVendorProperties() &#123;
-        HashMap&lt;String, Object&gt; properties = new HashMap&lt;&gt;();
-        properties.put(&quot;hibernate.hbm2ddl.auto&quot;,
-                env.getProperty(&quot;hibernate.hbm2ddl.auto&quot;));
-        properties.put(&quot;hibernate.ddl-auto&quot;,
-                env.getProperty(&quot;update&quot;));
-        properties.put(&quot;hibernate.dialect&quot;,
-                env.getProperty(&quot;hibernate.dialect&quot;));
-        properties.put(&quot;hibernate.physical_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&quot;);
-        properties.put(&quot;hibernate.implicit_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy&quot;);
-        return properties;
-    &#125;
-
-    @Autowired
-    private Environment env;
-
-    @Bean(name = &quot;transactionManagerSecondary&quot;)
-    PlatformTransactionManager transactionManagerSecondary(EntityManagerFactoryBuilder builder) &#123;
-        return new JpaTransactionManager(entityManagerFactorySecondary(builder).getObject());
-    &#125;</code></pre><p>​<br>    }</p>
-<p>这俩配置类，这三个类要关联，不要写错bean依赖名称，要改的就是注解上的dao扫描包，也就是repository位置，和entityManagerFactorySecondary方法里的实体类名称。这两个类都要更改。 因为当但数据源配置是，是默认自动配置的。默认是””,整个项目扫描，或者指定扫描路径。而多数据源需要各自配置Jpa properties，所以需要手动配置jpa扫描的dao位置和实体类位置。否则会报错Repository没有找到。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
 
 
     </footer>

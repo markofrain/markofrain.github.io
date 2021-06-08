@@ -78,6 +78,207 @@
     
     
     
+    <article id="post-Javascript/apache与nginx允许跨域访问" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/26/Javascript/apache%E4%B8%8Enginx%E5%85%81%E8%AE%B8%E8%B7%A8%E5%9F%9F%E8%AE%BF%E9%97%AE/"
+    >apache与nginx允许静态资源跨域访问</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/26/Javascript/apache%E4%B8%8Enginx%E5%85%81%E8%AE%B8%E8%B7%A8%E5%9F%9F%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2021-01-26T09:26:48.524Z" itemprop="datePublished">2021-01-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/JS/">JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="Nginx静态资源跨域访问配置"><a href="#Nginx静态资源跨域访问配置" class="headerlink" title="Nginx静态资源跨域访问配置"></a>Nginx静态资源跨域访问配置</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">location &#x2F;oss&#x2F; &#123;</span><br><span class="line">    add_header &#39;Access-Control-Allow-Origin&#39; &#39;*&#39;;</span><br><span class="line">    add_header &#39;Access-Control-Allow-Methods&#39; &#39;GET,POST,PUT,DELETE,OPTIONS&#39;;</span><br><span class="line">    if ($request_method &#x3D; OPTIONS ) &#123;</span><br><span class="line">        add_header Access-Control-Allow-Origin *;</span><br><span class="line">        add_header Access-Control-Allow-Credentials true; </span><br><span class="line">        add_header &#39;Access-Control-Allow-Methods&#39; &#39;GET,POST,PUT,DELETE,OPTIONS&#39;;</span><br><span class="line">        add_header Access-Control-Allow-Headers Origin,X-Requested-With,Content-Type,Accept,Authorization;</span><br><span class="line">        return 200;</span><br><span class="line">    &#125;</span><br><span class="line">    alias D:&#x2F;oss&#x2F;;</span><br><span class="line">    autoindex on;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在nginx.conf中，改代码为静态资源映射，目标为D:/oss/目录，访问资源标识名为/oss/。</p>
+<p>其中在Access-Control-Allow-Headers的配置中,可能会根据不同的请求头中的请求头名称而不同</p>
+<p><code>nginx.exe -s reload</code>重启nginx</p>
+<h3 id="Apache跨域访问"><a href="#Apache跨域访问" class="headerlink" title="Apache跨域访问"></a>Apache跨域访问</h3><p>修改conf/httpd.conf文件的<code>LoadModule headers_module modules/mod_headers.so</code>注释打开</p>
+<p>修改conf/extra/httpd-vhosts.conf的配置</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&lt;VirtualHost *:80&gt;</span><br><span class="line">    #ServerAdmin localhost</span><br><span class="line">    DocumentRoot &quot;$&#123;SRVROOT&#125;&#x2F;htdocs&quot;</span><br><span class="line">    Header set Access-Control-Allow-Origin *</span><br><span class="line">    ServerName localhost</span><br><span class="line">    #ServerAlias www.dummy-host.example.com</span><br><span class="line">    #ErrorLog &quot;logs&#x2F;dummy-host.example.com-error.log&quot;</span><br><span class="line">    #CustomLog &quot;logs&#x2F;dummy-host.example.com-access.log&quot; common</span><br><span class="line">&lt;&#x2F;VirtualHost&gt;</span><br></pre></td></tr></table></figure>
+
+<p>在httpd.conf,找到<code>Include conf/extra/httpd-vhosts.conf</code>并解开注释</p>
+<p>然后重新启动Apache服务</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-k8s/持久化存储nfs,pv和pvc" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/01/20/k8s/%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8nfs,pv%E5%92%8Cpvc/"
+    >持久化存储nfs,pv和pvc</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/01/20/k8s/%E6%8C%81%E4%B9%85%E5%8C%96%E5%AD%98%E5%82%A8nfs,pv%E5%92%8Cpvc/" class="article-date">
+  <time datetime="2021-01-20T04:00:00.000Z" itemprop="datePublished">2021-01-20</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/k8s/">k8s</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="持久化存储nfs"><a href="#持久化存储nfs" class="headerlink" title="持久化存储nfs"></a>持久化存储nfs</h3><h4 id="nfs操作"><a href="#nfs操作" class="headerlink" title="nfs操作"></a>nfs操作</h4><p>pod是临时的，销毁后数据不会被存储到本地磁盘上。</p>
+<ol>
+<li>找一台专门的服务器用于挂载nfs持久化。首先在新服务需要安装<code>nfs-utils</code>，node节点上也需要安装。</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">yum install -y nfs-utils</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>为nfs服务器设置挂载路径</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">vim &#x2F;etc&#x2F;exports</span><br><span class="line"></span><br><span class="line">&#x2F;data&#x2F;nfs *(rw,no_root_squash)</span><br></pre></td></tr></table></figure>
+
+<p>指定nfs存在/data/nfs目录。*标识可访问所有目录文件，rw为可读写，</p>
+<ul>
+<li>no_root_squash：登入 NFS 主机使用分享目录的使用者，如果是 root 的话，那么对于这个分享的目录来说，他就具有 root 的权限！这个项目『极不安全』，不建议使用！</li>
+<li>root_squash：在登入 NFS 主机使用分享之目录的使用者如果是 root 时，那么这个使用者的权限将被压缩成为匿名使用者，通常他的 UID 与 GID 都会变成 nobody 那个系统账号的身份。</li>
+</ul>
+<blockquote>
+<p>nfs的存储位置一定要预先创建出来。</p>
+</blockquote>
+<ol start="3">
+<li>nfs服务器启动nfs服务</li>
+</ol>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">systemctl start nfs</span><br></pre></td></tr></table></figure>
+
+<ol start="4">
+<li>在k8s中使用nfs</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-dep1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">nfs:</span></span><br><span class="line">            <span class="attr">server:</span> <span class="number">192.168</span><span class="number">.44</span><span class="number">.134</span></span><br><span class="line">            <span class="attr">path:</span> <span class="string">/data/nfs</span></span><br></pre></td></tr></table></figure>
+
+<p>deployment中使用了nfs，定义挂载nfs服务器地址和路径，绑定挂载数据卷，mountPath为容器内部挂载路径</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">kubectl apply -f nfs-nginx.yaml</span><br></pre></td></tr></table></figure>
+
+<p>启动后使用<code>kubectl exec -it pod名称 bash</code>命令进入容器内。通过进入<code>/usr/share/nginx/html</code>目录查看，没有数据，在/data/nfs中创建一个文件，然后在容器内目录中就能看到文件</p>
+<h3 id="PV和PVC"><a href="#PV和PVC" class="headerlink" title="PV和PVC"></a>PV和PVC</h3><p>因为直接配置nfs到deployment中可能不安全，因此，将nfs的配置放到PV中，也就是Kind为<code>PersistentVolume</code>的yaml。其中定义了PV的大小，读写权限，服务器和所在位置等。</p>
+<p>PVC的Kind为<code>PersistentVolumeClaim</code>，其条件定义读写权限、存储大小等这些，用于匹配已经定义的PV。再将deployment与pvc进行关联。</p>
+<p>由应用来配置pvc，pvc绑定pv。pv用来数据存储，pvc用来查找与调用。匹配方式为存储容量和匹配模式(读写)</p>
+<ol>
+<li>pv.yaml。定义模式为读写模式，大小为5G</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolume</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-pv</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">capacity:</span></span><br><span class="line">    <span class="attr">storage:</span> <span class="string">5Gi</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">nfs:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/data/nfs</span></span><br><span class="line">    <span class="attr">server:</span> <span class="number">192.168</span><span class="number">.38</span><span class="number">.131</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl get pv</span><br><span class="line">NAME    CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS      CLAIM   STORAGECLASS   REASON   AGE</span><br><span class="line">my-pv   5Gi        RWX            Retain           Available                                   4s</span><br></pre></td></tr></table></figure>
+
+<ol start="2">
+<li>pvc.yaml，其中包含了Deployment和PersistentVolumeClaim</li>
+</ol>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-dep1</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">3</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">nginx</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">        <span class="attr">persistentVolumeClaim:</span></span><br><span class="line">          <span class="attr">claimName:</span> <span class="string">my-pvc</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolumeClaim</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">my-pvc</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">    <span class="attr">requests:</span></span><br><span class="line">      <span class="attr">storage:</span> <span class="string">5Gi</span></span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl get pv,pvc</span><br><span class="line">NAME                     CAPACITY   ACCESS MODES   RECLAIM POLICY   STATUS   CLAIM            STORAGECLASS   REASON   AGE</span><br><span class="line">persistentvolume&#x2F;my-pv   5Gi        RWX            Retain           Bound    default&#x2F;my-pvc                           16s</span><br><span class="line"></span><br><span class="line">NAME                           STATUS   VOLUME   CAPACITY   ACCESS MODES   STORAGECLASS   AGE</span><br><span class="line">persistentvolumeclaim&#x2F;my-pvc   Bound    my-pv    5Gi        RWX                           9s</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Javascript/ajax-post请求下载文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -347,175 +548,6 @@
 
 
 
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Linux/deepin20创建桌面图标" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/15/Linux/deepin20%E5%88%9B%E5%BB%BA%E6%A1%8C%E9%9D%A2%E5%9B%BE%E6%A0%87/"
-    >deepin20创建桌面图标</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/15/Linux/deepin20%E5%88%9B%E5%BB%BA%E6%A1%8C%E9%9D%A2%E5%9B%BE%E6%A0%87/" class="article-date">
-  <time datetime="2021-01-14T16:00:00.000Z" itemprop="datePublished">2021-01-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>将下载的idea.tar.gz解压到opt/apps/idea目录下</p>
-<p>根据应用商店下载的微信，将微信发送到桌面，可以在桌面点击右击通过编辑器打开，看到文件名的格式是app-id.desktop</p>
-<p>参照文件</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">[Desktop Entry]</span><br><span class="line">Encoding&#x3D;UTF-8</span><br><span class="line">Type&#x3D;Application</span><br><span class="line">X-Created-By&#x3D;IDEA</span><br><span class="line">Categories&#x3D;chat;</span><br><span class="line">Icon&#x3D;idea</span><br><span class="line">Exec&#x3D;&quot;&#x2F;opt&#x2F;apps&#x2F;idea&#x2F;bin&#x2F;idea.sh&quot;</span><br><span class="line">Name&#x3D;idea</span><br><span class="line">Name[zh_CN]&#x3D;IDEA</span><br><span class="line">Comment&#x3D;IDEA</span><br><span class="line">#StartupWMClass&#x3D;WeChat.exe</span><br><span class="line">MimeType&#x3D;</span><br><span class="line">X-Deepin-CreatedBy&#x3D;com.deepin.dde.daemon.Launcher</span><br><span class="line">X-Deepin-AppID&#x3D;com.idea</span><br></pre></td></tr></table></figure>
-
-<p>X-Deepin-AppID是随意起的AppID标识不同应用，而最后保存的名称是com.idea.desktop。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Docker/deepin-v20版本安装docker" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/01/14/Docker/deepin-v20%E7%89%88%E6%9C%AC%E5%AE%89%E8%A3%85docker/"
-    >deepin v20版本安装docker</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/01/14/Docker/deepin-v20%E7%89%88%E6%9C%AC%E5%AE%89%E8%A3%85docker/" class="article-date">
-  <time datetime="2021-01-14T04:00:00.000Z" itemprop="datePublished">2021-01-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Docker/">Docker</a> / <a class="article-category-link" href="/categories/Docker/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>按照官方文档依次安装</p>
-<ol>
-<li><p>删除旧版本</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get remove docker docker-engine docker.io containerd runc</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>安装依赖及密钥</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line"></span><br><span class="line">sudo apt-get install \</span><br><span class="line">    apt-transport-https \</span><br><span class="line">    ca-certificates \</span><br><span class="line">    curl \</span><br><span class="line">    gnupg-agent \</span><br><span class="line">    software-properties-common</span><br><span class="line"></span><br><span class="line">curl -fsSL https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;debian&#x2F;gpg | sudo apt-key add -</span><br><span class="line"></span><br><span class="line">sudo apt-key fingerprint 0EBFCD88</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>安装仓库</p>
-<p>此处无法通过官方文档进行安装，但主要的命令是将仓库源添加到sources.list中</p>
-<p><code>$(lsb_release -cs)</code>此处版本标识换为debian的发行版本代号。通过<code>cat /etc/debian_version</code>查看版本号，deepin20基于debian10，版本号为buster，debain9版本代号为stretch，debian8版本代号为jessie</p>
-<p>如果使用官方命令执行add-apt-repository命令无法添加，报错</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">Traceback (most recent call last):</span><br><span class="line">  File &quot;&#x2F;usr&#x2F;bin&#x2F;add-apt-repository&quot;, line 95, in &lt;module&gt;</span><br><span class="line">    sp &#x3D; SoftwareProperties(options&#x3D;options)</span><br><span class="line">  File &quot;&#x2F;usr&#x2F;lib&#x2F;python3&#x2F;dist-packages&#x2F;softwareproperties&#x2F;SoftwareProperties.py&quot;, line 109, in __init__</span><br><span class="line">    self.reload_sourceslist()</span><br><span class="line">  File &quot;&#x2F;usr&#x2F;lib&#x2F;python3&#x2F;dist-packages&#x2F;softwareproperties&#x2F;SoftwareProperties.py&quot;, line 599, in reload_sourceslist</span><br><span class="line">    self.distro.get_sources(self.sourceslist)    </span><br><span class="line">  File &quot;&#x2F;usr&#x2F;lib&#x2F;python3&#x2F;dist-packages&#x2F;aptsources&#x2F;distro.py&quot;, line 93, in get_sources</span><br><span class="line">    (self.id, self.codename))</span><br><span class="line">aptsources.distro.NoDistroTemplateException: Error: could not find a distribution template for Deepin&#x2F;n&#x2F;a</span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
-<p>我们需要直接将命令放到<code>/etc/apt/sources/list</code>中，使用<code>sudo dedit /etc/apt/sources.list</code>命令打开文本编辑器，sudo的作用是权限，如果没有则只打开为只读模式。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">deb [arch&#x3D;amd64] https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;debian buster stable</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>安装docker engine</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install docker-ce docker-ce-cli containerd.io</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>配置普通用户访问权限</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo gpasswd -a $USER docker</span><br><span class="line">newgrp docker</span><br></pre></td></tr></table></figure>
-
-</li>
-</ol>
 
       
       <!-- reward -->

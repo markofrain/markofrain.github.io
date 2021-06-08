@@ -78,6 +78,507 @@
     
     
     
+    <article id="post-Java/Java使用阿里云短信服务实现手机验证码注册验证" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/22/Java/Java%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91%E7%9F%AD%E4%BF%A1%E6%9C%8D%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%89%8B%E6%9C%BA%E9%AA%8C%E8%AF%81%E7%A0%81%E6%B3%A8%E5%86%8C%E9%AA%8C%E8%AF%81/"
+    >Java使用阿里云短信服务实现手机验证码注册验证</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/22/Java/Java%E4%BD%BF%E7%94%A8%E9%98%BF%E9%87%8C%E4%BA%91%E7%9F%AD%E4%BF%A1%E6%9C%8D%E5%8A%A1%E5%AE%9E%E7%8E%B0%E6%89%8B%E6%9C%BA%E9%AA%8C%E8%AF%81%E7%A0%81%E6%B3%A8%E5%86%8C%E9%AA%8C%E8%AF%81/" class="article-date">
+  <time datetime="2018-07-22T08:42:03.000Z" itemprop="datePublished">2018-07-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="java使用阿里云短信服务发送短信验证"><a href="#java使用阿里云短信服务发送短信验证" class="headerlink" title="java使用阿里云短信服务发送短信验证"></a>java使用阿里云短信服务发送短信验证</h2><h3 id="查看短信服务API文档"><a href="#查看短信服务API文档" class="headerlink" title="查看短信服务API文档"></a>查看短信服务API文档</h3><p><a target="_blank" rel="noopener" href="https://help.aliyun.com/document_detail/55284.html?spm=a2c4g.11186623.6.557.e5v3e6">Java API文档</a></p>
+<h3 id="阿里账号短信服务方面设置"><a href="#阿里账号短信服务方面设置" class="headerlink" title="阿里账号短信服务方面设置"></a>阿里账号短信服务方面设置</h3><ol>
+<li>创建阿里云账号</li>
+<li>开通短信服务，之后获取访问密钥，AccessKeyId和AccessKeySecret，通过添加子账号并赋予短信操作权限，或直接在之前的子账户中添加短信操作权限。创建用户的时候会给你一个密钥</li>
+<li>在短信控制台添加短信签名和短信模板，审核时间最多再两个小时以内，短信模板选择验证码</li>
+<li>短信模板的id和短信签名的名称需要在代码中用到</li>
+</ol>
+<h3 id="java操作短信发送"><a href="#java操作短信发送" class="headerlink" title="java操作短信发送"></a>java操作短信发送</h3><ol>
+<li><p>添加maven依赖包</p>
+<dependency>
+      <groupId>org.json</groupId>
+      <artifactId>json</artifactId>
+      <version>20160810</version>
+    </dependency>
+    <dependency>
+      <groupId>com.aliyun</groupId>
+      <artifactId>aliyun-java-sdk-core</artifactId>
+      <version>3.7.1</version>
+    </dependency>
+    <dependency>
+      <groupId>com.aliyun</groupId>
+      <artifactId>aliyun-java-sdk-dysmsapi</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+
+
+</li>
+</ol>
+<p>这是阿里云短信服务所需要的必要包，其他项目测试需要用的框架包自己添加。</p>
+<ol start="2">
+<li><p>添加API文档中的样例程序</p>
+<p>//设置超时时间-可自行调整<br>System.setProperty(“sun.net.client.defaultConnectTimeout”, “10000”);<br>System.setProperty(“sun.net.client.defaultReadTimeout”, “10000”);<br>//初始化ascClient需要的几个参数<br>final String product = “Dysmsapi”;//短信API产品名称（短信产品名固定，无需修改）<br>final String domain = “dysmsapi.aliyuncs.com”;//短信API产品域名（接口地址固定，无需修改）<br>//替换成你的AK<br>final String accessKeyId = “yourAccessKeyId”;//你的accessKeyId,参考本文档步骤2<br>final String accessKeySecret = “yourAccessKeySecret”;//你的accessKeySecret，参考本文档步骤2<br>//初始化ascClient,暂时不支持多region（请勿修改）<br>IClientProfile profile = DefaultProfile.getProfile(“cn-hangzhou”, accessKeyId,<br>accessKeySecret);<br>DefaultProfile.addEndpoint(“cn-hangzhou”, “cn-hangzhou”, product, domain);<br>IAcsClient acsClient = new DefaultAcsClient(profile);<br> //组装请求对象<br> SendSmsRequest request = new SendSmsRequest();<br> //使用post提交<br> request.setMethod(MethodType.POST);<br> //必填:待发送手机号。支持以逗号分隔的形式进行批量调用，批量上限为1000个手机号码,批量调用相对于单条调用及时性稍有延迟,验证码类型的短信推荐使用单条调用的方式；发送国际/港澳台消息时，接收号码格式为00+国际区号+号码，如“0085200000000”<br> request.setPhoneNumbers(“1500000000”);<br> //必填:短信签名-可在短信控制台中找到<br> request.setSignName(“云通信”);<br> //必填:短信模板-可在短信控制台中找到<br> request.setTemplateCode(“SMS_1000000”);<br> //可选:模板中的变量替换JSON串,如模板内容为”亲爱的${name},您的验证码为${code}”时,此处的值为<br> //友情提示:如果JSON中需要带换行符,请参照标准的JSON协议对换行符的要求,比如短信内容中包含\r\n的情况在JSON中需要表示成\r\n,否则会导致JSON在服务端解析失败<br> request.setTemplateParam(“{&quot;name&quot;:&quot;Tom&quot;, &quot;code&quot;:&quot;123&quot;}”);<br> //可选-上行短信扩展码(扩展码字段控制在7位或以下，无特殊需求用户请忽略此字段)<br> //request.setSmsUpExtendCode(“90997”);<br> //可选:outId为提供给业务方扩展字段,最终在短信回执消息中将此值带回给调用者<br> //request.setOutId(“yourOutId”);<br>//请求失败这里会抛ClientException异常<br>SendSmsResponse sendSmsResponse = acsClient.getAcsResponse(request);<br>if(sendSmsResponse.getCode() != null &amp;&amp; sendSmsResponse.getCode().equals(“OK”)) {<br>//请求成功<br>}</p>
+</li>
+<li><p>只需修改密钥所用的两个属性；</p>
+</li>
+<li><p>setPhoneNumbers方法，值为注册手机号码；</p>
+</li>
+<li><p>短信模板id和短信签名名称；</p>
+</li>
+<li><p>模板参数：填写模板时，${code}就是参数，可以自行添加</p>
+</li>
+</ol>
+<p>最后sendSmsResponse对象的getCode方法可以活的响应码，返回OK码即发送成功。 SendSmsRequest对象即请求对象，其设置的参数，就包含上面的四个属性，详细的有 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180722160432.png" alt="入参列表"> SendSmsResponse对象即响应对象，其属性如下 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180722160500.png" alt="出参列表"></p>
+<h3 id="前后台页面设置"><a href="#前后台页面设置" class="headerlink" title="前后台页面设置"></a>前后台页面设置</h3><h4 id="前台设置"><a href="#前台设置" class="headerlink" title="前台设置"></a>前台设置</h4><p>添加form表单，添加phone，checkcode文本框和button表单按钮 步骤: 当点击该按钮时，获得电话号码，并发送ajax请求，后台通过phone执行消息发送，这边前台将执行success函数，在其中设置timer函数计时。 注:如下情况都没有写出，只是测试一个短信发送。将在之后写出详细的代码 1. 电话号码验证，用户名验证等没有写； 2. 后台随机验证码没有写，可通过一个表来解决,以避免session域数据过多导致压力增大 3. 后台的验证码有效时间，就可以通过表解决，一个号码对相应一个验证码和一个时间，如若超过有效期，则无法注册,重新发送 4. 验证码失效，后台传递信息提示前台 5. 单击注册按钮前，进行ajax验证 验证码，不过不对则，拒绝注册请求 <strong>代码:</strong></p>
+<pre><code>$(function()&#123;
+    var curcount = 0;
+    var intervalTimer = null;
+    $(&quot;input[type=button]&quot;).click(function()&#123;
+        var phone = $(&quot;input[name=phone]&quot;).val();
+        $.post(&quot;check&quot;,&#123;phone:phone&#125;,function(data)&#123;
+            if(data==&quot;true&quot;)&#123;
+                curcount= 60;
+                //设置按钮禁用
+                $(&quot;input[type=button]&quot;).attr(&quot;disabled&quot;,&quot;disabled&quot;);
+                //循环回调函数，每一秒均设置按钮显示的秒数
+                intervalTimer = window.setInterval(function()&#123;
+                    $(&quot;#send&quot;).val(&quot;请&quot;+curcount+&quot;后重新发送&quot;);
+                    curcount = curcount-1;
+                    timer(curcount);//每次循环，每次调用判断
+                &#125;,1000);
+            &#125;
+        &#125;);
+    &#125;);
+    //计时判断，当读秒为0时，恢复按钮可用
+    function timer(curcount)&#123;
+        if(curcount==0)&#123;
+            window.clearInterval(intervalTimer);// 停止计时器
+            $(&quot;input[type=button]&quot;).removeAttr(&quot;disabled&quot;);// 启用按钮
+            $(&quot;input[type=button]&quot;).val(&quot;发送验证码&quot;);
+        &#125;
+    &#125;
+
+&#125;);</code></pre><h4 id="后台设置"><a href="#后台设置" class="headerlink" title="后台设置"></a>后台设置</h4><p>如果使用的时Spring MVC框架，则在方法上添加@ResponseBody注解，返回一个值或json字符串，注意添加了Gson的json包。 后台代码就是上面的代码，修改一下信息，方法就是普通的ajax请求方法。 之后完整的代码在后面写出来。 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/dysmsapi.zip">目前代码示例</a> 项目使用IDEA+Maven</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%98%BF%E9%87%8C%E4%BA%91/" rel="tag">阿里云</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Java/JAXB——从Java对象到XML的序列化和反序列化" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/07/Java/JAXB%E2%80%94%E2%80%94%E4%BB%8EJava%E5%AF%B9%E8%B1%A1%E5%88%B0XML%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/"
+    >JAXB——从Java对象到XML的序列化和反序列化</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/07/Java/JAXB%E2%80%94%E2%80%94%E4%BB%8EJava%E5%AF%B9%E8%B1%A1%E5%88%B0XML%E7%9A%84%E5%BA%8F%E5%88%97%E5%8C%96%E5%92%8C%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96/" class="article-date">
+  <time datetime="2018-07-07T02:58:31.000Z" itemprop="datePublished">2018-07-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="JAXB"><a href="#JAXB" class="headerlink" title="JAXB"></a>JAXB</h2><p>JAXB（Java Architecture for XML Binding) 是一个业界的标准，是一项可以根据XML Schema产生Java类的技术。该过程中，JAXB也提供了将XML实例文档反向生成Java对象树的方法，并能将Java对象树的内容重新写到XML实例文档。从另一方面来讲，JAXB提供了快速而简便的方法将XML模式绑定到Java表示，从而使得Java开发者在Java应用程序中能方便地结合XML数据和处理函数。 哔哔说了那么多，简单地说就是，Java对象生成XML文档，XML文档反向生成Java对象。</p>
+<h4 id="在JDK中JAXB重要的类和接口-抽象类"><a href="#在JDK中JAXB重要的类和接口-抽象类" class="headerlink" title="在JDK中JAXB重要的类和接口/抽象类"></a>在JDK中JAXB重要的类和接口/抽象类</h4><ul>
+<li>JAXB类：提供marshaller和unmarshaller方法，用来序列化和反序列化。</li>
+<li>JAXBContext类:应用的入口，创建自身实例，创建Marshaller,Ummarshaller,Binder实例</li>
+<li>Marshaller接口:将Java对象序列化为XML数据</li>
+<li>Unmarshaller接口:将XML数据反序列化为Java对象</li>
+</ul>
+<h4 id="在JDK中JAXB重要的注解"><a href="#在JDK中JAXB重要的注解" class="headerlink" title="在JDK中JAXB重要的注解"></a>在JDK中JAXB重要的注解</h4><ul>
+<li>@XmlRootElement：将Java类或枚举类型映射到XML元素,该元素唯一，并且作为XML根元素</li>
+<li>@XmlElement：将Java类的一个属性映射到与属性同名的一个XML元素</li>
+<li>@XmlAttribute：将Java类的一个属性映射到与属性同名的一个XML属性</li>
+<li>@XmlType：将Java类或枚举类型映射到XML模式类型，propOrder属性定义字段生成的XML节点顺序</li>
+<li>@XmlAccessorType(XmlAccessType.FIELD)：控制字段或属性的序列化,<strong>FIELD</strong>表示自动绑定Java类中的每个非静态的，非瞬态的字段到XML，除非@XmlTransient，<strong>PROPERTY</strong>表示绑定Java中所有getter/setter的属性到XML，除非标识了@XmlTransient,<strong>PUBLIC_MEMBER</strong>表示每个public修饰的成员变量和每个通过公共getter/setter访问的变量自动绑定到XML,除非标识了@XmlTransient，<strong>NONE</strong>表示所有属性都不映射到XML,除非使用专门注解(@XmlElement或@XmlAttribute等专门标注的)。</li>
+<li>@XmlAccessorOrder：控制JAXB绑定类中的属性和字段的排序,XmlAccessOrder枚举的<strong>UNDEFINED</strong>值表示不定义排序,<strong>ALPHABETICAL</strong>表示按字母顺序排序</li>
+<li>@XmlElementWrapper：对于数组或集合，生成一个包装该数组或集合的XML元素(包装器)</li>
+<li>@XmlJavaTypeAdapter:使用定制的适配器（即扩展抽象类XmlAdapter并覆盖marshal()和unmarshal()方法）</li>
+<li>@XmlTransient：对于标注了此注解的java属性，将不被映射。</li>
+</ul>
+<h4 id="简单的类转换"><a href="#简单的类转换" class="headerlink" title="简单的类转换"></a>简单的类转换</h4><pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType
+public class Student implements Serializable&#123;
+
+    private static final long serialVersionUID = -7928946466770112840L;
+
+    public Student() &#123;
+    &#125;
+
+    public Student(Integer id, String name, Integer age, String sex, String address) &#123;
+        this.id = id;
+        this.name = name;
+        this.age = age;
+        this.sex = sex;
+        this.address = address;
+    &#125;
+
+    private Integer id;
+    private String name;
+
+    private Integer age;
+    private String sex;
+    private String address;
+
+    public Integer getId() &#123;
+        return id;
+    &#125;
+
+    public void setId(Integer id) &#123;
+        this.id = id;
+    &#125;
+
+    public String getName() &#123;
+        return name;
+    &#125;
+
+    public void setName(String name) &#123;
+        this.name = name;
+    &#125;
+    @XmlAttribute
+    public Integer getAge() &#123;
+        return age;
+    &#125;
+
+
+    public void setAge(Integer age) &#123;
+        this.age = age;
+    &#125;
+
+    public String getSex() &#123;
+        return sex;
+    &#125;
+
+    public void setSex(String sex) &#123;
+        this.sex = sex;
+    &#125;
+
+    public String getAddress() &#123;
+        return address;
+    &#125;
+
+    public void setAddress(String address) &#123;
+        this.address = address;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Student&#123;&quot; +
+                &quot;id=&quot; + id +
+                &quot;, name=&apos;&quot; + name + &apos;\&apos;&apos; +
+                &quot;, age=&quot; + age +
+                &quot;, sex=&apos;&quot; + sex + &apos;\&apos;&apos; +
+                &quot;, address=&apos;&quot; + address + &apos;\&apos;&apos; +
+                &apos;&#125;&apos;;
+    &#125;</code></pre><p>测试:</p>
+<pre><code>Student student = new Student(1,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+File file = new File(&quot;student.xml&quot;);
+
+JAXBContext jaxbContext = JAXBContext.newInstance(Student.class);
+Marshaller marshaller = jaxbContext.createMarshaller();
+marshaller.setProperty(Marshaller.JAXB_ENCODING, &quot;UTF-8&quot;);
+marshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT,true);
+marshaller.setProperty(Marshaller.JAXB_FRAGMENT, false);
+marshaller.marshal(student, file);
+System.out.println(&quot;序列化完成&quot;);
+或
+JAXB.marshal(student,file);
+
+//反序列化
+File file = new File(&quot;student.xml&quot;);
+JAXBContext jaxbContext = null;
+
+jaxbContext = JAXBContext.newInstance(Student.class);
+Unmarshaller marshaller = jaxbContext.createUnmarshaller();
+Student student = (Student) marshaller.unmarshal(file);
+System.out.println(student);
+或
+JAXB.unmarshal(file, Student.class);</code></pre><ol>
+<li><p>在为实体类添加注解时，向@XmlElement,@XmlAttrbute,@XmlTransient都放在getter方法上,以避免放在私有属性上导致重复映射报错。</p>
+</li>
+<li><p>@XmlAccessorType注解的四个值用于指定什么情况将什么字段进行映射</p>
+</li>
+<li><p>@XmlType注解的propOrder属性用于列出属性映射的顺序，但如果某个值为空或未映射，将发生错误。如果不指定顺序，将出现未知的顺序。</p>
+</li>
+<li><p>如果想直接系列化或反序列化，可以直接使用JAXB的静态方法。如果需要在转换前设置一些必要的参数，可以通过创建Marshaller实例设置，和Unmarshaller都由JAXBContext对象创建的。JAXB的静态。</p>
+</li>
+<li><p>如果你指定了propOrder属性，那么除了标注了@XmlTransient注解的，其他的都必须写在属性中。</p>
+</li>
+</ol>
+<h4 id="简单对象处理"><a href="#简单对象处理" class="headerlink" title="简单对象处理"></a>简单对象处理</h4><p>将对象类型作为实体类的一个属性，设置与实体类一致。</p>
+<pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType(propOrder = &#123;&quot;school&quot;,&quot;grade&quot;,&quot;classes&quot;&#125;)
+public class Classes &#123;
+
+    public Classes() &#123;
+    &#125;
+
+    public Classes(String school, String grade, String classes) &#123;
+        this.school = school;
+        this.grade = grade;
+        this.classes = classes;
+    &#125;
+    //学校
+    private String school;
+    //年级
+    private String grade;
+    //班级
+    private String classes;
+
+    public String getSchool() &#123;
+        return school;
+    &#125;
+
+    public void setSchool(String school) &#123;
+        this.school = school;
+    &#125;
+
+    public String getGrade() &#123;
+        return grade;
+    &#125;
+
+    public void setGrade(String grade) &#123;
+        this.grade = grade;
+    &#125;
+    @XmlElement(name = &quot;class&quot;)
+    public String getClasses() &#123;
+        return classes;
+    &#125;
+
+    public void setClasses(String classes) &#123;
+        this.classes = classes;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Classes&#123;&quot; +
+                &quot;school=&apos;&quot; + school + &apos;\&apos;&apos; +
+                &quot;, grade=&apos;&quot; + grade + &apos;\&apos;&apos; +
+                &quot;, classes=&apos;&quot; + classes + &apos;\&apos;&apos; +
+                &apos;&#125;&apos;;
+    &#125;
+&#125;</code></pre><p>测试</p>
+<pre><code>Student student = new Student(1,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+student.setClasses(new Classes(&quot;xxx学校&quot;,&quot;三年级&quot;,&quot;十一班&quot;));
+File file = new File(&quot;class-student.xml&quot;);
+JAXB.marshal(student, file);</code></pre><ol>
+<li>如果要指定对象属性的xml元素名称，在@XmlRootElement中指定是不起作用的，必需要在实体类的对象属性getter方法上通过@XmlElement的name属性指定。</li>
+</ol>
+<h4 id="集合对象的操作"><a href="#集合对象的操作" class="headerlink" title="集合对象的操作"></a>集合对象的操作</h4><p>需要在集合对象上添加@XmlElementWrapper注解 注释Student类中的Classes对象以及propOrder属性中的值，然后我们再重新创建一个Classes2类</p>
+<pre><code>@XmlRootElement
+@XmlAccessorType
+@XmlType(propOrder = &#123;&quot;grade&quot;,&quot;classs&quot;,&quot;student&quot; &#125;)
+public class Classes2 implements Serializable &#123;
+
+    public Classes2() &#123;
+    &#125;
+
+    public Classes2(String grade, String classs) &#123;
+        this.grade = grade;
+        this.classs = classs;
+    &#125;
+
+    private static final long serialVersionUID = 3265433234257907279L;
+
+    private String grade;
+    //class不可用，直接在后面加个s吧
+    private String classs;
+
+    private List&lt;Student&gt; student;
+
+    @XmlAttribute
+    public String getGrade() &#123;
+        return grade;
+    &#125;
+
+    public void setGrade(String grade) &#123;
+        this.grade = grade;
+    &#125;
+    @XmlAttribute
+    public String getClasss() &#123;
+        return classs;
+    &#125;
+
+    public void setClasss(String classs) &#123;
+        this.classs = classs;
+    &#125;
+    @XmlElementWrapper(name = &quot;students&quot;)
+    public List&lt;Student&gt; getStudent() &#123;
+        return student;
+    &#125;
+
+    public void setStudent(List&lt;Student&gt; student) &#123;
+        this.student = student;
+    &#125;
+
+    @Override
+    public String toString() &#123;
+        return &quot;Classes2&#123;&quot; +
+                &quot;grade=&apos;&quot; + grade + &apos;\&apos;&apos; +
+                &quot;, classs=&apos;&quot; + classs + &apos;\&apos;&apos; +
+                &quot;, students=&quot; + student +
+                &apos;&#125;&apos;;
+    &#125;
+&#125;</code></pre><p>测试</p>
+<pre><code>Classes2 classes2 = new Classes2(&quot;三年级&quot;,&quot;十一班&quot;);
+List&lt;Student&gt; students = new ArrayList&lt;Student&gt;();
+
+Student student1 = new Student(123,&quot;Chen&quot;,19,&quot;男&quot;,&quot;北京丰台&quot;);
+Student student2 = new Student(124,&quot;Li&quot;,19,&quot;女&quot;,&quot;北京丰台&quot;);
+students.add(student1);
+students.add(student2);
+classes2.setStudent(students);
+
+JAXB.marshal(classes2, file);
+
+//反序列化
+File file = new File(&quot;class-student.xml&quot;);
+Classes2 classes2 = JAXB.unmarshal(file, Classes2.class);
+System.out.println(classes2);</code></pre><ol>
+<li><p>在不加上@XmlElementWrapper注解时，是没问题的，只是直接把多个student显示出来了，外层parent没有一个students元素包裹着，如果你指定这个注解，那么外侧就会包裹住了。可根据自己的情况。</p>
+</li>
+<li><p>集合属性的属性名作为每个集合元素的xml名称，而@XmlElementWrapper注解指定的name值将是包裹外侧元素的名称。所以建议集合属性名称不带s，而注解的name值带s。</p>
+</li>
+<li><p>属性的顺序也是可以在propOrder属性中指定的,其中属性作为属性的顺序，元素作为元素的顺序。</p>
+</li>
+<li><p>不管如何操作，都肯定涉及到文件，那就会有FileNotFoundException的异常，所以需要捕获，我这里既没有写了,开发中使用以防万一。</p>
+</li>
+</ol>
+<h4 id="格式化处理"><a href="#格式化处理" class="headerlink" title="格式化处理"></a>格式化处理</h4><p>修改Student类，添加birth属性,（别忘了propOrder添加birth）,并配置日期转换适配器</p>
+<pre><code>public class DateFormtAdapter extends XmlAdapter&lt;String,Date&gt; &#123;
+
+    private static DateFormat format = new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;);
+
+    public Date unmarshal(String v) throws Exception &#123;
+        return format.parse(v);
+    &#125;
+
+    public String marshal(Date v) throws Exception &#123;
+        return format.format(v);
+    &#125;
+&#125;
+
+
+@XmlJavaTypeAdapter(DateFormtAdapter.class)
+public Date getBirth() &#123;
+    return birth;
+&#125;</code></pre><p>之后只需要为Student对象setBirth属性就好。 <strong>注:如果你在测试中出现了问题，则注意看测试下面的1,2,3,4标号问题，是否出现了一些失误。</strong></p>
+<h4 id="部分代码"><a href="#部分代码" class="headerlink" title="部分代码"></a>部分代码</h4><p>使用idea开发工具，maven项目，mavenHelper插件更利于maven依赖包管理 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/learnxml.rar">下载地址</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JAXB/" rel="tag">JAXB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-XML/XML的使用——DOM4J以及XPath语法" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -455,426 +956,6 @@ CACHE 30;</code></pre></li>
     MODE [NOWAIT]</code></pre><p>要释放它们，需要使用ROLLBACK命令。</p>
 <h4 id="锁等待与死锁"><a href="#锁等待与死锁" class="headerlink" title="锁等待与死锁"></a>锁等待与死锁</h4><p>在某些情况下，由于占用的资源不能及时释放，而造成锁等待，也可叫锁冲突。所等待会严重得影响数据库性能和日冲工作。 死锁是锁等待的一个特例，通常发生在两会话之间。A,B两个会话互相占用都占用相同的两个资源，一个资源被A锁定，一个被B锁定，而A要获得另一个资源时，因为B已经锁了，而B要获得另一个资源时，A所占的资源也锁了。两边都锁了，两个会话都不能得到想要的对象，于是出现了死锁。 此时Oracle自动做出处理，并重新回到锁等待的情况。出现锁等待应尽快找出错误原因并对其处理。</p>
 
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle PLSQL 游标" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/27/Oracle/Oracle%20PLSQL%20%E6%B8%B8%E6%A0%87/"
-    >Oracle PL/SQL 游标</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/27/Oracle/Oracle%20PLSQL%20%E6%B8%B8%E6%A0%87/" class="article-date">
-  <time datetime="2018-06-27T08:58:23.000Z" itemprop="datePublished">2018-06-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>###游标的概念 游标的使用可以让用户像操作数组一样操作查询出来的数据集。 把游标形象的看成一个变动的光标，实际上是一个指针，它在Oracle存放数据查询结果集的内存中，每当指针指向一条记录，就可以得到所指向的数据，初始时，它指向第一条记录的之前</p>
-<h4 id="游标可分为静态游标和REF游标"><a href="#游标可分为静态游标和REF游标" class="headerlink" title="游标可分为静态游标和REF游标"></a>游标可分为静态游标和REF游标</h4><p>静态游标就像是一个数据快照，打开游标后的结果集是对数据数据的备份，数据不随着对标执行DML操作而改变。</p>
-<h4 id="静态游标"><a href="#静态游标" class="headerlink" title="静态游标"></a>静态游标</h4><p>包括两种类型：显式游标和隐式游标 1. <strong>显示游标</strong> 显式游标是用户或开发者管理的游标，在使用前<strong>必须有明确的游标声明和定义，这样的游标会关联数据查询语句，打开游标后，用户可利用游标的位置对结果集检索，返回单一行记录，关闭游标后不能进行任何操作。一切由用户自己完成。</strong></p>
-<ol start="2">
-<li><strong>隐式游标</strong> 隐式游标也成为SQL游标，由PL/SQL构造和管理，该游标用户无法控制，但能得到它的属性信息。</li>
-</ol>
-<h4 id="显示游标"><a href="#显示游标" class="headerlink" title="显示游标"></a>显示游标</h4><p>通过显式游标，用户可以操作返回的数据。 通常以如下方式处理查询结果集:</p>
-<ul>
-<li>打开显式游标(OPEN语句)，从结果集中获取行(FETCH语句)，关闭显式游标(CLOSE语句)</li>
-<li>在FOR LOOP语句中使用显式游标，更加方便</li>
-</ul>
-<ol>
-<li><p>要使用游标必须声明并定义游标变量</p>
-<p>—声明游标<br>CURSOR cursor_name [parameter_list] RETURN return_type;<br>—定义游标<br>CURSOR cursor_name [ parameter_list ] [ RETURN return_type ]<br>  IS select_statement;</p>
-</li>
-</ol>
-<p><strong>示例:游标声明</strong></p>
-<pre><code>DECLARE
-    CURSOR c1 RETURN product%ROWTYPE;       --声明c1
-
-    CURSOR c2 IS SELECT *  FROM product WHERE productPrice&gt;10;      --声明并定义c2,省略返回类型
-
-
-BEGIN
-    NULL;       --NULL表示跳过此处
-END;</code></pre><ol start="2">
-<li><p>打开游标 对数据集操作，必须先打开游标初始化了游标指针，一旦打开，其结果集都是静态的</p>
-<p>OPEN cursor_name;</p>
-</li>
-</ol>
-<ol start="3">
-<li><p>提取游标，读取数据 该语句检索结果集的当前行，将该行的列值存储到变量或记录中，并将游标指针移动到下一行。一般与循环语句一起使用，使用FETCH时游标属性%ROWCOUNT会不断累加。</p>
-<p>FETCH cursor_name INTO variables;</p>
-</li>
-</ol>
-<ol start="4">
-<li>关闭游标 关闭后无法从结果集中提取记录或引用其属性，如果尝试操作则引发预定义异常INVALID_CURSOR。</li>
-</ol>
-<p>当然你可以重新打开一个已经关闭的游标，在重新打开它之前，你必须关闭显示游标，否则引发CURSOR_ALREADY_OPEN预定义异常。</p>
-<pre><code>CLOSE cursor_name;</code></pre><p><strong>示例：使用LOOP语句提取游标</strong> 获得产品名称和产品价格</p>
-<pre><code>DECLARE
-    v_name product.productName%TYPE;
-    v_price product.productPrice%TYPE;
-    CURSOR cur_nameAndPrice IS SELECT  productName,productPrice FROM product;
-BEGIN
-    OPEN cur_nameAndPrice;
-    LOOP
-        FETCH cur_nameAndPrice INTO v_name,v_price;
-        EXIT WHEN cur_nameAndPrice%NOTFOUND;
-        DBMS_OUTPUT.PUT_LINE(v_name || &apos;----&apos; || v_price);
-    END LOOP;
-    CLOSE cur_nameAndPrice;
-END;</code></pre><h5 id="显式游标的属性"><a href="#显式游标的属性" class="headerlink" title="显式游标的属性"></a>显式游标的属性</h5><p>利用游标属性可以获得游标执行的相关信息。</p>
-<ul>
-<li>%ISOPEN：用于判断游标是否打开，如果已经打开则返回TRUE，否则返回FALSE。</li>
-<li>%FOUND：检测行数据是否有效，有效则返回TRUE，否则返回FALSE</li>
-<li>%NOTFOUND：与%FOUND相反。</li>
-<li>%ROWCOUNT：累积到当前为止，使用FETCH提取数据的行数。</li>
-</ul>
-<p><strong>示例:显式游标属性</strong></p>
-<pre><code>DECLARE
-    v_product product%ROWTYPE;
-    CURSOR cur_product IS SELECT *  FROM product;
-BEGIN
-    OPEN cur_product;                                       --打开游标
-    IF cur_product%ISOPEN THEN                  --判断是否打开游标
-        LOOP                                                        ---循环
-            FETCH cur_product INTO v_product;       ---提取数据
-            IF cur_product%FOUND THEN
-                DBMS_OUTPUT.PUT_LINE(&apos;第&apos; || cur_product%ROWCOUNT || &apos;条数据,产品名称=&apos; || v_product.productName || &apos;,价格=&apos; || v_product.productPrice);
-            ELSE
-                EXIT;                                       --当%FOUND返回FALSE时，说明无数据了，退出循环
-            END IF;
-        END LOOP;
-    END IF;
-    CLOSE cur_product;
-END;</code></pre><h5 id="BULK-COLLECT提取数据"><a href="#BULK-COLLECT提取数据" class="headerlink" title="BULK COLLECT提取数据"></a>BULK COLLECT提取数据</h5><p>通常使用FETCH…INTO…语句提取数据，这种方式是提取单条数据，在数据量大的情况下，执行效率不是很理想。而BULK COLLECT语句可以批量提取数据，在数据量大的情况下，效率会比单条数据高。 <strong>示例：BULK COLLECT提取数据</strong></p>
-<pre><code>DECLARE
-    TYPE proc_tab IS TABLE OF product%ROWTYPE;      --定义索引表
-    v_product proc_tab;                                                     --声明索引表变量
-    CURSOR cur_product IS SELECT *  FROM product;   --声明并定义游标变量
-BEGIN
-    OPEN cur_product;
-
-    LOOP                                                                            --外层LOOP批量提取数据
-        FETCH cur_product BULK COLLECT INTO v_product LIMIT 2;  --批量提取两条数据
-        FOR i IN 1..v_product.count LOOP                                    --内层FOR LOOP对一次批量提取的数据进行循环处理
-            DBMS_OUTPUT.PUT_LINE(&apos;产品ID=&apos; || v_product(i).productId || &apos;，产品名称=&apos; || v_product(i).productName || &apos;,产品价格=&apos; || v_product(i).productPrice);
-        END LOOP;
-        EXIT WHEN cur_product%NOTFOUND;                     --无数据后退出
-    END LOOP;
-
-    CLOSE cur_product;
-END;</code></pre><p>该案例使用索引表来存储每次提取出的数据，LIMIT 表示每次提取2条数据，v_product.count表示获得索引表中的记录数。</p>
-<h5 id="使用CURSOR-FOR-LOOP循环简化游标的读取"><a href="#使用CURSOR-FOR-LOOP循环简化游标的读取" class="headerlink" title="使用CURSOR FOR LOOP循环简化游标的读取"></a>使用CURSOR FOR LOOP循环简化游标的读取</h5><p>使用 CURSOR FOR LOOP的方式，它并不需要特别声明变量。不需要手动打开游标，且自动从集中获取行，处理完成后自动关闭。</p>
-<pre><code>DECLARE
-    CURSOR cur_product  IS SELECT *  FROM product;
-BEGIN
-    FOR prod_record IN cur_product LOOP
-        DBMS_OUTPUT.PUT_LINE(&apos;产品ID=&apos; || prod_record.productId || &apos;，产品名称=&apos; || prod_record.productName || &apos;,产品价格=&apos; || prod_record.productPrice);
-    END LOOP;
-END;</code></pre><p>FOR LOOP循环中的prod_record变量就是自动声明的记录变量，类型为%ROWTYPE。 <strong>注意：</strong>该CURSOR FOR LOOP与循环结构中的FOR LOOP语句是不一样的，所以在循环控制中，关于游标的FOR LOOP没有说，才放到这里解释。</p>
-<h5 id="带参数的游标"><a href="#带参数的游标" class="headerlink" title="带参数的游标"></a>带参数的游标</h5><p>使用显示游标可以指定参数，指定的参数包括参数的顺序和参数的类型。参数可以传递给游标在查询是使用，这样就方便了使用不同条件的查询，也方便了游标在存储过程中使用。 简而言之，如果你学过Java语言或其他语言，那么他就相当于方法差不多的情况，具有形参和实参的说法，定义游标时的形参以及FETCH游标时传递的实参。 <strong>示例：带参数的游标</strong></p>
-<pre><code>DECLARE
-    v_name product.productName%TYPE := &apos;晨光&apos;;    --程序变量
-    v_product product%ROWTYPE;                      ---行记录类型
-    CURSOR cur_product (name VARCHAR2)      ---声明定义带参数的游标
-        IS SELECT *  FROM product WHERE productName LIKE name||&apos;%&apos;;
-BEGIN
-    OPEN cur_product(v_name);                   --添加实参并开启游标
-
-    LOOP
-        FETCH cur_product INTO v_product;   
-        EXIT WHEN cur_product%NOTFOUND;
-        DBMS_OUTPUT.PUT_LINE(&apos;产品ID=&apos; || v_product.productId || &apos;，产品名称=&apos; || v_product.productName || &apos;,产品价格=&apos; || v_product.productPrice);
-    END LOOP;
-
-    CLOSE cur_product;
-END;</code></pre><p>当然可以添加默认值，如果不在开启游标时传递实参的话将使用默认值。 <strong>示例：默认参数</strong></p>
-<pre><code>----游标声明定义处
-CURSOR cur_product (name VARCHAR2 DEFAULT &apos;HUAWEI&apos;)         ---声明定义带参数的游标
-        IS SELECT *  FROM product WHERE productName LIKE name||&apos;%&apos;;
-
-----开启游标处
-OPEN cur_product;</code></pre><p>当然，如果定义时有参数，且没有默认值，而开启游标时不赋予实参，则会发生错误。  </p>
-<h4 id="隐式游标"><a href="#隐式游标" class="headerlink" title="隐式游标"></a>隐式游标</h4><p>每当运行SELECT或DML语句时，PL/SQL会打开一个隐式游标，隐式游标受用户控制，隐式游标与显式游标的不同之处:</p>
-<ul>
-<li>隐式游标由PL/SQL自动管理</li>
-<li>隐式游标的默认名称是SQL</li>
-<li>SELECT或DML操作产生隐式游标</li>
-<li>隐式游标的属性值始终是最新执行的SQL语句</li>
-</ul>
-<p><strong>隐式游标的属性</strong> 虽然与显式游标属性相似，但却有不同之处。</p>
-<ul>
-<li>SQL%ISOPEN属性：总返回FALSE，隐式游标在关联语句运行后总是关闭</li>
-<li>SQL%FOUND属性：是否受到行影响。没有SELECT或DML语句运行则返回NULL，如果SELECT或DML返回影响多行数据则返回TRUE，否则返回FALSE</li>
-<li>SQL%NOTFOUND：当没有受影响行时，返回TRUE，否则返回FALSE；</li>
-<li>SQL%ROWCOUNT：返回受影响的行数</li>
-</ul>
-<ol>
-<li><p><strong>示例:SQL%FOUND</strong></p>
-<p>DECLARE<br>  v_product product%ROWTYPE;<br>BEGIN<br>  SELECT * INTO v_product FROM product WHERE productId=1;<br>  IF SQL%FOUND THEN</p>
-<pre><code>DBMS_OUTPUT.PUT_LINE(&apos;得到受影响行数，受影响行数为&apos; || SQL%ROWCOUNT);</code></pre><p>  ELSE</p>
-<pre><code>DBMS_OUTPUT.PUT_LINE(&apos;未收到行影响&apos;);</code></pre><p>  END IF;<br>END;</p>
-</li>
-</ol>
-<ol start="2">
-<li><strong>SQL%NOTFOUND属性</strong> SQL%NOTFOUND与SQL%FOUND相反。</li>
-</ol>
-<p>但SQL%NOTFOUND属性对PL/SQL SELECT INTO语句无用。因为如果SELECT INTO不返回行会先引发NO_DATA_FOUND预定义异常，然后才能检查SQL%NOTFOUND。而如果只要使用聚合函数总会返回一个值，则SQL%NOTFOUND总是为FALSE。</p>
-<ol start="3">
-<li><strong>SQL%ROWCOUNT</strong> SQL%ROWCOUNT属性的值与事务的状态无关。因此：</li>
-</ol>
-<ul>
-<li><p>当事务回滚到保存点时，值SQL%ROWCOUNT不会恢复到保存点之前的值。</p>
-</li>
-<li><p>当事务结束时，SQL%ROWCOUNT不会恢复到父事务中的原始值。</p>
-<p>CREATE TABLE product_temp AS SELECT *  FROM PRODUCT;</p>
-<p>DECLARE</p>
-<pre><code>v_num number(6) := 5;</code></pre><p>BEGIN</p>
-<pre><code>DELETE FROM product_temp WHERE productId=v_num;
-DBMS_OUTPUT.PUT_LINE(&apos;删除产品数量&apos; || to_char(SQL%ROWCOUNT));
-COMMIT;</code></pre><p>END;</p>
-</li>
-</ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle PLSQL异常处理" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/"
-    >Oracle PL/SQL异常处理</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E5%BC%82%E5%B8%B8%E5%A4%84%E7%90%86/" class="article-date">
-  <time datetime="2018-06-26T13:59:17.000Z" itemprop="datePublished">2018-06-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="PL-SQL异常"><a href="#PL-SQL异常" class="headerlink" title="PL/SQL异常"></a>PL/SQL异常</h3><p>PL/SQL运行过程中可能出现错误，有程序本身原因或者来自法开发人员自定义的数据，而所有的这些错误我们称为异常。 为了使程序更具有健壮性，需要捕获这些异常并进行处理。当异常发生时，程序会调到异常块处，将控制权限交给异常处理程序。 例如一个数除以0时，会导致异常发生，并提示出错误号。而除以0的异常属于Oracle内部定义异常。 <strong>处理异常的语法:</strong></p>
-<pre><code>EXCEPTION
-    WHEN exception1 [OR exception2...] THEN
-        statement...
-    WHEN exception3 [OR exception4...] THEN
-        statement...
-    [WHEN OTHERS THEN statement..]</code></pre><p><strong>语法解释:</strong></p>
-<ul>
-<li>EXCEPTION表示异常块的关键字</li>
-<li>WHEN exception THEN则是用来匹配异常名称，并执行对应的语句</li>
-<li>WHEN OTHERS THEN则表示当其他异常都不匹配时，执行对应的语句</li>
-</ul>
-<p>这个异常代码放在那，在最开始PL/SQL结构中就写了,加上EXCEPTION,通常就是这样的:</p>
-<pre><code>DECLARE
-BEGIN
-EXECEPTION
-END;</code></pre><p>Oracle中的异常分为三类:</p>
-<ul>
-<li>预定义异常</li>
-<li>非预定义异常(官网的说法是<strong>内部定义异常</strong>)</li>
-<li>自定义异常</li>
-</ul>
-<h4 id="预定义异常"><a href="#预定义异常" class="headerlink" title="预定义异常"></a>预定义异常</h4><p>Oracle中为每个错误提供一个错误号，而捕获异常则需要异常有名称。Oracle提供了一些已经定义好名称的常用异常，就是预定义异常。</p>
-<p>Exception</p>
-<p>ORA Error</p>
-<p>Condition</p>
-<p>CASE_NOT_FOUND</p>
-<p>ORA-06592</p>
-<p>case语句中，when子句没有匹配条件，且没有else语句，则触发该异常</p>
-<p>NO_DATA_FOUND</p>
-<p>ORA-01403</p>
-<p>不存在请求的行时出现，当引用引用已删除的元素时，也会触发</p>
-<p>TOO_MANY_ROWS</p>
-<p>ORA-01422</p>
-<p>执行SELECT INTO语句后返回多行时出现</p>
-<p>DUP_VAL_ON_INDEX</p>
-<p>ORA-00001</p>
-<p>试图将重复值插入在唯一索引的列时触发异常</p>
-<p>VALUE_ERROR</p>
-<p>ORA-06502</p>
-<p>赋值时，产生大小错误限制或变量长度不够时，引发异常</p>
-<p>ZERO_DIVIDE</p>
-<p>ORA-01476</p>
-<p>除数为0的时候引发该异常</p>
-<p>STORAGE_ERROR</p>
-<p>ORA-6500</p>
-<p>内存溢出或破坏时引发</p>
-<p>TIMEOUT_ON_RESOURCE</p>
-<p>ORA-00051</p>
-<p>等待资源超时引发该异常</p>
-<p>CURSOR_ALREADY_OPEN</p>
-<p>ORA-06511</p>
-<p>打开一个已经打开的游标引发该异常</p>
-<p>INVALID_CURSOR</p>
-<p>ORA-1001</p>
-<p>执行一个未打开的游标时出现</p>
-<p>ACCESS_INTO_NULL</p>
-<p>ORA-6530</p>
-<p>未初始化对象时</p>
-<p>当然，预定义异常也不止这些，这些只是在开发中比较常用的异常。到Oracle12c为止，一共提供了25中预定义异常。利用下面的语句可查看Oracle的预定义异常。</p>
-<pre><code>SELECT *  FROM DBA_SOURCE WHERE NAME=&apos;STANDARD&apos; AND TEXT LIKE &apos;%EXCEPTION_INIT%&apos;;</code></pre><p><strong>示例:</strong> 就拿除以0的例子.</p>
-<pre><code>DECLARE
-    v_num number(8);
-BEGIN
-    v_num := 20/0;
-EXCEPTION
-    WHEN ZERO_DIVIDE THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;除数为0&apos;);
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;其他异常&apos;);
-END;</code></pre><p>当除数出现0时，程序会马上进入异常捕获部分，当发生的异常和列表中的异常名称匹配成功时，执行对应语句，异常匹配的顺序是从上往下的,所以尽量把合适的异常放在第一位。</p>
-<h4 id="非预定义异常-内部定义异常"><a href="#非预定义异常-内部定义异常" class="headerlink" title="非预定义异常(内部定义异常)"></a>非预定义异常(内部定义异常)</h4><p>Oracle中有很多异常都是非预定义异常。他们只有错误编号和错误描述，而没有名称是不能被异常捕获的。 为了解决该问题，Oralce允许开发人员为这些异常添加一个名称，使它们被异常捕获到。 <strong>注：用户声明名称的内部定义异常仍然是内部定义的异常，而不是用户定义的异常</strong> 为一个非预定义异常定义名称需要如下步骤: 1. 声明一个异常的名称 2. 把名称与异常编号相互关联 <strong>声明部分定义异常名称:</strong></p>
-<pre><code>exception_name EXCEPTION;</code></pre><p>将定义好的异常与错误编号关联起来，需使用如下语句</p>
-<pre><code>PRAGMA EXCEPTION_INIT(exception_name,exception_code)； </code></pre><p><strong>示例:</strong></p>
-<pre><code>DECLARE
-    v_id provider.providerId%TYPE :=456;
-    my_exception EXCEPTION;
-    PRAGMA EXCEPTION_INIT(my_exception, -2291);
-BEGIN
-    UPDATE PRODUCT SET providerId = v_id where productId = 8;
-EXCEPTION
-    WHEN my_exception THEN
-      DBMS_OUTPUT.PUT_LINE(&apos;违反完整约束条件&apos;);
-      DBMS_OUTPUT.PUT_LINE(SQLCODE);
-      DBMS_OUTPUT.PUT_LINE(SQLERRM);
-      ROLLBACK;
-END;</code></pre><p>这样可以捕获异常，可能你会不太清楚SQL CODE是多少，没办法关联。我似乎也没有找到办法。只能在开发时尝试通过SQLCODE函数获得错误号，SQLERRM获得错误信息。</p>
-<h4 id="自定义异常"><a href="#自定义异常" class="headerlink" title="自定义异常"></a>自定义异常</h4><p>通常我们想自己定义异常，来控制自己的业务情况，比如产品数量不为负数，生产日期等，预定义和非预定义都无法捕获。 <strong>语法:</strong></p>
-<pre><code>--声明异常
-exception_name EXCEPTION;
---抛出异常
-RAISE exception_name;</code></pre><p><strong>自定义异常示例:</strong></p>
-<pre><code>DECLARE
-    v_price product.productPrice%TYPE;      ---产品数量
-    my_price_excep EXCEPTION;
-BEGIN
-    select productPrice INTO v_price FROM product WHERE productId=1;
-    IF v_price&lt;=0 THEN
-        RAISE my_price_excep;
-    END IF;
-EXCEPTION
-    WHEN my_price_excep THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;价格不正确，需大于0&apos;);
-    WHEN OTHERS THEN
-        DBMS_OUTPUT.PUT_LINE(&apos;出现其他错误&apos;);
-END;</code></pre><p>该例子看起来似乎没有什么意义，只是介绍如何使用。</p>
-<h4 id="重新定义错误消息"><a href="#重新定义错误消息" class="headerlink" title="重新定义错误消息"></a>重新定义错误消息</h4><p>RAISE_EXCEPTION_ERROR存储过程可以重新定义异常错误信息。用于抛出一个异常并给异常赋予一个错误号以及错误信息。</p>
-<pre><code>RAISE_EXCEPTION_ERROR(error_number,error_message[,&#123; TRUE | FALSE &#125;]);</code></pre><p>错误号的范围是-20,000到-20,999。错误信息是文本字符串，最多为2048字节。 TRUE和FALSE表示是添加(TRUE)进错误堆(ERROR STACK)还是覆盖(overwrite)错误堆(FALSE)。缺省情况下是FALSE。 <strong>示例:</strong></p>
-<pre><code>DECLARE
-    v_num number(8);
-BEGIN
-    v_num := 20;
-  IF v_num&gt;10 THEN
-    raise_application_error(-20000,&apos;错误&apos;);
-  END IF;
-END;</code></pre>
       
       <!-- reward -->
       

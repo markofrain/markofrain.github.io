@@ -78,6 +78,363 @@
     
     
     
+    <article id="post-中间件/Apereo-CAS-Server-Client授权登录" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/23/%E4%B8%AD%E9%97%B4%E4%BB%B6/Apereo-CAS-Server-Client%E6%8E%88%E6%9D%83%E7%99%BB%E5%BD%95/"
+    >Apereo CAS Server-Client授权登录</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/23/%E4%B8%AD%E9%97%B4%E4%BB%B6/Apereo-CAS-Server-Client%E6%8E%88%E6%9D%83%E7%99%BB%E5%BD%95/" class="article-date">
+  <time datetime="2021-04-23T04:00:00.000Z" itemprop="datePublished">2021-04-23</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SSO/">SSO</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="一、CAS-Server-模板启动基础使用"><a href="#一、CAS-Server-模板启动基础使用" class="headerlink" title="一、CAS Server 模板启动基础使用"></a>一、CAS Server 模板启动基础使用</h2><p>从github下载opereo的<strong><a target="_blank" rel="noopener" href="https://github.com/apereo/cas-overlay-template/tree/5.3">cas-overlay-template</a></strong>，这里下载的是5.3版本的。下载的名是cas-overlay-template-5.3，此处进入根目录，直接执行<code>mvn clean package</code>命令进行打包，然后在target目录下会生成cas.war文件，将cas.war文件放到tomcat的webapps目录下即可。启动tomcat。</p>
+<p>访问<code>http://localhost:8080/cas</code>是跳转到<code>http://localhost:8080/cas/login</code>页面</p>
+<h3 id="支持http-配置修改"><a href="#支持http-配置修改" class="headerlink" title="支持http 配置修改"></a>支持http 配置修改</h3><p>因为CAS默认使用https，没有添加http的配置，因此改一下配置支持http</p>
+<p>进入<code>\WEB-INF\classes\application.properties</code></p>
+<p>修改增加如下</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 新增</span></span><br><span class="line"><span class="meta">cas.tgc.secure</span>=<span class="string">false</span></span><br><span class="line"><span class="comment"># 新增 引入services下的json注册文件</span></span><br><span class="line"><span class="meta">cas.serviceRegistry.initFromJson</span>=<span class="string">true</span></span><br><span class="line"><span class="comment"># 修改默认的用户名密码</span></span><br><span class="line"><span class="meta">cas.authn.accept.users</span>=<span class="string">admin::admin</span></span><br></pre></td></tr></table></figure>
+
+<p>修改<code>\WEB-INF\classes\services\HTTPSandIMAPS-10000001.json</code>文件，修改如下，增加http</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;@class&quot;</span> : <span class="string">&quot;org.apereo.cas.services.RegexRegisteredService&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;serviceId&quot;</span> : <span class="string">&quot;^(https|imaps|http)://.*&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;name&quot;</span> : <span class="string">&quot;HTTPS and IMAPS&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;id&quot;</span> : <span class="number">10000001</span>,</span><br><span class="line">  <span class="attr">&quot;description&quot;</span> : <span class="string">&quot;This service definition authorizes all application urls that support HTTPS and IMAPS protocols.&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;evaluationOrder&quot;</span> : <span class="number">10000</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后重新启动tomcat容器。此时再次通过admin/admin登录成功</p>
+<h3 id="添加客户端测试"><a href="#添加客户端测试" class="headerlink" title="添加客户端测试"></a>添加客户端测试</h3><p>创建一个SpringBoot项目，添加依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>net.unicon.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-client-autoconfig-support<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.2.0-GA<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>application.yml中进行如下配置</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">9000</span></span><br><span class="line"><span class="attr">cas:</span></span><br><span class="line">  <span class="comment"># cas登录地址</span></span><br><span class="line">  <span class="attr">server-login-url:</span> <span class="string">http://localhost:8080/cas/login</span></span><br><span class="line">  <span class="comment"># cas server全追</span></span><br><span class="line">  <span class="attr">server-url-prefix:</span> <span class="string">http://localhost:8080/cas</span></span><br><span class="line">  <span class="comment"># 客户端地址</span></span><br><span class="line">  <span class="attr">client-host-url:</span> <span class="string">http://localhost:9000</span></span><br><span class="line">  <span class="comment"># Ticket校验器</span></span><br><span class="line">  <span class="attr">validation-type:</span> <span class="string">cas</span></span><br><span class="line">  <span class="comment"># 是否使用session</span></span><br><span class="line">  <span class="attr">use-session:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>添加测试controller</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RestController</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">TestController</span> </span>&#123;</span><br><span class="line">    <span class="meta">@GetMapping(&quot;test&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">casTest</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;cas test&quot;</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<ol>
+<li>访问<code>localhost:9000/test</code>将会重定向到<code>http://localhost:8080/cas/login?service=http%3A%2F%2Flocalhost%3A9001%2Ftest</code>地址，也就是cas登录地址</li>
+</ol>
+<p><img src="https://oss.chenguangqi.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210424013624.png" alt=""></p>
+<ol start="2">
+<li>随后浏览器就通过重定向拿到Location的地址进行请求，于是就到了这个登录页面，如下</li>
+</ol>
+<p><img src="https://oss.chenguangqi.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210424013743.png" alt=""></p>
+<ol start="3">
+<li>在页面中通过POST接口来请求，传递用户名密码和execution参数到后台，这个登录请求也返回了302重定向到一个新地址，这个要重定向的地址就是我们的回调地址，后面添加了ticket参数</li>
+</ol>
+<p><img src="https://oss.chenguangqi.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210424013948.png" alt=""></p>
+<ol start="4">
+<li>之后就请求这个这个地址了。</li>
+</ol>
+<p><img src="https://oss.chenguangqi.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210424014241.png" alt=""></p>
+<ol start="5">
+<li>可想而知，结果又是重定向，此时重定向的结果是回调地址，并设置了cookie，便正常返回结果了。</li>
+</ol>
+<p><img src="https://oss.chenguangqi.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210424014433.png" alt=""></p>
+<p>此时再创建client2并启动不用登陆。</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_20397315/article/details/93877221">CAS服务端搭建和结合Springboot搭建CAS客户端验证单点登录</a></p>
+<p>CAS 流程分析：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_41258204/article/details/84036875">CAS单点登录原理分析</a></p>
+</blockquote>
+<h2 id="二、CAS-Server-改造-CasConfigurationProperties"><a href="#二、CAS-Server-改造-CasConfigurationProperties" class="headerlink" title="二、CAS Server 改造 CasConfigurationProperties"></a>二、CAS Server 改造 CasConfigurationProperties</h2><h3 id="CAS-Server-环境搭建"><a href="#CAS-Server-环境搭建" class="headerlink" title="CAS Server 环境搭建"></a>CAS Server 环境搭建</h3><p>新建一个普通maven项目，而不是springboot项目。</p>
+<p><strong>搭建项目中，如果包含父项目，则一定不要给该项目springboot-parent的依赖，尽量没有parent。因为如果添加了spring-boot-parent依赖，在项目中spring.factories是无法被springboot解析的，导致自定义登录逻辑注册失败</strong></p>
+<p>我们修改pom文件，大致如下</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.cgq<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">packaging</span>&gt;</span>war<span class="tag">&lt;/<span class="name">packaging</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">maven.compiler.source</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.source</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">maven.compiler.target</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.target</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">cas.version</span>&gt;</span>5.3.10<span class="tag">&lt;/<span class="name">cas.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">app.server</span>&gt;</span>-tomcat<span class="tag">&lt;/<span class="name">app.server</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">springboot.version</span>&gt;</span>2.1.10.RELEASE<span class="tag">&lt;/<span class="name">springboot.version</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">mainClassName</span>&gt;</span>org.springframework.boot.loader.WarLauncher<span class="tag">&lt;/<span class="name">mainClassName</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">isExecutable</span>&gt;</span>false<span class="tag">&lt;/<span class="name">isExecutable</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">manifestFileToUse</span>&gt;</span></span><br><span class="line">        $&#123;project.build.directory&#125;/war/work/org.apereo.cas/cas-server-webapp$&#123;app.server&#125;/META-INF/MANIFEST.MF</span><br><span class="line">    <span class="tag">&lt;/<span class="name">manifestFileToUse</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 和maven-war-plugin里配置的overlays配合使用 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-webapp$&#123;app.server&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;cas.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">type</span>&gt;</span>war<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">scope</span>&gt;</span>runtime<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-core-configuration<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;cas.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-core-authentication<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;cas.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-core-authentication-api<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;cas.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 自己需要的jar包，我这里用到了查库验证身份，所以引入了mysql --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>8.0.22<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;springboot.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">mainClass</span>&gt;</span>$&#123;mainClassName&#125;<span class="tag">&lt;/<span class="name">mainClass</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">addResources</span>&gt;</span>true<span class="tag">&lt;/<span class="name">addResources</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">executable</span>&gt;</span>$&#123;isExecutable&#125;<span class="tag">&lt;/<span class="name">executable</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">layout</span>&gt;</span>WAR<span class="tag">&lt;/<span class="name">layout</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">goal</span>&gt;</span>repackage<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-war-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">warName</span>&gt;</span>cas<span class="tag">&lt;/<span class="name">warName</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">failOnMissingWebXml</span>&gt;</span>false<span class="tag">&lt;/<span class="name">failOnMissingWebXml</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">recompressZippedFiles</span>&gt;</span>false<span class="tag">&lt;/<span class="name">recompressZippedFiles</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">archive</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">compress</span>&gt;</span>false<span class="tag">&lt;/<span class="name">compress</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">manifestFile</span>&gt;</span>$&#123;manifestFileToUse&#125;<span class="tag">&lt;/<span class="name">manifestFile</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">archive</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">overlays</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">overlay</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-webapp$&#123;app.server&#125;<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                        <span class="comment">&lt;!--原有的服务不再初始化进去--&gt;</span></span><br><span class="line">                        <span class="comment">&lt;!--&lt;excludes&gt;</span></span><br><span class="line"><span class="comment">                                &lt;exclude&gt;WEB-INF/classes/services/*&lt;/exclude&gt;</span></span><br><span class="line"><span class="comment">                                &lt;exclude&gt;WEB-INF/classes/application.*&lt;/exclude&gt;</span></span><br><span class="line"><span class="comment">                            &lt;/excludes&gt;--&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">overlay</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">overlays</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.maven.plugins<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>maven-compiler-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">finalName</span>&gt;</span>cas<span class="tag">&lt;/<span class="name">finalName</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>该配置文件基本上就是拷贝cas-overlay-template的pom中的</p>
+<p>overlays的用处是，在打包的时候，框架会在这个war包的基础上，把该项目自己写的类加入到这个依赖中，位置重复的就会覆盖。</p>
+<p>此处没有粘贴仓库配置，给定的仓库是很慢的，aliyun仓库中都有，直接使用就行。</p>
+<p>项目依然使用tomcat来启动。在IDEA中添加一个Local tomcat配置，设置applicationContext为/cas，修改war exploded的 Output directory地址为<code>\target\cas</code>。</p>
+<p>在cas-overlay-template项目或刚创建的项目打包后，在项目根目录下会出现overlays目录，是overlays的解析出来的。</p>
+<p>我们从里面找<code>\WEB-INF\classes</code>下的<code>application.properties</code>、<code>log4j2.xml</code>以及<code>META-INF\spring.factories</code>这三个文件到我们新建项目的resources下</p>
+<p><img src="https://oss.chenguangqi.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210424020425.png" alt=""></p>
+<p>我们修改application.properties文件的<code>cas.authn.accept.users=admin::admin</code>，启动tomcat，进行测试。</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/u010588262/article/details/79741626">手把手教Apereo CAS5.2.3服务端Server的开发环境</a></p>
+</blockquote>
+<h3 id="自定义登录验证"><a href="#自定义登录验证" class="headerlink" title="自定义登录验证"></a>自定义登录验证</h3><p>创建一个登录验证类，并进行注册。</p>
+<h4 id="创建登录验证类"><a href="#创建登录验证类" class="headerlink" title="创建登录验证类"></a>创建登录验证类</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 集成AuthenticationHandler处理认证</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> cgq</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2021/4/23</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Login</span> <span class="keyword">extends</span> <span class="title">AbstractUsernamePasswordAuthenticationHandler</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger logger = LoggerFactory.getLogger(Login.class);</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">Login</span><span class="params">(String name, ServicesManager servicesManager, PrincipalFactory principalFactory, Integer order)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(name, servicesManager, principalFactory, order);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> AuthenticationHandlerExecutionResult <span class="title">authenticateUsernamePasswordInternal</span><span class="params">(UsernamePasswordCredential credential, String originalPassword)</span> <span class="keyword">throws</span> GeneralSecurityException, PreventedException </span>&#123;</span><br><span class="line">        DriverManagerDataSource d=<span class="keyword">new</span> DriverManagerDataSource();</span><br><span class="line">        d.setDriverClassName(<span class="string">&quot;com.mysql.jdbc.Driver&quot;</span>);</span><br><span class="line">        d.setUrl(<span class="string">&quot;jdbc:mysql://127.0.0.1:3306/cas?serverTimezone=UTC&amp;characterEncoding=utf-8&quot;</span>);</span><br><span class="line">        d.setUsername(<span class="string">&quot;root&quot;</span>);</span><br><span class="line">        d.setPassword(<span class="string">&quot;root&quot;</span>);</span><br><span class="line">        JdbcTemplate template=<span class="keyword">new</span> JdbcTemplate();</span><br><span class="line">        template.setDataSource(d);</span><br><span class="line">        String username=credential.getUsername();</span><br><span class="line">        String pd=credential.getPassword();</span><br><span class="line">        <span class="comment">//查询数据库加密的的密码</span></span><br><span class="line">        Map&lt;String,Object&gt; user = template.queryForMap(<span class="string">&quot;SELECT `password` FROM sys_user WHERE username = ?&quot;</span>, credential.getUsername());</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span>(user==<span class="keyword">null</span>)&#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> FailedLoginException(<span class="string">&quot;没有该用户&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="comment">//返回多属性（暂时不知道怎么用，没研究）</span></span><br><span class="line">        Map&lt;String, Object&gt; map=<span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">        map.put(<span class="string">&quot;email&quot;</span>, <span class="string">&quot;XXXXX@qq.com&quot;</span>);</span><br><span class="line"></span><br><span class="line">        BCryptPasswordEncoder encoder = <span class="keyword">new</span> BCryptPasswordEncoder();</span><br><span class="line">        <span class="keyword">if</span>(encoder.matches(credential.getPassword(),user.get(<span class="string">&quot;password&quot;</span>).toString()))&#123;</span><br><span class="line">            <span class="keyword">return</span> createHandlerResult(credential, principalFactory.createPrincipal(username, map), <span class="keyword">new</span> ArrayList&lt;&gt;());</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">throw</span> <span class="keyword">new</span> FailedLoginException(<span class="string">&quot;Sorry, login attemp failed.&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在authenticateUsernamePasswordInternal方法里，我们通过spring自带的数据库查询工具进行查询，实际上这个里面可以通过拿到用户名和密码做任何操作。</p>
+<h4 id="创建配置类，通过spring-factories进行注入"><a href="#创建配置类，通过spring-factories进行注入" class="headerlink" title="创建配置类，通过spring.factories进行注入"></a>创建配置类，通过spring.factories进行注入</h4><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 登录验证配置类，创建的自定义认证类进行注册，并添加到spring.factories</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> cgq</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2021/4/23</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">@Configuration(&quot;CustomAuthConfig&quot;)</span></span><br><span class="line"><span class="meta">@EnableConfigurationProperties(CasConfigurationProperties.class)</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CustomAuthConfig</span>  <span class="keyword">implements</span> <span class="title">AuthenticationEventExecutionPlanConfigurer</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> CasConfigurationProperties casProperties;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="meta">@Qualifier(&quot;servicesManager&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> ServicesManager servicesManager;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> AuthenticationHandler <span class="title">myAuthenticationHandler</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> Login handler = <span class="keyword">new</span> Login(Login.class.getSimpleName(), servicesManager, <span class="keyword">new</span> DefaultPrincipalFactory(), <span class="number">1</span>);</span><br><span class="line">        <span class="keyword">return</span> handler;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureAuthenticationExecutionPlan</span><span class="params">(AuthenticationEventExecutionPlan plan)</span> </span>&#123;</span><br><span class="line">        plan.registerAuthenticationHandler(myAuthenticationHandler());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此处注入的AuthenticationHandler的最后一个参数是order，我们将它设为第一个。</p>
+<p>同时在<code>META-INF\spring.factories</code>中修改EnableAutoConfiguration如下</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">org.springframework.boot.autoconfigure.EnableAutoConfiguration</span>=<span class="string">com.cgq.cas.CustomAuthConfig</span></span><br></pre></td></tr></table></figure>
+
+<p>并修改<code>application.properties</code>中的<code>cas.authn.accept.users</code>注释掉。</p>
+<p>通过重启容器，会看到登录时进入到了定义的Login类中。</p>
+<p>通过<code>PolicyBasedAuthenticationManager</code>类的AuthenticationBuilder方法，可以看到it变量就是所有注入进去的AuthenticationHandler。默认走的验证是继承自AbstractUsernamePasswordAuthenticationHandler类的AcceptUsersAuthenticationHandler类。</p>
+<p>如果没有进入，则排序一下是否解析了<code>spring.factories</code>。如果该项目直接或间接的配置了parent为<code>spring-boot-parent</code>则可能导致失败。</p>
+<blockquote>
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/u010588262/article/details/79757609">手把手教Apereo CAS5.2.3服务端 查数据库验证身份</a></p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34021712/article/details/81144874">cas5.3.2单点登录-自定义登录验证(四)</a></p>
+</blockquote>
+<h3 id="通过数据库进行身份验证"><a href="#通过数据库进行身份验证" class="headerlink" title="通过数据库进行身份验证"></a>通过数据库进行身份验证</h3><p>添加依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-support-jdbc<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;cas.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-support-jdbc-drivers<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;cas.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>mysql<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>mysql-connector-java<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.1.36<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>将<code>cas.authn.accept.users</code>注释掉。</p>
+<p>在application.properties中添加如下字段</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#添加jdbc认证</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].sql</span>=<span class="string">SELECT * FROM sys_user WHERE username =?</span></span><br><span class="line"><span class="comment">#那一个字段作为密码字段</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].fieldPassword</span>=<span class="string">password</span></span><br><span class="line"><span class="comment">#配置数据库连接</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].url</span>=<span class="string">jdbc:mysql://127.0.0.1:3306/cas?useUnicode=true&amp;serverTimezone=Asia/Shanghai&amp;characterEncoding=UTF-8&amp;autoReconnect=true&amp;useSSL=false</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].dialect</span>=<span class="string">org.hibernate.dialect.MySQLDialect</span></span><br><span class="line"><span class="comment">#数据库用户名</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].user</span>=<span class="string">root</span></span><br><span class="line"><span class="comment">#数据库密码</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].password</span>=<span class="string">root</span></span><br><span class="line"><span class="comment">#mysql驱动</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].driverClass</span>=<span class="string">com.mysql.jdbc.Driver</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#配置加密策略 如果数据库密码使用了passwordEncoder加密MD5方式的话</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].passwordEncoder.type</span>=<span class="string">DEFAULT</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].passwordEncoder.characterEncoding</span>=<span class="string">UTF-8</span></span><br><span class="line"><span class="meta">cas.authn.jdbc.query[0].passwordEncoder.encodingAlgorithm</span>=<span class="string">MD5</span></span><br></pre></td></tr></table></figure>
+
+<p>配置完成后，先去除在<code>spring.factories</code>对刚自定义验证类的注入。使用AcceptUsersAuthenticationHandler类进行验证。</p>
+<p>重启容器后就可以看到已经可以通过数据库用户名密码进行登录了。</p>
+<p>然而对于配置cas jdbc和自定义验证登录的话，建议选择自定义验证登录，并在自定义中进行数据库的验证操作，避免jdbc的不确定性，以及问题排查不友好的情况。</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34021712/article/details/80956047">cas5.3.2单点登录-JDBC认证(密码MD5和密码加盐)(二)</a></p>
+</blockquote>
+<h2 id="三、客户端验证配置"><a href="#三、客户端验证配置" class="headerlink" title="三、客户端验证配置"></a>三、客户端验证配置</h2><h3 id="验证现有认证是否满足"><a href="#验证现有认证是否满足" class="headerlink" title="验证现有认证是否满足"></a>验证现有认证是否满足</h3><p>客户端仍然以章节一的客户端测试。</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">9001</span></span><br><span class="line"><span class="attr">cas:</span></span><br><span class="line">  <span class="comment"># cas登录地址</span></span><br><span class="line">  <span class="attr">server-login-url:</span> <span class="string">http://localhost:8080/cas/login</span></span><br><span class="line">  <span class="comment"># cas server全追</span></span><br><span class="line">  <span class="attr">server-url-prefix:</span> <span class="string">http://localhost:8080/cas</span></span><br><span class="line">  <span class="comment"># 客户端地址</span></span><br><span class="line">  <span class="attr">client-host-url:</span> <span class="string">http://localhost:9001</span></span><br><span class="line">  <span class="comment"># Ticket校验器</span></span><br><span class="line">  <span class="attr">validation-type:</span> <span class="string">cas</span></span><br><span class="line">  <span class="attr">use-session:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>以上是原来的配置文件。我们进行如下修改。</p>
+<p>为server、client1、client2配置对应的域名控制，模拟不同域名访问。使用SwatchHosts!工具或直接在<code>C:\Windows\System32\drivers\etc\hosts</code>处增加ip域名映射</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"># My hosts</span><br><span class="line">127.0.0.1 www.cgq-server.com</span><br><span class="line">127.0.0.1 www.cgq-client1.com</span><br><span class="line">127.0.0.1 www.cgq-client2.com</span><br></pre></td></tr></table></figure>
+
+<p>然后我们修改配置文件如下</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">9001</span></span><br><span class="line"><span class="attr">cas:</span></span><br><span class="line">  <span class="attr">server-login-url:</span> <span class="string">http://www.cgq-server.com:8080/cas/login</span></span><br><span class="line">  <span class="attr">server-url-prefix:</span> <span class="string">http://www.cgq-server.com:8080/cas</span></span><br><span class="line">  <span class="attr">client-host-url:</span> <span class="string">http://www.cgq-client2.com:9001</span></span><br><span class="line">  <span class="attr">validation-type:</span> <span class="string">cas</span></span><br><span class="line">  <span class="attr">use-session:</span> <span class="literal">true</span></span><br></pre></td></tr></table></figure>
+
+<p>启动client后再次访问<code>www.cgq-client2.com:9001/test</code>出现如下页面，跟之前的提示不一样了</p>
+<p><img src="https://oss.chenguangqi.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210424134642.png" alt=""></p>
+<p>它的请求过程如下:</p>
+<ol>
+<li>客户端访问地址后，会重定向到登录接口的。</li>
+<li>因为未服务端未检测到客户端的定义记录，则直接被拒绝</li>
+</ol>
+<p>同时服务端会提示如下日志，表示找不到匹配的注册服务</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">2021-04-24 13:48:23,574 WARN [org.apereo.cas.web.flow.ServiceAuthorizationCheck] - &lt;No service definitions are found in the service manager. Service [http:&#x2F;&#x2F;www.cgq-client2.com:9001&#x2F;test] will not be automatically authorized to request authentication.&gt;</span><br><span class="line"></span><br><span class="line">2021-04-24 13:48:23,575 WARN [org.apereo.cas.services.web.RegisteredServiceThemeResolver] - &lt;No registered service is found to match [AbstractWebApplicationService(id&#x3D;http:&#x2F;&#x2F;www.cgq-client2.com:9001&#x2F;test, originalUrl&#x3D;http:&#x2F;&#x2F;www.cgq-client2.com:9001&#x2F;test, artifactId&#x3D;null, principal&#x3D;null, source&#x3D;service, loggedOutAlready&#x3D;false, format&#x3D;XML, attributes&#x3D;&#123;&#125;)] or access is denied. Using default theme [cas-theme-default]&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="设置服务端配置"><a href="#设置服务端配置" class="headerlink" title="设置服务端配置"></a>设置服务端配置</h3><ol>
+<li>添加application.properties配置</li>
+</ol>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#开启识别json文件，默认false</span></span><br><span class="line"><span class="meta">cas.serviceRegistry.initFromJson</span>=<span class="string">true</span></span><br><span class="line"><span class="comment">#自动扫描服务配置，默认开启</span></span><br><span class="line"><span class="meta">cas.serviceRegistry.watcherEnabled</span>=<span class="string">true</span></span><br><span class="line"><span class="comment">#120秒扫描一遍,默认PT2M</span></span><br><span class="line"><span class="meta">cas.serviceRegistry.schedule.repeatInterval</span>=<span class="string">120000</span></span><br><span class="line"><span class="comment">#延迟15秒开启,默认PT15S</span></span><br><span class="line"><span class="comment">#cas.serviceRegistry.schedule.startDelay=15000</span></span><br><span class="line"><span class="comment">#资源加载路径,默认就是services</span></span><br><span class="line"><span class="meta">cas.serviceRegistry.json.location</span>=<span class="string">classpath:/services</span></span><br></pre></td></tr></table></figure>
+
+<p>查看CasConfigurationProperties配置类，不同版本的属性各有变动，如果配置不对，项目启动不起来</p>
+<ol start="2">
+<li>从overlays中拷贝services目录到resources下，新建一个相同格式不同id的json文件<code>&#123;name&#125;-&#123;id&#125;.json</code>。注意要删除HTTPSandIMAPS-10000001.json，因为它定义了所有https和imaps的协议。咱目前是http的可暂时不用关心。</li>
+</ol>
+<p>拷贝Apereo-10000002.json内容，定义新文件内容为</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;@class&quot;</span> : <span class="string">&quot;org.apereo.cas.services.RegexRegisteredService&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;serviceId&quot;</span> : <span class="string">&quot;^http://www.cgq-client.*&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;name&quot;</span> : <span class="string">&quot;client服务&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;theme&quot;</span> : <span class="string">&quot;apereo&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;id&quot;</span> : <span class="number">10000003</span>,</span><br><span class="line">  <span class="attr">&quot;description&quot;</span> : <span class="string">&quot;本地client服务&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;evaluationOrder&quot;</span> : <span class="number">1</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>然后我们启动服务，会发现日只有如下打印</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">2021-04-24 14:44:30,091 INFO [org.apereo.cas.services.ServiceRegistryInitializer] - &lt;Service registry [InMemoryServiceRegistry] contains [3] service definitions&gt;</span><br><span class="line"></span><br><span class="line">2021-04-24 14:44:30,095 WARN [org.apereo.cas.services.ServiceRegistryInitializer] - &lt;Service registry [InMemoryServiceRegistry] will be auto-initialized from JSON service definitions. This behavior is only useful for testing purposes and MAY NOT be appropriate for production. Consider turning off this behavior via the setting [cas.serviceRegistry.initFromJson&#x3D;false] and explicitly register definitions in the services registry.&gt;</span><br><span class="line"></span><br><span class="line">2021-04-24 14:44:30,098 WARN [org.apereo.cas.services.ServiceRegistryInitializer] - &lt;Skipping [Apereo] JSON service definition as a matching service [Apereo] is found in the registry&gt;</span><br><span class="line"></span><br><span class="line">2021-04-24 14:44:30,098 WARN [org.apereo.cas.services.ServiceRegistryInitializer] - &lt;Skipping [client服务] JSON service definition as a matching service [client服务] is found in the registry&gt;</span><br><span class="line"></span><br><span class="line">2021-04-24 14:44:30,098 WARN [org.apereo.cas.services.ServiceRegistryInitializer] - &lt;Skipping [HTTPS and IMAPS] JSON service definition as a matching service [HTTPS and IMAPS] is found in the registry&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>我们再次访问<code>www.cgq-client2.com/test</code>条件即可到正常登录页面</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34021712/article/details/81318649">cas5.3.2单点登录-集成客户端(六)</a></p>
+</blockquote>
+<h3 id="过滤不需要登录的路径"><a href="#过滤不需要登录的路径" class="headerlink" title="过滤不需要登录的路径"></a>过滤不需要登录的路径</h3><p>通过查看参考文章，发现创建手动的starter并不一定灵活，因为有一堆东西还要设置，如果有高度配置灵活的可以参考这个自定义starter。</p>
+<p>我们现在只需要对其拓展即可。从源码中我们可以发现主要的CasClientConfiguration类中注入了CasClientConfigurer类，它的提供了空的实现类CasClientConfigurerAdapter在CasClientConfiguration配置类中进行拓展，我们可以继承空CasClientConfigurerAdapter类来实现这几个方法。</p>
+<p>我们在client2中，创建类继承它</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyCasClientConfigurerAdapter</span> <span class="keyword">extends</span> <span class="title">CasClientConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">MyCasClientConfigurerAdapter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 配置认证过滤器相关信息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> authenticationFilter</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureAuthenticationFilter</span><span class="params">(FilterRegistrationBean authenticationFilter)</span> </span>&#123;</span><br><span class="line">        Map&lt;String,String&gt; map = authenticationFilter.getInitParameters();</span><br><span class="line">        map.put(<span class="string">&quot;ignorePattern&quot;</span>,<span class="string">&quot;/test|/test/mvn&quot;</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 配置校验相关信息</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> validationFilter</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureValidationFilter</span><span class="params">(FilterRegistrationBean validationFilter)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 对HttpServletRequestWrapper的一些国战</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> httpServletRequestWrapperFilter</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureHttpServletRequestWrapperFilter</span><span class="params">(FilterRegistrationBean httpServletRequestWrapperFilter)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.configureHttpServletRequestWrapperFilter(httpServletRequestWrapperFilter);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * casAssertionThreadLocalFilter</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> assertionThreadLocalFilter</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configureAssertionThreadLocalFilter</span><span class="params">(FilterRegistrationBean assertionThreadLocalFilter)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>.configureAssertionThreadLocalFilter(assertionThreadLocalFilter);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此处，<strong>ignorePattern</strong>属性用于忽略路径，因此默认是政策表达式判断规则，所以使用“|”符号进行分割，我们在做成从配置文件获取时。</p>
+<p>参考文中还提到使用<strong>ignoreUrlPatternType</strong>属性来通过规则过滤路径，该参数值是一个策略类的完全限定名。用于解析ignorePattern属性值是否匹配的。</p>
+<h4 id="规则匹配策略类"><a href="#规则匹配策略类" class="headerlink" title="规则匹配策略类"></a>规则匹配策略类</h4><p>它是cas-client-core包提供的一个接口UrlPatternMatcherStrategy，下面有3个实现类，分别为ExactUrlPatternMatcherStrategy全等策略、ContainsPatternUrlPatternMatcherStrategy包含策略、RegexUrlPatternMatcherStrategy正则表达式策略。</p>
+<p>我们完全可以自己实现这个接口，参考文中在第10、11章继承了第9章自己写的starter可以看到。</p>
+<p>ignorePattern属性是setPattern实现方法的参数表示规则，</p>
+<p>而matches实现方法的url是所有请求的路径，它的值是回调地址，如<code>http://www.cgq-client2.com:9001/inMemory</code>，所以可能需要进行对相对路径进行过滤。</p>
+<p>默认使用正则表达式进行。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> <span class="class"><span class="keyword">class</span> <span class="title">RegexUrlPatternMatcherStrategy</span> <span class="keyword">implements</span> <span class="title">UrlPatternMatcherStrategy</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> Pattern pattern;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RegexUrlPatternMatcherStrategy</span><span class="params">()</span> </span>&#123;&#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">RegexUrlPatternMatcherStrategy</span><span class="params">(<span class="keyword">final</span> String pattern)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.setPattern(pattern);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 此处url为回调地址</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">matches</span><span class="params">(<span class="keyword">final</span> String url)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.pattern.matcher(url).find();</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="comment">// 此处为配置的ignorePattern属性值</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setPattern</span><span class="params">(<span class="keyword">final</span> String pattern)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.pattern = Pattern.compile(pattern);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>关于其他的属性通过CasClientConfigurerAdapter往深入找都能找到。例如在<code>ConfigurationKeys</code>接口类中配置了所有的默认常量值，包括ignorePattern(null)和ignoreUrlPatternType(REGEX)</p>
+<p>关键类ConfigurationKeys、AuthenticationFilter</p>
+<blockquote>
+<p>](<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34021712/article/details/81486699">https://blog.csdn.net/qq_34021712/article/details/81486699</a>)</p>
+</blockquote>
+<h3 id="登出CAS"><a href="#登出CAS" class="headerlink" title="登出CAS"></a>登出CAS</h3><p>这个是默认的登出，实际上会默认跳转到登出页面，若不设置重定向则默认是空白</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 登出</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> cgq</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2021/4/24</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="meta">@GetMapping(&quot;logout&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logout</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">    HttpSession session = request.getSession();</span><br><span class="line">    session.invalidate();</span><br><span class="line">    System.out.println(<span class="string">&quot;登出系统&quot;</span>);</span><br><span class="line">    <span class="comment">// 跳转到登出页面</span></span><br><span class="line">    response.sendRedirect(<span class="string">&quot;http://www.cgq-server.com:8080/cas/logout&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="跳转到指定页面"><a href="#跳转到指定页面" class="headerlink" title="跳转到指定页面"></a>跳转到指定页面</h4><p>以下是cas提供的登出配置</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#配置单点登出</span></span><br><span class="line"><span class="comment">#配置允许登出后跳转到指定页面</span></span><br><span class="line"><span class="meta">cas.logout.followServiceRedirects</span>=<span class="string">false</span></span><br><span class="line"><span class="comment">#跳转到指定页面需要的参数名为 service</span></span><br><span class="line"><span class="meta">cas.logout.redirectParameter</span>=<span class="string">service</span></span><br><span class="line"><span class="comment">#登出后需要跳转到的地址,如果配置该参数,service将无效。</span></span><br><span class="line"><span class="meta">cas.logout.redirectUrl</span>=<span class="string">https://www.taobao.com</span></span><br><span class="line"><span class="comment">#在退出时是否需要 确认退出提示   true弹出确认提示框  false直接退出</span></span><br><span class="line"><span class="meta">cas.logout.confirmLogout</span>=<span class="string">true</span></span><br><span class="line"><span class="comment">#是否移除子系统的票据</span></span><br><span class="line"><span class="meta">cas.logout.removeDescendantTickets</span>=<span class="string">true</span></span><br><span class="line"><span class="comment">#禁用单点登出,默认是false不禁止</span></span><br><span class="line"><span class="comment">#cas.slo.disabled=true</span></span><br><span class="line"><span class="comment">#默认异步通知客户端,清除session</span></span><br><span class="line"><span class="comment">#cas.slo.asynchronous=true</span></span><br></pre></td></tr></table></figure>
+
+<p>我们在server端配置以下信息</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#配置允许登出后跳转到指定页面</span></span><br><span class="line"><span class="meta">cas.logout.followServiceRedirects</span>=<span class="string">true</span></span><br><span class="line"><span class="comment">#跳转到指定页面需要的参数名为 service</span></span><br><span class="line"><span class="meta">cas.logout.redirectParameter</span>=<span class="string">service</span></span><br><span class="line"><span class="comment">#在退出时是否需要 确认一下  true确认 false直接退出</span></span><br><span class="line"><span class="meta">cas.logout.confirmLogout</span>=<span class="string">false</span></span><br><span class="line"><span class="comment">#是否移除子系统的票据</span></span><br><span class="line"><span class="meta">cas.logout.removeDescendantTickets</span>=<span class="string">true</span></span><br></pre></td></tr></table></figure>
+
+<p>修改一下重定向地址</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">response.sendRedirect(&quot;http:&#x2F;&#x2F;www.cgq-server.com:8080&#x2F;cas&#x2F;logout?service&#x3D;http:&#x2F;&#x2F;www.cgq-server.com:8081&#x2F;oneMap&quot;);</span><br></pre></td></tr></table></figure>
+
+<p>需要注意的是，尽管是登出，service的登出地址也需要在cas server中注册过。</p>
+<blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34021712/article/details/81515317">cas5.3.2单点登录-单点登出(十一)</a></p>
+</blockquote>
+<h2 id="四、返回自定义用户信息给客户端"><a href="#四、返回自定义用户信息给客户端" class="headerlink" title="四、返回自定义用户信息给客户端"></a>四、返回自定义用户信息给客户端</h2><p>只有CAS3协议才会有信息打印出来</p>
+<p>在server中配置对应服务的json，添加如下属性</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">&quot;attributeReleasePolicy&quot; : &#123;</span><br><span class="line">    &quot;@class&quot; : &quot;org.apereo.cas.services.ReturnAllAttributeReleasePolicy&quot;</span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+<p>并在客户端中获取</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@GetMapping(&quot;index&quot;)</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">index</span><span class="params">(HttpServletRequest request)</span></span>&#123;</span><br><span class="line">        <span class="comment">// 获取cas给我们传递回来的对象，这个东西放到了session中，session的 key是 _const_cas_assertion_</span></span><br><span class="line">        Object attribute = request.getSession(<span class="keyword">true</span>).getAttribute(AbstractCasFilter.CONST_CAS_ASSERTION);</span><br><span class="line">        <span class="keyword">if</span> (attribute <span class="keyword">instanceof</span> Assertion)&#123;</span><br><span class="line">            Assertion assertion = (Assertion) attribute;</span><br><span class="line">            <span class="comment">// 获取登录用户名</span></span><br><span class="line">            String name = assertion.getPrincipal().getName();</span><br><span class="line">            System.out.println(<span class="string">&quot;用户名为:&quot;</span> + name);</span><br><span class="line">            <span class="keyword">if</span> (request.getUserPrincipal()!=<span class="keyword">null</span>)&#123;</span><br><span class="line">                AttributePrincipal  principal = (AttributePrincipal) request.getUserPrincipal();</span><br><span class="line">                <span class="comment">// cas传递过来的数据</span></span><br><span class="line">                <span class="comment">/**</span></span><br><span class="line"><span class="comment">                 * credentialType:UsernamePasswordCredential</span></span><br><span class="line"><span class="comment">                 * isFromNewLogin:true</span></span><br><span class="line"><span class="comment">                 * authenticationDate:2021-04-24T17:05:07.719+08:00[Asia/Shanghai]</span></span><br><span class="line"><span class="comment">                 * authenticationMethod:Login</span></span><br><span class="line"><span class="comment">                 * successfulAuthenticationHandlers:Login</span></span><br><span class="line"><span class="comment">                 * longTermAuthenticationRequestTokenUsed:false</span></span><br><span class="line"><span class="comment">                 */</span></span><br><span class="line">                Map&lt;String, Object&gt; attributes = principal.getAttributes();</span><br><span class="line">                attributes.forEach((k,v)-&gt;&#123;</span><br><span class="line">                    System.out.println(k+<span class="string">&quot;:&quot;</span>+v);</span><br><span class="line">                &#125;);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">return</span> <span class="string">&quot;index&quot;</span>;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p><a target="_blank" rel="noopener" href="https://apereo.github.io/cas/5.3.x/integration/Attribute-Release-Policies.html">https://apereo.github.io/cas/5.3.x/integration/Attribute-Release-Policies.html</a></p>
+<h2 id="五、动态添加客户端"><a href="#五、动态添加客户端" class="headerlink" title="五、动态添加客户端"></a>五、动态添加客户端</h2><p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34021712/article/details/81638090">https://blog.csdn.net/qq_34021712/article/details/81638090</a></p>
+<h2 id="六、Oauth认证"><a href="#六、Oauth认证" class="headerlink" title="六、Oauth认证"></a>六、Oauth认证</h2><h3 id="server端处理"><a href="#server端处理" class="headerlink" title="server端处理"></a>server端处理</h3><p>在server处添加oauth的依赖</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apereo.cas<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>cas-server-support-oauth-webflow<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;cas.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>增加application.properies配置</p>
+<figure class="highlight properties"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 此处设置cas.server地址，否则跳转到cas.expamle.org</span></span><br><span class="line"><span class="meta">cas.server.name</span>=<span class="string">http://localhost:8080</span></span><br><span class="line"><span class="meta">cas.server.prefix</span>=<span class="string">http://localhost:8080/cas</span></span><br><span class="line"><span class="meta">cas.tgc.secure</span>=<span class="string">false</span></span><br><span class="line"><span class="comment"># oauth属性设置</span></span><br><span class="line"><span class="meta">cas.authn.oauth.refreshToken.timeToKillInSeconds</span>=<span class="string">2592000</span></span><br><span class="line"><span class="meta">cas.authn.oauth.code.timeToKillInSeconds</span>=<span class="string">30</span></span><br><span class="line"><span class="meta">cas.authn.oauth.code.numberOfUses</span>=<span class="string">1</span></span><br><span class="line"><span class="meta">cas.authn.oauth.accessToken.releaseProtocolAttributes</span>=<span class="string">true</span></span><br><span class="line"><span class="meta">cas.authn.oauth.accessToken.timeToKillInSeconds</span>=<span class="string">7200</span></span><br><span class="line"><span class="meta">cas.authn.oauth.accessToken.maxTimeToLiveInSeconds</span>=<span class="string">28800</span></span><br><span class="line"><span class="meta">cas.authn.oauth.grants.resourceOwner.requireServiceHeader</span>=<span class="string">true</span></span><br><span class="line"><span class="meta">cas.authn.oauth.userProfileViewType</span>=<span class="string">NESTED</span></span><br></pre></td></tr></table></figure>
+
+<p>添加services json</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">  <span class="attr">&quot;@class&quot;</span> : <span class="string">&quot;org.apereo.cas.support.oauth.services.OAuthRegisteredService&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;clientId&quot;</span>: <span class="string">&quot;admin&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;clientSecret&quot;</span>: <span class="string">&quot;admin&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;serviceId&quot;</span> : <span class="string">&quot;^(https|http|imaps)://.*&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;name&quot;</span> : <span class="string">&quot;OAuthService&quot;</span>,</span><br><span class="line">  <span class="attr">&quot;id&quot;</span> : <span class="number">1001</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此处@class变为<code>OAuthRegisteredService</code></p>
+<h3 id="浏览器测试"><a href="#浏览器测试" class="headerlink" title="浏览器测试"></a>浏览器测试</h3><ol>
+<li><p>通过浏览器 GET  <a target="_blank" rel="noopener" href="http://localhost:8080/cas/oauth2.0/authorize?response_type=code&amp;client_id=admin&amp;redirect_uri=http://www.baidu.com">http://localhost:8080/cas/oauth2.0/authorize?response_type=code&amp;client_id=admin&amp;redirect_uri=http://www.baidu.com</a></p>
+<p>访问后需要进行登录然后重定向到回调页面并在url包含一个code参数。</p>
+</li>
+<li><p>通过返回code获取accessToken POST localhost:8080/cas/oauth2.0/accessToken</p>
+<p>grant_type:authorization_code<br>client_id:admin<br>client_secret:admin<br>code:OC-3-HgFi8mxwU6ND0LqhMdo2ieiLh29i3jZr<br>redirect_uri:<a target="_blank" rel="noopener" href="http://www.baidu.com">http://www.baidu.com</a></p>
+<p>返回类似<code>access_token=AT-1-wOEITA7wsvFY3yMnr9wdXK34mnbvcIA1&amp;expires_in=28800</code>信息</p>
+</li>
+<li><p>获取用户信息 GET <a target="_blank" rel="noopener" href="http://localhost:8080/cas/oauth2.0/profile?access_token=AT-1-wOEITA7wsvFY3yMnr9wdXK34mnbvcIA1">http://localhost:8080/cas/oauth2.0/profile?access_token=AT-1-wOEITA7wsvFY3yMnr9wdXK34mnbvcIA1</a></p>
+</li>
+</ol>
+<blockquote>
+<p>参考：</p>
+<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/qq_34021712/article/details/82290876"></a></p>
+<p><a target="_blank" rel="noopener" href="https://apereo.github.io/cas/5.3.x/installation/OAuth-OpenId-Authentication.html"></a></p>
+</blockquote>
+<h2 id="七、openId认证"><a href="#七、openId认证" class="headerlink" title="七、openId认证"></a>七、openId认证</h2><p><a target="_blank" rel="noopener" href="https://apereo.github.io/cas/5.3.x/protocol/OpenID-Protocol.html">https://apereo.github.io/cas/5.3.x/protocol/OpenID-Protocol.html</a></p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><h3 id="CAS-不同域名-不同端口无法共享cookie"><a href="#CAS-不同域名-不同端口无法共享cookie" class="headerlink" title="CAS 不同域名 不同端口无法共享cookie"></a>CAS 不同域名 不同端口无法共享cookie</h3><h3 id="使用域名后，系统重启还需要再次登录"><a href="#使用域名后，系统重启还需要再次登录" class="headerlink" title="使用域名后，系统重启还需要再次登录"></a>使用域名后，系统重启还需要再次登录</h3><h2 id="cas-client-autoconfig-support解析"><a href="#cas-client-autoconfig-support解析" class="headerlink" title="cas-client-autoconfig-support解析"></a>cas-client-autoconfig-support解析</h2>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-MyBatis/源码解析1-IDEA搭建及构建mybatis源码" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/18/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901-IDEA%E6%90%AD%E5%BB%BA%E5%8F%8A%E6%9E%84%E5%BB%BAmybatis%E6%BA%90%E7%A0%81/"
+    >源码解析:IDEA搭建及构建mybatis源码</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/18/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%901-IDEA%E6%90%AD%E5%BB%BA%E5%8F%8A%E6%9E%84%E5%BB%BAmybatis%E6%BA%90%E7%A0%81/" class="article-date">
+  <time datetime="2021-04-18T04:00:00.000Z" itemprop="datePublished">2021-04-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/MyBatis/">MyBatis</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p><a target="_blank" rel="noopener" href="https://github.com/mybatis/mybatis-3/archive/refs/tags/mybatis-3.5.6.zip">此处github下载mybatis3.5.6源码</a></p>
+<p>使用IDEA创建一个标准的maven项目</p>
+<p>删除maven项目的src，将创建的项目作为parent项目。</p>
+<p>将下载的mybatis源码拷贝到项目根目录中，作为其子模块。</p>
+<p>我们打开项目的<code>project structure</code>项目管理工具，</p>
+<ol>
+<li>点击modules，</li>
+<li>点击加号，</li>
+<li>点import modules 添加myabtis源码所在的目录，</li>
+<li>选择maven导入</li>
+</ol>
+<p>点击parent项目右键，创建一个新模块作为测试模块。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-MyBatis/源码解析2-MyBatis初始化解析Mybatis-Config.xml文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -371,165 +728,6 @@
 
       
       
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringCloud/openFeign相关问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
-    >openFeign相关问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-04-14T04:00:00.000Z" itemprop="datePublished">2021-04-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="全局Feign增加请求头"><a href="#全局Feign增加请求头" class="headerlink" title="全局Feign增加请求头"></a>全局Feign增加请求头</h3><p>增加token的Authorization请求头</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 全局的feign调用使用的配置类</span></span><br><span class="line"><span class="comment"> * 1.无法获取attributes的问题，是hystrix机制的隔离策略。最终发现RequestContextHolder.getRequestAttributes()该方法是从ThreadLocal</span></span><br><span class="line"><span class="comment"> * 需要修改配置即可hystrix.command.default.execution.isolation.strategy: SEMAPHORE,但不推荐设置此值</span></span><br><span class="line"><span class="comment"> * 当隔离策略为 THREAD 时，是没办法拿到 ThreadLocal 中的值的。</span></span><br><span class="line"><span class="comment"> * 2. 可自定义配置策略</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> FeignHystrixConcurrencyStrategy https://blog.csdn.net/crystalqy/article/details/79083857</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cgq_r</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020/7/9</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GlobalFeignConfiguration</span> <span class="keyword">implements</span> <span class="title">RequestInterceptor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(RequestTemplate requestTemplate)</span> </span>&#123;</span><br><span class="line">        ServletRequestAttributes attributes = (ServletRequestAttributes)</span><br><span class="line">                RequestContextHolder.getRequestAttributes();</span><br><span class="line">        <span class="keyword">if</span> (attributes != <span class="keyword">null</span>) &#123;</span><br><span class="line">            HttpServletRequest request = attributes.getRequest();</span><br><span class="line">            Enumeration&lt;String&gt; headerNames = request.getHeaderNames();</span><br><span class="line">            <span class="keyword">if</span> (headerNames != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">while</span> (headerNames.hasMoreElements()) &#123;</span><br><span class="line">                    String name = headerNames.nextElement();</span><br><span class="line">                    <span class="keyword">if</span> (Constants.TOKEN_HEADER.toLowerCase().equals(name)) &#123;</span><br><span class="line">                        requestTemplate.header(Constants.TOKEN_HEADER, request.getHeader(name));</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            requestTemplate.header(Constants.GATEWAY_NAME,<span class="keyword">new</span> String(Base64Utils.encode(Constants.GATEWAY_VALUE.getBytes())));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="Feign调用出现中文乱码问题"><a href="#Feign调用出现中文乱码问题" class="headerlink" title="Feign调用出现中文乱码问题"></a>Feign调用出现中文乱码问题</h3><p>可在FeignClient中的请求@GetMapping等注解添加</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">produces &#x3D; MediaType.APPLICATION_JSON_UTF8_VALUE, consumes &#x3D; &quot;application&#x2F;json;charset&#x3D;UTF-8&quot;</span><br></pre></td></tr></table></figure>
-
-<p>或者在Configuration中配置</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解决因sentinel依赖的jackjson-format-xml默认转为xml结果。设置默认结果为json类型。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> configurer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configureContentNegotiation</span><span class="params">(ContentNegotiationConfigurer configurer)</span> </span>&#123;</span><br><span class="line">    configurer.defaultContentType(MediaType.APPLICATION_JSON);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>该代码配置默认的上下文类型为JSON，配置默认的内容格式。本来是为了解决意外转换为xml的问题。此处也可以解决。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Docker/docker-compose相关操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/04/13/Docker/docker-compose%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
-    >docker-compose相关操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/04/13/Docker/docker-compose%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2021-04-13T04:00:00.000Z" itemprop="datePublished">2021-04-13</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Docker/">Docker</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id=""><a href="#" class="headerlink" title=""></a></h2><p>启动容器,-d为后台运行</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml up -d [name]</span><br></pre></td></tr></table></figure>
-
-
-
-<p>停止容器</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml stop [name]</span><br></pre></td></tr></table></figure>
-
-
-
-<p>删除容器，删除前需要先停止容器</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml rm [name]</span><br></pre></td></tr></table></figure>
-
-
       
       <!-- reward -->
       

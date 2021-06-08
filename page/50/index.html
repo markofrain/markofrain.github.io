@@ -78,6 +78,264 @@
     
     
     
+    <article id="post-Vue/Vue2.0属性绑定和Class与Style绑定" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E5%B1%9E%E6%80%A7%E7%BB%91%E5%AE%9A%E5%92%8CClass%E4%B8%8EStyle%E7%BB%91%E5%AE%9A/"
+    >Vue2.0属性绑定和Class与Style绑定</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E5%B1%9E%E6%80%A7%E7%BB%91%E5%AE%9A%E5%92%8CClass%E4%B8%8EStyle%E7%BB%91%E5%AE%9A/" class="article-date">
+  <time datetime="2018-05-28T13:56:32.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="属性绑定"><a href="#属性绑定" class="headerlink" title="属性绑定"></a>属性绑定</h3><p>通过指令v-bind可以绑定属性,该指令同v-on一样，也有一个简写，“：”冒号。 绑定元素的属性，并且可与元素的原属性共存。当原属性有值时则显示原属性的值，无值则使用绑定的值。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;img :src=&quot;url&quot; :width=&quot;width&quot; width=&quot;800&quot; :height=&quot;height&quot;/&gt;
+&lt;/div&gt;
+
+data:&#123;
+    url:&quot;https://www.baidu.com/img/bd_logo1.png&quot;,
+    width:300,
+    height:300
+&#125;</code></pre><p>这是属性绑定的用法。</p>
+<h3 id="Class与Style绑定"><a href="#Class与Style绑定" class="headerlink" title="Class与Style绑定"></a>Class与Style绑定</h3><p>我们同常绑定class时，直接写在class中,这是普通的css绑定。</p>
+<pre><code>&lt;style&gt;
+    .aa&#123;
+        color: red;
+    &#125;
+    .bb&#123;
+        color: blue;
+    &#125;
+&lt;/style&gt;
+
+&lt;p class=&quot;aa&quot;&gt;这是一段文字，用来测试Class与Style绑定&lt;/p&gt;</code></pre><p>而如果将这种普通绑定应用在Vue中是不行的。不能直接写:class=’aa’</p>
+<pre><code>&lt;p :class=&quot;aa&quot;&gt;这是一段文字，用来测试Class与Style绑定&lt;/p&gt;</code></pre><p>这样做它是不会显示出来的。 我们需要通过Vue数据data来动态实现。</p>
+<h4 id="直接通过data选项中变量-的方式"><a href="#直接通过data选项中变量-的方式" class="headerlink" title="直接通过data选项中变量 的方式"></a>直接通过data选项中变量 的方式</h4><p>先定义class样式，然后再:class里填写与样式名绑定的名称</p>
+<pre><code>data:&#123;
+    color:&apos;aa&apos;
+&#125;
+&lt;p :class=&quot;color&quot;&gt;通过Vue中data选项的变量来动态控制&lt;/p&gt;</code></pre><p>此时color值为aa，那么么颜色就是red,如果动态的为color属性值赋值为bb，那么字体颜色就为blue了。</p>
+<h4 id="通过数组的方式"><a href="#通过数组的方式" class="headerlink" title="通过数组的方式"></a>通过数组的方式</h4><pre><code>.line&#123;
+        text-decoration: underline;
+    &#125;
+&lt;p :class=&quot;[color,line]&quot;&gt;通过数组的方式来控制多个&lt;/p&gt;</code></pre><p>另外，指令中是可以有表达式的，就如上面的数组，还可以对data选项的某个number类型的属性进行数据操作，它仅能实现小的操作，而不能去实现语句。</p>
+<h4 id="通过json格式的方式绑定"><a href="#通过json格式的方式绑定" class="headerlink" title="通过json格式的方式绑定"></a>通过json格式的方式绑定</h4><p>这次可以不与data选项的属性有牵扯,直接通过设置类样式的值为true|false 为true则使用这个样式，为false则不使用这个样式，通过true|false来判定是否出现样式。这种方式也是最佳常用的。</p>
+<pre><code>&lt;p :class=&quot;&#123;bb:false,line:true&#125;&quot;&gt;通过json的方式来绑定class&lt;/p&gt;</code></pre><p>由于，值为true|false，那么么我们也可以通过值大小的方式给定true或false。</p>
+<pre><code>data:&#123;
+    num:-99
+&#125;
+&lt;p :class=&quot;&#123;bb:false,line:num&gt;0&#125;&quot;&gt;通过json的方式来绑定class&lt;/p&gt;</code></pre><p>此时line的属性值是返回false，此时不会显示下划线。</p>
+<h4 id="通过变量引用json形式"><a href="#通过变量引用json形式" class="headerlink" title="通过变量引用json形式"></a>通过变量引用json形式</h4><p>就是不把json数据写在：class中了，而是定义为实例的一个属性，放在data中。 格式还是这样，不过是放在一个属性中。</p>
+<pre><code>data:&#123;
+    line_blue:&#123;aa:true,line:true&#125;
+&#125;
+&lt;p :class=&quot;line_blue&quot;&gt;通过json变量的方式来绑定&lt;/p&gt;</code></pre><blockquote>
+<p>另外，在数组和json中都可以使用三元表达式？ ：的方式。</p>
+</blockquote>
+<h3 id="绑定内联样式"><a href="#绑定内联样式" class="headerlink" title="绑定内联样式"></a>绑定内联样式</h3><p>即通过绑定style, :style方式</p>
+<pre><code>data:&#123;
+    color:red,
+    fontSize:20,
+
+&#125;
+&lt;p :style=&quot;&#123;color:color,fontSize:fontSize + &apos;px&apos;&#125;&quot;&gt;绑定内联&lt;/p&gt;</code></pre><p>因为内联的style可以直接在元素中写，所以json中的key都是css属性，color,textDecoration,fontSize这些内联的样式，(内联的和style文件内的样式名不一样,文件里是横杠，内联是驼峰首字母大写)。 另一个就是直接通过属性的方式了，把json赋值给属性。</p>
+<pre><code>data:&#123;
+    style1:&#123;color:&apos;blue&apos;,fontSize:&apos;15px&apos;&#125;
+&#125;
+&lt;p :style=&quot;style1&quot;&gt;绑定内联&lt;/p&gt;</code></pre><p>同样，数组也是可以的。</p>
+<h4 id="多重值"><a href="#多重值" class="headerlink" title="多重值"></a>多重值</h4><p>绑定中的属性提供一个包含多个值的数组，常用于提供多个带前缀的值</p>
+<pre><code>&lt;div :style=&quot;&#123; display: [&apos;-webkit-box&apos;, &apos;-ms-flexbox&apos;, &apos;flex&apos;] &#125;&quot;&gt;&lt;/div&gt;</code></pre><p>这样写只会渲染数组中最后一个被浏览器支持的值。在本例中，如果浏览器支持不带浏览器前缀的 flexbox，那么就只会渲染 display: flex。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Vue/Vue2.0事件对象，事件冒泡，默认行为及键盘事件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%E4%BA%8B%E4%BB%B6%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1%EF%BC%8C%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA%E5%8F%8A%E9%94%AE%E7%9B%98%E4%BA%8B%E4%BB%B6/"
+    >Vue2.0事件对象，事件冒泡，默认行为及键盘事件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%E4%BA%8B%E4%BB%B6%E5%AF%B9%E8%B1%A1%EF%BC%8C%E4%BA%8B%E4%BB%B6%E5%86%92%E6%B3%A1%EF%BC%8C%E9%BB%98%E8%AE%A4%E8%A1%8C%E4%B8%BA%E5%8F%8A%E9%94%AE%E7%9B%98%E4%BA%8B%E4%BB%B6/" class="article-date">
+  <time datetime="2018-05-28T13:35:46.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="事件对象"><a href="#事件对象" class="headerlink" title="事件对象"></a>事件对象</h3><p>关于事件即v-on在指令中已经介绍过，@简写也说过,就不再说明如何声明使用了。 我们可以在调用事件方法是为方法添加参数 $event,表示一个事件实例。 在处理方法中，得到这个实参，可通过这个对象获得一些方法和作用。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+    &lt;button @click=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;
+&lt;/div&gt;
+
+methods:&#123;
+            clickPrint(e,str)&#123;
+                console.log(str);
+                console.log(e);
+                console.log(e.type);
+                console.log(e.target);//获得事件的目标对象DOM
+            &#125;
+&#125;</code></pre><p>如果有多个参数，那么将$event设置为第一个参数。</p>
+<h3 id="事件冒泡"><a href="#事件冒泡" class="headerlink" title="事件冒泡"></a>事件冒泡</h3><p>当事件发生后，这个事件就要开始传播(从里到外或者从外向里)，如何阻止事件冒泡，在js中是通过stopPropagation()方法来阻止事件冒泡的。</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+        &lt;div @click=&quot;printD()&quot;&gt;
+            &lt;p @click=&quot;printP()&quot;&gt;
+                &lt;button @click=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;
+            &lt;/p&gt;
+        &lt;/div&gt;
+    &lt;/div&gt;</code></pre><p>此时将会出现向上冒泡情况。 只需在触发事件的指令后添加修饰符.stop</p>
+<pre><code>&lt;button @click.stop=&quot;clickPrint($event,&apos;你好&apos;)&quot;&gt;点击，事件对象&lt;/button&gt;</code></pre><h3 id="默认行为"><a href="#默认行为" class="headerlink" title="默认行为"></a>默认行为</h3><p>阻止默认行为，在js中调用event.preventDefault(),在Vue中，添加修饰符.prevent</p>
+<pre><code>&lt;a href=&quot;http://www.baidu.com&quot; target=&quot;_blank&quot; @click.stop=&quot;study&quot;&gt;链接&lt;/a&gt;</code></pre><p>此时添加.stop将不会链接到百度的主页面。 当然也可以通过串联的方式</p>
+<pre><code>&lt;a href=&quot;http://www.baidu.com&quot; target=&quot;_blank&quot; @click.stop.prevent=&quot;study&quot;&gt;链接&lt;/a&gt;</code></pre><p>还有，如：.once，只触发一次事件</p>
+<pre><code>&lt;button v-on:click.once=&quot;clickOnce()&quot;&gt;该事件只触发一次&lt;/button&gt;</code></pre><h3 id="键盘事件"><a href="#键盘事件" class="headerlink" title="键盘事件"></a>键盘事件</h3><p>{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。 键盘事件有@keydown,@keypress,@keyup 案例:</p>
+<pre><code>&lt;div id=&quot;app&quot;&gt;
+        &lt;input type=&quot;text&quot; name=&quot;username&quot; @keydown=&quot;show($event)&quot;/&gt;&lt;br/&gt;
+        &lt;input type=&quot;text&quot; name=&quot;name&quot; @keydown.enter=&quot;print($event)&quot;/&gt;&lt;br/&gt;
+        &lt;input type=&quot;text&quot; name=&quot;one&quot; @keydown.up=&quot;print($event)&quot;/&gt;&lt;br/&gt;
+&lt;/div&gt;
+
+methods:&#123;
+    show(e)&#123;
+        console.log(e.target.value);
+    &#125;,
+    print(e)&#123;
+        console.log(e.keyCode);
+    &#125;
+&#125;</code></pre><p>我们运行这个例子，第一个文本框中，每更改一次文本值就会触发一次事件 第二个文本框中，无论如何更改，只要按下enter键才能触发事件，这个.enter是内置的。下面的.up也是内置的，还可以使用keyCode值,如13是enter，使用.13也可以代表enter。 还有许多内置的，可以一一试试，也可以自定义全局的。</p>
+<h4 id="全局配置keyCodes"><a href="#全局配置keyCodes" class="headerlink" title="全局配置keyCodes"></a>全局配置keyCodes</h4><p>类型：{ [key: string]: number | Array<number> } key为string类型，职位number类型或number类型的数组。 全局的，要定义在Vue实例外面</p>
+<pre><code>Vue.config.keyCode=&#123;
+    a:65,
+    space:32
+&#125;
+
+&lt;input type=&quot;text&quot; name=&quot;add&quot; @keydown.space=&quot;print($event)&quot;/&gt;
+&lt;input type=&quot;text&quot; name=&quot;add&quot; @keydown.a=&quot;print($event)&quot;/&gt;</code></pre><p>一般我们定义的这些，如果是可输出字符的键的话，就会先触发事件再输出这个字符。 配置全局的语法都是Vue.config.xxx，不只有keyCodes，还有很多。 <a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/api/#%E5%85%A8%E5%B1%80%E9%85%8D%E7%BD%AE">全局配置</a></p>
+<hr>
+<h3 id="还有其他修饰符"><a href="#还有其他修饰符" class="headerlink" title="还有其他修饰符"></a>还有其他修饰符</h3><ul>
+<li>.stop - 调用 event.stopPropagation()。</li>
+<li>.prevent - 调用 event.preventDefault()。</li>
+<li>.capture - 添加事件侦听器时使用 capture 模式。</li>
+<li>.self - 只当事件是从侦听器绑定的元素本身触发时才触发回调。</li>
+<li>.{keyCode | keyAlias} - 只当事件是从特定键触发时才触发回调。</li>
+<li>.native - 监听组件根元素的原生事件。</li>
+<li>.once - 只触发一次回调。</li>
+<li>.left - (2.2.0) 只当点击鼠标左键时触发。</li>
+<li>.right - (2.2.0) 只当点击鼠标右键时触发。</li>
+<li>.middle - (2.2.0) 只当点击鼠标中键时触发。</li>
+<li>.passive - (2.3.0) 以 { passive: true } 模式添加侦听器 更多，需要查看官网<a target="_blank" rel="noopener" href="https://cn.vuejs.org/v2/api/#v-on">v-on指令事件描述</a></li>
+</ul>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0常用指令" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
