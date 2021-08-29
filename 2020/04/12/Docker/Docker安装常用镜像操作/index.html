@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">2.6k字</span>
+            <span class="post-count">2.7k字</span>
         </span>
     </span>
 
@@ -85,7 +85,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">13分钟</span>
+            <span class="post-count">14分钟</span>
         </span>
     </span>
 </div>
@@ -202,7 +202,16 @@
 <p>挂载配置目录启动容器</p>
 <figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name activemq \</span><br><span class="line">--restart=always \</span><br><span class="line">-p 8161:8161 \</span><br><span class="line">-p 61616:61616 \</span><br><span class="line">-p 1093:1093 \</span><br><span class="line">-v /data/activemq/data:/opt/activemq/data \</span><br><span class="line">-v /data/activemq/conf:/opt/activemq/conf \</span><br><span class="line">rmohr/activemq:5.15.9-alpine</span><br></pre></td></tr></table></figure>
 
+<p>替换activemq.xml并构建新镜像包</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">FROM rmohr/activemq:5.15.9-alpine</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 增加JMX端口</span></span><br><span class="line">ENV ACTIVEMQ_JMX=1093</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 替换文件</span></span><br><span class="line">ADD activemq.xml /opt/activemq/conf/</span><br><span class="line"></span><br><span class="line">WORKDIR $ACTIVEMQ_HOME</span><br><span class="line">EXPOSE $ACTIVEMQ_JMX</span><br><span class="line"></span><br><span class="line">CMD [&quot;/bin/sh&quot;, &quot;-c&quot;, &quot;bin/activemq console&quot;]</span><br></pre></td></tr></table></figure>
+
+
+
+
+
 <h2 id="openoffice安装"><a href="#openoffice安装" class="headerlink" title="openoffice安装"></a>openoffice安装</h2><h2 id="JDK基础镜像构建"><a href="#JDK基础镜像构建" class="headerlink" title="JDK基础镜像构建"></a>JDK基础镜像构建</h2><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">8</span>-jdk-alpine</span><br><span class="line"><span class="comment"># 替换清华alpine源</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/main\nhttps://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/community&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"><span class="comment"># 安装tini</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tini --no-cache</span></span><br><span class="line"><span class="comment"># 安装字体库资源</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update ttf-dejavu fontconfig &amp;&amp; rm -rf /var/cache/apk/*</span></span><br><span class="line"><span class="comment"># 设置时区时间</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tzdata &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone &amp;&amp; apk del tzdata</span></span><br><span class="line"><span class="comment"># 拷贝arthas</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=hengyunabc/arthas:latest /opt/arthas /opt/arthas</span></span><br><span class="line"><span class="comment"># 添加宋体字体</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./SIMSUN.TTC /usr/share/fonts/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENTRYPOINT</span><span class="bash"> [<span class="string">&quot;/sbin/tini&quot;</span>, <span class="string">&quot;--&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="tomcat字体新增"><a href="#tomcat字体新增" class="headerlink" title="tomcat字体新增"></a>tomcat字体新增</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">FROM tomcat:8</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 字体数据从c:/windows/fonts中获取 微软雅黑、宋体、黑体</span></span><br><span class="line">COPY MSYH.TTC /usr/share/fonts/</span><br><span class="line">COPY SIMHEI.TTF /usr/share/fonts/</span><br><span class="line">COPY SIMSUN.TTC /usr/share/fonts/</span><br><span class="line"></span><br><span class="line">CMD [&quot;/usr/local/tomcat/bin/catalina.sh&quot;,&quot;run&quot;]</span><br></pre></td></tr></table></figure>
 
 
 

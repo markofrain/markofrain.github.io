@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+    
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <title>
+    SpringSecurity集成Oauth2第三方授权客户端代码(OIDC)(非单点登录) |  雪里
+  </title>
+  <meta name="generator" content="hexo-theme-yilia-plus">
+  
+  <link rel="shortcut icon" href="/favicon.ico" />
+  
+  
+<link rel="stylesheet" href="/css/main.css">
+
+  
+  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
+  
+  
+
+  
+
+  <script>
+(function(){
+    var bp = document.createElement('script');
+    var curProtocol = window.location.protocol.split(':')[0];
+    if (curProtocol === 'https') {
+        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+    }
+    else {
+        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+    }
+    var s = document.getElementsByTagName("script")[0];
+    s.parentNode.insertBefore(bp, s);
+})();
+</script>
+</head>
+
+</html>
+
+<body>
+  <div id="app">
+    <main class="content">
+      <section class="outer">
+  <article id="post-SpringSecurity/SpringSecurity集成Oauth2自动授权客户端代码" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  SpringSecurity集成Oauth2第三方授权客户端代码(OIDC)(非单点登录)
+</h1>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/07/12/SpringSecurity/SpringSecurity%E9%9B%86%E6%88%90Oauth2%E8%87%AA%E5%8A%A8%E6%8E%88%E6%9D%83%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BB%A3%E7%A0%81/" class="article-date">
+  <time datetime="2021-07-12T04:00:00.000Z" itemprop="datePublished">2021-07-12</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/SpringSeciruty/">SpringSeciruty</a>
+  </div>
+
+      
+      
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> 字数统计:</span>
+            <span class="post-count">2.2k字</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> 阅读时长≈</span>
+            <span class="post-count">10分钟</span>
+        </span>
+    </span>
+</div>
+
+      
+    </div>
+    
+
+    
+    
+    <div class="tocbot"></div>
+
+
+
+
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>该客户端基于OIDC提供的OAuth2服务端的服务进行联调</p>
+<blockquote>
+<p> 参考：<a target="_blank" rel="noopener" href="https://www.jianshu.com/p/dacf05f6fa83">https://www.jianshu.com/p/dacf05f6fa83</a></p>
+</blockquote>
+<p>OAuth2是一个授权协议，很多开源的框架都基于OAuth2协议实现了第三方客户端登录认证功能。</p>
+<h3 id="OIDC核心概念：ID-Token"><a href="#OIDC核心概念：ID-Token" class="headerlink" title="OIDC核心概念：ID Token"></a>OIDC核心概念：ID Token</h3><p>OAuth2提供了<code>Access Token</code>来解决授权第三方<code>客户端</code>访问受保护资源的问题；OIDC在这个基础上提供了<code>ID Token</code>来解决第三方客户端标识用户身份认证的问题。OIDC的核心在于在OAuth2的授权流程中，一并提供用户的身份认证信息（<code>ID Token</code>）给到第三方<code>客户端</code>，<code>ID Token</code>使用<code>JWT</code>格式来包装。此外还提供了<code>UserInfo的</code>接口，用户获取用户的更完整的信息</p>
+<h3 id="什么是ID-Token"><a href="#什么是ID-Token" class="headerlink" title="什么是ID Token"></a>什么是ID Token</h3><p>OIDC对OAuth2最主要的扩展就是提供了<code>ID Token</code>。<code>ID Token</code>是一个安全<code>令牌</code>，是一个<code>授权服务器</code>提供的包含用户信息（由一组Cliams构成以及其他辅助的Cliams）的<code>JWT</code>格式的数据结构。<br> 另外<code>ID Token</code>必须使用JWS进行签名和JWE加密，从而提供认证的完整性、不可否认性以及可选的保密性。一个<code>ID Token</code>的例子如下</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">    <span class="attr">&quot;iss&quot;</span>: <span class="string">&quot;https://server.example.com&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;sub&quot;</span>: <span class="string">&quot;24400320&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;aud&quot;</span>: <span class="string">&quot;s6BhdRkqt3&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;nonce&quot;</span>: <span class="string">&quot;n-0S6_WzA2Mj&quot;</span>,</span><br><span class="line">    <span class="attr">&quot;exp&quot;</span>: <span class="number">1311281970</span>,</span><br><span class="line">    <span class="attr">&quot;iat&quot;</span>: <span class="number">1311280970</span>,</span><br><span class="line">    <span class="attr">&quot;auth_time&quot;</span>: <span class="number">1311280969</span>,</span><br><span class="line">    <span class="attr">&quot;acr&quot;</span>: <span class="string">&quot;urn:mace:incommon:iap:silver&quot;</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="基于Authorization-Code的认证请求的请求"><a href="#基于Authorization-Code的认证请求的请求" class="headerlink" title="基于Authorization Code的认证请求的请求"></a>基于Authorization Code的认证请求的请求</h3><p>所有的<code>Token</code>都是通过<code>Token EndPoint</code>来发放的。构建一个OIDC的Authentication Request需要提供如下的参数：</p>
+<ul>
+<li>scope：必须。OIDC的请求必须包含值为<code>openid</code>的scope的参数。</li>
+<li>response_type：必选。同OAuth2。</li>
+<li>client_id：必选。同OAuth2。</li>
+<li>redirect_uri：必选。同OAuth2。</li>
+<li>state：推荐。同OAuth2。防止CSRF, XSRF。</li>
+</ul>
+<p>在实现oauth2中，发送的authorize是获取Authorization Code授权码模式，需要获取授权码，然后根据授权码获取token，也就是对access_token的访问获取。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">   <span class="attr">&quot;access_token&quot;</span>: <span class="string">&quot;SlAV32hkKG&quot;</span>,</span><br><span class="line">   <span class="attr">&quot;token_type&quot;</span>: <span class="string">&quot;Bearer&quot;</span>,</span><br><span class="line">   <span class="attr">&quot;refresh_token&quot;</span>: <span class="string">&quot;8xLOxBtZp8&quot;</span>,</span><br><span class="line">   <span class="attr">&quot;expires_in&quot;</span>: <span class="number">3600</span>,</span><br><span class="line">   <span class="attr">&quot;id_token&quot;</span>: <span class="string">&quot;eyJhbGciOiJSUzI1NiIsImtpZCI6IjFlOWdkazcifQ.ewogImlzc</span></span><br><span class="line"><span class="string">     yI6ICJodHRwOi8vc2VydmVyLmV4YW1wbGUuY29tIiwKICJzdWIiOiAiMjQ4Mjg5</span></span><br><span class="line"><span class="string">     NzYxMDAxIiwKICJhdWQiOiAiczZCaGRSa3F0MyIsCiAibm9uY2UiOiAibi0wUzZ</span></span><br><span class="line"><span class="string">     fV3pBMk1qIiwKICJleHAiOiAxMzExMjgxOTcwLAogImlhdCI6IDEzMTEyODA5Nz</span></span><br><span class="line"><span class="string">     AKfQ.ggW8hZ1EuVLuxNuuIJKX_V8a_OMXzR0EHR9R6jgdqrOOF4daGU96Sr_P6q</span></span><br><span class="line"><span class="string">     Jp6IcmD3HP99Obi1PRs-cwh3LO-p146waJ8IhehcwL7F09JdijmBqkvPeB2T9CJ</span></span><br><span class="line"><span class="string">     NqeGpe-gccMg4vfKjkM8FcGvnzZUN4_KSP0aAp1tOJ1zZwgjxqGByKHiOtX7Tpd</span></span><br><span class="line"><span class="string">     QyHE5lcMiKPXfEIQILVq0pc_E2DzL7emopWoaoZTF_m0_N0YzFC6g6EJbOEoRoS</span></span><br><span class="line"><span class="string">     K5hoDalrcvRYLSrQAZZKflyuVCyixEoV9GfNQC3_osjzw2PAithfubEEBLuVVk4</span></span><br><span class="line"><span class="string">     XUVrWOLrLl0nx7RkKU8NXNHq-rvKMzqg&quot;</span></span><br><span class="line">  &#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>而OIDC除了会返回Oauth2的相关数据外，还会附加返回<code>id_token</code>属性，该值就是jwt值，根据Jwt.getClaims()方法获取其数据。最终的数据就是上面id_token的json格式。我们需要对id_token的内容进行验证。</p>
+<p>以上过程在代码中使用SpringSecurity提供的相关方法和类进行处理。通过SecurityOauth2提供的OAuth2AccessToken类得到accessToken数据，也就是上面的json数据。此时oauth2的工作已经完成了。我们需要处理自身的登录信息，将登录信息以UsernamePasswordAuthenticationToken的方式进行WebSecurity的登录认证。</p>
+<h3 id="AuthorizationCode模式认证-accessToken的获取"><a href="#AuthorizationCode模式认证-accessToken的获取" class="headerlink" title="AuthorizationCode模式认证,accessToken的获取"></a>AuthorizationCode模式认证,accessToken的获取</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableOAuth2Client</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">IdmOpenIdConnectConfig</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.clientId&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String clientId;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.clientSecret&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String clientSecret;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.accessTokenUri&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String accessTokenUri;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.userAuthorizationUri&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String userAuthorizationUri;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> OAuth2ClientContext clientContext;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RequestContextListener <span class="title">requestContextListener</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> RequestContextListener();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> AuthorizationCodeResourceDetails <span class="title">idmOpenIdDetail</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> AuthorizationCodeResourceDetails authorizationCodeResourceDetails = <span class="keyword">new</span> AuthorizationCodeResourceDetails();</span><br><span class="line"></span><br><span class="line">        authorizationCodeResourceDetails.setClientId(clientId);</span><br><span class="line">        authorizationCodeResourceDetails.setClientSecret(clientSecret);</span><br><span class="line">        authorizationCodeResourceDetails.setAccessTokenUri(accessTokenUri);</span><br><span class="line">        authorizationCodeResourceDetails.setUserAuthorizationUri(userAuthorizationUri);</span><br><span class="line">        authorizationCodeResourceDetails.setTokenName(<span class="string">&quot;oauth_token&quot;</span>);</span><br><span class="line">        authorizationCodeResourceDetails.setAuthenticationScheme(AuthenticationScheme.query);</span><br><span class="line">        authorizationCodeResourceDetails.setClientAuthenticationScheme(AuthenticationScheme.form);</span><br><span class="line">        <span class="keyword">return</span> authorizationCodeResourceDetails;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> OAuth2RestTemplate <span class="title">openIdTemplate</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> OAuth2RestTemplate template = <span class="keyword">new</span> OAuth2RestTemplate(idmOpenIdDetail(), clientContext);</span><br><span class="line">        <span class="keyword">return</span> template;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该类中定义了AuthorizationCodeResourceDetails类存储授权码模式的相关信息，并将该类信息设置到OAuth2RestTemplate模板类中，通过该模板类就可以获取access_token。上面的属性配置有些是不需要或无效的，可以根据实际情况添加对应属性。</p>
+<p>其中所需的参数包括客户端id、客户端secret、authorize获取地址、accessToken获取地址的必要信息。对应回调地址和登出地址可以在服务端配置。</p>
+<p>以上代码就可以直接通过OAuth2RestTemplate获取到accessToken了。接下来只需要将认证信息受SpringSecurity管理。</p>
+<h3 id="SpringSeciruty登录配置"><a href="#SpringSeciruty登录配置" class="headerlink" title="SpringSeciruty登录配置"></a>SpringSeciruty登录配置</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OpenIdConnectFilter</span> <span class="keyword">extends</span> <span class="title">AbstractAuthenticationProcessingFilter</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.clientId&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String clientId;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.issuer&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String issuer;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.issuer&#125;/profile&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String profileUrl;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> OAuth2RestOperations restTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">OpenIdConnectFilter</span><span class="params">(String defaultFilterProcessesUrl)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(defaultFilterProcessesUrl);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Authentication <span class="title">attemptAuthentication</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> <span class="keyword">throws</span> AuthenticationException, IOException, ServletException </span>&#123;</span><br><span class="line"></span><br><span class="line">        OAuth2AccessToken accessToken;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            accessToken = restTemplate.getAccessToken();</span><br><span class="line">        &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> OAuth2Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BadCredentialsException(<span class="string">&quot;Could not obtain access token&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            <span class="keyword">final</span> String idToken = accessToken.getAdditionalInformation().get(<span class="string">&quot;id_token&quot;</span>).toString();</span><br><span class="line">            System.out.println(<span class="string">&quot;idToken========================&quot;</span>+idToken);</span><br><span class="line">            <span class="keyword">final</span> Jwt tokenDecoded = JwtHelper.decode(idToken);</span><br><span class="line">            <span class="keyword">final</span> Map&lt;String, String&gt; authInfo = <span class="keyword">new</span> ObjectMapper().readValue(tokenDecoded.getClaims(), Map.class);</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                verifyClaims(authInfo);</span><br><span class="line">                <span class="keyword">final</span> OpenIdConnectUserDetails user = <span class="keyword">new</span> OpenIdConnectUserDetails(authInfo, accessToken);</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> UsernamePasswordAuthenticationToken(user, <span class="keyword">null</span>, user.getAuthorities());</span><br><span class="line">            &#125;<span class="keyword">catch</span>(<span class="keyword">final</span> NullPointerException e1)&#123;</span><br><span class="line">                RestTemplate restTemplate = <span class="keyword">new</span> RestTemplate();</span><br><span class="line">                Map&lt;String, String&gt; subAuthInfo = restTemplate.getForEntity(profileUrl+<span class="string">&quot;?access_token=&quot;</span>+accessToken.getValue(),Map.class).getBody();</span><br><span class="line">                authInfo.putAll(subAuthInfo);</span><br><span class="line">                verifyClaims (authInfo);</span><br><span class="line">                <span class="keyword">final</span> OpenIdConnectUserDetails user = <span class="keyword">new</span> OpenIdConnectUserDetails(authInfo, accessToken);</span><br><span class="line">                <span class="keyword">return</span> <span class="keyword">new</span> UsernamePasswordAuthenticationToken(user, <span class="keyword">null</span>, user.getAuthorities ());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (<span class="keyword">final</span> Exception e) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> BadCredentialsException(<span class="string">&quot;Could not obtain user details from token&quot;</span>, e);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">verifyClaims</span><span class="params">(Map claims)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">int</span> exp = (Integer) claims.get(<span class="string">&quot;exp&quot;</span>);</span><br><span class="line">        Date expireDate = <span class="keyword">new</span> Date(exp * <span class="number">1000L</span>);</span><br><span class="line">        Date now = <span class="keyword">new</span> Date();</span><br><span class="line">        <span class="keyword">if</span> (expireDate.before(now) || !claims.get(<span class="string">&quot;iss&quot;</span>).equals(issuer) || !claims.get(<span class="string">&quot;aud&quot;</span>).equals(clientId)) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> RuntimeException(<span class="string">&quot;Invalid claims&quot;</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setRestTemplate</span><span class="params">(OAuth2RestTemplate restTemplate2)</span> </span>&#123;</span><br><span class="line">        restTemplate = restTemplate2;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在认证方法中，通过getAccessToken方法获取AccessToken。通过解析id_token获取信息，验证id_token的有效性。并将数据设置到实现了UserDetail接口类OpenIdConnectUserDetails中，其中存储了一系列的自定义数据，来解析id_token中的数据，并将UserDetail设置到UsernamePasswordAuthenticationToken返回。</p>
+<p>在WebSecurity中需要将这个认证过滤器注册到SpringSecurity过滤器链中</p>
+<h3 id="SpringSecurityConfig"><a href="#SpringSecurityConfig" class="headerlink" title="SpringSecurityConfig"></a>SpringSecurityConfig</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;$&#123;iam.config.sefix&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String LOGIN_ENTRY_SEFIX;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;#&#123;&#x27;$&#123;idm.iam.ignoresso.paths&#125;&#x27;.split(&#x27;,&#x27;)&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String[] ignorePath;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;#&#123;(&#x27;$&#123;idm.iam.ignoresso.actions&#125;&#x27;+&#x27;,/caslogout&#x27;).split(&#x27;,&#x27;)&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String[] ignoreActions;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;#&#123;(&#x27;$&#123;idm.iam.filter.actions&#125;&#x27;).split(&#x27;,&#x27;)&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String[] filterActions;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Value(&quot;#&#123;&#x27;$&#123;idm.iam.crosallowforms.hosts&#125;&#x27;.split(&#x27;,&#x27;)&#125;&quot;)</span></span><br><span class="line">    <span class="keyword">private</span> String[] crosAllowFrom;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> OAuth2RestTemplate openIdTemplate;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(WebSecurity web)</span> </span>&#123;</span><br><span class="line">        web.ignoring().antMatchers(ignorePath);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> OpenIdConnectFilter <span class="title">myFilter</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">final</span> OpenIdConnectFilter filter = <span class="keyword">new</span> OpenIdConnectFilter(LOGIN_ENTRY_SEFIX);</span><br><span class="line">        filter.setRestTemplate(openIdTemplate);</span><br><span class="line">        <span class="keyword">return</span> filter;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="keyword">for</span>(String url:crosAllowFrom)&#123;</span><br><span class="line">            StaticAllowFromStrategy strategy = <span class="keyword">new</span> StaticAllowFromStrategy(URI.create (url));</span><br><span class="line">            http.headers ().addHeaderWriter (<span class="keyword">new</span> XFrameOptionsHeaderWriter(strategy));</span><br><span class="line">        &#125;</span><br><span class="line">        http</span><br><span class="line">                .httpBasic().authenticationEntryPoint(<span class="keyword">new</span> LoginUrlAuthenticationEntryPoint(LOGIN_ENTRY_SEFIX))</span><br><span class="line">                .and()</span><br><span class="line">                .addFilterBefore(<span class="keyword">new</span> WebSecurityCorsFilter(), ChannelProcessingFilter.class)</span><br><span class="line">                .addFilterAfter(<span class="keyword">new</span> OAuth2ClientContextFilter(), AbstractPreAuthenticatedProcessingFilter.class)</span><br><span class="line">                .addFilterAfter(myFilter(), OAuth2ClientContextFilter.class)</span><br><span class="line">                .authorizeRequests()</span><br><span class="line">                .antMatchers(ignoreActions).permitAll()</span><br><span class="line">                .antMatchers(HttpMethod.OPTIONS).permitAll()</span><br><span class="line">                .antMatchers(filterActions).authenticated()</span><br><span class="line">                ;</span><br><span class="line">        http.headers().frameOptions().disable();</span><br><span class="line">        http.csrf().disable();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该类是SpringSecurity的配置类。configure(HttpSecurity http)方法配置了http请求的认证授权方法。其中设置了需要认证和过滤的路径地址，并设置了刚刚的认证过滤器。</p>
+<p>以上代码只是使用了第三方认证。明确了我这个客户端是否是允许合法的，并不属于单点登录范畴。而授权认证代码中，也仅仅是通常的SpringSecurity登录，并没有实现JWT的登录，只是将第三方认证返回的token数据作为用户信息进行存储。</p>
+<p>其实获取accessToken后，所有的操作权限还是在自身手里。</p>
+<h3 id="前端验证是否登录和登出"><a href="#前端验证是否登录和登出" class="headerlink" title="前端验证是否登录和登出"></a>前端验证是否登录和登出</h3><p>由于登录是由客户端认证服务端，完成这一操作后需要通知前端进行跳转的。因此服务端配置的回调地址是后台接口进行重定向到前端的某个地址的，并由前端根据是否登录的接口判断我是否已经登录了来进行允不允许跳转到首页。</p>
+<p>是否登录接口可以直接获取SpringSecurity提供的用户信息方法</p>
+<p><code>SecurityContextHolder.getContext().getAuthentication().getPrincipal();</code></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(value = &quot;/cas/isLogin&quot;, method = RequestMethod.GET, produces = &quot;application/json; charset=utf-8&quot;)</span></span><br><span class="line"><span class="meta">@ResponseBody</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> Map&lt;String, String&gt; <span class="title">userinfos</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> </span>&#123;</span><br><span class="line">    Map&lt;String, String&gt; result = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">final</span> OpenIdConnectUserDetails principal = (OpenIdConnectUserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();</span><br><span class="line">        String token = principal.getToken().getAdditionalInformation().get(<span class="string">&quot;id_token&quot;</span>).toString();</span><br><span class="line">        String assess_token = principal.getToken().getValue();</span><br><span class="line">        result.put(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;success&quot;</span>);</span><br><span class="line">        result.put(<span class="string">&quot;code&quot;</span>, CodeStatus.SUCCESS);</span><br><span class="line">        result.put(<span class="string">&quot;id_token&quot;</span>, token);</span><br><span class="line">        result.put(<span class="string">&quot;assess_token&quot;</span>, assess_token);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">        System.out.println(e.toString());</span><br><span class="line">        result.put(<span class="string">&quot;message&quot;</span>, <span class="string">&quot;failed&quot;</span>);</span><br><span class="line">        result.put(<span class="string">&quot;code&quot;</span>, CodeStatus.USER_NOT_FOUND);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> result;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>登出接口实际上就是对自身服务进行登出。因为说有权限都在自身，我只是第三方客户端。同时，我可以根据登出方法来重定向前端项目的位置。或刷新由前端验证。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@RequestMapping(&quot;/caslogout&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">logout</span><span class="params">(HttpServletRequest request, HttpServletResponse response)</span> </span>&#123;</span><br><span class="line">    Authentication auth = SecurityContextHolder.getContext().getAuthentication();</span><br><span class="line">    <span class="keyword">if</span> (auth != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">new</span> SecurityContextLogoutHandler().logout(request, response, auth);</span><br><span class="line">    &#125;</span><br><span class="line">    request.getSession().invalidate();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+
+
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.security<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-security-core<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.1.2.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.security<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-security-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>5.1.2.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.security.oauth<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-security-oauth2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.3.4.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.security<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-security-jwt<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.0.9.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+      <div id="reward-btn">
+        打赏
+      </div>
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+        <div class="declare">
+          <ul class="post-copyright">
+            <li>
+              <i class="ri-copyright-line"></i>
+              <strong>版权声明： </strong s>
+              本博客所有文章除特别声明外，均采用 <a href="https://www.apache.org/licenses/LICENSE-2.0.html" rel="external nofollow"
+                target="_blank">Apache License 2.0</a> 许可协议。转载请注明出处！
+            </li>
+          </ul>
+        </div>
+        
+    <footer class="article-footer">
+      
+          
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2021/07/12/SpringSecurity/SpringSecurity%E9%9B%86%E6%88%90Oauth2%E8%87%AA%E5%8A%A8%E6%8E%88%E6%9D%83%E5%AE%A2%E6%88%B7%E7%AB%AF%E4%BB%A3%E7%A0%81/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OAuth2/" rel="tag">OAuth2</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" rel="tag">单点登录</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+  
+  <nav class="article-nav">
+    
+      <a href="/2021/07/13/SpringBoot/%E6%9C%89%E5%85%B3%E4%BD%BF%E7%94%A8SpringSecurity%E6%97%B6%E8%B7%A8%E5%9F%9F%E5%A4%B1%E6%95%88%E9%85%8D%E7%BD%AE/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            有关使用Spring Security时跨域失效配置
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2021/07/09/Java/aspose-words%E8%BD%ACpdf/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">aspose-words转pdf</div>
+      </a>
+    
+  </nav>
+
+
+  
+
+  
+  
+<!-- valine评论 -->
+<div id="vcomments-box">
+    <div id="vcomments">
+    </div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src='https://cdn.jsdelivr.net/npm/valine@1.3.10/dist/Valine.min.js'></script>
+<script>
+    new Valine({
+        el: '#vcomments',
+        app_id: '6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz',
+        app_key: 'iliPU54Izlh7k5143khLQ93u',
+        path: window.location.pathname,
+        notify: 'true',
+        verify: 'true',
+        avatar: 'mp',
+        placeholder: '给我的文章加点评论吧~',
+        recordIP: true
+    });
+    const infoEle = document.querySelector('#vcomments .info');
+    if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+        infoEle.childNodes.forEach(function (item) {
+            item.parentNode.removeChild(item);
+        });
+    }
+</script>
+<style>
+    #vcomments-box {
+        padding: 5px 30px;
+    }
+
+    @media screen and (max-width: 800px) {
+        #vcomments-box {
+            padding: 5px 0px;
+        }
+    }
+
+    #vcomments-box #vcomments {
+        background-color: #fff;
+    }
+
+    .v .vlist .vcard .vh {
+        padding-right: 20px;
+    }
+
+    .v .vlist .vcard {
+        padding-left: 10px;
+    }
+</style>
+
+  
+
+  
+  
+  
+
+</article>
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul class="list-inline">
+      <li>
+        &copy;
+        2020-2021
+        陈光奇
+      </li>
+      <li>
+        
+        Powered by
+        
+        
+        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
+        
+      </li>
+    </ul>
+    <ul class="list-inline">
+      <li>
+        
+      </li>
+      
+      <li>
+        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
+      </li>
+      
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>
+      <div class="to_top">
+        <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+      </div>
+    </main>
+    <aside class="sidebar">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-2.0.3.min.js"></script>
+
+
+<script src="/js/share.js"></script>
+
+
+<script src="/js/lazyload.min.js"></script>
+
+
+<script>
+  try {
+    var typed = new Typed("#subtitle", {
+      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
+      startDelay: 0,
+      typeSpeed: 200,
+      loop: true,
+      backSpeed: 100,
+      showCursor: true
+    });
+  } catch (err) {
+  }
+
+</script>
+
+
+
+
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  // Tocbot_v4.7.0  http://tscanlin.github.io/tocbot/
+  tocbot.init({
+    tocSelector: '.tocbot',
+    contentSelector: '.article-entry',
+    headingSelector: 'h1, h2, h3, h4, h5, h6',
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: 'main',
+    positionFixedSelector: '.tocbot',
+    positionFixedClass: 'is-position-fixed',
+    fixedSidebarOffset: 'auto',
+    onClick: (e) => {
+      $('.toc-link').removeClass('is-active-link');
+      $(`a[href=${e.target.hash}]`).addClass('is-active-link');
+      $(e.target.hash).scrollIntoView();
+      return false;
+    }
+  });
+</script>
+
+
+
+<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
+<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/js/ayer.js"></script>
+
+
+
+<!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script>
+
+
+<script type="text/x-mathjax-config">
+  MathJax.Hub.Config({
+      tex2jax: {
+          inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
+          processEscapes: true,
+          skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
+      }
+  });
+
+  MathJax.Hub.Queue(function() {
+      var all = MathJax.Hub.getAllJax(), i;
+      for(i=0; i < all.length; i += 1) {
+          all[i].SourceElement().parentNode.className += ' has-jax';
+      }
+  });
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+<script>
+  var ayerConfig = {
+    mathjax: true
+  }
+</script>
+
+
+
+<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
+
+    
+  </div>
+</body>
+
+</html>

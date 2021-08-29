@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Zoopeeker/Zookeeper集群服务器注册动态上下线" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/SpringBoot中遇到的的某些问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/"
-    >Zookeeper集群服务器注册动态上下线</a
+  <a class="article-title" href="/2019/01/19/SpringBoot/SpringBoot%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/"
+    >SpringBoot中遇到的的某些问题</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/" class="article-date">
-  <time datetime="2018-12-30T13:32:43.000Z" itemprop="datePublished">2018-12-30</time>
+      <a href="/2019/01/19/SpringBoot/SpringBoot%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2019-01-19T14:28:28.000Z" itemprop="datePublished">2019-01-19</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
   </div>
 
       
@@ -119,132 +119,20 @@
       
 
       
-      <p>服务器上下线，就是服务器在集群化环境下，服务器出现的断开集群连接，或服务器宕机，关机，停止工作等问题。而服务器动态上下线感知就是客户端可以监听服务器的上线或下线，知道哪个服务器正在运行，哪个服务器停止了，若某台机器退出集群了，表示该服务器节点下线了。那么客户端就不会请求这台服务器了。并且客户端通过监听就可以知道那些机器在运行中。 首先Zookeepr能做什么，主要是作为分布式命名服务，通过调用zNode api 能够很容易的创建一个全局的path，一个path就是一个名称，且具有层级结构。当然还有其他作用。 而Zookeeper具有监听watch的功能，监听节点值和子节点。那么将服务器作为每个节点，由zookeeper统一管理，每个节点都会有stat信息，存储这相关内容及配置。那么节点又分为临时和持久，以及四个节点目录类型。只要将服务器节点设置为临时顺序节点，即可监听节点的数量。只要服务器节点断开。那个临时节点就会删除。这句话也就是说，将服务器通过Zookeeper管理，两者的关系就是，服务器就是Client，同真正的Client客户端类似。也就是说，服务器需要到Zookeeper值注册节点，那么Server服务器也就理应成了Client的角色。 <strong>简而言之:</strong></p>
-<ul>
-<li>n个服务器到Zookeeper中注册节点，注册到同一个节点下，那么他们都是同级的子节点。</li>
-<li>而客户端会通过ls path [watch]，来监听这个节点的变化，也就是路径的变化。在java操作客户端时getChildren可以使用Watcher来监听某个节点。那么被监听的这个节点就是众多服务器节点的父节点。</li>
-</ul>
-<p>需要注意的是，服务器都通过zookeeper来管理，要到Zookeeper中注册节点。而客户端专门监听Zookeeper的节点列表。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181230202802.png" alt=""> java代码的具体方式就是，先服务器注册，在客户端监听。 看一下服务器代码:</p>
-<pre><code>public class ZkServer &#123;
-
-    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
-    private int sessionTimeout=20000;
-    private ZooKeeper zkServer = null;
-
-    public static void main(String[] args) &#123;
-        ZkServer server = new ZkServer();
-        server.connect();//连接Zookeeper
-        server.register(args[0]);//注册服务器节点
-        server.message(args[0]);
-    &#125;
-
-    /**
-     * 服务器注册完毕提示
-     * @param string
-     */
-    private void message(String hostName) &#123;
-        System.out.println(hostName + &quot;启动完毕!!!&quot;);
-    &#125;
-
-    /**
-     * 服务器节点注册
-     */
-    private void register(String hostName) &#123;
-        try &#123;
-            zkServer.create(&quot;/servers/server&quot;, hostName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
-        &#125; catch (KeeperException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125; catch (InterruptedException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-        System.out.println(&quot;注册服务器节点&quot; + hostName);
-        try &#123;
-            Thread.sleep(Long.MAX_VALUE);
-        &#125; catch (InterruptedException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 服务器作为客户端连接Zookeeper
-     */
-    private void connect() &#123;
-        try &#123;
-            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
-
-                public void process(WatchedEvent event) &#123;
-
-                &#125;
-            &#125;);
-        &#125; catch (IOException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-    &#125;
-&#125;</code></pre><p>客户端代码:</p>
-<pre><code>public class ZkClient &#123;
-
-    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
-    private int sessionTimeout=20000;
-    private ZooKeeper zkServer = null;
-
-    public static void main(String[] args) &#123;
-        ZkClient client = new ZkClient();
-        client.connect();//连接Zookeeper
-
-    &#125;
-
-    /**
-     * 服务器作为客户端连接Zookeeper
-     */
-    private void connect() &#123;
-        try &#123;
-            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
-                public void process(WatchedEvent event) &#123;
-                    try &#123;
-                        List&lt;String&gt; list = zkServer.getChildren(&quot;/servers&quot;, true);
-                        System.out.println(list.toString());
-                    &#125; catch (KeeperException e) &#123;
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    &#125; catch (InterruptedException e) &#123;
-                        // TODO Auto-generated catch block
-                        e.printStackTrace();
-                    &#125;
-                &#125;
-            &#125;);
-        &#125; catch (IOException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-        try &#123;
-            Thread.sleep(Long.MAX_VALUE);
-        &#125; catch (InterruptedException e) &#123;
-            // TODO Auto-generated catch block
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-&#125;</code></pre><p>其实总体来说，只有客户端代码有用，它负责监听，并把子节点打印出来。我们可以直接启动客户端代码。而对于服务器注册而言，无非是命令行创建变成了通过java代码创建。所以，只需要把客户端启动起来，在命令行上创建临时顺序节点即可。下面是命令行注册服务器，以及对应的客户端打印输出。</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 34] ls /servers
-[]
-[zk: localhost:2181(CONNECTED) 35] create -s -e /servers/server server1
-Created /servers/server0000000001
-[zk: localhost:2181(CONNECTED) 36] create -s -e /servers/server server2
-Created /servers/server0000000002
-[zk: localhost:2181(CONNECTED) 37] create -s -e /servers/server server3
-Created /servers/server0000000003
-[zk: localhost:2181(CONNECTED) 38] delete /servers/server0000000001
-
-
-[]
-[server0000000001]
-[server0000000002, server0000000001]
-[server0000000003, server0000000002, server0000000001]
-[server0000000003, server0000000002]</code></pre><p>为什么我不用java启动服务注册，因为，你需要开线程，或者打个包才能执行三次。没有命令行快速方便。然后，没了。</p>
+      <ol>
+<li>关于Spring Data JPA使用懒加载，no session的情况？</li>
+</ol>
+<p>很多情况都说要再被调用的方法添加@Transactional注解，可是尝试了一下没有解决。再实体类中，你的User类中的Dept是添加的懒加载注解，并关联了外键字段，yml中，默认的hibernate就是open-in-view就是true。依旧没有解决，最后找了好久，可以这样配置hibernate 配置<strong>spring.jpa.properties.hibernate.enable_lazy_load_no_trans: true</strong>,表示再不适用事务注解是也进行懒加载。但是这跟只加@Transactional注解有什么区别呢。</p>
+<ol start="2">
+<li><p>关于在整合elasticsearch之后再整合redis出现的错误?</p>
+<p>Failed to instantiate [org.elasticsearch.client.transport.TransportClient]: Factory method ‘esTransportClientInit’ threw exception; nested exception is java.lang.IllegalStateException: availableProcessors is already set to [8], rejecting [8]</p>
+</li>
+</ol>
+<p>这个错误，这个错再网上也有，说是netty尝试初始化实例处理器。因为，再控制台打印上可以看到，elasticsearch使用了Netty4Plugin，而redis可能也使用到了，所以需要在启动时配置一下</p>
+<pre><code>public static void main(String[] args) &#123;
+    System.setProperty(&quot;es.set.netty.runtime.available.processors&quot;, &quot;false&quot;);
+    SpringApplication.run(BootApplication.class, args);
+&#125;</code></pre><p>添加第一行代码就好。</p>
 
       
       <!-- reward -->
@@ -257,7 +145,7 @@ Created /servers/server0000000003
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
 
 
     </footer>
@@ -274,7 +162,7 @@ Created /servers/server0000000003
 
 </article>
     
-    <article id="post-Zoopeeker/Zookeeper客户端java操作说明" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/Spring Boot整合RabbitMq" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -282,8 +170,8 @@ Created /servers/server0000000003
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/30/Zoopeeker/Zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AFjava%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E/"
-    >Zookeeper客户端java操作说明</a
+  <a class="article-title" href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88RabbitMq/"
+    >Spring Boot整合RabbitMq</a
   >
 </h2>
   
@@ -293,12 +181,12 @@ Created /servers/server0000000003
 
     
     <div class="article-meta">
-      <a href="/2018/12/30/Zoopeeker/Zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AFjava%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E/" class="article-date">
-  <time datetime="2018-12-30T11:23:59.000Z" itemprop="datePublished">2018-12-30</time>
+      <a href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88RabbitMq/" class="article-date">
+  <time datetime="2019-01-17T15:22:35.000Z" itemprop="datePublished">2019-01-17</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
   </div>
 
       
@@ -315,99 +203,366 @@ Created /servers/server0000000003
       
 
       
-      <p>创建Maven项目，添加对应zookeeper版本依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;
-    &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;
-    &lt;version&gt;3.4.13&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>再拷贝zookeeper.tar.gz包下的conf下的log4j.properties日志。到maven的resource目录下</p>
-<pre><code>public class App &#123;
-
-    //连接字符串
-    private static String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
-    //会话超时时间
-    private static int sessionTimeout = 20000;
-    //Zookeeper对象
-    ZooKeeper zkCli = null;
-
-    @Before
-    public void initCli() throws IOException &#123;
-
-        zkCli = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
-
-            public void process(WatchedEvent event) &#123;
-                // TODO Auto-generated method stub
-                System.out.println(&quot;事件类型&quot; + event.getType());
-            &#125;
-        &#125;);
-    &#125;
-
-    @Test
-    public void createNode() throws KeeperException, InterruptedException &#123;
-        String path = zkCli.create(&quot;/chen&quot;, &quot;chenguangqi&quot;.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
-        System.out.println(path);
-    &#125;
-
-&#125;</code></pre><p>代码中initCli方法用于创建客户端，通过Zokkepper构造方法构造客户端对象。</p>
+      <h2 id="Spring-Boot整合RabbitMq"><a href="#Spring-Boot整合RabbitMq" class="headerlink" title="Spring Boot整合RabbitMq"></a>Spring Boot整合RabbitMq</h2><p>首先说明一下JMS和AMQP，</p>
 <ul>
-<li>第一个参数为连接字符串,多个连接使用逗号分开，可以写一个或多个，将随机连接。</li>
-<li>第二个参数为会话超时时间，这个尽量不要低于5秒吧，否则可能导致超时报错。</li>
-<li>第三个参数为监听Watcher,也就是监听器原理中的那个，获得到监听响应后会执行process方法。</li>
+<li>JMS:(JAVA Message Service)java消息服务,基于JVM消息代理规范，ActiveMQ，HornetMQ是JMS的实现。</li>
+<li>AMQP:高级消息队列协议，也是一个消息代理规范，兼容JMS，RabbitMQ是其实现。</li>
 </ul>
-<p>客户端创建节点，返回创建节点的路径</p>
+<p>对于一般消息队列发送由点对点和发布订阅的方式。简单地说， 点对点是消息发送消息，消息代理将其放入队列中，消息接收者从队列中获取信息，读取消息后，消息被移除队列，且消息只有唯一的发送者和接收者，但并不是只能有一个接收者，而是只有一个接收者能接收。 发布订阅表示发送者发送消息到主题，多个接收者(订阅者)监听(订阅)这个主题，那么会在消息到达时接收到消息。对应@JmsListener和@RabbitListener。 一般JMS只提供这两种模式，而AMQP提供了五种。与之多引入了一些概念。</p>
+<h3 id="RabbitMQ核心概念"><a href="#RabbitMQ核心概念" class="headerlink" title="RabbitMQ核心概念"></a>RabbitMQ核心概念</h3><ul>
+<li>Message：消息是不具名的，也就是说针对某个接收者。由消息头和消息体组成，消息头由一系列可选属性，routing-key路由键，priority优先权，delivery-mode持久性存储等。</li>
+<li>Publisher:消息生产者</li>
+<li>Consumer:消费者，从一个消息队列中取走消息的客户端程序。</li>
+<li>Exchange:交换器，用来接收生产者发送的消息，并将这些消息路由给服务器中的队列，由四种类型，Direct(默认，也就是点对点)，fanout，topic，headers，还有代码中可自定义的策略。其中后四种只是将发布订阅细分了一下。</li>
+<li>Queue:队列，用来保存消息到，发送给消费者，它是消息的容器，消息一直在这个队列里，等待消费者链接这个队列将消息取走。</li>
+<li>Binding:消息队列和交换器之间的关联。<strong>一个绑定就是基于路由键将交换器和队列链接起来的路由规则</strong>，可以将交换器理解成一个由绑定构成的路由表。</li>
+<li>Connection:连接，TCP方式连接</li>
+<li>Channel:通道，就如java中NIO的通道类似，较少资源消耗，双向通道。信道是建立在真实TCP连接内的虚拟连接。</li>
+<li>Virtual Host:虚拟主机，表示一批交换器、消息队列和关联对象。每个 vhost 本质上就是一个 mini 版的 RabbitMQ 服务器，拥有 自己的队列、交换器、绑定和权限机制。vhost 是 AMQP 概念的基础，必须在连接时指定， RabbitMQ 默认的 vhost 是 / 。</li>
+<li>Broker：消息队列服务器的实体</li>
+</ul>
+<p>其中有几张图可以更好和了解 <img src="images/%E5%9B%BE%E7%89%871.png" alt=""> <img src="images/%E5%9B%BE%E7%89%872.png" alt=""> 在AMQP中加入了Exchange和Binding的角色，生产者将消息发布到Exchange上，消息最终到达队列并被消息者接收，而Binding决定消息发送到哪个队列上。有必要了解一下Exchange、Binding、Queue，routing-key之间的关系。依据它们之间的关系了解一下这四个消息模型。 首先是Exchange，他是一个交换器，是一个枢纽，首先它可以添加一个绑定，并不是说这个对象可以创建绑定，这个绑定不仅可以绑定队列到Excahnge上，也可以是exchange，这里只讨论queue。在绑定的时候有一个routing-key路由键，这个路由键是exchange向queue分发的映射。 <img src="%5CUsers%5Ccgq_r%5CDesktop%5C20190113145158.png" alt=""> 首先，exchange有四种类型，分别是direct,fanout,topic,headers,一般headers用的不多，我们只将前三种。在创建时创建对应模式的exchange，分别表示:</p>
 <ul>
-<li>第一个参数为创建的节点路径</li>
-<li>第二个参数为节点数据值</li>
-<li>第三个参数为ACL访问控制权限，Ids中获得其他节点权限，当前为开放权限不安全。</li>
-<li>第四个参数为节点类型，暂时，暂时顺序，持久，持久顺序</li>
+<li>direct:点对点模式exchange</li>
+<li>fanout:发布订阅exchange，即所有的绑定队列都被分发。</li>
+<li>topic:匹配模式的exchange，可依据*和#进行匹配队列名发送消息。</li>
 </ul>
-<p>java客户端在连接服务器执行完操作后，就会断开连接。且<strong>每次连接客户端的Watcher都会执行</strong>。也就是首次连接服务器必会执行process方法。</p>
-<h3 id="获得子节点"><a href="#获得子节点" class="headerlink" title="获得子节点"></a>获得子节点</h3><pre><code>@Test
-public void getNode() throws KeeperException, InterruptedException &#123;
-    List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, false);
-    for (String string : list) &#123;
-        System.out.println(string);
-    &#125;
+<p>看上面图底下，绑定队列，绑定exchange就不说了。<strong>绑定队列，由队列名称，和routing-key。它是一个关键，我们可以把所有的队列都绑定到某个exchange上，但routing-key决定了是否分发到绑定的队列上。</strong> 我们举个例子:</p>
+<ol>
+<li>direct的exchange交换器绑定，首先direct是点到点，只有一个接收者能接收到，一句这个routing-key发送消息，因为当前模式只能一个接收者接收到，所以不能使用*或#。队列名和路由键是匹配对应的，消息可依据exchange和routing-key发送到某个指定的消息队列上。</li>
+<li>fanout是分发，所有exchange被绑定的queue都会被发送消息。队列和路由键的匹配，尽管发送到某个路由键上，但仍然会发送到所有的exchange绑定队列上。</li>
+<li>topic是主题分发，可以进行适配队列名的分发，若队列名为name.chen,路由键位name.#,则向name.#路由分发消息是，所有name.xxx的都会被分发消息。若队列名位name.chen，路由键位<em>.chen，则向</em>.chen路由分发消息，则所有xxx.chen被分发消息。</li>
+</ol>
+<p>只需要记住的是，一个exchange可以绑定多个队列，路由键与队列是关联的，不一定每个队列都会被分发，但匹配的路由键对应的队列会分发。direct点对点，一个路由只匹配一个队列；fanout，不管路由设置什么，只有绑定了队列，均发送消息；topic选择分发，依据路由规则进行选择性的分发到队列。 我们可以安装rabbitmq进行测试。通过docker镜像方式安装.</p>
+<ol>
+<li><p>去Docker Hub拉取<a target="_blank" rel="noopener" href="https://hub.docker.com/_/rabbitmq?tab=tags">rabbitmq镜像</a>，带管理界面management的。</p>
+<pre><code>docker pull rabbitmq:3.6.16-management-alpine</code></pre></li>
+<li><p>查看下载镜像</p>
+<pre><code>docker images</code></pre></li>
+<li><p>启动镜像</p>
+<pre><code>docker run -d -p 5672:5672 -p 15672:15672 --name myrabbitmq cad58564044c</code></pre></li>
+<li><p>查看进程</p>
+<pre><code>docker ps all</code></pre></li>
+<li><p>页面访问localhost:15672页面进入rabbitmq管理界面，用户名密码为guest。</p>
+</li>
+<li><p>在Exchange选项卡和Queue选项卡进行操作，在Exchange选项卡中点击某个exchange进行添加绑定或者发送消息；在Queue选项卡，点击某个队列，点击getmessage，获得消息。查看被绑定的exchange。</p>
+</li>
+</ol>
+<h3 id="整合Spring-Boot"><a href="#整合Spring-Boot" class="headerlink" title="整合Spring Boot"></a>整合Spring Boot</h3><ol>
+<li><p>添加依赖</p>
+<pre><code>org.springframework.boot
+spring-boot-starter-amqp</code></pre></li>
+</ol>
+<pre><code>​    </code></pre><ol start="2">
+<li><p>添加yml或properties配置，配置rabbit的主机localhost，用户名密码guest，端口号5672都是默认的，如果docker在本地的情况下，你可以什么都不配。端口号对应docker与本地的端口映射。</p>
+</li>
+<li><p>所有的配置都由springboot自动配置完成，只需要注入RabbitTemplate类，用于消息发送及处理；AmqpAdmin用于组件的管理。rabbitTemplate用于指定exchange或和routing-key进行发布消息。AmqpAdmin用于创建Exchange、Queue、Binding、删除等操作。</p>
+</li>
+<li><p>调用发布消息，消息类型是Object，可以放Map，对象等还有字符串数据。这样默认的话消息是MEMI类型为java序列化类型，是一堆序列化值。当然还可以自定义消息转换，将其序列化为json，定义配置Bean，返回MessageConverter对象类型为JackJson2JsonMessageConverter类。即可进行序列化对象，获取消息就可以反序列化。</p>
+<pre><code>@Configuration
+public class MyConfiguration &#123;
+
+   @Bean
+   public MessageConverter messageConverter()&#123;
+       return new Jackson2JsonMessageConverter();
+   &#125;
+&#125;</code></pre></li>
+<li><p>对于注解@RabbitListener和@EnableRabbit，首先需要开启注解模式，@EnableRabbit,然后在某个方法上添加注解@RabbitListener,并添加注解参数queue，方法参数为队列消息，若接收到消息则自动执行方法。该类需要注入spring容器。</p>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/Spring Boot整合ElasticSearch全文检索引擎" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88ElasticSearch%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%E5%BC%95%E6%93%8E/"
+    >Spring Boot整合ElasticSearch全文检索引擎</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88ElasticSearch%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%E5%BC%95%E6%93%8E/" class="article-date">
+  <time datetime="2019-01-17T15:19:14.000Z" itemprop="datePublished">2019-01-17</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Spring-Boot整合ElasticSearch全文检索引擎"><a href="#Spring-Boot整合ElasticSearch全文检索引擎" class="headerlink" title="Spring Boot整合ElasticSearch全文检索引擎"></a>Spring Boot整合ElasticSearch全文检索引擎</h1><p>docker镜像安装:</p>
+<pre><code>docker pull elasticsearch:6.5.4
+docker run -e ES_JAVA_OPTS=&quot;-Xms256m -Xmx256m&quot; -d -p 9200:9200 -p 9300:9300 --name myes 93109ce1d590</code></pre><p>此处尽量选择拉取2.4.6的版本，因为spring boot data elasticsearch与elasticsearch版本会不匹配以至于无法操作。 访问localhost:9200返回响应json</p>
+<pre><code>&#123;
+  &quot;name&quot; : &quot;HBCk3xN&quot;,
+  &quot;cluster_name&quot; : &quot;docker-cluster&quot;,
+  &quot;cluster_uuid&quot; : &quot;fzfscgtWQ1-9hlVbBU038Q&quot;,
+  &quot;version&quot; : &#123;
+    &quot;number&quot; : &quot;6.5.4&quot;,
+    &quot;build_flavor&quot; : &quot;default&quot;,
+    &quot;build_type&quot; : &quot;tar&quot;,
+    &quot;build_hash&quot; : &quot;d2ef93d&quot;,
+    &quot;build_date&quot; : &quot;2018-12-17T21:17:40.758843Z&quot;,
+    &quot;build_snapshot&quot; : false,
+    &quot;lucene_version&quot; : &quot;7.5.0&quot;,
+    &quot;minimum_wire_compatibility_version&quot; : &quot;5.6.0&quot;,
+    &quot;minimum_index_compatibility_version&quot; : &quot;5.0.0&quot;
+  &#125;,
+  &quot;tagline&quot; : &quot;You Know, for Search&quot;
+&#125;</code></pre><p>有两种方式操作elasticsearch,一种是spring-data-elasticsearch，一种是jest，一个是使用java客户端操作，一个是使用restful方式操作的。Spring-data的方式非常类似Spring data-jpa，都是repository接口。</p>
+<h3 id="官方文档示例"><a href="#官方文档示例" class="headerlink" title="官方文档示例"></a>官方文档示例</h3><p>Elasticsearch 是 <em>面向文档</em> 的，意味着它存储整个对象或 _文档_。Elasticsearch 不仅存储文档，而且 _索引_每个文档的内容使之可以被检索。在 Elasticsearch 中，你 对文档进行索引、检索、排序和过滤–而不是对行列数据。这是一种完全不同的思考数据的方式，也是 Elasticsearch 能支持复杂全文检索的原因。 Elasticsearch 使用 JavaScript Object Notation 或者 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Json"><em>JSON</em></a> 作为文档的序列化格式。JSON 序列化被大多数编程语言所支持，并且已经成为 NoSQL 领域的标准格式</p>
+<pre><code>&#123;
+    &quot;email&quot;:      &quot;john@smith.com&quot;,
+    &quot;first_name&quot;: &quot;John&quot;,
+    &quot;last_name&quot;:  &quot;Smith&quot;,
+    &quot;info&quot;: &#123;
+        &quot;bio&quot;:         &quot;Eco-warrior and defender of the weak&quot;,
+        &quot;age&quot;:         25,
+        &quot;interests&quot;: [ &quot;dolphins&quot;, &quot;whales&quot; ]
+    &#125;,
+    &quot;join_date&quot;: &quot;2014/05/01&quot;
+&#125;</code></pre><p>在官方文档中存在这样一段话： <strong>一个文档代表一个雇员。存储数据到 Elasticsearch 的行为叫做 <em>索引</em> ，但在索引一个文档之前，需要确定将文档存储在哪里。</strong> <strong>一个 Elasticsearch 集群可以 包含多个 <em>索引</em> ，相应的每个索引可以包含多个 <em>类型</em> 。 这些不同的类型存储着多个 <em>文档</em> ，每个文档又有 多个 <em>属性</em> 。</strong> 官网也有了解释，一个索引是名词，类似关系型数据库的mysql的数据库，一个索引时动词，类似于insert。 首先理解一下第二段，多个索引就是类似多个数据库；每个索引包含多个类型，类似于每个数据库的多个表；不同类型存储多个文档，类似于不同表存储多条数据；每个文档由多个属性，类似于每个数据记录的属性字段。 首先运行测试一下<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/cn/elasticsearch/guide/current/_indexing_employee_documents.html">官网的雇员例子</a>。 只需要发送PUT请求，并添加json数据即可，使用postman,添加3个雇员 <img src="images/20190113234018.png" alt=""></p>
+<ol>
+<li><p><strong>检索某个文档</strong>,发送get请求，指定索引库，类型和ID，/megacorp/employee/1</p>
+<pre><code>GET localhost:9200/megacorp/employee/1</code></pre></li>
+<li><p><strong>检索所有</strong>,结果都放在hits数组中</p>
+<pre><code>GET localhost:9200/megacorp/employee/_search</code></pre></li>
+<li><p><strong>指定属性检索</strong></p>
+<pre><code>GET localhost:9200/megacorp/employee/_search?q=last_name:Smith</code></pre></li>
+<li><p><strong>查询表达式搜索</strong>，发送查询json,qurey表示查询，match为匹配，匹配last_name</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match&quot; : &#123;
+           &quot;last_name&quot; : &quot;Smith&quot;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>复杂表达式搜索</strong>,依然是传入json请求体，添加filter过滤搜索,使用范围搜索，检索age的范围匹配</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;bool&quot;: &#123;
+           &quot;must&quot;: &#123;
+               &quot;match&quot; : &#123;
+                   &quot;last_name&quot; : &quot;smith&quot; 
+               &#125;
+           &#125;,
+           &quot;filter&quot;: &#123;
+               &quot;range&quot; : &#123;
+                   &quot;age&quot; : &#123; &quot;gt&quot; : 30 &#125; 
+               &#125;
+           &#125;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>全文检索</strong>,所有符合条件都会匹配，此时查出两条记录，按照_score匹配相关性得分排序。由空格分隔，前后都可能被匹配，此为全文检索非精确匹配</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match&quot; : &#123;
+           &quot;about&quot; : &quot;rock climbing&quot;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>全文检索，精确匹配</strong>,使用match_phrase进行精确匹配，这样只匹配一条</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match_phrase&quot; : &#123;
+           &quot;about&quot; : &quot;rock climbing&quot;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>高亮搜索，添加请求体highlight参数</strong>，设置某个属性，将查询某个文档，并高亮当前查询的匹配结果,此结果携带html标签，可以在页面上渲染。</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match_phrase&quot; : &#123;
+           &quot;about&quot; : &quot;rock climbing&quot;
+       &#125;
+   &#125;,
+   &quot;highlight&quot;: &#123;
+       &quot;fields&quot; : &#123;
+           &quot;about&quot; : &#123;&#125;
+       &#125;
+   &#125;
 &#125;
 
-
-@Test
-public void getNode() throws KeeperException, InterruptedException &#123;
-    //List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, false);
-    List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, new Watcher() &#123;
-        public void process(WatchedEvent event) &#123;
-            // TODO Auto-generated method stub
-            System.out.println(&quot;监听路径&quot; + event.getPath());
+&#123;
+  ...
+  &quot;hits&quot;: &#123;
+     &quot;total&quot;:      1,
+     &quot;max_score&quot;:  0.23013961,
+     &quot;hits&quot;: [
+        &#123;
+           ...
+           &quot;_score&quot;:         0.23013961,
+           &quot;_source&quot;: &#123;
+              &quot;first_name&quot;:  &quot;John&quot;,
+              &quot;last_name&quot;:   &quot;Smith&quot;,
+              &quot;age&quot;:         25,
+              &quot;about&quot;:       &quot;I love to go rock climbing&quot;,
+              &quot;interests&quot;: [ &quot;sports&quot;, &quot;music&quot; ]
+           &#125;,
+           &quot;highlight&quot;: &#123;
+              &quot;about&quot;: [
+                 &quot;I love to go &lt;em&gt;rock&lt;/em&gt; &lt;em&gt;climbing&lt;/em&gt;&quot; 
+              ]
+           &#125;
         &#125;
-    &#125;);
-    for (String string : list) &#123;
-        System.out.println(string);
+     ]
+  &#125;
+&#125;</code></pre></li>
+<li><p><strong>聚合搜索</strong>，类似sql的groupby分组,可以依据某个属性做一些精细结果。aggs表示聚合，聚合interests。结果返回分片信息，某个值的数量。</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+ &quot;aggs&quot;: &#123;
+   &quot;all_interests&quot;: &#123;
+     &quot;terms&quot;: &#123; &quot;field&quot;: &quot;interests&quot; &#125;
+   &#125;
+ &#125;
+&#125;
+
+&#123;
+  ...
+  &quot;hits&quot;: &#123; ... &#125;,
+  &quot;aggregations&quot;: &#123;
+     &quot;all_interests&quot;: &#123;
+        &quot;buckets&quot;: [
+           &#123;
+              &quot;key&quot;:       &quot;music&quot;,
+              &quot;doc_count&quot;: 2
+           &#125;,
+           &#123;
+              &quot;key&quot;:       &quot;forestry&quot;,
+              &quot;doc_count&quot;: 1
+           &#125;,
+           &#123;
+              &quot;key&quot;:       &quot;sports&quot;,
+              &quot;doc_count&quot;: 1
+           &#125;
+        ]
+     &#125;
+  &#125;
+&#125;</code></pre></li>
+</ol>
+<h3 id="Jest操作Elasticsearch"><a href="#Jest操作Elasticsearch" class="headerlink" title="Jest操作Elasticsearch"></a>Jest操作Elasticsearch</h3><p>jest是专门的restful风格的api 首先引入pom依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.searchbox&lt;/groupId&gt;
+    &lt;artifactId&gt;jest&lt;/artifactId&gt;
+    &lt;version&gt;5.3.4&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>配置yml，配置访问uris，默认localhost:9200</p>
+<pre><code>spring:
+  elasticsearch:
+    jest:
+      uris: localhost:9200</code></pre><p>使用JestClient自动注入，进行操作,构建文档添加到elasticsearch</p>
+<pre><code>@Autowired
+private JestClient jestClient;
+
+@ResponseBody
+@RequestMapping(&quot;test&quot;)
+public String test()&#123;
+    //创建实体类
+    Dept dept = new Dept();
+    dept.setId(1);
+    dept.setName(&quot;产品部&quot;);
+    dept.setFloor(1);
+    dept.setDesc(&quot;这是产品部&quot;);
+    //构建一个文档
+    Index index = new Index.Builder(dept).index(&quot;xxha&quot;).type(&quot;dept&quot;).id(&quot;1&quot;).build();
+    try &#123;
+        //执行
+        jestClient.execute(index);
+    &#125; catch (IOException e) &#123;
+        e.printStackTrace();
+    &#125;
+    return &quot;ok&quot;;
+&#125;</code></pre><p>​    </p>
+<p>从elasticsearch中查询</p>
+<pre><code>@ResponseBody
+@RequestMapping(&quot;test&quot;)
+public String test()&#123;
+    //Builder中携带query参数，用于传入json请求体，不填则为_search
+    Search build = new Search.Builder(&quot;&quot;).addIndex(&quot;xxha&quot;).addType(&quot;dept&quot;).build();
+    try &#123;
+        SearchResult execute = jestClient.execute(build);
+        System.out.println(execute.getJsonObject());
+    &#125; catch (IOException e) &#123;
+        e.printStackTrace();
     &#125;
 
-    Thread.sleep(Long.MAX_VALUE);//因为客户端连接服务器执行操作后就会关闭连接，所以需要睡眠才能够看到监听结果的输出
-&#125;</code></pre><p>通过getChildren方法获得子节点集合，第二个参数为是否监听，如果设置为true，则监听当前节点，并在创建客户端时的Watcher捕获的。 当getChildren方法的监听参数为true时，则连接服务器的Watcher会依据当前getChildren监听的节点的反应来执行process方法。同命令行监听一样，只会监听一次。 当getChildren方法的监听参数为false时，连接服务器的Watcher仅会在连接服务器时执行第一次process，而不会监听当前getChildren的节点。 当getChilredn方法的监听参数为Watcher监听对象，那么连接服务器的监听只有第一次连接服务器执行process，而更改/子节点时只有getChidren的监听才会执行。也只监听一次执行一次。 要想连续监听，需要在连接服务器的监听的process方法里，再次来一次getChildren(“/“,true);这样才能再次监听。</p>
-<h3 id="查看节点是否存在"><a href="#查看节点是否存在" class="headerlink" title="查看节点是否存在"></a>查看节点是否存在</h3><p>依然可以监听当前节点，是否存在，同样可以设置true，false，Watcher</p>
-<pre><code>@Test
-public void exist() throws KeeperException, InterruptedException &#123;
-    Stat stat = zkCli.exists(&quot;/chen&quot;,false);
-    if(stat!=null) &#123;
-        System.out.println(stat.getVersion());
-        System.out.println(stat.getDataLength());
-    &#125;else &#123;
-        System.out.println(&quot;不存在&quot;);
+    return &quot;ok&quot;;
+&#125;</code></pre><p>使用id获得</p>
+<pre><code>public String test()&#123;
+    Get build = new Get.Builder(&quot;xxha&quot;, &quot;1&quot;).index(&quot;xxha&quot;).type(&quot;dept&quot;).build();
+    try &#123;
+    DocumentResult execute = jestClient.execute(build);
+    System.out.println(execute.getJsonObject());
+    &#125; catch (IOException e) &#123;
+    e.printStackTrace();
     &#125;
-    Thread.sleep(Long.MAX_VALUE);
-&#125;</code></pre><p>监听与getChildren都是一样的。</p>
-<h3 id="修改节点值"><a href="#修改节点值" class="headerlink" title="修改节点值"></a>修改节点值</h3><pre><code>@Test
-public void setData() throws KeeperException, InterruptedException &#123;
-    Stat stat = zkCli.setData(&quot;/chen&quot;, &quot;what is your name&quot;.getBytes(), 0);
-    System.out.println(&quot;版本&quot; + stat.getVersion());
-    System.out.println(&quot;修改时间&quot; + stat.getMtime());
-&#125;</code></pre><ul>
-<li>第一个参数为要修改的节点</li>
-<li>第二个参数为要修改的节点值</li>
-<li>第三个参数为被修改节点的版本</li>
-</ul>
+
+    return &quot;ok&quot;;
+&#125;</code></pre><p>其他操作</p>
+<pre><code>//创建索引
+CreateIndex build = new CreateIndex.Builder(&quot;&quot;).build();
+//删除索引
+DeleteIndex build = new DeleteIndex.Builder(&quot;&quot;).build();</code></pre><p>其他具体参照jest github。</p>
+<h3 id="spring-data-elasticsearch操作"><a href="#spring-data-elasticsearch操作" class="headerlink" title="spring-data-elasticsearch操作"></a>spring-data-elasticsearch操作</h3><p>首先注意的就是版本问题，data-elasticsearch与elasticsearch的版本问题，建议是2.4.6的把，首先看好版本再说。</p>
+<pre><code>spring:
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: localhost:9300</code></pre><p>我们只需同jpa一样，创建一个<strong>repository接口继承elasticsearchRepository</strong>接口,可以使用接口提供的方法。也可以同jpa一样使用自定义方法名匹配查询。以及elasticsearch的@Query注解。 同时，关联的持久化类需要添加@Docuemnt注解,添加indexName属性及type属性。 还有另外一种方式是ElasticsearchTemplate实例操作，它雷同JPA的EntityManager。</p>
 
       
       <!-- reward -->
@@ -420,8 +575,6 @@ public void setData() throws KeeperException, InterruptedException &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
 
     </footer>
 
@@ -437,7 +590,7 @@ public void setData() throws KeeperException, InterruptedException &#123;
 
 </article>
     
-    <article id="post-Zoopeeker/zookeeper的监听器原理和客户端写数据流程" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/SpringBoot国际化及接管SpringMVC拦截器格式化配置" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -445,8 +598,8 @@ public void setData() throws KeeperException, InterruptedException &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/"
-    >zookeeper的监听器原理和客户端写数据流程</a
+  <a class="article-title" href="/2019/01/09/SpringBoot/SpringBoot%E5%9B%BD%E9%99%85%E5%8C%96%E5%8F%8A%E6%8E%A5%E7%AE%A1SpringMVC%E6%8B%A6%E6%88%AA%E5%99%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E9%85%8D%E7%BD%AE/"
+    >SpringBoot国际化及接管SpringMVC拦截器格式化配置</a
   >
 </h2>
   
@@ -456,12 +609,12 @@ public void setData() throws KeeperException, InterruptedException &#123;
 
     
     <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/" class="article-date">
-  <time datetime="2018-12-29T15:35:39.000Z" itemprop="datePublished">2018-12-29</time>
+      <a href="/2019/01/09/SpringBoot/SpringBoot%E5%9B%BD%E9%99%85%E5%8C%96%E5%8F%8A%E6%8E%A5%E7%AE%A1SpringMVC%E6%8B%A6%E6%88%AA%E5%99%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2019-01-09T14:35:30.000Z" itemprop="datePublished">2019-01-09</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
   </div>
 
       
@@ -478,238 +631,66 @@ public void setData() throws KeeperException, InterruptedException &#123;
       
 
       
-      <h2 id="监听器原理"><a href="#监听器原理" class="headerlink" title="监听器原理"></a>监听器原理</h2><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229231357.png" alt="监听器原理"> 如图所示: 首先要有一个main线程，这个main线程创建zookeeper客户端，zkClient会分发两个子线程，一个用来监听，一个用来连接服务器。 通过connect线程将注册的监听事件发送给Zookeeper，Zookeeper的注册监听器列表将注册的监听事件添加到列表中。 Zookeeper监听到有数据变化或路径变化，就会将消息发送到listener线程。 而listener线程内部则调用process()方法。 通常有这两种监听，分别是监听节点值和子节点</p>
+      <h2 id="页面国际化配置"><a href="#页面国际化配置" class="headerlink" title="页面国际化配置"></a>页面国际化配置</h2><h3 id="默认依据浏览器国际化"><a href="#默认依据浏览器国际化" class="headerlink" title="默认依据浏览器国际化"></a>默认依据浏览器国际化</h3><p>依据浏览器的默认首选语言作为国家语言显示。首先我们使用的渲染模板是thymeleaf，其提供的页面显示#{}方式显示数据，为message显示，可以设置国际化变量。而再使用Spring MVC时</p>
 <ul>
-<li>get path [watch]:监听节点数据变化</li>
-<li>ls path [watch]:监听子节点增减的变化</li>
+<li>首先要配置国际化properties文件</li>
+<li>然后要配置ResourceBundleMessageSource这个Bean来管理国际化</li>
+<li>然后jsp使用fmt:message</li>
 </ul>
-<h2 id="客户端写数据到服务器流程"><a href="#客户端写数据到服务器流程" class="headerlink" title="客户端写数据到服务器流程"></a>客户端写数据到服务器流程</h2><p>下图为客户端请求写数据到服务器流程 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229232711.png" alt=""></p>
+<p>这里SpringBoot已经将国际化做了自动配置，不需要设置这些bean。我们只需要配置国际化资源文件和配置国际化资源文件基础名称。 <strong>我们以登录为例:</strong></p>
 <ol>
-<li>首先Client会请求到某台服务器</li>
-<li>如果请求的服务器不是Leader，则刚服务器将吧请求转发给Leader服务器</li>
-<li>Leader会发通知各个服务器进行数据写入操作。</li>
-<li>各个服务器写入完成后会再通知给Leader。</li>
-<li>当Leader收到大多数服务器写成功后，就认为写成功了</li>
-<li>Leader会将写入成功的通知发给请求的服务器</li>
-<li>由服务器再把结果返回给客户端</li>
+<li>资源文件配置,在resource下创建i18n的文件夹并创建message.properties,message_en_US,message_zh_CN</li>
 </ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Zoopeeker/zookeeper客户端的使用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/"
-    >zookeeper客户端的使用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
-  <time datetime="2018-12-29T13:58:49.000Z" itemprop="datePublished">2018-12-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
-<pre><code>bin/zkCli.sh</code></pre><ol>
-<li><p>查看帮助命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] help</code></pre></li>
-</ol>
+<p>使用IDEA创建properties，点击编辑器下边的Resource Bundle,使用可视化编辑</p>
 <ol start="2">
-<li><p>查看znode节点,ls命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 3] ls /
-[chen, zookeeper]
-[zk: localhost:2181(CONNECTED) 4] ls /chen
-[]</code></pre></li>
+<li>然后在application.yml配置spring.messages.basename为i18n.message</li>
 </ol>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/01/20190109220532.png" alt=""> 国际化的默认文件名时message，且位置在系统classpath下，也就是resource下，那么如果包含文件名或包名，则使用 包名.基础名。</p>
 <ol start="3">
-<li><p>查看节点详细信息ls2</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 6] ls2 /chen
-[]
-cZxid = 0x100000002
-ctime = Thu Dec 27 00:58:04 CST 2018
-mZxid = 0x100000002
-mtime = Thu Dec 27 00:58:04 CST 2018
-pZxid = 0x100000002
-cversion = 0
-dataVersion = 0
-aclVersion = 0
-ephemeralOwner = 0x0
-dataLength = 7
-numChildren = 0</code></pre></li>
-</ol>
-<pre><code>**后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。**</code></pre><ol start="4">
-<li><p>创建普通节点create</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 7] create /name &quot;this is name&quot;
-Created /name
-[zk: localhost:2181(CONNECTED) 8] ls /
-[chen, name, zookeeper]</code></pre></li>
-</ol>
-<ol start="5">
-<li><p>获得节点值get</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] get /name
-this is name
-xxxxxx</code></pre></li>
-</ol>
-<ol start="6">
-<li><p>创建暂时节点,然后推出客户端重新登陆查看</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 0] create -e /temp &quot;temp&quot;
-Created /temp
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, temp, zookeeper]</code></pre></li>
-</ol>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] quit
-Quitting...
-2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002
-2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed
-ubuntu1@ubuntu1:~/zookeeper/bin$ ./zkCli.sh
-Connecting to localhost:2181
-
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, zookeeper]</code></pre><ol start="7">
-<li><p>创建带序号节点</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] create /app &quot;app&quot;
-Created /app
-[zk: localhost:2181(CONNECTED) 10] create -s /app/sun &quot;sun&quot;
-Created /app/sun0000000000
-[zk: localhost:2181(CONNECTED) 11] ls /app
-[sun0000000000]
-
-[zk: localhost:2181(CONNECTED) 12] create -s /app/sun &quot;sun2&quot;
-Created /app/sun0000000001
-[zk: localhost:2181(CONNECTED) 13] ls /app
-[sun0000000000, sun0000000001]</code></pre></li>
-</ol>
-<pre><code>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.
-
-    [zk: localhost:2181(CONNECTED) 14] ls /
-    [chen, name, app, zookeeper]
-    [zk: localhost:2181(CONNECTED) 15] create /sum &quot;sum&quot;
-    Created /sum
-    [zk: localhost:2181(CONNECTED) 16] create /sum/test &quot;sumtest1&quot;
-    Created /sum/test
-    [zk: localhost:2181(CONNECTED) 17] create -s /sum/test &quot;sumtest1&quot;
-    Created /sum/test0000000001
-    [zk: localhost:2181(CONNECTED) 18] ls /sum
-    [test0000000001, test]
+<li><p>页面配置，部分</p>
+<div class="layui-form-item">
+    <input type="checkbox" name="rememberMe" title="记住我" lay-skin="primary" th:title="#{login.remember}">
+    <a class="layui-layout-right forget-password" href="javascript:alert('请联系超级管理员！')">[[#{login.forget}]]</a>
+</div>
+<button type="submit" class="layui-btn layui-btn-fluid ajax-login"><i class="fa fa-sign-in fa-lg fa-fw"></i>[[#{login.btn}]]</button>
 
 
-尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</code></pre><ol start="8">
-<li><p>修改节点数据值set</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 19] ls /
-[chen, name, app, sum, zookeeper]
-[zk: localhost:2181(CONNECTED) 20] get /chen
-guangqi
-xxxxxx
-[zk: localhost:2181(CONNECTED) 21] set /chen &quot;chenguangqi&quot;
-xxxxxx
-[zk: localhost:2181(CONNECTED) 22] get /chen
-chenguangqi
-xxxxx</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>节点值的变化监听get path watch</p>
-<pre><code>--1号机器
-[zk: localhost:2181(CONNECTED) 24] get /chen watch
-chenguangqi
-xxxx
-
--- 2号机器
-[zk: localhost:2181(CONNECTED) 0] set /chen &quot;chen&quot;
-xxxx
-
-[zk: localhost:2181(CONNECTED) 25]
-WATCHER::
---1号机器
-WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></li>
-</ol>
-<pre><code>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</code></pre><ol start="10">
-<li><p>节点的子节点监听(路径变化)ls path watch</p>
-<p>   [zk: localhost:2181(CONNECTED) 25] ls / watch<br>   [chen, name, app, sum, zookeeper]</p>
-<p>   [zk: localhost:2181(CONNECTED) 1] create /test “testwatch”<br>   Created /test</p>
-<p>   [zk: localhost:2181(CONNECTED) 26]<br>   WATCHER::<br>   WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/</p>
 </li>
 </ol>
-<pre><code>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</code></pre><ol start="11">
-<li><p>删除节点与递归删除节点delete/rmr</p>
-<p>   [zk: localhost:2181(CONNECTED) 26] ls /<br>   [chen, name, app, sum, zookeeper, test]<br>   [zk: localhost:2181(CONNECTED) 27] delete /test<br>   [zk: localhost:2181(CONNECTED) 29] ls /<br>   [chen, name, app, sum, zookeeper]<br>   [zk: localhost:2181(CONNECTED) 34] delete /sum<br>   Node not empty: /sum<br>   [zk: localhost:2181(CONNECTED) 35] rmr /sum<br>   [zk: localhost:2181(CONNECTED) 36] ls /<br>   [chen, name, app, zookeeper]</p>
+<p>若页面出现??login.tip_zh_CN??这种两个问号的，看你的国际化文件名字配置对了没。</p>
+<h3 id="点击中英文按钮切换国际化"><a href="#点击中英文按钮切换国际化" class="headerlink" title="点击中英文按钮切换国际化"></a>点击中英文按钮切换国际化</h3><p>首先默认浏览器的国际化也是和http请求有关的，浏览器设置中英文默认或中文前英文后。再http请求时header-language中包含了语言了编码zh_CN和en_US,哪个在前就显示那个语言，那么就请求哪各语言。那么我们就可以变更这个编码。 你可以查看，某个请求，请求头里有这个显示，那么我们只需要重新配置一下要请求的国际化。将请求编码作为参数给后台，并设置国际化的语言。我们来自定义覆盖Locale配置。</p>
+<ol>
+<li><p>新建LocaleResolver</p>
+<p>/**</p>
+<ul>
+<li><p>创建自定义Locale解析器</p>
+</li>
+<li><p>/<br>public class MyLocaleResolver implements LocaleResolver {<br>  @Override<br>  public Locale resolveLocale(HttpServletRequest httpServletRequest) {</p>
+<pre><code>Locale locale = Locale.getDefault();
+String language = httpServletRequest.getParameter(&quot;l&quot;);
+if (!StringUtils.isEmpty(language))&#123;
+    String[] str = language.split(&quot;_&quot;);
+    locale = new Locale(str[0],str[1]);
+&#125;
+return locale;</code></pre><p>  }</p>
+<p>  @Override<br>  public void setLocale(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, Locale locale) {</p>
+<p>  }<br>}</p>
+</li>
+</ul>
+</li>
+<li><p>在配置中配置这个解析器</p>
+<p>@Configuration<br>public class MyMvcConfiguration  extends WebMvcConfigurationSupport {</p>
+<pre><code>/**
+ * 配置自定义的Locale国际化配置
+ * @return
+ */
+@Bean
+public LocaleResolver localeResolver()&#123;
+    return new MyLocaleResolver();
+&#125;</code></pre><p>}</p>
 </li>
 </ol>
-<ol start="12">
-<li><p>查看节点状态信息stat</p>
-<p>   [zk: localhost:2181(CONNECTED) 39] stat /chen<br>   cZxid = 0x200000021<br>   ctime = Sat Dec 29 21:53:30 CST 2018<br>   mZxid = 0x200000021<br>   mtime = Sat Dec 29 21:53:30 CST 2018<br>   pZxid = 0x200000021<br>   cversion = 0<br>   dataVersion = 0<br>   aclVersion = 0<br>   ephemeralOwner = 0x0<br>   dataLength = 4<br>   numChildren = 0</p>
-</li>
-</ol>
-<pre><code>对于stat的信息分别如下:
-*   cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。
-*   ctime:节点被创建的时间
-*   mZxid:节点最后更新zxid
-*   mtime:节点最后更新的时间
-*   pZxid:最后更新的子节点zxid
-*   cversion:子节点变化号，子节点修改次数
-*   dataVersion:节点数据变化号
-*   aclVersion:节点访问控制列表的变化号
-*   ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
-*   dataLength:节点值的长度。(重要)
-*   numChildren:子节点数目。(重要)</code></pre><ol start="13">
-<li><p>历史命令history,查看之前使用过的命令</p>
-<p>   [zk: localhost:2181(CONNECTED) 42] history<br>   32 - rmr /chen<br>   33 - ls /<br>   34 - delete /sum<br>   35 - rmr /sum<br>   36 - ls /<br>   37 - ls /<br>   38 - create /chen “chen”<br>   39 - stat /chen<br>   40 - help<br>   41 - histor<br>   42 - history</p>
-</li>
-</ol>
-<p>还有其他的命令请查看Zookeeper文档。</p>
+<h2 id="SpringBoot-configuration配置的WebMvcConfigurationSupport-WebMvcConfigrationer已弃用"><a href="#SpringBoot-configuration配置的WebMvcConfigurationSupport-WebMvcConfigrationer已弃用" class="headerlink" title="SpringBoot @configuration配置的WebMvcConfigurationSupport (WebMvcConfigrationer已弃用)"></a>SpringBoot @configuration配置的WebMvcConfigurationSupport (WebMvcConfigrationer已弃用)</h2><p>算了，不写了。默认配置的都在这个里面，只需要重写add就好，SpringBoot会自动将配置的追加到容器中。 也可以自己定义Bean，并标注上@Bean注解即可注入容器中，就像上面的Locale国际化一样。</p>
 
       
       <!-- reward -->
@@ -722,7 +703,7 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
 
 
     </footer>
@@ -739,7 +720,7 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
 
 </article>
     
-    <article id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍" class="article article-type-post" itemscope
+    <article id="post-Hadoop/hadoop搭建本机模式和伪分布式并执行案例" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -747,8 +728,8 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/"
-    >Zookeeper分布式搭建及选举机制和节点类型介绍</a
+  <a class="article-title" href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/"
+    >hadoop搭建本机模式和伪分布式并执行案例</a
   >
 </h2>
   
@@ -758,12 +739,12 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
 
     
     <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-date">
-  <time datetime="2018-12-28T16:17:59.000Z" itemprop="datePublished">2018-12-29</time>
+      <a href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/" class="article-date">
+  <time datetime="2018-12-31T11:10:22.000Z" itemprop="datePublished">2018-12-31</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
   </div>
 
       
@@ -780,88 +761,117 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
       
 
       
-      <h2 id="Zookeeper分布式搭建"><a href="#Zookeeper分布式搭建" class="headerlink" title="Zookeeper分布式搭建"></a>Zookeeper分布式搭建</h2><ol>
-<li><p>到<a target="_blank" rel="noopener" href="https://archive.apache.org/dist/zookeeper/">apache zookeeper归档</a>处下载tar包。</p>
-</li>
-<li><p>将包分别拷贝到各自的user下,使用tar -zxf zookeeper-x.x.x.tar.gz解压。注意解压后的目录需要是当前用户组当前用户。传递tar包时使用当前用户登录ftp远程。</p>
-</li>
-<li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
-<pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
-</ol>
-<ol start="4">
-<li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
-<pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
-</ol>
-<ol start="5">
-<li><p>在对应zookeeper目录下创建zkData目录即可</p>
-</li>
-<li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
-<pre><code>bin/zkServer.sh start //启动
-jps //查看jps进程
-bin/zkServer.sh satus //状态
-bin/zkServer.sh stop //停止</code></pre></li>
-</ol>
-<ol start="7">
-<li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
-<pre><code>server.1=192.168.56.11:2888:3888
-server.2=192.168.56.11:2888:3888
-server.3=192.168.56.11:2888:3888</code></pre></li>
-</ol>
-<pre><code>这是三台机子的配置。那么其格式为server.A=B:C:D。
-*   A是一个数字，表示机器的序号，是唯一的，标识着某台机子，这个值要在myid文件中指定，myid文件要放在zkData目录下。
-*   B是服务器地址，可以是IP，也可以是主机名(需要配置host)。
-*   C是这个服务器与集群中的Leader服务器交换数据信息的结构。
-*   D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。
-*   就把这个拷贝到每个机子的zoo.cfg中，把IP地址改一下，机子序号按顺序不重复即可。</code></pre><ol start="8">
-<li><p>在集群模式下的而这个myid文件标识一个机子，Zookeeper启动时读取此文件，拿到里面的数据与zoo.cfg配置信息比较而判断到底是哪个server。那么在zkData下创建myid文件，使用vi或vim命令来编辑</p>
-<pre><code>cd zkData
-touch myid
-vim myid
-对应的机子添加1或2或3就好</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
-<pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
-ZooKeeper JMX enabled by default
-Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
-Starting zookeeper ... STARTED
-ubuntu1@ubuntu1:~/zookeeper$ **jps**
-7522 Jps
-7498 QuorumPeerMain
-ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh status**
-ZooKeeper JMX enabled by default
-Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
-Error contacting service. It is probably not running.</code></pre></li>
-</ol>
-<pre><code>可以看到在查看status状态时，说Error contacting service.It is probably not running.此时并不是错误。在单机时可以正常运行。此处因为集群原因，在选举还没选举完成时，就会启动而不运行。当启动第二台机子时
+      <h2 id="单节点Hadoop运行-本地模式"><a href="#单节点Hadoop运行-本地模式" class="headerlink" title="单节点Hadoop运行(本地模式)"></a>单节点Hadoop运行(本地模式)</h2><p><a target="_blank" rel="noopener" href="http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-common/SingleCluster.html">官网步骤地址</a> 必备条件:安装java及配置java环境变量，安装hadoop及配置hadoop环境变量</p>
+<pre><code>export JAVA_HOME=/home/ubuntu1/jdk1.8
+export PATH=$JAVA_HOME/bin:$PATH
 
-    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh start**
-    ZooKeeper JMX enabled by default
-    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
-    Starting zookeeper ... STARTED
-    ubuntu2@ubuntu2:~/zookeeper$ **jps**
-    24704 Jps
-    24652 QuorumPeerMain
-    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh status**
-    ZooKeeper JMX enabled by default
-    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
-    Mode: leader
+export HADOOP_HOME=/home/ubuntu1/hadoop-2.7.7
+export PATH=$PATH:$HADOOP_HOME/bin
+export PATH=$PATH:$HADOOP_HOME/sbin</code></pre><p>配置hadoop根目录下etc下hadoop下的hadoop-env.sh文件中的JAVA_HOME地址</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd etc/hadoop/
+ubuntu1@ubuntu1:~/hadoop-2.7.7/etc/hadoop$ vim hadoop-env.sh
+export JAVA_HOME=/home/ubuntu1/jdk1.8</code></pre><p>当前本地local模式只有当前一台机器，可以不安装ssh，而分布式需要ssh。那么配置完成之后，bin目录下的hadoop命令可以执行。 <strong>非分布式模式运行:grep程序</strong> grep程序用来检索intpu目录下所有符合指定参数的文件。</p>
+<pre><code>$ mkdir input
+$ cp etc/hadoop/*.xml input
+$ bin/hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.2.jar grep input output &apos;dfs[a-z.]+&apos;
+$ cat output/*</code></pre><p>表示在hadoop根目录下创建input文件夹，将etc/hadoop下所有xml文件拷贝到input目录下，执行hadoop命令。执行完成后，进入output目录，这个output目录是程序运行后自动生成的，不能直接创建。目录下有两个文件：</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ cd output/
+ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ ls
+part-r-00000  _SUCCESS</code></pre><p>一个是执行结果存放，一个是成功标识。 <strong>非分布式模式运行:wordcount程序</strong> wordcount程序用来查询文件下单词每个重复的次数。</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ rm -rf output/
+ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ rm -rf *
+ubuntu1@ubuntu1:~/hadoop-2.7.7/input$ vim testhello.txt
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount input output</code></pre><p>​    </p>
+<p>删除output目录，删除input目录下所有文件，并创建testhello.txt文件，在文件内填多个单词，每个单词用空格分开，保存。然后执行命令。</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7/output$ cat part-r-00000 
+and 2
+cehn    1
+chen    2
+name    1
+where   1
+with    1
+xiaoxing    1</code></pre><h2 id="伪分布式配置"><a href="#伪分布式配置" class="headerlink" title="伪分布式配置"></a>伪分布式配置</h2><p>即单节点配置HDFS和YARN,可正常使用功能。</p>
+<ol>
+<li><p>配置core-site.xml</p>
+<pre><code>&lt;!-- 指定HDFS中的NameNode地址 --&gt;
+&lt;property&gt;
+     &lt;name&gt;fs.defaultFS&lt;/name&gt;
+     &lt;value&gt;hdfs://ubuntu1:9000&lt;/value&gt;
+&lt;/property&gt;
+&lt;!-- 指定hadoop运行时产生的临时文件 --&gt;
+&lt;property&gt;
+     &lt;name&gt;hadoop.temp.dir&lt;/name&gt;
+     &lt;value&gt;/home/ubuntu1/hadoop-2.7.7/data/tmp&lt;/value&gt;
+&lt;/property&gt;</code></pre></li>
+<li><p>配置hdfs-site.xml</p>
+<pre><code> &lt;!-- 指定HDFS副本数量 --&gt;
+&lt;proerpty&gt;
+    &lt;name&gt;dfs.replication&lt;/name&gt;
+    &lt;value&gt;1&lt;/value&gt;
+&lt;/proerpty&gt;</code></pre></li>
+<li><p>配置完成后一定要将hdfs进行首次格式化</p>
+<pre><code>hdfs namenode -format</code></pre></li>
+<li><p>启动守护进程</p>
+<pre><code>sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
+sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
+jps  //查看进程
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ jps
+6889 Jps
+6683 NameNode
+6813 DataNode</code></pre></li>
+<li><p>WEB浏览器访问 配置服务IP:50070进入HDFS文件系统。界面显示 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181231184929.png" alt=""> 其中Utilities菜单栏下的Browse the file system可以查看HDFS结构。</p>
+</li>
+<li><p>使用HDFS并运行wordcount</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -mkdir -p /user/ubuntu1/input
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -put input/testhello.txt  /user/ubuntu1/input/
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.7.7.jar wordcount /user/ubuntu1/input /user/ubuntu1/output</code></pre></li>
+</ol>
+<pre><code>以上命令分别表示创建一个多级目录到hdfs，并将本地input/testhello.txt上传到hdfs的intpu目录下。然后执行wordcount案例，指定hdfs中的文件和目录。执行完毕后，无错误则进入web查看结果，或使用如下命令:
 
+    ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -cat /user/ubuntu1/output/par*
+    and  2
+    cehn 1
+    chen 2
+    name 1
+    where    1
+    with 1
+    xiaoxing 1</code></pre><ol start="7">
+<li><p>查看HDFS,及命令</p>
+<ol>
+<li><p>查看文件系统</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /
+Found 1 items
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
 
-此时，发现Model:leader,这时，选举机制就完毕了，Leader已经选举出来。此时再看机子1的status状态，已经变成Mode:follower。当然这是随机投票的。启动第三台机子时，状态也是mode:follower. OK，这样三台机子都启动起来了。</code></pre><h2 id="Zookeeper选举机制说明"><a href="#Zookeeper选举机制说明" class="headerlink" title="Zookeeper选举机制说明"></a>Zookeeper选举机制说明</h2><p>选举很简单，<strong>每机一票，当某台机子得票数超过总数的一半以上时即可当选leader，必须一半以上</strong>。 机子的id最大则被投票率最高，若1-5台机子都是最新启动的，没有任何历史数据，按顺序进行启动。 服务器1开始启动，只有当前一台机器启动，则处于Looking状态，没有任何选举结果。等待其他机子启动。 服务器2开始启动，互相交换选举结果，由于两者都没有历史数据,所以id大的胜出，但依然不大于总数的一半，所以依然Looking状态 服务器3开始启动，若有三票投给某个机器，则成为Leader，其他机器状态变为follower。 服务器4，5，<strong>虽然id大，但leader已经被选举出来，所以只能作为follower</strong>.</p>
-<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>节点时客户端连接服务器的标识，因为实际集群操作，所以在任意一个机器上操作，其他机器都能看到。 节点有两种类型:</p>
-<ul>
-<li>持久型:客户端和服务器断开连接后，创建的节点不删除</li>
-<li>暂时型:客户端和服务器断开连接后，创建的节点被删除</li>
-</ul>
-<p>节点有四种目录形式的节点:</p>
-<ul>
-<li>持久化目录节点:客户端断开后这个节点依然存在</li>
-<li>持久化顺序编号目录节点:客户端断开后这个节点依然存在，只是<strong>给该节点名称进行顺序编号</strong>。</li>
-<li>临时目录节点:客户端点开后节点被删除</li>
-<li>临时顺序编号目录节点:客户端断开连接后，节点被删除，只是Zookeeper会给该节点进行顺序编号。</li>
-</ul>
-<p>顺序号时单调的递增，由父节点进行维护 在分布式系统中，顺序号可以被用于为所有的事件进行全局排序，这样客户端可以通过顺序号推断事件的顺序。 关于节点的创建在下一节说明，会自然的了解节点的持久和暂时型。</p>
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls -R /
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:46 /user
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input
+-rw-r--r--   1 ubuntu1 supergroup         50 2018-12-31 18:47 /user/ubuntu1/input/testhello.txt
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output
+-rw-r--r--   1 ubuntu1 supergroup          0 2018-12-31 18:53 /user/ubuntu1/output/_SUCCESS
+-rw-r--r--   1 ubuntu1 supergroup         53 2018-12-31 18:53 /user/ubuntu1/output/part-r-00000</code></pre></li>
+<li><p>下载文件到本地</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -get /user/ubuntu1/output/par* ./
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ cat ./part-r-00000 
+and   2
+cehn  1
+chen  2
+name  1
+where 1
+with  1
+xiaoxing  1</code></pre></li>
+<li><p>删除HDFS中文件或文件夹</p>
+<pre><code>ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -rm -r /user/ubuntu1/output
+18/12/31 19:04:14 INFO fs.TrashPolicyDefault: Namenode trash configuration: Deletion interval = 0 minutes, Emptier interval = 0 minutes.
+Deleted /user/ubuntu1/output
+
+ubuntu1@ubuntu1:~/hadoop-2.7.7$ hdfs dfs -ls /user/ubuntu1
+Found 1 items
+drwxr-xr-x   - ubuntu1 supergroup          0 2018-12-31 18:47 /user/ubuntu1/input</code></pre></li>
+</ol>
+</li>
+</ol>
 
       
       <!-- reward -->
@@ -874,7 +884,7 @@ Error contacting service. It is probably not running.</code></pre></li>
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
 
 
     </footer>
@@ -897,7 +907,7 @@ Error contacting service. It is probably not running.</code></pre></li>
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/30/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="page-number" href="/page/30/">30</a><span class="page-number current">31</span><a class="page-number" href="/page/32/">32</a><a class="page-number" href="/page/33/">33</a><span class="space">&hellip;</span><a class="page-number" href="/page/50/">50</a><a class="extend next" rel="next" href="/page/32/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/30/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/29/">29</a><a class="page-number" href="/page/30/">30</a><span class="page-number current">31</span><a class="page-number" href="/page/32/">32</a><a class="page-number" href="/page/33/">33</a><span class="space">&hellip;</span><a class="page-number" href="/page/51/">51</a><a class="extend next" rel="next" href="/page/32/">下一页</a>
   </nav>
   
 </section>
