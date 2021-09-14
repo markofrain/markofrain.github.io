@@ -164,39 +164,61 @@ trigger = newTrigger()
 <li>否则，使用MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT</li>
 </ol>
 <p><strong>MISFIRE_INSTRUCTION_IGNORE_MISFIRE_POLICY:</strong>Trigger中定义，这个不是忽略已经错失的触发的意思，而是说忽略MisFire策略。它会在资源合适的时候，重新触发所有的MisFire任务，并且不会影响现有的调度时间 <strong>MISFIRE_INSTRUCTION_FIRE_NOW:</strong>忽略已经MisFire的任务，并且立即执行调度。这通常只适用于只执行一次的任务。 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_EXISTING_COUNT:</strong>在下一次调度时间点，重新开始调度任务，包括的MisFire的 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NEXT_WITH_REMAINING_COUNT:</strong>在下一次调度时间点执行，但会忽略已经MisFire的任务。 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_EXISTING_REPEAT_COUNT:</strong>将startTime设置当前时间，立即重新调度任务，包括的MisFire的 <strong>MISFIRE_INSTRUCTION_RESCHEDULE_NOW_WITH_REMAINING_REPEAT_COUNT:</strong>将startTime设置当前时间，立即重新调度任务，不包括的MisFire的 后5个策略都是SimpleTrigger类中的。</p>
-<h2 id="CronTrigger"><a href="#CronTrigger" class="headerlink" title="# CronTrigger"></a># CronTrigger</h2><p>基于日历概念，使用CronTrigger，您可以指定号时间表，例如“每周五中午”或“每个工作日和上午9:30”，甚至“每周一至周五上午9:00至10点之间每5分钟”和1月份的星期五“。</p>
+<h1 id="CronTrigger"><a href="#CronTrigger" class="headerlink" title="CronTrigger"></a>CronTrigger</h1><hr>
+<p>基于日历概念，使用CronTrigger，您可以指定号时间表，例如“每周五中午”或“每个工作日和上午9:30”，甚至“每周一至周五上午9:00至10点之间每5分钟”和1月份的星期五“。</p>
 <h3 id="Cron-Expressions"><a href="#Cron-Expressions" class="headerlink" title="Cron Expressions"></a>Cron Expressions</h3><p>Cron Expressions是由七个子表达式组成的字符串，用于描述日程表的各个细节。</p>
-<p>顺序</p>
-<p>时间值</p>
-<p>允许值</p>
-<p>特殊值</p>
-<p>1</p>
-<p>Seconds秒</p>
-<p>0-59</p>
-<p>, - * /</p>
-<p>2</p>
-<p>Minutes分</p>
-<p>0-59</p>
-<p>, - * /</p>
-<p>3</p>
-<p>Hours小时</p>
-<p>0-23</p>
-<p>, - * /</p>
-<p>4</p>
-<p>Day-of-Month日期</p>
-<p>1-31</p>
-<p>, - * ? / L W C</p>
-<p>5</p>
-<p>Month月份</p>
-<p>1-12</p>
-<p>, - * /</p>
-<p>6</p>
-<p>Day-of-Week星期</p>
-<p>1-7</p>
-<p>, - * ? / L C #</p>
-<p>7</p>
-<p>Year年份(可选)</p>
-<p>, - * /</p>
+<table>
+<thead>
+<tr>
+<th>顺序</th>
+<th>时间值</th>
+<th>允许值</th>
+<th>特殊值</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1</td>
+<td>Seconds秒</td>
+<td>0-59</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Minutes分</td>
+<td>0-59</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Hours小时</td>
+<td>0-23</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Day-of-Month日期</td>
+<td>1-31</td>
+<td>, - * ? / L W C</td>
+</tr>
+<tr>
+<td>5</td>
+<td>Month月份</td>
+<td>1-12</td>
+<td>, - * /</td>
+</tr>
+<tr>
+<td>6</td>
+<td>Day-of-Week星期</td>
+<td>1-7</td>
+<td>, - * ? / L C #</td>
+</tr>
+<tr>
+<td>7</td>
+<td>Year年份(可选)</td>
+<td></td>
+<td>, - * /</td>
+</tr>
+</tbody></table>
 <p>例如:““0 0 12？* WED”表示每个星期三12点，按顺序，从左往右依次表示0秒，0分，12点，日期无特定值，月份所有(对应每个月份)，星期三。星期可以使用英文简写。 单个表达式支持范围和/或列表，如星期可以使用“MON-FRI”,“MON,WED,FRI”甚至“MON-WED,SAT”这些表示范围和列表。</p>
 <ul>
 <li><strong>星号(*):</strong>表示在当前时间域中，对应每个允许值，例如month处为*，表示每个月.</li>
@@ -211,55 +233,34 @@ trigger = newTrigger()
 <p>示例:</p>
 <p>示例</p>
 <p>说明</p>
-<p>0 0/5 * * * ？</p>
+<p><code>0 0/5 * * * ?</code></p>
 <p>每5分钟就会触发一次</p>
-<p>0 30 10-13？* WED，FRI</p>
+<p><code>0 30 10-13 ? * WED,FRI</code></p>
 <p>每个星期三和星期五的10:30，11:30，12:30和13:30</p>
-<p>0 0/30 8-9 5,20 *？</p>
+<p><code>0 0/30 8-9 5,20 * ?</code></p>
 <p>每个月5日和20日上午8点至10点之间每半小时触发一次</p>
-<p>0 15 10 L * ?</p>
+<p><code>0 15 10 L * ?</code></p>
 <p>每月最后一天10:15分运行。</p>
-<p>0 15 10 ? * 6L</p>
+<p><code>0 15 10 ? * 6L</code></p>
 <p>每月最后一个星期五10:15分运行。</p>
-<p>0 15 10 ? * 6#3</p>
+<p><code>0 15 10 ? * 6#3</code></p>
 <p>每月第三个星期五的10:15分运行。</p>
-<p>0 15 10 ? * 6L 2007-2009</p>
+<p><code>0 15 10 ? * 6L 2007-2009</code></p>
 <p>在2007,2008,2009年每个月的最后一个星期五的10:15分运行。</p>
-<p>0 0/5 14,18 * * ?</p>
+<p><code>0 0/5 14,18 * * ?</code></p>
 <p>每天14点到15点每5分钟运行一次，此外每天18点到19点每5钟也运行一次。</p>
 <p>另外有些虽意思上不复杂，但书写复杂不易理解的，可以使用N个简单的触发器同时运行作业。</p>
 <h3 id="构建CronTriggers"><a href="#构建CronTriggers" class="headerlink" title="构建CronTriggers"></a>构建CronTriggers</h3><p>CronTrigger实例使用TriggerBuilder（用于触发器的主要属性）和CronScheduleBuilder（对于CronTrigger特定的属性）构建. 需要静态导入</p>
-<pre><code>import  static org.quartz.TriggerBuilder.*; 
-import  static org.quartz.CronScheduleBuilder.*; 
-import  static org.quartz.DateBuilder.*:
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span>  <span class="keyword">static</span> org.quartz.TriggerBuilder.*; </span><br><span class="line"><span class="keyword">import</span>  <span class="keyword">static</span> org.quartz.CronScheduleBuilder.*; </span><br><span class="line"><span class="keyword">import</span>  <span class="keyword">static</span> org.quartz.DateBuilder.*:</span><br></pre></td></tr></table></figure>
 
 
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(cronSchedule(&quot;0 0/2 8-17 * * ?&quot;))//每天8点到17点中，每个2分钟执行一次
-    .forJob(&quot;myJob&quot;, &quot;group1&quot;)
-    .build();
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">trigger = newTrigger()</span><br><span class="line">    .withIdentity(<span class="string">&quot;trigger3&quot;</span>, <span class="string">&quot;group1&quot;</span>)</span><br><span class="line">    .withSchedule(cronSchedule(<span class="string">&quot;0 0/2 8-17 * * ?&quot;</span>))<span class="comment">//每天8点到17点中，每个2分钟执行一次</span></span><br><span class="line">    .forJob(<span class="string">&quot;myJob&quot;</span>, <span class="string">&quot;group1&quot;</span>)</span><br><span class="line">    .build();</span><br></pre></td></tr></table></figure>
 
 
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(dailyAtHourAndMinute(10, 42))//每天10点42触发
-    .forJob(myJobKey)
-    .build();
-或
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(cronSchedule(&quot;0 42 10 * * ?&quot;))
-    .forJob(myJobKey)
-    .build();
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">trigger = newTrigger()</span><br><span class="line">    .withIdentity(<span class="string">&quot;trigger3&quot;</span>, <span class="string">&quot;group1&quot;</span>)</span><br><span class="line">    .withSchedule(dailyAtHourAndMinute(<span class="number">10</span>, <span class="number">42</span>))<span class="comment">//每天10点42触发</span></span><br><span class="line">    .forJob(myJobKey)</span><br><span class="line">    .build();</span><br><span class="line">或</span><br><span class="line">trigger = newTrigger()</span><br><span class="line">    .withIdentity(<span class="string">&quot;trigger3&quot;</span>, <span class="string">&quot;group1&quot;</span>)</span><br><span class="line">    .withSchedule(cronSchedule(<span class="string">&quot;0 42 10 * * ?&quot;</span>))</span><br><span class="line">    .forJob(myJobKey)</span><br><span class="line">    .build();</span><br></pre></td></tr></table></figure>
 
 
-trigger = newTrigger()
-    .withIdentity(&quot;trigger3&quot;, &quot;group1&quot;)
-    .withSchedule(weeklyOnDayAndHourAndMinute(DateBuilder.WEDNESDAY, 10, 42))
-    .forJob(myJobKey)
-    .inTimeZone(TimeZone.getTimeZone(&quot;America/Los_Angeles&quot;))
-    .build();//每周三10点42分执行</code></pre>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">trigger = newTrigger()</span><br><span class="line">    .withIdentity(<span class="string">&quot;trigger3&quot;</span>, <span class="string">&quot;group1&quot;</span>)</span><br><span class="line">    .withSchedule(weeklyOnDayAndHourAndMinute(DateBuilder.WEDNESDAY, <span class="number">10</span>, <span class="number">42</span>))</span><br><span class="line">    .forJob(myJobKey)</span><br><span class="line">    .inTimeZone(TimeZone.getTimeZone(<span class="string">&quot;America/Los_Angeles&quot;</span>))</span><br><span class="line">    .build();<span class="comment">//每周三10点42分执行</span></span><br></pre></td></tr></table></figure>
       
       <!-- reward -->
       
