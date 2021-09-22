@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-SpringCloud/SpringCloud项目基础搭建2" class="article article-type-post" itemscope
+    <article id="post-Docker/Docker使用操作及命令" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/"
-    >SpringCloud项目基础搭建2</a
+  <a class="article-title" href="/2020/03/19/Docker/Docker%E4%BD%BF%E7%94%A8%E6%93%8D%E4%BD%9C%E5%8F%8A%E5%91%BD%E4%BB%A4/"
+    >Docker使用操作及命令</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/" class="article-date">
-  <time datetime="2019-11-03T09:01:49.000Z" itemprop="datePublished">2019-11-03</time>
+      <a href="/2020/03/19/Docker/Docker%E4%BD%BF%E7%94%A8%E6%93%8D%E4%BD%9C%E5%8F%8A%E5%91%BD%E4%BB%A4/" class="article-date">
+  <time datetime="2020-03-19T04:30:17.000Z" itemprop="datePublished">2020-03-19</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
   </div>
 
       
@@ -119,318 +119,423 @@
       
 
       
-      <p>基本结构已经搭起来了,使用的是feign进行访问的。<br>接下来我们继续完善这个项目，做到更加的适用可靠。<br>项目均使用的yml配置文件，但是文章中使用properties的.符号来代替文章格式显示的问题。</p>
-<p>以下项目的配置，如果说出现报错的问题，也就是说最开始没问题，改了哪个不影响的地方却突然出问题。任何问题首先clean，重新package，在重新启动一下。看看有没有解决，如果开没有解决，就检查一下当前报错应用的配置文件，最后再去百度上搜。</p>
-<h2 id="配置服务的info信息"><a href="#配置服务的info信息" class="headerlink" title="配置服务的info信息"></a>配置服务的info信息</h2><p>服务的info信息可以再注册中心查看，可以描述说明当前服务主要是干什么的。访问服务即可进入一个json打开的页面。<br>我们来注册服务者的info信息,项目结构在上一篇已经有了。下面的依赖actuator可以直接放在cloudservice这个模块中就可以</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre><p>然后再build元素里添加如下内容</p>
-<pre><code>&lt;build&gt;
-    &lt;finalName&gt;USER-SERVICE&lt;/finalName&gt;
-    &lt;resources&gt;
-        &lt;resource&gt;
-            &lt;directory&gt;src/main/resources&lt;/directory&gt;
-            &lt;filtering&gt;true&lt;/filtering&gt;
-        &lt;/resource&gt;
-    &lt;/resources&gt;
-    &lt;plugins&gt;
-        &lt;plugin&gt;
-            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-            &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;
-            &lt;configuration&gt;
-                &lt;delimiters&gt;
-                    &lt;delimit&gt;$&lt;/delimit&gt;
-                &lt;/delimiters&gt;
-            &lt;/configuration&gt;
-        &lt;/plugin&gt;
-    &lt;/plugins&gt;
-&lt;/build&gt;</code></pre><p>最后,服务的info信息在application.yml里配置。</p>
-<pre><code>info:
-  app.name: USER-SERVICE-9001
-  company.name: www.fsats.com
-  build.artifactId: @project.artifactId@
-  build.version: @project.version@</code></pre><p>这里呢，其实应该是$符号不该是@,因为已经在pom中定义过了，但是总是个别问题出现，网上也有情况，这里也不描述为什么出现这总情况，不深究这些。</p>
-<p>默认呢,actuator会给我们两个接口,info和health分别表示应用信息和健康指标,还有一个单独的根节点访问。另外还有其他的访问节点，但是并没有默认对外暴露，在官方文档上都有，可以进行开启。</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/info">http://192.168.88.1:9001/actuator/info</a></li>
-<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/health">http://192.168.88.1:9001/actuator/health</a></li>
-<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator">http://192.168.88.1:9001/actuator</a></li>
+      <h1 id="Docker使用操作及命令"><a href="#Docker使用操作及命令" class="headerlink" title="Docker使用操作及命令"></a>Docker使用操作及命令</h1><h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><h3 id="ubuntu的源更换"><a href="#ubuntu的源更换" class="headerlink" title="ubuntu的源更换"></a>ubuntu的源更换</h3><p>/etc/apt/sources.list中替换为此</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">deb http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic main restricted universe multiverse</span><br><span class="line">deb http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-security main restricted universe multiverse</span><br><span class="line">deb http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-updates main restricted universe multiverse</span><br><span class="line">deb http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-proposed main restricted universe multiverse</span><br><span class="line">deb http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-backports main restricted universe multiverse</span><br><span class="line">deb-src http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic main restricted universe multiverse</span><br><span class="line">deb-src http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-security main restricted universe multiverse</span><br><span class="line">deb-src http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-updates main restricted universe multiverse</span><br><span class="line">deb-src http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-proposed main restricted universe multiverse</span><br><span class="line">deb-src http:&#x2F;&#x2F;mirrors.163.com&#x2F;ubuntu&#x2F; bionic-backports main restricted universe multiverse</span><br></pre></td></tr></table></figure>
+<p>然后</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br></pre></td></tr></table></figure>
+
+<h3 id="ubuntu安装docker"><a href="#ubuntu安装docker" class="headerlink" title="ubuntu安装docker"></a>ubuntu安装docker</h3><figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get install docker</span><br><span class="line">sudo apt-get install docker-io</span><br></pre></td></tr></table></figure>
+<p>安装后需要在docker命令前加上sudo，贴别麻烦，需要将当前用户添加到docker组中</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo groupadd docker     #添加docker用户组,可能该组已存在，不需要执行此命令</span><br><span class="line">sudo gpasswd -a $USER docker     #将登陆用户加入到docker用户组中</span><br><span class="line">newgrp docker     #更新用户组</span><br></pre></td></tr></table></figure>
+
+<p>或者使用<a target="_blank" rel="noopener" href="https://docs.docker.com/install/linux/docker-ce/ubuntu/">官网</a>的安装方式(<strong>此处安装方式建议前往docker官网依据操作系统对应安装,还是很简单的</strong>)</p>
+<p>卸载docker相关</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get remove docker docker-engine docker.io containerd runc</span><br><span class="line"></span><br><span class="line">whereis docker	//找到并删除</span><br></pre></td></tr></table></figure>
+
+<p>安装存储库</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line"></span><br><span class="line">sudo apt-get install \</span><br><span class="line">    apt-transport-https \</span><br><span class="line">    ca-certificates \</span><br><span class="line">    curl \</span><br><span class="line">    gnupg-agent \</span><br><span class="line">    software-properties-common</span><br><span class="line"></span><br><span class="line">curl -fsSL https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;ubuntu&#x2F;gpg | sudo apt-key add -</span><br><span class="line">sudo apt-key fingerprint 0EBFCD88</span><br><span class="line">sudo add-apt-repository \</span><br><span class="line">   &quot;deb [arch&#x3D;amd64] https:&#x2F;&#x2F;download.docker.com&#x2F;linux&#x2F;ubuntu \</span><br><span class="line">   $(lsb_release -cs) \</span><br><span class="line">   stable&quot;</span><br></pre></td></tr></table></figure>
+
+<p>安装docker</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">sudo apt-get update</span><br><span class="line">sudo apt-get install docker docker-compose</span><br></pre></td></tr></table></figure>
+
+<h3 id="docker查询下载超时问题"><a href="#docker查询下载超时问题" class="headerlink" title="docker查询下载超时问题"></a>docker查询下载超时问题</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">vi &#x2F;etc&#x2F;docker&#x2F;daemon.json</span><br><span class="line">#添加如下内容</span><br><span class="line">&#123;</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;http:&#x2F;&#x2F;hub-mirror.c.163.com&quot;,&quot;https:&#x2F;&#x2F;registry.docker-cn.com&quot;],</span><br><span class="line">  &quot;data-root&quot;:&quot;&#x2F;data&#x2F;docker&quot; # 更改镜像容器数据存储目录</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="当前用户使用docker权限"><a href="#当前用户使用docker权限" class="headerlink" title="当前用户使用docker权限"></a>当前用户使用docker权限</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash"> 添加用户到docker组</span></span><br><span class="line">sudo gpasswd -a &#123;用户名&#125; docker</span><br><span class="line"><span class="meta">#</span><span class="bash"> 更新组</span></span><br><span class="line">newgrp docker</span><br><span class="line"><span class="meta">#</span><span class="bash"> 重启服务</span></span><br><span class="line">sudo systemctl restart docker</span><br></pre></td></tr></table></figure>
+
+<h3 id="安装windows-docker-desktop时-应对windows下的Docker-desktop"><a href="#安装windows-docker-desktop时-应对windows下的Docker-desktop" class="headerlink" title="安装windows docker desktop时(应对windows下的Docker desktop)"></a>安装windows docker desktop时(应对windows下的Docker desktop)</h3><p>出现没有开启bios虚拟化，但是在任务管理器-性能里已经开启，且Helper-V也已经开启，如果还说bios需要开启虚拟化则以管理员cmd执行命令<code>bcdedit /set hypervisorlaunchtype Auto</code>,重启电脑即可。</p>
+<p>如果需要关闭docker虚拟化，不光要移除helper-v角色，还需要直营命令，关闭虚拟化<code>bcdedit /set hypervisorlaunchtype off</code></p>
+<h2 id="Docker-容器命令"><a href="#Docker-容器命令" class="headerlink" title="Docker 容器命令"></a>Docker 容器命令</h2><h3 id="helloworld"><a href="#helloworld" class="headerlink" title="helloworld"></a>helloworld</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run hello-world</span><br></pre></td></tr></table></figure>
+<p>检测到本地没有hello-world镜像，便会到仓库下载最新版，并启用这个镜像</p>
+<h3 id="常用命令"><a href="#常用命令" class="headerlink" title="常用命令"></a>常用命令</h3><h4 id="拉取镜像"><a href="#拉取镜像" class="headerlink" title="拉取镜像"></a>拉取镜像</h4><ul>
+<li>docker search [image_name]</li>
+<li>docker search -s 30 [image_name]:点赞数stark超过30的当前镜像名称</li>
+<li>docker search [image_name] –automated:查询有自动构建的镜像</li>
+<li>docker pull [image_name][:TAG]:拉取镜像，或添加镜像标签版本</li>
+<li></li>
 </ul>
-<p>文档<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。">https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。</a><br>我们在application.yml中输入management.endpoints.web就可以自动提示叫base-path的，他的路径默认值是/actuator，也就是访问的名称，是可以改的，然后引入端点的话是management.endpoints.web.exposure.include，它是一个数组，默认值就是info和health,我们可以依据文档上新增,如果要引入全部的话可以吧值写成 “*” ，注意包含双引号。然后访问actuator就可以显示了。</p>
-<p>如果想修改访问名称，也就是映射，可以设置path-mapping属性，他是一个map形式。</p>
-<p>哦对了，这个东西页面可以直接在eureka页面中点服务的名称就可以跳转到actuator页面了。其他的可以看官网和其他博客看。</p>
-<h2 id="注册实例名称的修改和左下角ip更改"><a href="#注册实例名称的修改和左下角ip更改" class="headerlink" title="注册实例名称的修改和左下角ip更改"></a>注册实例名称的修改和左下角ip更改</h2><p>注册实例id是唯一的通过eureka.instance.instance-id设置一个值。这样页面上就会变。然后你碰status后，左下角不是ip路径而是服务名称，要改成ip的话只需要配置eureka.instance.prefer-ip-address: true即可。</p>
-<h2 id="eureka服务实例的自我保护机制-了解"><a href="#eureka服务实例的自我保护机制-了解" class="headerlink" title="eureka服务实例的自我保护机制(了解)"></a>eureka服务实例的自我保护机制(了解)</h2><p>自我保护机制是应对注册进注册中心的服务的，当服务注册进后，服务会向注册中心发送特定消息(心跳)，eureka server会接收到,在一定时间内(默认90秒，可以修改)没有收到某个微服务的心跳，eureka server便会移除这个注册服务实例，而某些情况可能只是网络通信的原因导致心跳消息无法及时发送到，导致实例被移除，因此引入了自我保护机制，该微服务实例并不会移除。</p>
-<p>那自我保护机制是怎么个机制，如果接受的心跳在15分钟内低于应收总量的85%，那么这个实例就会处于保护状态，那么这个实例就不会过期。而如果收到的请求回到那个阙值，就会关闭保护机制。</p>
-<p>但如果开启了保护机制，万一请求到这个实例，那么就处于非正常的请求，可能是空的或者是错误请求。我们可以取消保护机制，那么在一定时间内该实例就会被下线，不会再注册中心中出现。</p>
-<p>eureka server关闭自我保护:eureka.server.enable-self-preservation: false<br>微服务注册客户端设置心跳:</p>
-<ul>
-<li>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态</li>
-<li>lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</li>
+<h4 id="镜像操作"><a href="#镜像操作" class="headerlink" title="镜像操作:"></a>镜像操作:</h4><ul>
+<li>docker images -a:列出本地所有镜像(镜像是分层的)</li>
+<li>docker images -qa:列出所有本地镜像的镜像id</li>
+<li>docker images –digests：查询所有镜像的详情</li>
+<li>docker images –no-trunc:查询所有镜像的完整信息</li>
+<li>docker rmi image_name[:TAG]:删除镜像</li>
+<li>docker rm container_id:删除已停止的容器</li>
+<li>批量删除容器:docker rm -f ${docker ps -a -q}</li>
 </ul>
-<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>首先eureka是注册中心，所有服务都注册于此，但难免某个服务所在的服务器出现问题或网络出现问题，这样，当某用户在请求时，刚好将请求分配到这个服务实例去响应，然而却无法通信，可能就会出现无响应或者请求阻塞等问题。<br>这也是，如果eureka server的自我保护机制中如果出现了这种问题，那么请求不也有问题了么。</p>
-<p>因此就有负载均衡来解决这个问题，通常的单机应用程序，可以使用nginx，多台服务器启动多个程序，并使用nginx来进行负载均衡，属于集中式的。<br>而我们现在要说的Netflix Ribbon是进程式的，可以嵌入到消费者服务中，从注册中心中获取哪个服务地址有用，在选择适合的服务器请求</p>
-<p>因为Ribbon是嵌入到服务消费者中的，因此在eureka-consumer中配置<br>添加依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-ribbon&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>然后第二步时创建数据库,分别再创建cloud2和cloud3，用来表示另外两个userservice服务的各自的库，并把user表给建上。</p>
-<p>然后第三步是,新建模块userservice2和userservice3,将java下的包和resources下的mapper及application.yml拷贝一份。然后修改，端口号为9002和9002，修改instance-id的命名，修改数据库分别为cloud2和cloud3,修改info.app.name的名字。<br><strong>除了更改配置文件，其他的是完全一模一样的</strong>。</p>
-<p>然后就可以测试了，之前在单个服务的时候已经测试过了，cloud1里面也已经有数据了，然后当我们执行<a target="_blank" rel="noopener" href="http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。">http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。</a><br>我们看一下现在包的结构:</p>
-<p><img src="https://i.loli.net/2019/11/02/l4De82QVfRWxihN.png" alt="title"></p>
-<p>然后我们说一下负载均衡的策略，默认的轮询模式已经知道是怎么个形式了。拿一个表，列出其他的模式</p>
-<table>
-<thead>
-<tr>
-<th>类名</th>
-<th>描述</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>RoundRobinRule</td>
-<td>轮询,按照定义顺序一次循环访问</td>
-</tr>
-<tr>
-<td>RandomRule</td>
-<td>随机进行访问</td>
-</tr>
-<tr>
-<td>AvailabilityFilteringRule</td>
-<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问</td>
-</tr>
-<tr>
-<td>WeightedResponseTimeRule</td>
-<td>根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule</td>
-</tr>
-<tr>
-<td>RetryRule</td>
-<td>先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务</td>
-</tr>
-<tr>
-<td>BestAvailableRule</td>
-<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务</td>
-</tr>
-<tr>
-<td>ZoneAvoidanceRule</td>
-<td>复合判断server所在区域的性能和server的可用性选择服务器</td>
-</tr>
-</tbody></table>
-<p>如果要修改默认的策略，只需要注入对应的Bean就好了。处于cfg包里</p>
-<pre><code>@Configuration
-public class MyConfiguration &#123;
+<h4 id="运行命令"><a href="#运行命令" class="headerlink" title="运行命令"></a>运行命令</h4><ul>
+<li>–name=”容器名字”:为容器指定名字</li>
+<li>-d:后台运行容器，并返回容器ID，守护式进程</li>
+<li>-i:以交互模式运行容器，通常与-t同时使用</li>
+<li>-t:为容器分配一个伪输入终端，通常与-i一起使用</li>
+<li>-P:随机端口映射</li>
+<li>-p:指定端口映射，格式如下:<ul>
+<li>ip:hostPort:containerPort</li>
+<li>ip::containerPort</li>
+<li>hostPort:containerPort</li>
+<li>containerPort</li>
+</ul>
+</li>
+</ul>
+<h4 id="ps命令"><a href="#ps命令" class="headerlink" title="ps命令"></a>ps命令</h4><ul>
+<li>docker ps -a:列出当前正在运行的和历史上运行的容器</li>
+<li>docker ps -l:显示最近创建的容器</li>
+<li>docker ps -n [num]:显示最近启动的n个容器</li>
+<li>docker ps -q:静默模式，只显示容器编号</li>
+<li>docker ps –notrunc:不截断输出</li>
+</ul>
+<p>退出启动容器</p>
+<ul>
+<li>exit:容器停止退出</li>
+<li>ctrl+Q+P:容器不停止退出</li>
+<li>docker start container_id:启动容器</li>
+<li>docker restart container_id:重启容器</li>
+<li>docker stop container_id:停止容器</li>
+<li>docker kill container_id:强制关闭容器</li>
+</ul>
+<h4 id="其他操作"><a href="#其他操作" class="headerlink" title="其他操作"></a>其他操作</h4><ul>
+<li><p>docker logs -f -t –tail container_id: 日志查看</p>
+<ul>
+<li>-t:加入时间戳</li>
+<li>-f:跟随最新的日志打印</li>
+<li>–tail 数字:显示最后多少条</li>
+</ul>
+</li>
+<li><p>docker inspect container_id:查看容器内部运行细节</p>
+</li>
+<li><p>docker exec -it container_id ls -l /tmp:不打开终端，直接打印出容器内部命令</p>
+</li>
+<li><p>docker exec -it container_id /bin/bash:打开新终端，启用一个进程</p>
+</li>
+<li><p>docker attach container_id:直接进入启动命令的终端，不会启动新的进程</p>
+</li>
+<li><p>从容器内文件拷贝到本地:docker cp container_id:/path localpath</p>
+</li>
+</ul>
+<h2 id="Docker镜像操作"><a href="#Docker镜像操作" class="headerlink" title="Docker镜像操作"></a>Docker镜像操作</h2><h3 id="镜像原理"><a href="#镜像原理" class="headerlink" title="镜像原理"></a>镜像原理</h3><p>镜像是轻量级、可执行的独立软件包，用来打包软件运行环境和基于环境开发的软件，它包含某个软件所需的所有内容，包括代码，运行时，库，环境变量和配置文件。</p>
+<p>联合文件系统(UnionFS),是一种分层、轻量级并且高性能的文件系统，它支持对文件系统修改作为一次提交来以层层叠加，同时将不同目录挂载到同一个虚拟文件系统下。UnionFS是Docker镜像的基础。镜像可以分层进行继承，基于基础镜像(没有父镜像)，可以制作各种具体的应用镜像。</p>
+<p>bootfs主要包含bootloader和kernal，bootloader主要是引导加载kernal，linux刚启动时会加载bootfs文件系统，在Docker镜像最底层是bootfs。这一层与我们经典的Linux/Unix系统是一样的，包含boot加载器和内核。当boot加载完成之后整个内核都在内存中了，此时内存的使用权由bootfs交给内核，此时系统卸载bootfs。</p>
+<p>rootfs，在bootfs之上，包含经典linux系统中的/dev,/proc,/bin等目录文件。</p>
+<p>对于一个精简的OS，rootfs可以很小，只需要包括基本的命令，工具和程序库就可以了，因为底层直接使用Host和kernal，自己只需要提供rootfs就可以了。因此不同的发行版本可以共用bootfs</p>
+<p>资源共享：多个镜像由多个base镜像构建而来，那么宿主机秩序保存一份base镜像，可以被共享。就是是说，多某个镜像的基础镜像在之前的镜像下载中已经下载过，那么就不需要下载。整个镜像是一层层叠起来的。就像下载是，下载的是多个镜像，而不是tomcat这一个单一的镜像。</p>
+<h3 id="提交镜像"><a href="#提交镜像" class="headerlink" title="提交镜像"></a>提交镜像</h3><p>以tomcat，为例，进入tomcat中的虚拟容器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">docker exec -it 05a585c60501 &#x2F;bin&#x2F;bash</span><br><span class="line">进入后，删除docs文件，删除tomcat的文档</span><br><span class="line">docker commit -a &quot;chen&quot; -m &quot;del docs&quot; 05a585c60501 chen&#x2F;mytomcat:1.1</span><br></pre></td></tr></table></figure>
+<ul>
+<li>-a为作者名</li>
+<li>-m为提交信息</li>
+<li>最后为镜像名及版本</li>
+</ul>
+<h2 id="容器数据卷"><a href="#容器数据卷" class="headerlink" title="容器数据卷"></a>容器数据卷</h2><ul>
+<li>容器的持久化</li>
+<li>容器间继承和共享数据</li>
+</ul>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">docker run -it -v 宿主机绝对目录:容器内绝对目录 镜像名</span><br><span class="line">docker run -it -v 宿主机绝对目录:容器内绝对目录:ro 镜像名</span><br></pre></td></tr></table></figure>
+<p>执行此命令name宿主机和容器内将进行关联并且资源同步共享，目录若没有都可以自动创建，那如何才能看到被关联，可以通过<code>docker inspect container</code>看到容器内部细节。<br>不管在宿主机还是在容器内，只要存储数据文件，都会被另一方看到。<br>若容器退出且关闭，尽管宿主机关联的目录作出修改，那么容器重启后依然会同步。<br>加上ro表示容器内数据是只读的。</p>
+<h4 id="使用dockerfile来进行数据卷数据共享"><a href="#使用dockerfile来进行数据卷数据共享" class="headerlink" title="使用dockerfile来进行数据卷数据共享"></a>使用dockerfile来进行数据卷数据共享</h4><p>模拟构建centos，自动进行数据卷数据共享。</p>
+<ol>
+<li>创建dockerfile文件<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">FROM centos</span><br><span class="line">VOLUME[&quot;&#x2F;dataVolumeContainer1&quot;,&quot;&#x2F;dataVolumeContainer2&quot;]</span><br><span class="line">CMD echo &quot;finashed,--------------successed&quot;</span><br><span class="line">CMD &#x2F;bin&#x2F;bash</span><br></pre></td></tr></table></figure></li>
+<li>使用build命令构建镜像<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker build -f dockerfile -t image_name[:tag] .</span><br></pre></td></tr></table></figure>
+表示通过dockerfile构建，名称为image_name,构建到当前目录下</li>
+</ol>
+<p>-f 表示dockerfile文件的位置</p>
+<p>docker挂载主机目录Docker访问出现cannot open directory:Permission denied<br>解决办法:在挂载目录后多加一个–privileged=true参数</p>
+<h4 id="容器间传递共享-volumes-from命令"><a href="#容器间传递共享-volumes-from命令" class="headerlink" title="容器间传递共享 volumes-from命令"></a>容器间传递共享 volumes-from命令</h4><p>该命令可进行类似继承式volumes共享<br>即:通过创建容器c1(通过dockerfile构建的chen/centos镜像创建),该容器进行了与宿主机之间的数据卷共享，若c2也想加入其中共享，那么只需要创建c2容器继承(依据创建)于c1即可。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -it --name c2 --volumes-from c1 chen&#x2F;centos</span><br></pre></td></tr></table></figure>
+<p>然后c3,也继承c1。<br>若把c1删除，那么操作c2,向共享数据卷内添加文件，那么进入c3里也会有此文件。<br>若新建c4再继承c3,删除c3后，c4里依然有</p>
+<p>总结:容器之间配置信息的传递，数据卷的生命周期一直持续到没有容器使用他位置。 </p>
+<p><strong>备注:</strong><br>容器退出，重进步骤</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">exit</span><br><span class="line">docker start 容器名称</span><br><span class="line">docker attach 容器名称</span><br></pre></td></tr></table></figure>
 
-    @Bean
-    public IRule myRule()&#123;
-        return new RandomRule();
-    &#125;
-&#125;</code></pre><p>当然这是对当前应用所有请求都是用这个规则，如果你的这个消费者模块想要处理两个模块的请求，可以分开处理请求规则。你可以在启动类上标注注解</p>
-<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
-@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
-@EnableEurekaClient
-@SpringBootApplication
-public class ConsumerApplication &#123;
 
-    public static void main(String[] args) &#123;
-        SpringApplication.run(ConsumerApplication.class,args);
-    &#125;
-&#125;</code></pre><p>这个注解使用的是应对单个模块SPRING-PROD，configuration属性就是规则类。如果因为业务需要这个应用程序处理两个模块的业务，那么么可以使用@RibbonClients注解。另外，在注解上标注的和通用配置的不能重复。否则会报错说找到两个匹配的规则。</p>
-<p><strong>自定义规则</strong><br>自定义规则也是在configuration中配置，可以继承AbstractLoadBalancerRule类来配置规则。<br>我们在cfg包里创建MyRule类</p>
-<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
+<h2 id="dockerfile解析"><a href="#dockerfile解析" class="headerlink" title="dockerfile解析"></a>dockerfile解析</h2><p>是构建docker镜像的构建文件。</p>
+<ul>
+<li>dockerfile</li>
+<li>docker build</li>
+<li>docker run</li>
+</ul>
+<h4 id="保留字指令"><a href="#保留字指令" class="headerlink" title="保留字指令"></a>保留字指令</h4><p>保留字指令必须大写</p>
+<ul>
+<li>FROM：将要编辑的基础镜像</li>
+<li>MAINTAINER:镜像维护者的姓名和邮箱</li>
+<li>RUN:容器构建时需要运行的命令</li>
+<li>EXPOSE：对外暴露的端口</li>
+<li>WORKDIR：创建容器后，默认进入的工作目录</li>
+<li>ENV:构建镜像时，设置环境变量</li>
+<li>ADD：将宿主机下的文件拷贝到镜像且ADD命令会自动处理url和解压包</li>
+<li>COPY：拷贝文件和目录到镜像</li>
+<li>VOLUMES: 容器数据卷，用于数据保存和持久化工作</li>
+<li>CMD:指定容器启动时要运行的命令。dockerfile中可以有多个CMD命令，但只有最后一个生效，CMD会被docker run之后的参数替换</li>
+<li>ENTRYPOINT：指定一个容器启动要运行的命令。当添加参数时，会进行参数合并</li>
+<li>ONBUILD：当构建一个被继承的dockerfile时运行命令，父镜像在被子继承后父镜像的onbuild被触发。</li>
+</ul>
+<h4 id="案例构建"><a href="#案例构建" class="headerlink" title="案例构建"></a>案例构建</h4><p>模拟构建centos</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">FROM centos</span><br><span class="line">MAINTAINER author&lt;email&gt;</span><br><span class="line"></span><br><span class="line">ENV MYPATH &#x2F;usr&#x2F;local</span><br><span class="line">WORKDIR $MYPATH</span><br><span class="line"></span><br><span class="line">RUN yum -y install vim</span><br><span class="line">RUN yum -y install net-tools</span><br><span class="line"></span><br><span class="line">EXPOSE 80</span><br><span class="line">CMD echo $MYPATH</span><br><span class="line">CMD echo &quot;successed--------ok&quot;</span><br><span class="line">CMD &#x2F;bin&#x2F;bash</span><br></pre></td></tr></table></figure>
 
-    @Override
-    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
+<p><code>docker histroy 镜像id</code>可以查看镜像的构建历史</p>
+<p>mysql容器内备份<br>docker exec 容器id sh -C ‘exec mysqldump –all-databases -uroot -p”123456”‘ &gt; /本地存储文件</p>
+<h2 id="命令操作"><a href="#命令操作" class="headerlink" title="命令操作"></a>命令操作</h2><p>启动完容器后执行docker attach 容器id即可进入交互式容器</p>
+<h2 id="上传镜像包到自己的镜像仓库"><a href="#上传镜像包到自己的镜像仓库" class="headerlink" title="上传镜像包到自己的镜像仓库"></a>上传镜像包到自己的镜像仓库</h2><h3 id="登录自己的DockerHub"><a href="#登录自己的DockerHub" class="headerlink" title="登录自己的DockerHub"></a>登录自己的DockerHub</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# docker login</span><br><span class="line">Login with your Docker ID to push and pull images from Docker Hub. If you don&#39;t have a Docker ID, head over to https:&#x2F;&#x2F;hub.docker.com to create one.</span><br><span class="line">Username: chenguangqi</span><br><span class="line">Password:</span><br><span class="line">WARNING! Your password will be stored unencrypted in &#x2F;root&#x2F;.docker&#x2F;config.json.</span><br><span class="line">Configure a credential helper to remove this warning. See</span><br><span class="line">https:&#x2F;&#x2F;docs.docker.com&#x2F;engine&#x2F;reference&#x2F;commandline&#x2F;login&#x2F;#credentials-store</span><br><span class="line"></span><br><span class="line">Login Succeeded</span><br></pre></td></tr></table></figure>
 
-    &#125;
+<h3 id="为要上传的镜像打一个新标签"><a href="#为要上传的镜像打一个新标签" class="headerlink" title="为要上传的镜像打一个新标签"></a>为要上传的镜像打一个新标签</h3><p>镜像名格式为<code>用户名/镜像名:版本</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# docker tag xxha&#x2F;jdk:8-alpine chenguangqi&#x2F;jdk:8-alpine</span><br><span class="line">[root@localhost ~]# docker images</span><br><span class="line">REPOSITORY              TAG               IMAGE ID       CREATED         SIZE</span><br><span class="line">chenguangqi&#x2F;jdk         8-alpine          2a3fd1d9cc15   3 weeks ago     145MB</span><br><span class="line">xxha&#x2F;jdk                8-alpine          2a3fd1d9cc15   3 weeks ago     145MB</span><br></pre></td></tr></table></figure>
 
-    private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次
-    private int currentIndex = 0;    // 当前提供服务的机器号
+<h3 id="上传镜像"><a href="#上传镜像" class="headerlink" title="上传镜像"></a>上传镜像</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[root@localhost ~]# docker push chenguangqi&#x2F;jdk:8-alpine</span><br><span class="line">The push refers to repository [docker.io&#x2F;chenguangqi&#x2F;jdk]</span><br><span class="line">22638eda3603: Pushed</span><br><span class="line">322e97245390: Pushed</span><br><span class="line">1dc20f8e0b36: Pushed</span><br><span class="line">b7d8e6a2a3cd: Pushed</span><br><span class="line">ceaf9e1ebef5: Mounted from library&#x2F;openjdk</span><br><span class="line">9b9b7f3d56a0: Mounted from library&#x2F;tomcat</span><br><span class="line">f1b5933fe4b5: Mounted from library&#x2F;tomcat</span><br><span class="line">8-alpine: digest: sha256:6bca2ce916d9ae3164bb53e1e84175f565133917385a8f5158fedcdc177198ce size: 1788</span><br></pre></td></tr></table></figure>
 
-    public Server choose(ILoadBalancer lb, Object key) &#123;
-        if (lb == null) &#123;
-            return null;
-        &#125;
-        Server server = null;
 
-        while (server == null) &#123;
-            if (Thread.interrupted()) &#123;
-                return null;
-            &#125;
-            List&lt;Server&gt; upList = lb.getReachableServers();
-            List&lt;Server&gt; allList = lb.getAllServers();
 
-            int serverCount = allList.size();
-            if (serverCount == 0) &#123;
-                return null;
-            &#125;
-            if (total &lt; 5) &#123;
-                server = upList.get(currentIndex);
-                total++;
-            &#125; else &#123;
-                total = 0;
-                currentIndex++;
-                if (currentIndex &gt;= upList.size()) &#123;
-                    currentIndex = 0;
-                &#125;
-            &#125;
-            if (server == null) &#123;
-                Thread.yield();
-                continue;
-            &#125;
-            if (server.isAlive()) &#123;
-                return (server);
-            &#125;
-            server = null;
-            Thread.yield();
-        &#125;
 
-        return server;
 
-    &#125;
 
-    @Override
-    public Server choose(Object o) &#123;
-        return choose(getLoadBalancer(),o);
-    &#125;
-&#125;</code></pre><p>该类定义规则是每个服务都请求5次后再请求下一个服务。然后更改MyConfiguration的注入的规则Bean，注入MyRule。然后修改注解上的配置类MyConfiguration.class,或者直接把MyRule.class写在configuration属性上。</p>
-<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>服务器负载均衡的策略已经说好了，那如果程序出现异常错误，请求超时等等其他问题该怎么办，如果特殊原因把某个服务停了，而刚好请求到这里该怎么办。<br>断路器，字面意思就如电路保险丝一样。<br>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</p>
-<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>如果执行一个方法报错了，怎么办，我们来模拟一下:<br>在consumer添加依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre><p>在UserController中添加方法,请求路径get改为getn,然后添加注解，配置fallbackMethod为某个方法名称</p>
-<pre><code>@HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
-@GetMapping(&quot;/consumer/user/getn/&#123;id&#125;&quot;)
-public User getWithNull(@PathVariable(&quot;id&quot;) Long id)&#123;
-    User user = iUserClient.get(id);
-    if (user==null)&#123;
-        throw new RuntimeException();
-    &#125;
-    return user;
-&#125;
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li></ul>
 
-public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
-    return new User().setId((long) 0).setName(&quot;没有找到记录&quot;).setAge((long) 21);
-&#125;</code></pre><p>然后给consumer启动类添加@EnableCircuitBreaker注解。即可测试，发现如果数据入库请求请求到cloud2或cloud3，就会获取null，然后抛出异常，就执行requestErrorGet方法了。</p>
-<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。<br>所以服务降级的配置在api模块上，api模块要请求服务提供者，但服务提供者挂了。那么这个就会被触发。但是如果同时配置服务熔断，那么会先执行服务熔断@HystrixCommand注解上的fallbackMethod。因此这里我们先把这个注解注释掉。</p>
-<p>配置api模块,在feign包同级创建fallback包，创建类</p>
-<pre><code>@Component
-public class UserClientFallbackFactory implements FallbackFactory&lt;IUserClient&gt; &#123;
-    @Override
-    public IUserClient create(Throwable throwable) &#123;
-        return new IUserClient() &#123;
-            @Override
-            public boolean add(User user) &#123;
-                return false;
-            &#125;
 
-            @Override
-            public User get(Long id) &#123;
-                return new User().setId((long) 0).setName(&quot;服务降级&quot;).setAge((long) 0);
-            &#125;
+    </footer>
 
-            @Override
-            public List&lt;User&gt; list() &#123;
-                return new ArrayList&lt;&gt;();
-            &#125;
-        &#125;;
-    &#125;
-&#125;</code></pre><p>然后再feign中IUserClient接口类上的@FeighClient注解上新增属性fallbackFactory,然后现在是这样的@FeignClient(value = “SPRING-PROD”,fallbackFactory = UserClientFallbackFactory.class)<br>最后在consumer上加上配置，开启feign和Hystrix，feign.hystrix.enabled:true</p>
-<p>接下来测试，首先把consumer的@HystrixCommand注解注释掉，这个会在服务降级之前处理。/consumer/user/getn/1<br>我们只启动ecurekaServer和consumer来测试，服务提供者均不启动，当我们请求get的时候，因为api那请求服务提供者不了啊，所以就进入那个类的方法里，打印了服务降级的信息。<br>那我们此时再启动三个服务提供者，会发现有时候有结果，有时候报错，因为cloud1有数据，而且服务熔断的注释被注掉了，所以请求到另两个的时候会报错。<br>现在，再停止consumer，把@HystrixCommand服务熔断注释解开，在重新启动，再请求发现，有的是返回正确信息，有的返回没有记录(cloud2，cloud3)。</p>
-<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
-<p>我们为三个userservice添加依赖，可以放在父pom里</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre><p>然后为各自启动类添加@EnableHystrixDashboard注解<br>因2.0版本情况原因，还需要在userservice中配置一段代码,才能访问</p>
-<pre><code>@Configuration
-public class MyConfiguration &#123;
+  </div>
 
-    @Bean
-    public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
-        ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
-        registration.addUrlMappings(&quot;/hystrix.stream&quot;);
-        return registration;
-    &#125;
-&#125;</code></pre><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
-<p>不过奇怪的是，一直loding中，没有图像显示,因为他必须要在经过请求的方法上添加@HystrixCommand注解来监控，因此需要在userservice的UserController的方法上添加此注解。然后再多次请求就有结果了。</p>
-<p>不过更奇怪的是，再服务熔断的时候不是配置在consumer中了么。可见好像配置的位置不怎么正确，不过功能依据注解，还是可以使用的。<br>但是，我们尝试把consumer的服务熔断给取消掉，然后由userservice来处理服务熔断这个问题，发现，是没有问题的。可以放在userservice中，那么这个监控的问题就顺理成章了。</p>
-<p>此时我们的consumer就还是feign和ribbon负载均衡了。而uservice则承载着服务熔断和服务监控，而api依旧是负责服务降级的问题。</p>
-<p>我列一下userservice的UserController和启动类</p>
-<pre><code>@RestController
-public class UserController &#123;
+  
 
-    @Autowired
-    private UserService userService;
+  
+  
+  
 
-    @ResponseBody
-    @PostMapping(&quot;/user/add&quot;)
-    public boolean add(@RequestBody User user)&#123;
-        return userService.add(user);
-    &#125;
-    @HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
-    @ResponseBody
-    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
-    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
-        User user = userService.get(id);
-        if (user==null)&#123;
-            throw  new RuntimeException();
-        &#125;
-        return user;
-    &#125;
+  
 
-    @ResponseBody
-    @GetMapping(&quot;/user/list&quot;)
-    public List&lt;User&gt; list()&#123;
-        return userService.list();
-    &#125;
+</article>
+    
+    <article id="post-NodeJS/hexo在github page上的部署" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
-    public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
-        return new User().setAge((long) 0).setName(&quot;Asd&quot;).setId((long) 0);
-    &#125;
-&#125;
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/03/18/NodeJS/hexo%E5%9C%A8github%20page%E4%B8%8A%E7%9A%84%E9%83%A8%E7%BD%B2/"
+    >hexo在github page上的部署</a
+  >
+</h2>
+  
 
-@EnableCircuitBreaker
-@EnableHystrixDashboard
-@EnableEurekaClient
-@SpringBootApplication
-public class UserServiceApplication &#123;
-    public static void main(String[] args) &#123;
-        SpringApplication.run(UserServiceApplication.class,args);
-    &#125;
-&#125;</code></pre><p>application.yml是没变的，pom是父pom添加的依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
-&lt;/dependency&gt;</code></pre><p>consumer的启动类</p>
-<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
-@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
-@EnableEurekaClient
-@SpringBootApplication
-public class ConsumerApplication &#123;
+    </header>
+    
 
-    public static void main(String[] args) &#123;
-        SpringApplication.run(ConsumerApplication.class,args);
-    &#125;
+    
+    <div class="article-meta">
+      <a href="/2020/03/18/NodeJS/hexo%E5%9C%A8github%20page%E4%B8%8A%E7%9A%84%E9%83%A8%E7%BD%B2/" class="article-date">
+  <time datetime="2020-03-18T07:47:43.000Z" itemprop="datePublished">2020-03-18</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E5%BB%BA%E7%AB%99%E7%9B%B8%E5%85%B3/">建站相关</a>
+  </div>
 
-&#125;</code></pre><p>项目下载:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/72">https://nas.tsaving.cn/file/download/72</a></p>
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="hexo在github-page上的部署"><a href="#hexo在github-page上的部署" class="headerlink" title="hexo在github page上的部署"></a>hexo在github page上的部署</h1><ul>
+<li><a target="_blank" rel="noopener" href="https://hexo.io/zh-cn/">网站</a></li>
+<li><a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000017986794">推荐的一个超详细部署博客</a></li>
+</ul>
+<p>在推荐文章里，里面已经说的非常清楚了。这篇文章主要描述对详细部署文章的简要说明以及本站点使用的一个主题来说明食用方式。</p>
+<h2 id="安装使用hexo"><a href="#安装使用hexo" class="headerlink" title="安装使用hexo"></a>安装使用hexo</h2><p>nodejs的安装和git的安装我就不说明了。</p>
+<p>直接按照<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000017986794#item-3">博客的安装Hexo</a>二级标题开始看</p>
+<h3 id="安装命令"><a href="#安装命令" class="headerlink" title="安装命令"></a>安装命令</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">npm install -g hexo-cli --全局安装,可在任意位置执行</span><br><span class="line">hexo init myBlog --在当前目录初始化一个hexo项目</span><br><span class="line">cd myBlog --进入目录</span><br><span class="line">npm install --安装依赖</span><br></pre></td></tr></table></figure>
+
+<h3 id="启动命令"><a href="#启动命令" class="headerlink" title="启动命令"></a>启动命令</h3><p>s表示服务简写，启动后会提示<a href="http://localhost:4000。浏览器访问即可。">http://localhost:4000。浏览器访问即可。</a></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo s </span><br></pre></td></tr></table></figure>
+
+<h2 id="创建github仓库"><a href="#创建github仓库" class="headerlink" title="创建github仓库"></a>创建github仓库</h2><p>略</p>
+<h2 id="部署到github"><a href="#部署到github" class="headerlink" title="部署到github"></a>部署到github</h2><ol>
+<li><p>在项目根目录下_config.yml配置文件配置参数。在文件最后面添加参数。此文件为yml文件，注意缩进格式</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">deploy:</span><br><span class="line">	type: git</span><br><span class="line">	repo:</span><br><span class="line">		github: 你的github仓库地址</span><br><span class="line">	branch: master</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<ol start="2">
+<li><p>安装一个部署插件<a target="_blank" rel="noopener" href="https://github.com/hexojs/hexo-deployer-git">hexo-deployer-git</a></p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">npm</span> <span class="string">install</span> <span class="string">hexo-deployer-git</span> <span class="string">--save</span></span><br></pre></td></tr></table></figure>
+
+<p>此条命令并非全局安装，需要在hexo项目根目录下执行，注意了。</p>
+</li>
+<li><p>部署上去</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo g -d</span><br></pre></td></tr></table></figure>
+
+<p>g表示generate生成,-d 参数表示deploy部署。</p>
+<p>然后访问网址: https://用户名.github.io</p>
+</li>
+</ol>
+<h2 id="写作文章"><a href="#写作文章" class="headerlink" title="写作文章"></a>写作文章</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new &#x27;文章标题&#x27; --如果包含空格或特殊关键符号使用双引号</span><br></pre></td></tr></table></figure>
+
+<p>执行完毕后，会提示文件在哪，在/source/_posts下有一个这个文章标题的md文件。</p>
+<p>你可以编辑md文件，Markdown语法就不多说了。每次创建完之后，在文件最上面都有文件元信息,由三个<code>-</code>符号上下包裹</p>
+<figure class="highlight txt"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">---</span><br><span class="line">title: 文章标题</span><br><span class="line">date: ...时间</span><br><span class="line">---</span><br></pre></td></tr></table></figure>
+
+<p>默认是这个，但是还可以添加更多的内容。这个元信息表示这个文件的所属信息，在主题中会使用到的。包括tags属性名和categories属性名，分别表示标签和分类。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo g</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo s</span><br></pre></td></tr></table></figure>
+
+<p>Ctrl+C可以退出hexo服务。执行第一个命令可以重新生成相关文件，执行第二个命令启动服务。</p>
+<p>如果要再次部署到github上，需要清一下缓存或历史文件</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo clean --清除db等相关信息，避免修改没有及时反馈,清除后需要重新生成</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo g -d --生成，并部署到github上</span><br></pre></td></tr></table></figure>
+
+<p>另外，如果你的文章暂时不发布可以先保存在草稿里面。生成草稿的方法和文章差不多 hexo new draft “文章标题”，生成后会在 /source/_drafts 里看到你的草稿文章。当你想发布时只要执行 publish 命令即可发布到博客。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo publish [layout] &lt;filename&gt;</span><br></pre></td></tr></table></figure>
+
+<h2 id="主题使用"><a href="#主题使用" class="headerlink" title="主题使用"></a>主题使用</h2><p>我们以当前站点主题为例，访问<a target="_blank" rel="noopener" href="https://hexo.io/themes/">hexo主题</a>,找到A-Ayer,<a target="_blank" rel="noopener" href="https://shen-yu.gitee.io/">这个是实例页面</a>,我们可以看一下<a target="_blank" rel="noopener" href="https://shen-yu.gitee.io/2019/ayer/">相关说明</a>,如何使用。</p>
+<ol>
+<li><p>下载主题，直接进入项目根目录就行，命令已经指定了下载位置，不需要进入到themes里。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/Shen-Yu/hexo-theme-ayer.git themes/ayer</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>修改根目录下的_config.yml文件,修改主题值为alyer</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">theme:</span> <span class="string">ayer</span></span><br></pre></td></tr></table></figure>
+
+<p>然后，你可以重新刷新一下页面或clean，重新访问即可看到新主题</p>
+</li>
+<li><p>目录的创建Categories</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page categories</span><br></pre></td></tr></table></figure>
+
+<p>此时_source/categories/index.md就会出现。然后修改index.md的源信息,这就行了。不要往里面添加任何内容。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">categories</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">categories</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">&quot;categories&quot;</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>创建tags标签</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">hexo new page tags</span><br></pre></td></tr></table></figure>
+
+<p>此时_source/tags/index.md就会出现。然后修改index.md的源信息,这就行了。不要往里面添加任何内容。</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">title:</span> <span class="string">tags</span></span><br><span class="line"><span class="attr">type:</span> <span class="string">tags</span></span><br><span class="line"><span class="attr">layout:</span> <span class="string">&quot;tags&quot;</span></span><br><span class="line"><span class="meta">---</span></span><br></pre></td></tr></table></figure>
+</li>
+<li><p>完毕后，创建文章，只需要修改文章的原信息即可,在元信息上添加这些属性,标签是数组形式，分类只能所属一个</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">tags:</span> [<span class="string">&#x27;测试&#x27;</span>]</span><br><span class="line"><span class="attr">categories:</span> <span class="string">测试</span></span><br></pre></td></tr></table></figure>
+
+<p>这样，再看分类和标签就有东西显示出来了。</p>
+</li>
+</ol>
+<p>如果你打开页面的话，如果没有任何一个文章有标签5的配置，那么标签和分类页面都是空的。另外，你需要注意一下主题里的_config.xml，可以配置一下menu菜单和其他相关的信息。更多操作可以在<a target="_blank" rel="noopener" href="https://shen-yu.gitee.io/2019/ayer/">说明文档</a>或<a target="_blank" rel="noopener" href="https://gitee.com/shen-yu/shen-yu/tree/dev/">作者dev分支项目</a>中看到目录分级和操作。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%8D%9A%E5%AE%A2/" rel="tag">博客</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BB%BA%E7%AB%99%E7%9B%B8%E5%85%B3/" rel="tag">建站相关</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-k8s/k8s-ingress暴露应用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/01/11/k8s/k8s-ingress%E6%9A%B4%E9%9C%B2%E5%BA%94%E7%94%A8/"
+    >k8s ingress暴露应用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/11/k8s/k8s-ingress%E6%9A%B4%E9%9C%B2%E5%BA%94%E7%94%A8/" class="article-date">
+  <time datetime="2020-01-11T04:00:00.000Z" itemprop="datePublished">2020-01-11</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/K8S/">K8S</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>一组基于DNS名称或URL路径把请求转发到指定的Service资源的规则。用于将集群外部的请求流量转发到集群内部完成的服务发布。只提供外部暴露访问，类似于改造nginx形式。</p>
+<p>ingress作为统一入口，通过定义一组规则，以通过域名的方式关联service，再由service关联pod</p>
+<p>使用ingress，第一步需要ingress Controller，第二步需要ingress</p>
+<p><strong>创建pod，和service</strong></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl create deployment web --image&#x3D;nginx</span><br><span class="line">deployment.apps&#x2F;web created</span><br><span class="line">[root@k8smaster ~]# kubectl expose deployment web --port&#x3D;80 --target-port&#x3D;80 --type&#x3D;NodePort</span><br><span class="line">service&#x2F;web exposed</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p><strong>部署ingress Controller</strong></p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br><span class="line">204</span><br><span class="line">205</span><br><span class="line">206</span><br><span class="line">207</span><br><span class="line">208</span><br><span class="line">209</span><br><span class="line">210</span><br><span class="line">211</span><br><span class="line">212</span><br><span class="line">213</span><br><span class="line">214</span><br><span class="line">215</span><br><span class="line">216</span><br><span class="line">217</span><br><span class="line">218</span><br><span class="line">219</span><br><span class="line">220</span><br><span class="line">221</span><br><span class="line">222</span><br><span class="line">223</span><br><span class="line">224</span><br><span class="line">225</span><br><span class="line">226</span><br><span class="line">227</span><br><span class="line">228</span><br><span class="line">229</span><br><span class="line">230</span><br><span class="line">231</span><br><span class="line">232</span><br><span class="line">233</span><br><span class="line">234</span><br><span class="line">235</span><br><span class="line">236</span><br><span class="line">237</span><br><span class="line">238</span><br><span class="line">239</span><br><span class="line">240</span><br><span class="line">241</span><br><span class="line">242</span><br><span class="line">243</span><br><span class="line">244</span><br><span class="line">245</span><br><span class="line">246</span><br><span class="line">247</span><br><span class="line">248</span><br><span class="line">249</span><br><span class="line">250</span><br><span class="line">251</span><br><span class="line">252</span><br><span class="line">253</span><br><span class="line">254</span><br><span class="line">255</span><br><span class="line">256</span><br><span class="line">257</span><br><span class="line">258</span><br><span class="line">259</span><br><span class="line">260</span><br><span class="line">261</span><br><span class="line">262</span><br><span class="line">263</span><br><span class="line">264</span><br><span class="line">265</span><br><span class="line">266</span><br><span class="line">267</span><br><span class="line">268</span><br><span class="line">269</span><br><span class="line">270</span><br><span class="line">271</span><br><span class="line">272</span><br><span class="line">273</span><br><span class="line">274</span><br><span class="line">275</span><br><span class="line">276</span><br><span class="line">277</span><br><span class="line">278</span><br><span class="line">279</span><br><span class="line">280</span><br><span class="line">281</span><br><span class="line">282</span><br><span class="line">283</span><br><span class="line">284</span><br><span class="line">285</span><br><span class="line">286</span><br><span class="line">287</span><br><span class="line">288</span><br><span class="line">289</span><br><span class="line">290</span><br><span class="line">291</span><br><span class="line">292</span><br><span class="line">293</span><br><span class="line">294</span><br><span class="line">295</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Namespace</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-configuration</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">tcp-services</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ConfigMap</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">udp-services</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-clusterrole</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">endpoints</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">nodes</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pods</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">secrets</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">watch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">nodes</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">services</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">watch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">events</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">create</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">patch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;extensions&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;networking.k8s.io&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ingresses</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">list</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">watch</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;extensions&quot;</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;networking.k8s.io&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">ingresses/status</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">update</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Role</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-role</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">rules:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">pods</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">secrets</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">namespaces</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">    <span class="attr">resourceNames:</span></span><br><span class="line">      <span class="comment"># Defaults to &quot;&lt;election-id&gt;-&lt;ingress-class&gt;&quot;</span></span><br><span class="line">      <span class="comment"># Here: &quot;&lt;ingress-controller-leader&gt;-&lt;nginx&gt;&quot;</span></span><br><span class="line">      <span class="comment"># This has to be adapted if you change either parameter</span></span><br><span class="line">      <span class="comment"># when launching the nginx-ingress-controller.</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;ingress-controller-leader-nginx&quot;</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">update</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">configmaps</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">create</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">apiGroups:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">&quot;&quot;</span></span><br><span class="line">    <span class="attr">resources:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">endpoints</span></span><br><span class="line">    <span class="attr">verbs:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="string">get</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">RoleBinding</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-role-nisa-binding</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">roleRef:</span></span><br><span class="line">  <span class="attr">apiGroup:</span> <span class="string">rbac.authorization.k8s.io</span></span><br><span class="line">  <span class="attr">kind:</span> <span class="string">Role</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-role</span></span><br><span class="line"><span class="attr">subjects:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">    <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">rbac.authorization.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">ClusterRoleBinding</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-clusterrole-nisa-binding</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">roleRef:</span></span><br><span class="line">  <span class="attr">apiGroup:</span> <span class="string">rbac.authorization.k8s.io</span></span><br><span class="line">  <span class="attr">kind:</span> <span class="string">ClusterRole</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-clusterrole</span></span><br><span class="line"><span class="attr">subjects:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">kind:</span> <span class="string">ServiceAccount</span></span><br><span class="line">    <span class="attr">name:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">    <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-ingress-controller</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">      <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">        <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line">      <span class="attr">annotations:</span></span><br><span class="line">        <span class="attr">prometheus.io/port:</span> <span class="string">&quot;10254&quot;</span></span><br><span class="line">        <span class="attr">prometheus.io/scrape:</span> <span class="string">&quot;true&quot;</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">hostNetwork:</span> <span class="literal">true</span></span><br><span class="line">      <span class="comment"># wait up to five minutes for the drain of connections</span></span><br><span class="line">      <span class="attr">terminationGracePeriodSeconds:</span> <span class="number">300</span></span><br><span class="line">      <span class="attr">serviceAccountName:</span> <span class="string">nginx-ingress-serviceaccount</span></span><br><span class="line">      <span class="attr">nodeSelector:</span></span><br><span class="line">        <span class="attr">kubernetes.io/os:</span> <span class="string">linux</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">nginx-ingress-controller</span></span><br><span class="line">          <span class="attr">image:</span> <span class="string">lizhenliang/nginx-ingress-controller:0.30.0</span></span><br><span class="line">          <span class="attr">args:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">/nginx-ingress-controller</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--configmap=$(POD_NAMESPACE)/nginx-configuration</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--tcp-services-configmap=$(POD_NAMESPACE)/tcp-services</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--udp-services-configmap=$(POD_NAMESPACE)/udp-services</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--publish-service=$(POD_NAMESPACE)/ingress-nginx</span></span><br><span class="line">            <span class="bullet">-</span> <span class="string">--annotations-prefix=nginx.ingress.kubernetes.io</span></span><br><span class="line">          <span class="attr">securityContext:</span></span><br><span class="line">            <span class="attr">allowPrivilegeEscalation:</span> <span class="literal">true</span></span><br><span class="line">            <span class="attr">capabilities:</span></span><br><span class="line">              <span class="attr">drop:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">ALL</span></span><br><span class="line">              <span class="attr">add:</span></span><br><span class="line">                <span class="bullet">-</span> <span class="string">NET_BIND_SERVICE</span></span><br><span class="line">            <span class="comment"># www-data -&gt; 101</span></span><br><span class="line">            <span class="attr">runAsUser:</span> <span class="number">101</span></span><br><span class="line">          <span class="attr">env:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">POD_NAME</span></span><br><span class="line">              <span class="attr">valueFrom:</span></span><br><span class="line">                <span class="attr">fieldRef:</span></span><br><span class="line">                  <span class="attr">fieldPath:</span> <span class="string">metadata.name</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">POD_NAMESPACE</span></span><br><span class="line">              <span class="attr">valueFrom:</span></span><br><span class="line">                <span class="attr">fieldRef:</span></span><br><span class="line">                  <span class="attr">fieldPath:</span> <span class="string">metadata.namespace</span></span><br><span class="line">          <span class="attr">ports:</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">http</span></span><br><span class="line">              <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">              <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">            <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">https</span></span><br><span class="line">              <span class="attr">containerPort:</span> <span class="number">443</span></span><br><span class="line">              <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">          <span class="attr">livenessProbe:</span></span><br><span class="line">            <span class="attr">failureThreshold:</span> <span class="number">3</span></span><br><span class="line">            <span class="attr">httpGet:</span></span><br><span class="line">              <span class="attr">path:</span> <span class="string">/healthz</span></span><br><span class="line">              <span class="attr">port:</span> <span class="number">10254</span></span><br><span class="line">              <span class="attr">scheme:</span> <span class="string">HTTP</span></span><br><span class="line">            <span class="attr">initialDelaySeconds:</span> <span class="number">10</span></span><br><span class="line">            <span class="attr">periodSeconds:</span> <span class="number">10</span></span><br><span class="line">            <span class="attr">successThreshold:</span> <span class="number">1</span></span><br><span class="line">            <span class="attr">timeoutSeconds:</span> <span class="number">10</span></span><br><span class="line">          <span class="attr">readinessProbe:</span></span><br><span class="line">            <span class="attr">failureThreshold:</span> <span class="number">3</span></span><br><span class="line">            <span class="attr">httpGet:</span></span><br><span class="line">              <span class="attr">path:</span> <span class="string">/healthz</span></span><br><span class="line">              <span class="attr">port:</span> <span class="number">10254</span></span><br><span class="line">              <span class="attr">scheme:</span> <span class="string">HTTP</span></span><br><span class="line">            <span class="attr">periodSeconds:</span> <span class="number">10</span></span><br><span class="line">            <span class="attr">successThreshold:</span> <span class="number">1</span></span><br><span class="line">            <span class="attr">timeoutSeconds:</span> <span class="number">10</span></span><br><span class="line">          <span class="attr">lifecycle:</span></span><br><span class="line">            <span class="attr">preStop:</span></span><br><span class="line">              <span class="attr">exec:</span></span><br><span class="line">                <span class="attr">command:</span></span><br><span class="line">                  <span class="bullet">-</span> <span class="string">/wait-shutdown</span></span><br><span class="line"></span><br><span class="line"><span class="meta">---</span></span><br><span class="line"></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">LimitRange</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">ingress-nginx</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/name:</span> <span class="string">ingress-nginx</span></span><br><span class="line">    <span class="attr">app.kubernetes.io/part-of:</span> <span class="string">ingress-nginx</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">limits:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">min:</span></span><br><span class="line">      <span class="attr">memory:</span> <span class="string">90Mi</span></span><br><span class="line">      <span class="attr">cpu:</span> <span class="string">100m</span></span><br><span class="line">    <span class="attr">type:</span> <span class="string">Container</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<p>配置ingress规则</p>
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">networking.k8s.io/v1beta1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Ingress</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">example-ingress</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">rules:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">host:</span> <span class="string">example.ingress.com</span></span><br><span class="line">    <span class="attr">http:</span></span><br><span class="line">      <span class="attr">paths:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">path:</span> <span class="string">/</span></span><br><span class="line">        <span class="attr">backend:</span></span><br><span class="line">          <span class="attr">serviceName:</span> <span class="string">web</span></span><br><span class="line">          <span class="attr">servicePort:</span> <span class="number">80</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">[root@k8smaster ~]# kubectl apply -f ingress-http.yaml </span><br><span class="line">Warning: networking.k8s.io&#x2F;v1beta1 Ingress is deprecated in v1.19+, unavailable in v1.22+; use networking.k8s.io&#x2F;v1 Ingress</span><br><span class="line">ingress.networking.k8s.io&#x2F;example-ingress created</span><br><span class="line">[root@k8smaster ~]# kubectl get pods -n ingress-nginx -o wide</span><br><span class="line">NAME                                       READY   STATUS    RESTARTS   AGE   IP               NODE       NOMINATED NODE   READINESS GATES</span><br><span class="line">nginx-ingress-controller-5dc64b58f-qzsgw   1&#x2F;1     Running   0          15m   192.168.38.129   k8snode2   &lt;none&gt;           &lt;none&gt;</span><br><span class="line">[root@k8smaster ~]# </span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>在window电脑配置hosts文件，增加<code>192.168.38.129 example.ingress.com</code>，访问example.ingress.com成功，但是直接访问192.168.38.129是不行的。</p>
+<p>https的ingress配置规则</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">apiVersion: networking.k8s.io&#x2F;v1beta1</span><br><span class="line">kind: Ingress</span><br><span class="line">metadata:</span><br><span class="line">  name: tls-example-ingress</span><br><span class="line">spec:</span><br><span class="line">  tls:</span><br><span class="line">  - hosts:</span><br><span class="line">    - sslexample.ctnrs.com</span><br><span class="line">    secretName: secret-tls</span><br><span class="line">  rules:</span><br><span class="line">    - host: sslexample.ctnrs.com</span><br><span class="line">      http:</span><br><span class="line">        paths:</span><br><span class="line">        - path: &#x2F;</span><br><span class="line">          backend:</span><br><span class="line">            serviceName: web</span><br><span class="line">            servicePort: 80</span><br></pre></td></tr></table></figure>
+
+
+
+<p>构建TLS，需要创建secret，对应secretName的值。</p>
+<p>全文可参考<code>https://www.cnblogs.com/linuxk/p/9706720.html</code></p>
 
       
       <!-- reward -->
@@ -458,7 +563,7 @@ public class ConsumerApplication &#123;
 
 </article>
     
-    <article id="post-SpringCloud/SpringCloud项目基础搭建1" class="article article-type-post" itemscope
+    <article id="post-Java/依据word模板使用freemarker生成docx文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -466,8 +571,8 @@ public class ConsumerApplication &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/"
-    >SpringCloud项目基础搭建1</a
+  <a class="article-title" href="/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/"
+    >依据word模板使用freemarker生成docx文件</a
   >
 </h2>
   
@@ -477,12 +582,12 @@ public class ConsumerApplication &#123;
 
     
     <div class="article-meta">
-      <a href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/" class="article-date">
-  <time datetime="2019-11-01T12:57:49.000Z" itemprop="datePublished">2019-11-01</time>
+      <a href="/2020/01/02/Java/%E4%BE%9D%E6%8D%AEword%E6%A8%A1%E6%9D%BF%E4%BD%BF%E7%94%A8freemarker%E7%94%9F%E6%88%90docx%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:37:28.000Z" itemprop="datePublished">2020-01-02</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
   </div>
 
       
@@ -499,1122 +604,162 @@ public class ConsumerApplication &#123;
       
 
       
-      <p>首先从可以通信开始，然后再配置负载均衡熔断器之类的。<br>首先，学完了springcloud之后，许多名词，虽然了解一点，但是他们之间的关系还是不太明确清晰。<br>分布式微服务，既然是分布式肯定会通信的，离不开ip的。</p>
-<p>服务注册:也就是注册中心，通俗一点就是 将服务提供者注册到这个服务中心中，<strong>由注册中心来进行资源调配管理，上线下线等</strong>，服务提供者可以同时注册多个，可以负载均衡。</p>
-<p>服务提供者:就是平常写的一套单机程序，controller，service,mapper一整套代码，它能对外提供接口，因此被称为提供者，他需要注册到注册中心去</p>
-<p>服务消费者:也就是对外部开放的,而提供者可以不对外开放，也就是说，浏览器直接调用服务消费者的代码，而在后台，直接由服务消费者请求服务提供者，而中间请求的过程就是请求服务注册中心，由他来确定请求哪个服务提供者的服务。</p>
-<p>简而言之,服务注册是管理所有的服务，服务提供者对内，服务消费者对外。<br>服务消费者通过什么调用请求注册中心调用服务提供者,Feign。<br>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。</p>
-<p>虽然说到这，基本简单的微服务已经形成了，但是还无法明确项目搭建的机构。Feign，服务消费者，服务提供者该往哪写。</p>
-<h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>springcloud如果没有教程入门，可能还没进门就卡死在外。<br>springboot 与springcloud，springcloud是依赖springboot的，而springboot的版本有1.x和2.x，而2.x又分为2.1和2.2。而springcloud的版本号却不是以数字命名，这就很难搞。而且两者版本的依赖是有非常严格的，否则就会莫名的出错，甚至连项目都起不来。springboot2.1和2.2也有很大的区别，以及springcloud的不同版本引用有有较大的改动。<br>还有就是依赖的问题,老版本的eureka依赖名教eureka，而新版本的叫eureka-server，feign也有老版和新版,为openfeign和feign。<br>通过教程的学习以及多次尝试，最后找到匹配的版本。</p>
-<p><strong>父工程POM</strong></p>
-<pre><code>&lt;parent&gt;
-    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
-    &lt;version&gt;2.1.6.RELEASE&lt;/version&gt;
-    &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
-&lt;/parent&gt;
-&lt;properties&gt;
-    &lt;java.version&gt;1.8&lt;/java.version&gt;
-    &lt;spring-cloud.version&gt;Greenwich.BUILD-SNAPSHOT&lt;/spring-cloud.version&gt;
-&lt;/properties&gt;
-
-&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;!--&lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
-    &lt;/dependency&gt;--&gt;
-    &lt;!--&lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-oauth2-client&lt;/artifactId&gt;
-    &lt;/dependency&gt;--&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
-        &lt;scope&gt;runtime&lt;/scope&gt;
-        &lt;optional&gt;true&lt;/optional&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;mysql&lt;/groupId&gt;
-        &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
-        &lt;scope&gt;runtime&lt;/scope&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;
-        &lt;optional&gt;true&lt;/optional&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
-        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
-        &lt;optional&gt;true&lt;/optional&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
-        &lt;scope&gt;test&lt;/scope&gt;
-        &lt;exclusions&gt;
-            &lt;exclusion&gt;
-                &lt;groupId&gt;org.junit.vintage&lt;/groupId&gt;
-                &lt;artifactId&gt;junit-vintage-engine&lt;/artifactId&gt;
-            &lt;/exclusion&gt;
-        &lt;/exclusions&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
-        &lt;artifactId&gt;druid&lt;/artifactId&gt;
-        &lt;version&gt;1.1.16&lt;/version&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;
-
-&lt;dependencyManagement&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
-            &lt;version&gt;$&#123;spring-cloud.version&#125;&lt;/version&gt;
-            &lt;type&gt;pom&lt;/type&gt;
-            &lt;scope&gt;import&lt;/scope&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/dependencyManagement&gt;</code></pre><p>以上的版本匹配是:<br>SpringBoot:2.1.6.RELEASE<br>SpringCloud:Greenwich.BUILD-SNAPSHOT<br>这个是没有问题的。</p>
-<h2 id="服务注册"><a href="#服务注册" class="headerlink" title="服务注册"></a>服务注册</h2><p>服务注册是用eureka,分为eureka-server和eureka-client。<br>server及服务注册中心本身，他也是服务，但他不需要注册自己，只作为服务管理者。<br>模块名:eureka-server<br><strong>POM文件</strong></p>
-<pre><code>&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;</code></pre><p>依赖security的原因是，这个springcloud的版本对安全要求更严格，当然也有方法来阻止这种安全检查。<br><strong>application.yml</strong></p>
-<pre><code>server:
-  port: 7001
-eureka:
-  instance:
-    hostname: localhost
-  client:
-    register-with-eureka: false
-    fetch-registry: false
-    service-url:
-      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/
-spring:
-  security:
-    user:
-      name: root
-      password: root</code></pre><p>以上配置文件标识注册中心端口为7001，注册服务地址为defaultZone的值地址，然后是配置一下security的用户名密码，这个用户名密码需要在eureka-client连接时写上。<br>此处需要添加对security的配置</p>
-<pre><code>@EnableWebSecurity
-public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter &#123;
-    @Override
-    protected void configure(HttpSecurity http) throws Exception &#123;
-        // Configure HttpSecurity as needed (e.g. enable http basic).
-        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-        http.csrf().disable();
-        //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
-        // 如果是form方式,不能使用url格式登录
-        http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
-    &#125;
-&#125;</code></pre><p>然后就是启动类了,只需要@EnableEurekaServer注解</p>
-<pre><code>@EnableEurekaServer
-@SpringBootApplication
-public class EurekaServerApplication &#123;
-    public static void main(String[] args) &#123;
-        SpringApplication.run(EurekaServerApplication.class,args);
-    &#125;
-&#125;</code></pre><p>最后访问localhost:7001即可进入页面，如果有密码，则输入security配置的即可。</p>
-<h2 id="服务提供者"><a href="#服务提供者" class="headerlink" title="服务提供者"></a>服务提供者</h2><p>接下来讲就是服务提供者，就是一般的访问数据库的，我只列出Controller的简单代码。</p>
-<pre><code>@RestController
-public class UserController &#123;
-
-    @Autowired
-    private UserService userService;
-
-    @ResponseBody
-    @PostMapping(&quot;/user/add&quot;)
-    public boolean add(@RequestBody User user)&#123;
-        return userService.add(user);
-    &#125;
-
-    @ResponseBody
-    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
-    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
-        return userService.get(id);
-    &#125;
-
-    @ResponseBody
-    @GetMapping(&quot;/user/list&quot;)
-    public List&lt;User&gt; list()&#123;
-        return userService.list();
-    &#125;
-&#125;</code></pre><p>接下来，重要的还是配置文件</p>
-<pre><code>server:
-  port: 9001
-eureka:
-  instance:
-    instance-id: springcloud8001
-    prefer-ip-address: true
-  client:
-    service-url:
-      defaultZone: http://root:root@localhost:7001/eureka/
-spring:
-  application:
-    name: SPRING-PROD
-  datasource:
-    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
-    driver-class-name: com.mysql.jdbc.Driver              # mysql驱动包
-    url: jdbc:mysql://localhost:3306/cloud1?serverTimezone=UTC&amp;characterEncoding=utf-8              # 数据库名称
-    username: root
-    password: root
-    dbcp2:
-      min-idle: 5                                           # 数据库连接池的最小维持连接数
-      initial-size: 5                                       # 初始化连接数
-      max-total: 5                                          # 最大连接数
-      max-wait-millis: 200                                  # 等待连接获取的最大超时时间
-mybatis:
-  type-aliases-package: com.fsats.user.entity    # 所有Entity别名类所在包
-  mapper-locations:
-    - classpath:mapper/**/*.xml                       # mapper映射文件
-  configuration:
-    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl</code></pre><p>以上配置表示,服务提供者的端口,eureka.instance.instance-id表示注册在服务上的显示的名称。而spring.application.name就比较重要了，是当前服务的应用名称,多个相同的服务提供者负载均衡，instance-id可以不同，但这个值一定要一样，他表示一个独立的微服务应用。而且feign使用也是需要这个应用名称的。<br>剩下的就是mybatis和连接数据库了。<br>这个service提供者，我使用了新模块，并在新模块cloudservice里再新建的user-service模块,因此把依赖放到父模块cloudservice里。</p>
-<pre><code>&lt;dependencies&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;com.fsats&lt;/groupId&gt;
-        &lt;artifactId&gt;user-api&lt;/artifactId&gt;
-        &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
-        &lt;version&gt;2.0.1&lt;/version&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-jetty&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-    &lt;dependency&gt;
-        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-        &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
-    &lt;/dependency&gt;
-&lt;/dependencies&gt;</code></pre><p>启动类的话只需要加上@EnableEurekaClient注解即可。</p>
-<p>服务提供者的主要内容就是，作为服务提供外部访问，然后把自己注册到服务注册中心去。</p>
-<p>在上面依赖里依赖了user-api，它是feign客户端，是服务消费者与服务提供者沟通的桥梁。<br>如果桥梁呢,首先这个api定义后，服务提供者和服务消费者都可以依赖他，提供者可以获取实体类，也可以在自己模块定义实体类。<br>先看一下UserFeignClient类</p>
-<pre><code>@FeignClient(value = &quot;SPRING-PROD&quot;)
-public interface UserFeignClient&#123;
-
-    @PostMapping(&quot;/user/add&quot;)
-    boolean add(@RequestBody User user);
-
-    @GetMapping(&quot;/user/&#123;id&#125;&quot;)
-    User get(@PathVariable(&quot;id&quot;) Long id);
-
-    @GetMapping(&quot;/user/list&quot;)
-    List&lt;User&gt; list();
-
-&#125;</code></pre><p>它就表示一个feign客户端,主要调用SPRING-PROD应用里的请求。<br>那么，逻辑明显了，服务消费者通过自己的请求，然后注入这个UserFeignClient类，便可以操作了。这个类的方法因为已经标识了应用名称，所以他会以webservice的方式和方法上定义的请求路径去请求这个地址。并把结果给服务消费者。<br>那么很显然，服务消费者是一定需要这个类的包的，但是如何知道这个feign，那就是通过另一个注解@EnableFeignClients扫描，在服务提供者类里扫描包含@FeignClient注解的方法,因为已经引入api这个包了，所以一定是扫描的上的，并且如果扫描上，直接被注入容器中。</p>
-<h2 id="服务消费者"><a href="#服务消费者" class="headerlink" title="服务消费者"></a>服务消费者</h2><p>服务消费者也属于服务，但可以不注册。<br>看一下yml</p>
-<pre><code>server:
-  port: 8001
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://root:root@localhost:7001/eureka
-    register-with-eureka: false
-
-info:
-  app.name: springcloud-test-8001
-  company.name: www.fsats.com
-  build.artifactId: $project.artifactId$
-  build.version: $project.version$</code></pre><p>register-with-eureka表示，不在注册中心注册自己，虽然这里已经定义了路径，但是是没有注册的。info后面的可以去掉，这个是服务的相关定义信息。</p>
-<p><strong>POM文件</strong></p>
+      <p>使用freemarker方式生成docx，有两种方法，一种是转成word xml方式，但是这种文件在程序中使用流预览文件是有问题的，它是xml字符串，这种方式杜宇docx和doc都可以。原理就是将模板docx和doc另存为word xml文件，使用文本工具打开，就是一个xml，你只需要把要替换的地方使用${}方式改了就可以了，然后使用freemarker程序替换即可。</p>
+<p>虽然转换成功后可以再桌面上正常打开，但是输出流就是xml格式，你要想可以有流就必须手动进行另存为word格式。</p>
+<p>因此我们只能使用docx文件来操作，docx文件是有多个文件夹和文件组成，它可以通过winrar打开。只需要将后缀改为zip，但是，这个文件必须编辑过，就是打开并输入任意字符，得有东西。这样docx才能通过压缩包打开。</p>
+<p>里面的word/document.xml就是文档内容。此处我们只使用模板生成简单的文字模板即可。</p>
+<h3 id="已经完成的模板文件"><a href="#已经完成的模板文件" class="headerlink" title="已经完成的模板文件"></a>已经完成的模板文件</h3><p>将模板文件打开，修改需要更改的地方为 { 变量 },然后更改后缀为zip并通过压缩工具打开。然后把word/document.xml文件从压缩包里解压出来。这个文件存储的就是所有的文字。打开后需要查看变量，因为在文档中每个字符都有渲染标签包含着，可能 $ 与{之间就被某个渲染标签给分隔了，所以需要把中间的标签删掉，让变量连成一块。</p>
+<p>此时已经有两个文件，一个zip，一个document.xml模板文件。然后freemarker的任务就是将document.xml模板替换变量为真正的值，然后把docuemnt.xml替换到zip中并输出成docx文件即可。</p>
+<h3 id="freemarker操作"><a href="#freemarker操作" class="headerlink" title="freemarker操作"></a>freemarker操作</h3><p>首先需要将xml和zip放到resource中，此处获取文件我们通过class类路径的方式获取模板。方法共分两个，一个是替换模板文件，一个是转换zip。</p>
 <pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;com.fsats&lt;/groupId&gt;
-    &lt;artifactId&gt;user-api&lt;/artifactId&gt;
-    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>接下来需要在启动类中标注@EnableFeignClients注解</p>
-<pre><code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
-@EnableEurekaClient
-@SpringBootApplication
-public class ConsumerApplication &#123;
-
-    public static void main(String[] args) &#123;
-        SpringApplication.run(ConsumerApplication.class,args);
-    &#125;
-&#125;</code></pre><p>其中，basePackage表示扫描的注解基础路径,此处填写api模块的包名。</p>
-<pre><code>@RestController
-public class UserController &#123;
-
-    //@Autowired
-    private IUserClient iUserClient;
-
-    @PostMapping(&quot;/consumer/user/add&quot;)
-    public boolean add(User user)&#123;
-        return this.iUserClient.add(user);
-    &#125;
-
-    @GetMapping(&quot;/consumer/user/get/&#123;id&#125;&quot;)
-    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
-        return this.iUserClient.get(id);
-    &#125;
-
-    @GetMapping(&quot;/consumer/user/list&quot;)
-    public List&lt;User&gt; list(User user)&#123;
-        return this.iUserClient.list();
-    &#125;
-&#125;</code></pre><p>在Controller中，既然启动类上已经扫描feignClient了，这里也不需要@AutoWired注解也是可以请求的。<br>另外，这个PostMapping在postman使用里测试，不能在params里写参数并使用post提交，必须在Body里，选择raw，然后填写json格式数据才能正确提交。因为feignClient里定义了@RequestBody注解。</p>
-<p>包结构如下:</p>
-<p><img src="https://i.loli.net/2019/11/01/GkJfy9WDsbRLmZC.png" alt="TIM截图20191101131246.png"></p>
-<p>项目下载地址:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/71">https://nas.tsaving.cn/file/download/71</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringCloud/SpringCloud微服务快速学习零碎文档" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/"
-    >SpringCloud微服务快速学习零碎文档</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/" class="article-date">
-  <time datetime="2019-11-01T10:34:46.000Z" itemprop="datePublished">2019-11-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>项目位置为H盘符ideaProject下的springcloud-test项目</p>
-<p>该项目以尚硅谷springcloud课程为例，以dept部分为案例的项目</p>
-<h2 id="模块分析"><a href="#模块分析" class="headerlink" title="模块分析"></a>模块分析</h2><ul>
-<li>springcloud-test:项目父包，存储相关通用依赖，插件等。</li>
-<li>api模块:目前存放实体类和相关通用类</li>
-<li>provider-dept-8001:为dao，service，controller层，连接访问数据库，并提供Rest风格的请求,该模块为生产者模块</li>
-<li>consumer-dept-80:该模块为消费者模块，启动端口为80，通过RestTemplate以客户端消费者的模式来访问生产者提供的rest接口</li>
-<li>eureka-7001:该模块为eureka server模块,需添加依赖</li>
-</ul>
-<h2 id="Eureka组件相关"><a href="#Eureka组件相关" class="headerlink" title="Eureka组件相关"></a>Eureka组件相关</h2><p>添加Eureka依赖,添加之前需要在springcloud-test父工程下添加springcloud依赖管理,版本需要匹配</p>
-<pre><code>&lt;dependencyManagement&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
-            &lt;version&gt;Greenwich.SR1&lt;/version&gt;
-            &lt;type&gt;pom&lt;/type&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/dependencyManagement&gt;
-
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>添加yml配置</p>
-<pre><code>server:
-  port: 7001
-
-eureka:
-  instance:
-    hostname: localhost #eureka服务端的实例名称
-  client:
-    register-with-eureka: false     #false表示不向注册中心注册自己。
-    fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-    service-url:
-      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
-      #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>添加App启动类，添加@SpringBootApplication注解和@EnableEurekaServer注解</p>
-<p>为8001服务提供者模块添加eureka-client依赖，并配置，将模块注册到eureka注册中心。该依赖引入，若出现右侧maven红线，则检查依赖包是否下载成功，若pom.xml没有报红线，且在application.xml中有提示eureka配置则说明引入依赖成功。</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>application.yml追加eureka配置</p>
-<pre><code>eureka:
-  client: #客户端注册进eureka服务列表
-    service-url:
-      defaultZone: http://localhost:7001/eureka</code></pre><p>为8001服务提供者主启动类添加@EnableEurekaClient注解。</p>
-<blockquote>
-<p><strong>以上在springcloud2.0中并无法注册成功</strong></p>
-</blockquote>
-<p>解决方案:<br>因为2.0的原因，安全问题，所以</p>
-<ol>
-<li><p>在eureka server模块添加security依赖<br><code>xml &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt; &lt;/dependency&gt;</code></p>
+    &lt;groupId&gt;org.freemarker&lt;/groupId&gt;
+    &lt;artifactId&gt;freemarker&lt;/artifactId&gt;
+    &lt;version&gt;2.3.28&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h3 id="替换模板文件"><a href="#替换模板文件" class="headerlink" title="替换模板文件"></a>替换模板文件</h3><ol>
+<li><p>配置map替换变量</p>
+<p>   Map&lt;String, String&gt; paramMap = assemblyQualityResultParam(planResult);</p>
 </li>
-<li><p>修改配置</p>
-<p>eureka:<br>  instance:</p>
-<pre><code>hostname: localhost #eureka服务端的实例名称</code></pre><p>  client:</p>
-<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
-fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-service-url:
-  defaultZone: http://root:root@$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
-  #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>spring:<br>  security:</p>
-<pre><code>user:
-  name: root
-  password: root</code></pre></li>
-<li><p>添加配置类</p>
-<p>@EnableWebSecurity<br>public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {</p>
-<pre><code>@Override
-protected void configure(HttpSecurity http) throws Exception &#123;
-    // Configure HttpSecurity as needed (e.g. enable http basic).
-    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-    http.csrf().disable();
-    //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
-    // 如果是form方式,不能使用url格式登录
-    http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
-&#125;</code></pre><p>}</p>
+<li><p>传递原文件名和模板文件名</p>
+<p>   String filePath = fileDir + Constant.SEPARATOR + qualityName.replace(“.docx”,””) + “.xml”;//拼接为质检报告XML文件路径<br>   XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml<br>   //调用<br>   freemarkerWithSimple(paramMap, filePath, “XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）_templete.xml”);</p>
 </li>
-<li><p>在eureka client修改配置</p>
-<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@localhost:7001/eureka</code></pre></li>
+<li><p>configuration设置编码格式和模板类路径</p>
+<p>public void freemarkerWithSimple(Map&lt;String, String&gt; paramMap, String saveFilePath, String templeteName) {</p>
+<pre><code>    try &#123;
+        String basePath = Constant.USER_FILE_BASE_DIR;//Global.getConfig(&quot;userfiles.basedir&quot;).replace(&quot;\\&quot;,&quot;/&quot;).replace(&quot;//&quot;,&quot;/&quot;);
+        Configuration configuration = new Configuration(new Version(&quot;2.3.28&quot;));
+        configuration.setDefaultEncoding(&quot;utf-8&quot;);
+        configuration.setClassForTemplateLoading(this.getClass(), &quot;/freemarker&quot;);
+        //指定模板路径的第二种方式,我的路径是D:/      还有其他方式
+        //configuration.setDirectoryForTemplateLoading(new File(&quot;C:/Users/cgq_r/Desktop&quot;));
+        String filePath = basePath + saveFilePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;);//fileDir + File.separator + name;
+        FileUtils.createDirectory(filePath.substring(0, filePath.lastIndexOf(&quot;/&quot;)));
+        // 输出文档路径及名称
+        File outFile = new File(filePath);
+        //以utf-8的编码读取ftl文件
+        Template t = configuration.getTemplate(templeteName, &quot;utf-8&quot;);
+        Writer out = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(outFile), &quot;utf-8&quot;), 10240);
+        t.process(paramMap, out);
+        out.close();
+        logger.info(&quot;生成质检报告XML文件完成-&gt;&quot; + filePath);
+    &#125; catch (IOException e) &#123;
+        logger.error(e.getMessage());
+        e.printStackTrace();
+    &#125; catch (Exception e) &#123;
+        e.printStackTrace();
+    &#125;
+&#125;</code></pre></li>
 </ol>
-<p>然后，重新clean install后启动，eureka server启动会需要密码。在eureka client启动后显示启动时间后会出现类似这样的信息说明注册成功</p>
-<pre><code>2019-05-27 19:00:16.538  INFO 3396 --- [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SPRINGCLOUD-TEST/192.168.43.216:springcloud-test:8001 - registration status: 204</code></pre><h3 id="主机名称的修改，即服务注册页status名称修改"><a href="#主机名称的修改，即服务注册页status名称修改" class="headerlink" title="主机名称的修改，即服务注册页status名称修改"></a>主机名称的修改，即服务注册页status名称修改</h3><p>在springcloud下，其名称为IP地址:${spring.application.name}:端口号,但，若要改成一个名称，则需要在eureka client配置如下</p>
-<pre><code>eureka:
-  client: #客户端注册进eureka服务列表
-    service-url:
-      defaultZone: http://root:root@localhost:7001/eureka
-  instance:
-    instance-id: springcloud8001</code></pre><p>即多添加后两行的代码。<strong>修改完成后，若没有自动加载修改，则需要重新clean install</strong></p>
-<blockquote>
-<p>默认情况下可能是当前主机的ip在hosts文件中的映射，请检查windows下或linux下的hosts文件的当前主机ip配置。</p>
-</blockquote>
-<h3 id="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"><a href="#修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。" class="headerlink" title="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"></a>修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。</h3><p>只需要在eureka client中instance-id下面再添加<code>prefer-ip-address: true</code>的配置即可。</p>
-<h3 id="服务注册客户端配置info信息"><a href="#服务注册客户端配置info信息" class="headerlink" title="服务注册客户端配置info信息"></a>服务注册客户端配置info信息</h3><p>点击status下的instance-id，即可打开到新页面查看相关信息。<br>该信息为当前模块的服务信息，可进行配置。</p>
-<ol>
-<li><p>在父工程的pom.xml下配置build</p>
-<build>
-    <finalName>springcloud-test</finalName>
-    <resources>
-        <resource>
-            <directory>src/main/resources</directory>
-            <filtering>true</filtering>
-        </resource>
-    </resources>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-resources-plugin</artifactId>
-            <configuration>
-                <delimiters>
-                    <delimit>$</delimit>
-                </delimiters>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-</li>
-<li><p>然后在服务的pom.xml添加监控依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-</li>
-<li><p>然后配置application.yml文件</p>
-<p>info:<br>  app.name: springcloud-test-8001<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
-</li>
-</ol>
-<p>可以再info下添加各类信息，然后$的配置为父工程里的配置，可引用maven中的${}里的变量来显示信息。</p>
-<h3 id="自我保护机制"><a href="#自我保护机制" class="headerlink" title="自我保护机制"></a>自我保护机制</h3><p>在自我保护模式中，Eureka Server会保护注册表的信息，不再注销任何服务实例。当它收到心跳数重新恢复到阙值以上时，该节点就会退出自我保护模式。<br>默认情况下，Eureka Server在一定时间内(默认90秒)没有收到服务的实例心跳，该服务就会处于自我保护。<br>若需关闭自我保护机制则配置<code>eureka.server.enable-self-preservation: false</code>。</p>
-<p>配置Eureka Client设置心跳检测</p>
-<pre><code>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态
-lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</code></pre><h3 id="单机版集群配置"><a href="#单机版集群配置" class="headerlink" title="单机版集群配置"></a>单机版集群配置</h3><ol>
-<li><p>新增两个模块分别为eureka7002和eureka7003,pom依赖坐标一致。</p>
-</li>
-<li><p>因为是单机版，所以是一台服务器模拟三个eureka server，所以在windows下hosts文件修改域名ip映射，或在linux下的etc下的hosts修改</p>
-<p>127.0.0.1 eureka7001.com<br>127.0.0.1 eureka7002.com<br>127.0.0.1 eureka7003.com</p>
-</li>
-<li><p>修改7001,7002,7003的yml配置<br>修改<code>eureka.instance.hostname</code>为配置的映射域名,每个yml对应每个修改。<br>修改<code>eureka.client.service-url.defaultZone</code>的值为除当前url之外的另外两个serviceUrl,使用逗号分开<br>一下以7001的application.yml为例</p>
-<p>eureka:<br>  instance:</p>
-<pre><code>hostname: eureka7001.com #eureka服务端的实例名称</code></pre><p>  client:</p>
-<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
-fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-service-url:
-  defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre></li>
-<li><p>修改8001的服务提供者，eureka client的yml配置如下<br>即，将其写成3个server服务</p>
-<p>defaultZone: <a target="_blank" rel="noopener" href="http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka">http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka</a></p>
-</li>
-<li><p>替换另外两个的启动类<br>修改启动类名称</p>
-</li>
-</ol>
-<h3 id="Eureka-和Zookeeper的区别和好处"><a href="#Eureka-和Zookeeper的区别和好处" class="headerlink" title="Eureka 和Zookeeper的区别和好处"></a>Eureka 和Zookeeper的区别和好处</h3><p>CAP是强一致性，高可用性，和分区容错性。<br>Zookeeper使用CP，而Eureka使用的是AP。</p>
-<ul>
-<li>zk在master节点出现网络故障后会与其他节点失去联系，然后会leader选举一个新的master，选举的时间可能太长，导致整个集群不可用。虽然能最终恢复，但是漫长的选举时间导致注册长期不可用。</li>
-<li>eureka在设计时就保证可用性。保证了每个节点都是平等的。几个节点挂掉不会影响正常工作，剩余的依旧可以正常提供注册和查询服务，保证注册可用，不过查询的结果不保证是最新的(<strong>不保证强一致性</strong>)。除此之外，eureka的自我保护机制，如果在15分钟内超过85%的节点都没有正常心跳，那么eureka认为客户端与注册中心出现网络故障，此时出现以下情况:<ul>
-<li>Eureka不再从注册中心中移除因为长时间没有接收心跳而过期的服务</li>
-<li>仍然能够接收新服务的注册和查询服务，但是不会被同步到其他节点上(保证当前节点依然可用)</li>
-<li>当网络稳定时，当前实例新的注册信息被同步到其他节点中</li>
-</ul>
-</li>
-</ul>
-<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>Ribbon是基于Netflix Ribbon实现的客户端 负载均衡工具，其功能是提供客户端的软件负载均衡算法，。<br>Load balance分为集中式和进程内</p>
-<ul>
-<li>集中式即多数为硬件，如:F5，也可以是软件如:nginx。由该设施负责把访问请求通过某种策略转发到服务的提供方。</li>
-<li>进程内：即集成到消费方，从服务中心获知哪个地址有用，再从中选出合适的服务器。Ribbon属于进程内LB，只是一个类库，继承于消费方进程，消费方通过它来获取到服务提供方的地址。</li>
-</ul>
-<h3 id="Ribbon的入门配置"><a href="#Ribbon的入门配置" class="headerlink" title="Ribbon的入门配置"></a>Ribbon的入门配置</h3><p>Ribbon为客户端的负载均衡，且为进程内的，所以，那么集成到客户端调用consumer80模块中</p>
-<ol>
-<li><p>首先需要引入相关依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-</li>
-<li><p>配置负载均衡注解。在ConfigBean中的配置RestTempldate方法添加@LoadBalanced注解</p>
-</li>
-<li><p>在启动类上添加@EnableEurekaClient注解</p>
-</li>
-<li><p>修改Controller中的RestTempldate，访问服务提供者8001的前缀REST_URL_PREFIX。将localhost:8001修改为服务的应用名称，即注册服务的名称。</p>
-</li>
-<li><p>修改yml文件，新增eurekaclient配置</p>
-<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@eureka7001.com:7001/eureka/,http://root:root@eureka7002.com:7002/eureka/,http://root:root@eureka7003.com:7003/eureka/
-register-with-eureka: false</code></pre></li>
-</ol>
-<p>以上的配置，Ribbon为进程内的，即一个类库，且为<strong>客户端负载均衡</strong>，所以在80上进行操作，直接在RestTemplate访问时添加注解，但是其客户端需要到注册中心去查找服务地址，而非是直接访问服务提供者的地址，所以需要eureka client的依赖，因此要引入client依赖，并配置集群访问的defaultZone。通过<strong>服务注册中心注册的服务的名称来访问</strong>。</p>
-<blockquote>
-<p>经测试，要想在dept80上访问前缀<a href="http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。">http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。</a></p>
-</blockquote>
-<h3 id="多服务实例负载均衡"><a href="#多服务实例负载均衡" class="headerlink" title="多服务实例负载均衡"></a>多服务实例负载均衡</h3><p>以拷贝8001服务为8002,8003来模拟另外两台服务器部署服务，即同服务多实例的负载均衡体现。</p>
-<ol>
-<li>创建cloud02,cloud03数据库并插入数据(数据同cloud01)。</li>
-<li>拷贝8001的代码和myabtis配置及yml配置</li>
-<li>修改启动类名称</li>
-<li>修改yml文件，分别修改<code>端口号</code>,<code>数据库名称</code>，即可能的<code>info信息</code>。注意spring.application.name不需要更改，否则就不是同一个服务了。</li>
-<li>分别启动7001,7002,7001 eureka server，然后启动8001，8002，8003服务实例，然后进行localhost:8001自测</li>
-<li>启动80，使用consumer来进行测试,发现打印的信息为不同数据库的数据，且负载均衡访问为三个实例循环访问。</li>
-</ol>
-<h3 id="核心组件IRule，修改配置负载均衡算法"><a href="#核心组件IRule，修改配置负载均衡算法" class="headerlink" title="核心组件IRule，修改配置负载均衡算法"></a>核心组件IRule，修改配置负载均衡算法</h3><p>只需要在80客户端配置IRule Bean即可，默认没有配置会使用默认的IRule配置，RoundRobinRule</p>
-<pre><code>@Configuration
-public class ConfigBean &#123;
+<p>以上代码，首先设置编码格式和模板加载类路径，此模板我放在resource下的freemarker文件夹下，因此编译后就在项目根/freemarker下。</p>
+<p>设置模板输出和写文件。因为已经配置模板加载路径，所以tepleteName直接就是模板文件名不需要绝对相对路径。</p>
+<p>outputFile就是文件输出的位置，此处便只是创建了一下目录。虽然生成到了指定位置，但是整个过程都转换完了会后要删除这个document.xml的。</p>
+<h3 id="转换zip为docx"><a href="#转换zip为docx" class="headerlink" title="转换zip为docx"></a>转换zip为docx</h3><pre><code>filePath = generateDocxByZipAndXml(
+                        filePath.replace(&quot;\\&quot;, &quot;/&quot;).replace(&quot;//&quot;, &quot;/&quot;),
+                        &quot;XX县(XXXXXX)国土空间规划数据库成果质检报告（不通过）.zip&quot;,
+                        qualityName);</code></pre><p>此时，第一个参数为已经转换的xml路径,第二个是模板zip，第三个要生成的docx的文件名称。</p>
+<pre><code>private String generateDocxByZipAndXml(String filePath, String templeteZip, String qualityFileName) &#123;
+        String pathDir = Utils.getFileDir(filePath);
+        String qualityResultAllPath = Constant.USER_FILE_BASE_DIR + pathDir + Constant.SEPARATOR + qualityFileName; //质检报告docx全路径
+        try &#123;
+            //获取模板目录
+            String freemarkerDir = Servlets.getRequest().getServletContext().getRealPath(&quot;/WEB-INF/classes/freemarker&quot;);
+            String freemarkerZip = freemarkerDir + Constant.SEPARATOR + templeteZip;//模板zip路径
+            System.out.println(&quot;模板zip文件路径--&gt;&quot; + freemarkerZip);
 
-    @Bean
-    @LoadBalanced
-    public RestTemplate getRestTemplate() &#123;
-        return new RestTemplate();
-    &#125;
+            //zip模板替换xml并输出docx文档
+            ZipInputStream zipInputStream = ZipUtils.wrapZipInputStream(new FileInputStream(new File(freemarkerZip)));
+            ZipOutputStream zipOutputStream = ZipUtils.wrapZipOutputStream(new FileOutputStream(new File(qualityResultAllPath)));
+            String itemname = &quot;word/document.xml&quot;;
+            ZipUtils.replaceItem(zipInputStream, zipOutputStream, itemname, new FileInputStream(new File(Constant.USER_FILE_BASE_DIR+filePath)));
+            logger.info(&quot;生成质检报告--&gt;&quot; + qualityResultAllPath);
 
-    @Bean
-    public IRule myIRule()&#123;
-        return new RandomRule();
-    &#125;
+            //word生成-&gt;pdf
+            converterUtils.WordToPDF(qualityResultAllPath,qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
+            logger.info(&quot;生成质检报告PDF版--&gt;&quot; + qualityResultAllPath.replace(&quot;.docx&quot;,&quot;.pdf&quot;));
 
-&#125;</code></pre><p>在Ribbon中自带的负载均衡算法有如下几种：<br>| 类名 | 描述 |<br>|-|-|<br>|RoundRobinRule |轮询,按照定义顺序一次循环访问|<br>|RandomRule|随机进行访问|<br>|AvailabilityFilteringRule |会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问|<br>|WeightedResponseTimeRule|根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule|<br>|RetryRule|先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务|<br>|BestAvailableRule|会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务|<br>|ZoneAvoidanceRule|复合判断server所在区域的性能和server的可用性选择服务器|</p>
-<h3 id="Ribbon的自定义负载均衡策略"><a href="#Ribbon的自定义负载均衡策略" class="headerlink" title="Ribbon的自定义负载均衡策略"></a>Ribbon的自定义负载均衡策略</h3><p>负载均衡策略，主要就是继承AbstractLoadBalancerRule抽象类,可以参考RandomRule类的配置，其实现了getLoadBalancer()方法，可以获取所有的服务和可用服务。主要就是choose方法，并返回Server对象，也就是服务。</p>
-<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
-
-    @Override
-    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
-
-    &#125;
-
-    // total = 0 // 当total==5以后，我们指针才能往下走，
-    // index = 0 // 当前对外提供服务的服务器地址，
-    // total需要重新置为零，但是已经达到过一个5次，我们的index = 1
-    // 分析：我们5次，但是微服务只有8001 8002 8003 三台，OK？
-    //</code></pre><p>​<br>        private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次<br>        private int currentIndex = 0;    // 当前提供服务的机器号</p>
-<pre><code>    public Server choose(ILoadBalancer lb, Object key) &#123;
-        if (lb == null) &#123;
-            return null;
+            //删除生成的data数据
+            File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+            if (tempData.exists()) &#123;
+                tempData.delete();
+            &#125;
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
         &#125;
-        Server server = null;
-
-        while (server == null) &#123;
-            if (Thread.interrupted()) &#123;
-                return null;
-            &#125;
-            List&lt;Server&gt; upList = lb.getReachableServers();
-            List&lt;Server&gt; allList = lb.getAllServers();
-
-            int serverCount = allList.size();
-            if (serverCount == 0) &#123;
-                /*
-                 * No servers. End regardless of pass, because subsequent passes only get more
-                 * restrictive.
-                 */
-                return null;
-            &#125;
-
-//            int index = rand.nextInt(serverCount);// java.util.Random().nextInt(3);
-//            server = upList.get(index);
-//            private int total = 0;          // 总共被调用的次数，目前要求每台被调用5次
-//            private int currentIndex = 0;   // 当前提供服务的机器号
-            if (total &lt; 5) &#123;
-                server = upList.get(currentIndex);
-                total++;
-            &#125; else &#123;
-                total = 0;
-                currentIndex++;
-                if (currentIndex &gt;= upList.size()) &#123;
-                    currentIndex = 0;
-                &#125;
-            &#125;
-            if (server == null) &#123;
-                /*
-                 * The only time this should happen is if the server list were somehow trimmed.
-                 * This is a transient condition. Retry after yielding.
-                 */
-                Thread.yield();
-                continue;
-            &#125;
-            if (server.isAlive()) &#123;
-                return (server);
-            &#125;
-
-            // Shouldn&apos;t actually happen.. but must be transient or a bug.
-            server = null;
-            Thread.yield();
+        return qualityResultAllPath.replace(Constant.USER_FILE_BASE_DIR,&quot;&quot;);
+    &#125;</code></pre><p>以上代码首先获取zip的路径，只有获取绝对路径才能进行文件操作，</p>
+<p>定义了两个ZipInputStream，其调用的方法仅仅只是inputStream和outputSteam包装一下zip输入输出流而已。</p>
+<p>ZipUtils.replaceItem是重点，就是替换文件到压缩包中。</p>
+<pre><code>/**
+     * 替换某个 item,
+     *
+     * @param zipInputStream  zip文件的zip输入流
+     * @param zipOutputStream 输出的zip输出流
+     * @param itemName        要替换的 item 名称
+     * @param itemInputStream 要替换的 item 的内容输入流
+     */
+    public static void replaceItem(ZipInputStream zipInputStream,
+                                   ZipOutputStream zipOutputStream,
+                                   String itemName,
+                                   InputStream itemInputStream
+    ) &#123;
+        //
+        if (null == zipInputStream) &#123;
+            return;
         &#125;
-        return server;
-    &#125;
-
-    @Override
-    public Server choose(Object o) &#123;
-        return choose(getLoadBalancer(), o);
-    &#125;
-&#125;</code></pre><p>该类为自定义的负载均衡算法规则类，要想使用需要进行配置。首先需要在当前启动类无法进行@CompomentScan的地方创建configuration类，即无法被Spring容器扫描到。该类有@Configuration注解，并配置IRule Bean，返回当前自定义规则类。<br>然后在启动类上配置@RibbonClient注解</p>
-<pre><code>@RibbonClient(name = &quot;SPRINGCLOUD-TEST&quot;,configuration = MyRuleConfiguration.class)</code></pre><p>name表示负载均衡所应用的服务名称，configuration为配置的configuration类</p>
-<h2 id="Feign声明式WebService客户端"><a href="#Feign声明式WebService客户端" class="headerlink" title="Feign声明式WebService客户端"></a>Feign声明式WebService客户端</h2><p>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。<br>Feign可以和Eureka与Ribbon结合使用负载均衡。<br>其使用过程就像类似于MyBatis Dao，接口访问，其作用<strong>是代替RestTemplate，而是直接使用类似Mybatis接口调用的方式</strong>。<br>步骤定义如下:</p>
-<ol>
-<li><p>首先需要在api模块处定义service接口方法，所以需要添加相关依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-openfeign</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-</li>
-<li><p>配置Service接口DeptClientService接口类,其注解，值为提供接口的服务名称，此接口将关联到服务提供者。</p>
-<p>@FeignClient(value = “SPRINGCLOUD-TEST”)<br>public interface DeptClientService {</p>
-<pre><code>@PostMapping(&quot;/dept/add&quot;)
-public boolean add(@RequestBody Dept dept);
-
-@GetMapping(&quot;/dept/get/&#123;id&#125;&quot;)
-public Dept get(@PathVariable(&quot;id&quot;) Long id);
-
-@GetMapping(&quot;/dept/list&quot;)
-public List&lt;Dept&gt; list();</code></pre><p>}</p>
-</li>
-<li><p>在客户端80 Controller中注入DeptClientService对象,通过其方法返回，不在使用RestTemplate</p>
-<p>@RestController<br>public class DeptController_Consumer {</p>
-<pre><code>@Autowired
-private DeptClientService deptClientService;</code></pre><p>   //private static final String REST_URL_PREFIX = “<a href="http://localhost:8001&quot;">http://localhost:8001&quot;</a>;</p>
-<pre><code>private static final String REST_URL_PREFIX = &quot;http://SPRINGCLOUD-TEST&quot;;
-
-@Autowired
-private RestTemplate restTemplate;
-
-@PostMapping(&quot;/consumer/dept/add&quot;)
-public boolean add(Dept dept)&#123;
-    //return restTemplate.postForObject(REST_URL_PREFIX+&quot;/dept/add&quot;,dept,Boolean.class);
-    return this.deptClientService.add(dept);
-&#125;
-
-@GetMapping(&quot;/consumer/dept/get/&#123;id&#125;&quot;)
-public Dept get(@PathVariable(&quot;id&quot;) Long id)&#123;
-    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/get/&quot; + id,Dept.class);
-    return this.deptClientService.get(id);
-&#125;
-
-@GetMapping(&quot;/consumer/dept/list&quot;)
-public List&lt;Dept&gt; list(Dept dept)&#123;
-    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/list&quot;,List.class);
-    return this.deptClientService.list();
-&#125;</code></pre><p>}</p>
-</li>
-<li><p>在80的启动类中，配置<code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.springcloud&quot;&#125;)</code>,表示扫描当前包下的FeignClient,那么其就会被Spring发现，步骤三不会报错，所以在配置Service接口的时候就不必使用@ComponentScan注解。</p>
-</li>
-</ol>
-<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>案例:多个服务，依赖调用，如A-&gt;B,B-&gt;C,C-&gt;D，如果某个服务出现错误或异常，会导致请求超时，或响应报错，等其他情况。或者项目实施原因为停止某个服务的使用是，该服务无法使用该如何处理。这是断路器要做的。<br><strong>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</strong></p>
-<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>其问题可以理解为Spring的AOP异常增强处理。通过添加注解并给予服务出错时要执行的方法。<br>只需要在方法上标注@HystrixCommand注解，并设置fallbackMethod属性值为回调方法。</p>
-<ol>
-<li><p>首先依据8001创建一个新的模块，新增hystrix依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-</li>
-<li><p>在controller的get方法上模拟Dept为null时抛出异常的情况</p>
-<p>@HystrixCommand(fallbackMethod = “requestErrorGet”)<br>@GetMapping(“/dept/get/{id}”)<br>public Dept get(@PathVariable(“id”) Long id){</p>
-<pre><code>Dept dept = deptService.get(id);
-if (dept==null)&#123;
-    throw new RuntimeException();
-&#125;
-return dept;</code></pre><p>}<br>public Dept requestErrorGet(@PathVariable(“id”) Long id){</p>
-<pre><code>return new Dept(id,&quot;没有此部门&quot;,&quot;请确认部门编号&quot;);</code></pre><p>}</p>
-</li>
-<li><p>在主启动类上标注@EnableCircuitBreaker注解</p>
-</li>
-<li><p>启动7001，当前hystrix8001,和feign80</p>
-</li>
-<li><p>测试访问localhost/consumer/dept/get/123获得服务熔断打印信息</p>
-</li>
-</ol>
-<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。</p>
-<ol>
-<li><p>在api模块，deptClientService同包目录下创建DeptClientServiceFallbackFactory实现FallbackFactory</p>
-<p>/**</p>
-<ul>
-<li><p>DeptClientService里的每一个方法的熔断都统一放在当前类中</p>
-</li>
-<li><p>/<br>@Component<br>public class DeptClientServiceFallbackFactory implements FallbackFactory<DeptClientService> {<br>  @Override<br>  public DeptClientService create(Throwable throwable) {</p>
-<pre><code>return new DeptClientService() &#123;
-    @Override
-    public boolean add(Dept dept) &#123;
-        return false;
-    &#125;
-
-    @Override
-    public Dept get(Long id) &#123;
-        return new Dept(id,&quot;服务降级&quot;,&quot;确认数据库&quot;);
-    &#125;
-
-    @Override
-    public List&lt;Dept&gt; list() &#123;
-        return null;
-    &#125;
-&#125;;</code></pre><p>  }<br>}</p>
-</li>
-</ul>
-</li>
-<li><p>在DeptClientService的FeignClient注解上，配置fallbackFactory属性，即为DeptClientServiceFallbackFactory类</p>
-<p>@FeignClient(value = “SPRINGCLOUD-TEST”,fallbackFactory = DeptClientServiceFallbackFactory.class)<br>public interface DeptClientService {<br>….<br>}</p>
-</li>
-<li><p>在客户端80feign项目中开启<code>feign.hystrix.enable:true</code>配置。使两个技术关联开启，步骤2的Feign才能解析fallbackFactory属性。</p>
-</li>
-<li><p>启动7001，当前hystrix8001,和feign80</p>
-</li>
-<li><p>测试，首先访问localhost/consumer/dept/get/123获得服务熔断的信息。然后关闭hystrix8001服务，再次访问，出现服务降级的信息。</p>
-</li>
-</ol>
-<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
-<ol>
-<li><p>创建新项目hystrixDashboard,添加依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
-</dependency>
-</li>
-<li><p>为启动类添加添加@EnableHystrixDashboard注解表示开启</p>
-</li>
-<li><p>为所有服务提供者8001,8002,8003服务，添加监控依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-</li>
-<li><p>使用<code>http://localhost:8001/hystrix.stream</code>可以看到ping:,data:,如果使用2.0以上版本，使用此地址404，那么，要在每个服务提供模块添加配置Bean，且需要hystrix依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-
-<p>@Configuration<br>public class MyConfiguration {</p>
-<pre><code>@Bean
-public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
-    ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
-    registration.addUrlMappings(&quot;/hystrix.stream&quot;);
-    return registration;
-&#125;</code></pre><p>}</p>
-</li>
-<li><p>需要服务提供者主启动类上加上@EnableCircuitBreaker注解</p>
-</li>
-<li><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
-</li>
-</ol>
-<blockquote>
-<p>需要注意的是，以上步骤并不完整，如果你的代码中没有类似@HystrixCommand注解，则尽管能访问hystrix.stream，但没有data数据，无法进行图表查看,所以，需要在方法上加上@HystrixCommand注解配置，具体问题详见<a target="_blank" rel="noopener" href="https://www.cnblogs.com/jinjiyese153/p/9172885.html">https://www.cnblogs.com/jinjiyese153/p/9172885.html</a></p>
-</blockquote>
-<h3 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h3><h2 id="Zuul路由"><a href="#Zuul路由" class="headerlink" title="Zuul路由"></a>Zuul路由</h2><p>Zuul包含了对请求的路由和过滤两个功能，<br>其中路由功能负责将外部请求转发到具体的微服务实例上，是实现外部访问统一入口的基础。<br>过滤功能负责对请求的处理过程进行干预，是实现请求校验，服务聚合等功能的基础，<br>Zuul和Eureka整合，将Zuul资深注册到Eureka服务治理下的应用，同时从Eureka获得其他微服务的消息，也即以后的微服务都是通过Zuul跳转后获得。</p>
-<h3 id="路由的简单应用"><a href="#路由的简单应用" class="headerlink" title="路由的简单应用"></a>路由的简单应用</h3><p>使用类似如下的地址通过路由即可访问服务<code>http://localhost:9527/springcloud-test/dept/list</code>,localhost:9527即为路由微服务，通过路由(路由注册到Eureka中)访问注册中心的服务。</p>
-<ol>
-<li><p>创建路由项目,添加依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-</li>
-<li><p>配置yml</p>
-<p>server:<br>  port: 9527</p>
-<p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@eureka7001.com:7001/eureka/</code></pre><p>  instance:</p>
-<pre><code>instance-id: dept-zuul-9537
-prefer-ip-address: true</code></pre><p>spring:<br>  application:</p>
-<pre><code>name: dept-zuul-geteway</code></pre><p>info:<br>  app.name: springcloud-test<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
-</li>
-<li><p>主启动类配置注解</p>
-<p>@EnableEurekaClient<br>@EnableZuulProxy<br>@SpringBootApplication<br>public class DeptZuul9527_App {</p>
-<pre><code>public static void main(String[] args) &#123;
-    SpringApplication.run(DeptZuul9527_App.class,args);
-&#125;</code></pre><p>}</p>
-</li>
-</ol>
-<h3 id="路由访问配置"><a href="#路由访问配置" class="headerlink" title="路由访问配置"></a>路由访问配置</h3><p>隐藏实际服务名称，使用自定义的名称</p>
-<pre><code>zuul:
-  routes:
-    mydept.serviceId: springcloud-test
-    mydept.path: /mydept/**</code></pre><ul>
-<li>表示将springcloud-test的服务，其路径改为mydept,使用原服务名称和mydept均可访问。</li>
-<li>配置<code>zuul.ignored-services: springcloud-test</code>可取消原服务名称的访问。若要忽略全部的服务，则使用<code>&quot;*&quot;</code>配置。</li>
-<li>若需要服务访问的前缀，则配置<code>zuul.prefix: /xxx</code>,即可使用前缀访问</li>
-</ul>
-<h2 id="Spring-Cloud-Config"><a href="#Spring-Cloud-Config" class="headerlink" title="Spring Cloud Config"></a>Spring Cloud Config</h2><p>Spring Cloud Config分为<strong>服务端和客户端两部分</strong>。<br>服务端也称为分布式配置中心，他是一个<strong>独立的微服务应用</strong>，用来++连接配置服务器并为客户端提供配置信息，加密/解密信息等访问接口。++<br>客户端是通过指定的配置中心来管理应用资源，以及业务相关的配置，并在启动的时候从配置中心获取和加载配置信息，配置服务器默认采用git来存储配置信息，有助于对环境配置进行版本管理。<br>在运行期间动态调整配置，不需要在每个服务部署的机器上编写配置文件，服务会向配置中心统一拉取自己的信息。当配置变动时，服务不需要重启即可感知到配置的变化并应用新的配置。</p>
-<h3 id="服务端配置，以Github为例，若无法访问，可使用Gitee码云"><a href="#服务端配置，以Github为例，若无法访问，可使用Gitee码云" class="headerlink" title="服务端配置，以Github为例，若无法访问，可使用Gitee码云"></a>服务端配置，以Github为例，若无法访问，可使用Gitee码云</h3><ol>
-<li><p>首先在码云创建公共仓库，然后clone到本地，在本地创建application.yml文件(注意保存为UTF-8格式)并上传拿到远程仓库,配置如下:</p>
-<p>spring:<br>  active:</p>
-<pre><code>- dev</code></pre><hr>
-<p>spring:<br>  profile: dev<br>  application:</p>
-<pre><code>name: springcloud-dev</code></pre><hr>
-<p>spring:<br>  profile: test<br>  application:</p>
-<pre><code>name: springcloud-test</code></pre></li>
-<li><p>创建configserver模块，添加依赖如下:</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-config-server</artifactId>
-</dependency>
-</li>
-<li><p>配置application.yml文件</p>
-<p>server:<br>  port: 3344<br>spring:<br>  application:</p>
-<pre><code>name: springcloud-config-server</code></pre><p>  cloud:</p>
-<pre><code>config:
-  server:
-    git:
-      uri: https://gitee.com/snow_rain/springcloud-config.git</code></pre></li>
-</ol>
-<p>表示，配置的服务git的uri为公共仓库的地址。</p>
-<ol>
-<li><p>配置主启动类，并添加@EnableConfigServer注解</p>
-</li>
-<li><p>启动项目，访问<code>http://localhost:3344/application-dev.yml</code>即可获得如下</p>
-<p>spring:<br>  active:</p>
-<ul>
-<li>dev<br>application:<br>name: springcloud-test<br>profile: test</li>
-</ul>
-</li>
-<li><p>访问的方式，有如下几种:</p>
-<p>/{application}/{profile}[/{label}]<br>/{application}-{profile}.yml<br>/{label}/{application}-{profile}.yml</p>
-</li>
-</ol>
-<p>上面访问的是第二种，另外两个可以以下方式访问:</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="http://localhost:3344/application/dev/master">http://localhost:3344/application/dev/master</a></li>
-<li><a target="_blank" rel="noopener" href="http://localhost:3344/master/application-dev.yml">http://localhost:3344/master/application-dev.yml</a></li>
-</ul>
-<h3 id="创建客户端模拟服务器提供者连通配置中心"><a href="#创建客户端模拟服务器提供者连通配置中心" class="headerlink" title="创建客户端模拟服务器提供者连通配置中心"></a>创建客户端模拟服务器提供者连通配置中心</h3><ol>
-<li><p>创建新模块，配置依赖如下:</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-</li>
-<li><p>创建springcloud-config-client.yml上传到远程仓库中</p>
-<p>spring:<br>  profile:</p>
-<pre><code>active: dev</code></pre><hr>
-<p>server:<br>  port: 8201<br>spring:<br>  profile: dev<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://eureka7001.com:7001/eureka</code></pre><hr>
-<p>server:<br>  port: 8202<br>spring:<br>  profile: test<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://eureka7002.com:7002/eureka</code></pre></li>
-<li><p>在client端,resources下创建bootstrap.yml文件<br>bootstrap是最高优先级的加载文件，是系统级的.<br>SpringCloud 会创建<code>BootStrap Context</code>作为Spring应用<code>Application Context</code>的父上下文。初始化时BootStrap Context负责从外部加载配置属性并解析配置，BootStrap具有较高优先级，默认情况下，他们不会被本地配置覆盖。<br>新增BootStrap.yml保证<code>BootStrap Context</code>和<code>Application Context</code>配置的分离。</p>
-<p>spring:<br>  cloud:</p>
-<pre><code>config:
-  label: master
-  name: springcloud-config-client
-  profile: dev
-  uri: http://localhost:3344</code></pre></li>
-</ol>
-<p>以上配置中label表示仓库的分支，name表示仓库中的要使用的yml文件名称,profile表示文件中的dev环境，uri表示配置中心服务端地址。即需要通过服务端的连接，即以上配置参数，即可通过服务端连接到仓库并获得对应的信息。</p>
-<ol>
-<li><p>可配置application.yml</p>
-<p>spring:<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre></li>
-</ol>
-<p>如果想配置，则name值需要和上面的name值一样，否则可以没有application.yml文件。即默认约定，该仓库springcloud-config-client名称为服务名称。<br>项目启动配置服务server和client，</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/Spring批量文件下载，ZIP包" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/"
-    >Spring批量文件下载，ZIP包</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/09/18/Spring/Spring%E6%89%B9%E9%87%8F%E6%96%87%E4%BB%B6%E4%B8%8B%E8%BD%BD%EF%BC%8CZIP%E5%8C%85/" class="article-date">
-  <time datetime="2019-09-18T01:33:36.000Z" itemprop="datePublished">2019-09-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>核心方法，递归写文件到Zip流中</p>
-<pre><code>private static void compress(File sourceFile, ZipOutputStream zos, String name,
-                                 boolean KeepDirStructure) throws Exception &#123;
-        byte[] buf = new byte[1024];
-        if (sourceFile.isFile()) &#123;
-            if (!sourceFile.getName().contains(&quot;.zip&quot;)) &#123;
-                // 向zip输出流中添加一个zip实体，构造器中name为zip实体的文件的名字
-                zos.putNextEntry(new ZipEntry(name));
-                // copy文件到zip输出流中
+        if (null == zipOutputStream) &#123;
+            return;
+        &#125;
+        if (null == itemName) &#123;
+            return;
+        &#125;
+        if (null == itemInputStream) &#123;
+            return;
+        &#125;
+        //
+        ZipEntry entryIn;
+        try &#123;
+            while ((entryIn = zipInputStream.getNextEntry()) != null) &#123;
+                String entryName = entryIn.getName();
+                ZipEntry entryOut = new ZipEntry(entryName);
+                // 只使用 name
+                zipOutputStream.putNextEntry(entryOut);
+                // 缓冲区
+                byte[] buf = new byte[8 * 1024];
                 int len;
-                FileInputStream in = new FileInputStream(sourceFile);
-                while ((len = in.read(buf)) != -1) &#123;
-                    zos.write(buf, 0, len);
-                &#125;
-                // Complete the entry
-                zos.closeEntry();
-                in.close();
-            &#125;
-        &#125; else &#123;
-            File[] listFiles = sourceFile.listFiles();
-            if (listFiles == null || listFiles.length == 0) &#123;
 
-                // 需要保留原来的文件结构时,需要对空文件夹进行处理
-                if (KeepDirStructure) &#123;
-                    // 空文件夹的处理
-                    zos.putNextEntry(new ZipEntry(name + &quot;/&quot;));
-                    // 没有文件，不需要文件的copy
-                    zos.closeEntry();
-                &#125;
-            &#125; else &#123;
-                for (File file : listFiles) &#123;
-                    // 判断是否需要保留原来的文件结构
-                    if (KeepDirStructure) &#123;
-                        // 注意：file.getName()前面需要带上父文件夹的名字加一斜杠,
-                        // 不然最后压缩包中就不能保留原来的文件结构,即：所有文件都跑到压缩包根目录下了
-                        compress(file, zos, name + &quot;/&quot; + file.getName(), KeepDirStructure);
-                    &#125; else &#123;
-                        compress(file, zos, file.getName(), KeepDirStructure);
+                if (entryName.equals(itemName)) &#123;
+                    // 使用替换流
+                    while ((len = (itemInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
+                    &#125;
+                &#125; else &#123;
+                    // 输出普通Zip流
+                    while ((len = (zipInputStream.read(buf))) &gt; 0) &#123;
+                        zipOutputStream.write(buf, 0, len);
                     &#125;
                 &#125;
+                // 关闭此 entry
+                zipOutputStream.closeEntry();
+
             &#125;
+        &#125; catch (IOException e) &#123;
+            e.printStackTrace();
+        &#125; finally &#123;
+            //e.printStackTrace();
+            close(itemInputStream);
+            close(zipInputStream);
+            close(zipOutputStream);
         &#125;
-    &#125;</code></pre><p>文件下载</p>
-<pre><code>//压缩文件zip到服务器
-ZipOutputStream out = new ZipOutputStream(new FileOutputStream(zipPath));
-compress(ywhFiles,out, ywhFiles.getName(),true);
-
-out.close();
-//下载文件
-try &#123;
-    // 以流的形式下载文件。
-    BufferedInputStream fis = new BufferedInputStream(new FileInputStream(zipFile.getPath()));
-    byte[] buffer = new byte[fis.available()];
-    fis.read(buffer);
-    fis.close();
-    // 清空response
-    response.reset();
-    OutputStream toClient = new BufferedOutputStream(response.getOutputStream());
-    response.setContentType(&quot;application/octet-stream&quot;);
-    response.setHeader(&quot;Content-Disposition&quot;, &quot;attachment;filename=&quot; + new String(zipFile.getName().getBytes(&quot;UTF-8&quot;),&quot;ISO-8859-1&quot;));
-    toClient.write(buffer);
-    toClient.flush();
-    toClient.close();
-    zipFile.delete();        //是否将生成的服务器端文件删除
-&#125;
-catch (IOException ex) &#123;
-    ex.printStackTrace();
-&#125;</code></pre><p>此处使用response将流写出。如果使用springmvc的ResponseEntity返回，可能出现下载后zip包打不开的情况。</p>
-
+    &#125;</code></pre><ul>
+<li>第一个参数是zip文件输入流</li>
+<li>第二个参数是最后docx文件输出流</li>
+<li>第三个参数是要替换的位置</li>
+<li>第四个是已经转换模板完成的docuemnt.xml文件</li>
+</ul>
+<p>此方法就是重新循环一下zip，并把流输出到另一个文件中，找到匹配的就使用docuemnt.xml流写进去。</p>
+<h3 id="多余docuemnt-xml删除"><a href="#多余docuemnt-xml删除" class="headerlink" title="多余docuemnt.xml删除"></a>多余docuemnt.xml删除</h3><pre><code>File tempData = new File(Constant.USER_FILE_BASE_DIR+filePath);
+if (tempData.exists()) &#123;
+    tempData.delete();
+&#125;</code></pre>
       
       <!-- reward -->
       
@@ -1626,7 +771,7 @@ catch (IOException ex) &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring/" rel="tag">Spring</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/freemarker/" rel="tag">freemarker</a></li></ul>
 
 
     </footer>
@@ -1643,7 +788,7 @@ catch (IOException ex) &#123;
 
 </article>
     
-    <article id="post-SpringBoot/Springboot2.x打jar包本地部署https访问" class="article article-type-post" itemscope
+    <article id="post-Java/openOffce和jacob方式转换office为pdf文件" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -1651,8 +796,8 @@ catch (IOException ex) &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/"
-    >Springboot2.x打jar包本地部署https访问</a
+  <a class="article-title" href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/"
+    >openOffce和jacob方式转换office为pdf文件</a
   >
 </h2>
   
@@ -1662,12 +807,12 @@ catch (IOException ex) &#123;
 
     
     <div class="article-meta">
-      <a href="/2019/09/15/SpringBoot/Springboot2.x%E6%89%93jar%E5%8C%85%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2https%E8%AE%BF%E9%97%AE/" class="article-date">
-  <time datetime="2019-09-15T08:03:27.000Z" itemprop="datePublished">2019-09-15</time>
+      <a href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:34:05.000Z" itemprop="datePublished">2020-01-02</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
   </div>
 
       
@@ -1684,55 +829,206 @@ catch (IOException ex) &#123;
       
 
       
-      <p>首先我的环境是springboot2.x的，可能配置不一样，这个可以去网上找一下。这个是我真实搭建使用的。</p>
-<p>首先具备条件：有一个域名是必须的。</p>
-<p>去域名的注册商，比如阿里或腾讯，去控制台找SSL证书配置，此处以阿里云为例，注册SSL</p>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/09/image.png?x-oss-process=image/resize,m_fill,h_392,w_1024" alt=""></p>
-<p>点击购买证书，选择最后一项，选择DV免费证书，提交订单。订单完成后，操作刚才的证书，填写绑定域名，免费证书只能绑定一个域名，所以填写你需要访问的一级或二级域名。填写信息等。然后会让你将txt记录解析到域名，点击验证按钮自动配置域名解析。然后等待审核给你发送邮箱消息。</p>
-<p>审核完成后，SSL已经成功了。点击下载，下载tomcat版本的就可以。解压会有一个pfx文件，和txt密码文件。将pfx拷贝到项目resources下。</p>
-<p>配置application.yml</p>
-<pre><code>server:
-  port: 443
-  ssl:
-    key-store: classpath:2812584_xxx.xxx.cn.pfx
-    key-store-password: 
-    key-store-type: PKCS12
-    enabled: true</code></pre><p>填写你的pfx路径，填写密码，密码就是txt文件里面的。</p>
-<p>然后创建配置类:</p>
-<pre><code>@Configuration
-public class HttpsConfig &#123;
+      <h2 id="OpenOffice-转换"><a href="#OpenOffice-转换" class="headerlink" title="OpenOffice 转换"></a>OpenOffice 转换</h2><p>首先需要到apache openoffice下载包并安装<a target="_blank" rel="noopener" href="http://www.openoffice.org/download/index.html">http://www.openoffice.org/download/index.html</a></p>
+<p>windows默认会安装到c盘program file(x86)中的openoffice4中，可以把这个文件文件夹拷贝到任意位置。</p>
+<p>要想使用转换首先需要jar包,他需要jodconverter的jar包，这包可能在maven中央仓库没有。详细的转换代码如下</p>
+<pre><code>@Component
+public class OfficeConverterUtils &#123;
 
-    @Bean
-    public TomcatServletWebServerFactory servletContainer() &#123;
-        TomcatServletWebServerFactory tomcat = new TomcatServletWebServerFactory() &#123;
-            @Override
-            protected void postProcessContext(Context context) &#123;
-                SecurityConstraint securityConstraint = new SecurityConstraint();
-                securityConstraint.setUserConstraint(&quot;CONFIDENTIAL&quot;);
-                SecurityCollection collection = new SecurityCollection();
-                collection.addPattern(&quot;/*&quot;);
-                securityConstraint.addCollection(collection);
-                context.addConstraint(securityConstraint);
+    private Logger logger = LoggerFactory.getLogger(OfficeConverterUtils.class);
+
+    @Value(&quot;$&#123;openoffice.path&#125;&quot;)
+    private  String openOfficePath;
+
+    public void WordToPDF(String startFile, String overFile) &#123;
+        if (StringUtils.isBlank(openOfficePath))&#123;
+            return;
+        &#125;
+
+        // 源文件目录
+        File inputFile = new File(startFile);
+        if (!inputFile.exists()) &#123;
+            System.out.println(&quot;源文件不存在！&quot;);
+            return;
+        &#125;
+
+        // 输出文件目录
+        File outputFile = new File(overFile);
+        if (!outputFile.getParentFile().exists()) &#123;
+            outputFile.getParentFile().exists();
+        &#125;
+        OpenOfficeConnection connection = null;
+        Process p = null;
+        try &#123;
+
+            // 调用openoffice服务线程
+            /** 我把openOffice下载到了 C:/Program Files (x86)/下  ,下面的写法自己修改编辑就可以**/
+            String command = openOfficePath + &quot; -headless -accept=\&quot;socket,host=127.0.0.1,port=8100;urp;\&quot;&quot;;
+            try &#123;
+                p = Runtime.getRuntime().exec(command);
+            &#125;catch (Exception e)&#123;
+                logger.error(&quot;服务无法启动或已经启动,请确认文件是否转换成功&quot;);
             &#125;
-        &#125;;
-        tomcat.addAdditionalTomcatConnectors(getHttpConnector());
-        return tomcat;
+            // 连接openoffice服务
+            connection = new SocketOpenOfficeConnection(&quot;127.0.0.1&quot;, 8100);
+            connection.connect();
+
+            // 转换
+            DocumentConverter converter = new OpenOfficeDocumentConverter(connection);
+            converter.convert(inputFile, outputFile);
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
+            logger.error(&quot;转换PDF出现异常&quot;);
+            logger.error(&quot;切换使用jocob方式转换&quot;);
+            if (startFile.lastIndexOf(&quot;.docx&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.doc&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xlsx&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xls&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;
+        &#125; finally &#123;
+            // 关闭连接
+            if (connection != null &amp;&amp; connection.isConnected()) &#123;
+                connection.disconnect();
+            &#125;
+            // 关闭进程
+            if (p != null &amp;&amp; p.isAlive()) &#123;
+                p.destroy();
+            &#125;
+        &#125;
+
     &#125;
 
-    private Connector getHttpConnector() &#123;
-        Connector connector = new Connector(&quot;org.apache.coyote.http11.Http11NioProtocol&quot;);
-        connector.setScheme(&quot;http&quot;);
-        connector.setPort(8080);
-        connector.setSecure(false);
-        connector.setRedirectPort(443);
-        return connector;
+    public static void main(String[] args) &#123;
+        //openOfficePath = &quot;D:/soft/OpenOffice4/program/soffice.exe&quot;;
+        String start = &quot;C:\\Users\\lics\\Desktop\\abc.docx&quot;;
+        String over = &quot;C:\\Users\\lics\\Desktop\\abc.pdf&quot;;
+
+            new OfficeConverterUtils().WordToPDF(start, over);
     &#125;
 
-&#125;</code></pre><p>以上就完成了。如果你在本地，直接使用localhost访问，不加http前缀的话是直接https访问8080不管用，默认https访问80端口然后转发到443端口中。</p>
-<p>首先我说一下上面的问题：首先我是内网映射，映射本地8080，所以如果本地localhost访问8080的话是有问题的，必须是80，因为你输入地址后直接是以https形式访问了。那么使用域名的话，内网穿透8080，访问443使用https。</p>
-<p>但是如果使用的直接是云产品，将服务部署在云服务器上，则域名绑定服务器后，域名可直接使用服务的端口访问，然后转发到443端口上,如果服务端口是80，那么么直接可访问。</p>
-<p>我的系统使用了内网映射natapp。只要在配置中开启https即可。花生壳等也是如此。云服务器使用的话，在阿里云文档有说明，也可以使用这种方式直接配置。</p>
 
+&#125;</code></pre><p>以上是通过代码的方式启动服务，操作完成后会关闭服务。</p>
+<p>还有通过cmd直接启动服务的。</p>
+<pre><code>soffice -headless -accept=&quot;socket,host=127.0.0.1,port=8100;urp;&quot; -nofirststartwizard</code></pre><p>以上中，在C:\Program Files (x86)\OpenOffice 4\program目录下执行此命令，因此soffice不需要写全，否则需要写绝对路径。执行后cmd不会有等待占用窗口，会在后台启动服务。</p>
+<p>有时候，可能莫名其妙的在服务器上有时候可以连接成功有时候就连接不上服务。所以可以试用jacob方式补充，但是经过测验，jacob比openOffice慢点，而且是越大越慢，但是转换ppt的时候openOffice却比较慢，无论怎么大jacob都比openOffice快。</p>
+<h2 id="Jacob转换"><a href="#Jacob转换" class="headerlink" title="Jacob转换"></a>Jacob转换</h2><p>jacob转换时dll方式操作，需要将dll放到jdk/bin中。首先需要jacob.jar包。然后有一个dll。</p>
+<p>有了这两个东西便可以进行转换了。</p>
+<pre><code>public class JacobUtil &#123;
+    private static Logger logger = Logger.getLogger(JocobUtil.class.getName());
+
+    public static void main(String[] args) &#123;
+        long b = System.currentTimeMillis();
+        //ppt2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;);
+        word2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\abc.doc&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\abc.pdf&quot;);
+        long c = System.currentTimeMillis();
+        System.out.println(c-b);
+    &#125;
+
+    public static void ppt2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;PowerPoint.Application&quot;);
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Presentations&quot;).toDispatch();
+            doc = Dispatch.call(
+                    docs,
+                    &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.TRUE, Boolean.TRUE,
+                            Boolean.FALSE &#125;).toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(32) &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+    public static void word2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Word.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Documents&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(17) &#125;);
+        &#125; catch (Throwable t) &#123;
+            logger.log(Level.SEVERE, t.getMessage(), t);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;, new Variant[] &#123;new Variant(false)&#125;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+
+        &#125;
+    &#125;
+
+    public static void excel2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Excel.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Workbooks&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;ExportAsFixedFormat&quot;,
+                    new Object[] &#123; Integer.valueOf(0), tar &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+&#125;</code></pre>
       
       <!-- reward -->
       
@@ -1765,7 +1061,7 @@ public class HttpsConfig &#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/26/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="page-number" href="/page/26/">26</a><span class="page-number current">27</span><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><span class="space">&hellip;</span><a class="page-number" href="/page/51/">51</a><a class="extend next" rel="next" href="/page/28/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/26/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/25/">25</a><a class="page-number" href="/page/26/">26</a><span class="page-number current">27</span><a class="page-number" href="/page/28/">28</a><a class="page-number" href="/page/29/">29</a><span class="space">&hellip;</span><a class="page-number" href="/page/53/">53</a><a class="extend next" rel="next" href="/page/28/">下一页</a>
   </nav>
   
 </section>

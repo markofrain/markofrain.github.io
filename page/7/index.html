@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Java/截取视频帧数图片" class="article article-type-post" itemscope
+    <article id="post-Java/2021-04-16-Java集合" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/04/04/Java/%E6%88%AA%E5%8F%96%E8%A7%86%E9%A2%91%E5%B8%A7%E6%95%B0%E5%9B%BE%E7%89%87/"
-    >截取视频帧数图片</a
+  <a class="article-title" href="/2021/04/16/Java/2021-04-16-Java%E9%9B%86%E5%90%88/"
+    >Java集合</a
   >
 </h2>
   
@@ -97,8 +97,8 @@
 
     
     <div class="article-meta">
-      <a href="/2021/04/04/Java/%E6%88%AA%E5%8F%96%E8%A7%86%E9%A2%91%E5%B8%A7%E6%95%B0%E5%9B%BE%E7%89%87/" class="article-date">
-  <time datetime="2021-04-04T04:00:00.000Z" itemprop="datePublished">2021-04-04</time>
+      <a href="/2021/04/16/Java/2021-04-16-Java%E9%9B%86%E5%90%88/" class="article-date">
+  <time datetime="2021-04-16T04:00:00.000Z" itemprop="datePublished">2021-04-16</time>
 </a>
       
   <div class="article-category">
@@ -119,13 +119,55 @@
       
 
       
-      <figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.bytedeco<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javacv-platform<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.5<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+      <h1 id="List"><a href="#List" class="headerlink" title="List"></a>List</h1><h2 id="Arraylist"><a href="#Arraylist" class="headerlink" title="Arraylist"></a>Arraylist</h2><p>内部通过数组实现，允许对元素进行快速随机访问。</p>
+<p>当大小不满足时需要增加存储能力，将已有数组的数据复制到新的存储空间中。</p>
+<p>每次增删改都通过System.arraycopy移动数据</p>
+<p>非索引查找都需要循环</p>
+<h3 id="构造函数"><a href="#构造函数" class="headerlink" title="构造函数"></a>构造函数</h3><p>无参构造函数初始化数组长度为0，在第一次add时拓展为长度为10的数组</p>
+<p>有参构造函数,初始化一个长度为n的数组</p>
+<h3 id="add-element"><a href="#add-element" class="headerlink" title="add(element)"></a>add(element)</h3><p>如果已有数据量大于数组容量则进行拓展</p>
+<ol>
+<li><p>通过原数据量+1 得到目前最小容量</p>
+</li>
+<li><p>增加修改次数</p>
+</li>
+<li><p>如果这个最小容量 小于 当前数组的长度则进行数组拓展拷贝</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (minCapacity - elementData.length &gt; <span class="number">0</span>)</span><br><span class="line">	grow(minCapacity);</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>(grow)拓展 以数组大小 右偏移一位，即(e+e/2)长度进行新数据拷贝</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">int</span> newCapacity = oldCapacity + (oldCapacity &gt;&gt; <span class="number">1</span>);</span><br><span class="line"><span class="keyword">if</span> (newCapacity - minCapacity &lt; <span class="number">0</span>)</span><br><span class="line">	newCapacity = minCapacity;</span><br><span class="line">elementData = Arrays.copyOf(elementData, newCapacity);</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="add-index-element"><a href="#add-index-element" class="headerlink" title="add(index,element)"></a>add(index,element)</h3><p>只比add(element)多了元素的移动方法</p>
+<ol>
+<li>验证是否数组越界</li>
+<li>是否拓展数组</li>
+<li>使用System.arraycopy()方法，将原index位置之后的数据向后移1位</li>
+<li>插入index位置的数据</li>
+</ol>
+<h3 id="addAll-collection"><a href="#addAll-collection" class="headerlink" title="addAll(collection)"></a>addAll(collection)</h3><ol>
+<li>获取插入这些数据所需最小容量，与数组长度比较是否需要拓展</li>
+<li>将元素拷贝到已有元素的后面</li>
+</ol>
+<h3 id="addAll-collection-1"><a href="#addAll-collection-1" class="headerlink" title="addAll(collection)"></a>addAll(collection)</h3><p>方式与add(index,element)相同</p>
+<h3 id="remove-index"><a href="#remove-index" class="headerlink" title="remove(index)"></a>remove(index)</h3><p>使用System.arraycopy将index后的数据向前移一位，(size-1)位置设置为null</p>
+<h3 id="remove-object"><a href="#remove-object" class="headerlink" title="remove(object)"></a>remove(object)</h3><p><strong>需要循环数组</strong></p>
+<p>找到元素位置后,单个索引快速移除</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">fastRemove</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">    modCount++;</span><br><span class="line">    <span class="keyword">int</span> numMoved = size - index - <span class="number">1</span>;</span><br><span class="line">    <span class="keyword">if</span> (numMoved &gt; <span class="number">0</span>)</span><br><span class="line">        System.arraycopy(elementData, index+<span class="number">1</span>, elementData, index,</span><br><span class="line">                         numMoved);</span><br><span class="line">    elementData[--size] = <span class="keyword">null</span>; <span class="comment">// clear to let GC do its work</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="removeAll-collection"><a href="#removeAll-collection" class="headerlink" title="removeAll(collection)"></a>removeAll(collection)</h3><p>将原有数据里不在 要删除collection中的，依次放入这个数组中，进行数据拷贝并将删除的位置置空</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">boolean</span> <span class="title">batchRemove</span><span class="params">(Collection&lt;?&gt; c, <span class="keyword">boolean</span> complement)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">final</span> Object[] elementData = <span class="keyword">this</span>.elementData;</span><br><span class="line">    <span class="keyword">int</span> r = <span class="number">0</span>, w = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">boolean</span> modified = <span class="keyword">false</span>;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        <span class="keyword">for</span> (; r &lt; size; r++)</span><br><span class="line">            <span class="keyword">if</span> (c.contains(elementData[r]) == complement)</span><br><span class="line">                elementData[w++] = elementData[r];</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        <span class="comment">// Preserve behavioral compatibility with AbstractCollection,</span></span><br><span class="line">        <span class="comment">// even if c.contains() throws.</span></span><br><span class="line">        <span class="keyword">if</span> (r != size) &#123;</span><br><span class="line">            System.arraycopy(elementData, r,</span><br><span class="line">                             elementData, w,</span><br><span class="line">                             size - r);</span><br><span class="line">            w += size - r;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (w != size) &#123;</span><br><span class="line">            <span class="comment">// clear to let GC do its work</span></span><br><span class="line">            <span class="keyword">for</span> (<span class="keyword">int</span> i = w; i &lt; size; i++)</span><br><span class="line">                elementData[i] = <span class="keyword">null</span>;</span><br><span class="line">            modCount += size - w;</span><br><span class="line">            size = w;</span><br><span class="line">            modified = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> modified;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="拓展方法"><a href="#拓展方法" class="headerlink" title="拓展方法"></a>拓展方法</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"> * 返回 要插入当前元素需要的最小容量</span><br><span class="line"> * <span class="meta">@param</span> elementData</span><br><span class="line"> * <span class="meta">@param</span> minCapacity</span><br><span class="line"> * <span class="meta">@return</span></span><br><span class="line"> */</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">int</span> <span class="title">calculateCapacity</span><span class="params">(Object[] elementData, <span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (elementData == DEFAULTCAPACITY_EMPTY_ELEMENTDATA) &#123;</span><br><span class="line">        <span class="keyword">return</span> Math.max(DEFAULT_CAPACITY, minCapacity);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> minCapacity;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 保证内部容量</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ensureCapacityInternal</span><span class="params">(<span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">    ensureExplicitCapacity(calculateCapacity(elementData, minCapacity));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">// 根据所需容量和数组的长度，判断是否需要拓展</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">ensureExplicitCapacity</span><span class="params">(<span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">    modCount++;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// overflow-conscious code</span></span><br><span class="line">    <span class="keyword">if</span> (minCapacity - elementData.length &gt; <span class="number">0</span>)</span><br><span class="line">        grow(minCapacity);</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">void</span> <span class="title">grow</span><span class="params">(<span class="keyword">int</span> minCapacity)</span> </span>&#123;</span><br><span class="line">    <span class="comment">// overflow-conscious code</span></span><br><span class="line">    <span class="keyword">int</span> oldCapacity = elementData.length;</span><br><span class="line">    <span class="keyword">int</span> newCapacity = oldCapacity + (oldCapacity &gt;&gt; <span class="number">1</span>);</span><br><span class="line">    <span class="keyword">if</span> (newCapacity - minCapacity &lt; <span class="number">0</span>)</span><br><span class="line">        newCapacity = minCapacity;</span><br><span class="line">    <span class="keyword">if</span> (newCapacity - MAX_ARRAY_SIZE &gt; <span class="number">0</span>)</span><br><span class="line">        newCapacity = hugeCapacity(minCapacity);</span><br><span class="line">    <span class="comment">// minCapacity is usually close to size, so this is a win:</span></span><br><span class="line">    elementData = Arrays.copyOf(elementData, newCapacity);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h2 id="LinkedList"><a href="#LinkedList" class="headerlink" title="LinkedList"></a>LinkedList</h2><p>链式结构，内部使用Node进行连接，有pre、next、item属性进行前后连接</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">LinkedList</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">extends</span> <span class="title">AbstractSequentialList</span>&lt;<span class="title">E</span>&gt;</span></span><br><span class="line"><span class="class">    <span class="keyword">implements</span> <span class="title">List</span>&lt;<span class="title">E</span>&gt;, <span class="title">Deque</span>&lt;<span class="title">E</span>&gt;, <span class="title">Cloneable</span>, <span class="title">java</span>.<span class="title">io</span>.<span class="title">Serializable</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">transient</span> <span class="keyword">int</span> size = <span class="number">0</span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Pointer to first node.</span></span><br><span class="line"><span class="comment">     * Invariant: (first == null &amp;&amp; last == null) ||</span></span><br><span class="line"><span class="comment">     *            (first.prev == null &amp;&amp; first.item != null)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">transient</span> Node&lt;E&gt; first;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Pointer to last node.</span></span><br><span class="line"><span class="comment">     * Invariant: (first == null &amp;&amp; last == null) ||</span></span><br><span class="line"><span class="comment">     *            (last.next == null &amp;&amp; last.item != null)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">transient</span> Node&lt;E&gt; last;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Constructs an empty list.</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LinkedList</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Constructs a list containing the elements of the specified</span></span><br><span class="line"><span class="comment">     * collection, in the order they are returned by the collection&#x27;s</span></span><br><span class="line"><span class="comment">     * iterator.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span>  c the collection whose elements are to be placed into this list</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> NullPointerException if the specified collection is null</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">LinkedList</span><span class="params">(Collection&lt;? extends E&gt; c)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>();</span><br><span class="line">        addAll(c);</span><br><span class="line">    &#125;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Node</span>&lt;<span class="title">E</span>&gt; </span>&#123;</span><br><span class="line">        E item;</span><br><span class="line">        Node&lt;E&gt; next;</span><br><span class="line">        Node&lt;E&gt; prev;</span><br><span class="line"></span><br><span class="line">        Node(Node&lt;E&gt; prev, E element, Node&lt;E&gt; next) &#123;</span><br><span class="line">            <span class="keyword">this</span>.item = element;</span><br><span class="line">            <span class="keyword">this</span>.next = next;</span><br><span class="line">            <span class="keyword">this</span>.prev = prev;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 截取视频第六帧的图片</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> file 视频路径</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 图片的全路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> String <span class="title">videoImage</span><span class="params">(File file)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String pngPath = <span class="string">&quot;&quot;</span>;</span><br><span class="line">    FFmpegFrameGrabber ff = FFmpegFrameGrabber.createDefault(file);</span><br><span class="line"></span><br><span class="line">    ff.start();</span><br><span class="line">    <span class="keyword">int</span> ffLength = ff.getLengthInFrames();</span><br><span class="line">    Frame f;</span><br><span class="line">    <span class="keyword">int</span> i = <span class="number">0</span>;</span><br><span class="line">    <span class="keyword">while</span> (i &lt; ffLength) &#123;</span><br><span class="line">        f = ff.grabFrame();</span><br><span class="line">        <span class="comment">//截取第6帧</span></span><br><span class="line">        <span class="keyword">if</span> ((i &gt; <span class="number">1</span>) &amp;&amp; (f.image != <span class="keyword">null</span>)) &#123;</span><br><span class="line">            <span class="comment">//生成图片的相对路径 例如：pic/uuid.png</span></span><br><span class="line">            pngPath = getPngPath();</span><br><span class="line">            <span class="comment">//执行截图并放入指定位置</span></span><br><span class="line">            System.out.println(<span class="string">&quot;存储图片 ： &quot;</span> + pngPath);</span><br><span class="line">            doExecuteFrame(f, pngPath);</span><br><span class="line">            <span class="keyword">break</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        i++;</span><br><span class="line">    &#125;</span><br><span class="line">    ff.stop();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> pngPath;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 生成图片的相对路径</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> 图片的相对路径 例：pic/1.png</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> String <span class="title">getPngPath</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> Constants.TEMP_DIR + IdUtil.simpleUUID() + <span class="string">&quot;.png&quot;</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 截取缩略图</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> f                       Frame</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> targerFilePath:封面图片存放路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">doExecuteFrame</span><span class="params">(Frame f, String targerFilePath)</span> </span>&#123;</span><br><span class="line">    String imagemat = <span class="string">&quot;png&quot;</span>;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">null</span> == f || <span class="keyword">null</span> == f.image) &#123;</span><br><span class="line">        <span class="keyword">return</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    Java2DFrameConverter converter = <span class="keyword">new</span> Java2DFrameConverter();</span><br><span class="line">    BufferedImage bi = converter.getBufferedImage(f);</span><br><span class="line">    File output = <span class="keyword">new</span> File(targerFilePath);</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        ImageIO.write(bi, imagemat, output);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-
-
+<h2 id="HashSet"><a href="#HashSet" class="headerlink" title="HashSet"></a>HashSet</h2><p>内部维护了一个HashMap，值的存储作为HashMap的key，值统一为Object。iterator就是hashMap的keySet。</p>
+<p>包括添加删除都是HashMap的方法。</p>
 
       
       <!-- reward -->
@@ -153,7 +195,7 @@
 
 </article>
     
-    <article id="post-SpringBoot/SpringBoot整合Redisson分布式锁" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/yml与properties文件的解析及如何存储" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -161,8 +203,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/04/04/SpringBoot/SpringBoot%E6%95%B4%E5%90%88Redisson%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/"
-    >SpringBoot整合Redisson分布式锁</a
+  <a class="article-title" href="/2021/04/15/SpringBoot/yml%E4%B8%8Eproperties%E6%96%87%E4%BB%B6%E7%9A%84%E8%A7%A3%E6%9E%90%E5%8F%8A%E5%A6%82%E4%BD%95%E5%AD%98%E5%82%A8/"
+    >yml与properties文件的解析及如何存储</a
   >
 </h2>
   
@@ -172,12 +214,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/04/04/SpringBoot/SpringBoot%E6%95%B4%E5%90%88Redisson%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="article-date">
-  <time datetime="2021-04-04T04:00:00.000Z" itemprop="datePublished">2021-04-04</time>
+      <a href="/2021/04/15/SpringBoot/yml%E4%B8%8Eproperties%E6%96%87%E4%BB%B6%E7%9A%84%E8%A7%A3%E6%9E%90%E5%8F%8A%E5%A6%82%E4%BD%95%E5%AD%98%E5%82%A8/" class="article-date">
+  <time datetime="2021-04-14T16:00:00.000Z" itemprop="datePublished">2021-04-15</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
   </div>
 
       
@@ -194,14 +236,7 @@
       
 
       
-      <p>使用redisson包</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.redisson<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>redisson<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.14.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>配置RedissClient</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedissonConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedisProperties properties;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RedissonClient <span class="title">redissonClient</span><span class="params">()</span></span>&#123;</span><br><span class="line">        RedissonClient redissonClient;</span><br><span class="line">        Config config = <span class="keyword">new</span> Config();</span><br><span class="line">        String url = <span class="string">&quot;redis://&quot;</span> + properties.getHost()</span><br><span class="line">                + <span class="string">&quot;:&quot;</span> + properties.getPort();</span><br><span class="line">        config.useSingleServer().setAddress(url) <span class="comment">//单机</span></span><br><span class="line">                .setPassword(StringUtils.isNotBlank(properties.getPassword())? properties.getPassword() : <span class="keyword">null</span>)</span><br><span class="line">                .setDatabase(properties.getDatabase());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//添加主从配置</span></span><br><span class="line">        <span class="comment">//config.useMasterSlaveServers().setMasterAddress(&quot;&quot;).setPassword(&quot;&quot;).addSlaveAddress(new String[]&#123;&quot;&quot;,&quot;&quot;&#125;);</span></span><br><span class="line">        <span class="comment">//集群</span></span><br><span class="line">        <span class="comment">//config.useClusterServers().addNodeAddress(new String[]&#123;&quot;&quot;,&quot;&quot;&#125;).setPassword(&quot;&quot;);</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            redissonClient = Redisson.create(config);</span><br><span class="line">            <span class="keyword">return</span> redissonClient;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            log.error(<span class="string">&quot;RedissonClient init redis url :[&#123;&#125;]&quot;</span>,url,e.getMessage());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>使用RedissonClient操作分布式锁</p>
-
+      
       
       <!-- reward -->
       
@@ -228,7 +263,7 @@
 
 </article>
     
-    <article id="post-Docker/openjdk8-jdk-alpine镜像相关问题" class="article article-type-post" itemscope
+    <article id="post-SpringCloud/openFeign相关问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -236,8 +271,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
-    >openjdk:8-jdk-alpine镜像相关问题</a
+  <a class="article-title" href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
+    >openFeign相关问题</a
   >
 </h2>
   
@@ -247,12 +282,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-04-02T04:00:00.000Z" itemprop="datePublished">2021-04-02</time>
+      <a href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2021-04-14T04:00:00.000Z" itemprop="datePublished">2021-04-14</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Docker/">Docker</a> / <a class="article-category-link" href="/categories/Docker/Java/">Java</a>
+    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
   </div>
 
       
@@ -269,25 +304,16 @@
       
 
       
-      <p>openjdk:8-jdk-alpine镜像没有字体库字体资源(其他版本也可能会有)。若业务有部分字体渲染，图片渲染情况，将无法使用，并且会导致正常的程序出现空指针等异常情况?</p>
-<p>解决办法：增加字体库字体资源</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">8</span>-jdk-alpine</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update ttf-dejavu fontconfig &amp;&amp; rm -rf /var/cache/apk/*</span></span><br></pre></td></tr></table></figure>
+      <h3 id="全局Feign增加请求头"><a href="#全局Feign增加请求头" class="headerlink" title="全局Feign增加请求头"></a>全局Feign增加请求头</h3><p>增加token的Authorization请求头</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 全局的feign调用使用的配置类</span></span><br><span class="line"><span class="comment"> * 1.无法获取attributes的问题，是hystrix机制的隔离策略。最终发现RequestContextHolder.getRequestAttributes()该方法是从ThreadLocal</span></span><br><span class="line"><span class="comment"> * 需要修改配置即可hystrix.command.default.execution.isolation.strategy: SEMAPHORE,但不推荐设置此值</span></span><br><span class="line"><span class="comment"> * 当隔离策略为 THREAD 时，是没办法拿到 ThreadLocal 中的值的。</span></span><br><span class="line"><span class="comment"> * 2. 可自定义配置策略</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> FeignHystrixConcurrencyStrategy https://blog.csdn.net/crystalqy/article/details/79083857</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cgq_r</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020/7/9</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GlobalFeignConfiguration</span> <span class="keyword">implements</span> <span class="title">RequestInterceptor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(RequestTemplate requestTemplate)</span> </span>&#123;</span><br><span class="line">        ServletRequestAttributes attributes = (ServletRequestAttributes)</span><br><span class="line">                RequestContextHolder.getRequestAttributes();</span><br><span class="line">        <span class="keyword">if</span> (attributes != <span class="keyword">null</span>) &#123;</span><br><span class="line">            HttpServletRequest request = attributes.getRequest();</span><br><span class="line">            Enumeration&lt;String&gt; headerNames = request.getHeaderNames();</span><br><span class="line">            <span class="keyword">if</span> (headerNames != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">while</span> (headerNames.hasMoreElements()) &#123;</span><br><span class="line">                    String name = headerNames.nextElement();</span><br><span class="line">                    <span class="keyword">if</span> (Constants.TOKEN_HEADER.toLowerCase().equals(name)) &#123;</span><br><span class="line">                        requestTemplate.header(Constants.TOKEN_HEADER, request.getHeader(name));</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            requestTemplate.header(Constants.GATEWAY_NAME,<span class="keyword">new</span> String(Base64Utils.encode(Constants.GATEWAY_VALUE.getBytes())));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
+<h3 id="Feign调用出现中文乱码问题"><a href="#Feign调用出现中文乱码问题" class="headerlink" title="Feign调用出现中文乱码问题"></a>Feign调用出现中文乱码问题</h3><p>可在FeignClient中的请求@GetMapping等注解添加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">produces &#x3D; MediaType.APPLICATION_JSON_UTF8_VALUE, consumes &#x3D; &quot;application&#x2F;json;charset&#x3D;UTF-8&quot;</span><br></pre></td></tr></table></figure>
 
+<p>或者在Configuration中配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解决因sentinel依赖的jackjson-format-xml默认转为xml结果。设置默认结果为json类型。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> configurer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configureContentNegotiation</span><span class="params">(ContentNegotiationConfigurer configurer)</span> </span>&#123;</span><br><span class="line">    configurer.defaultContentType(MediaType.APPLICATION_JSON);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>如果业务使用到定时任务，则需要设置容器的时区，时间?</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tzdata &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone &amp;&amp; apk del tzdata</span></span><br></pre></td></tr></table></figure>
-
-<p>在Dockerfile增加此语句</p>
-<blockquote>
-<p> 以上，感谢<code>https://www.jianshu.com/p/eaac0b8ee385</code>解决了这些问题</p>
-</blockquote>
-<p>部分图片渲染使用宋体等中文字体时，无法正常显示文字，显示为方框的问题?</p>
-<p>解决方法：增加字体文件</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">COPY</span><span class="bash"> SIMSUN.TTC /usr/share/fonts/</span></span><br></pre></td></tr></table></figure>
-
-<p>将window下C:\windows\fonts下的宋体字体文件拷贝到fonts目录下。如果容器在运行中使用cp到容器里命令，则容器需要重启生效。</p>
-<p>如果以上方式不可用，可参照其他博客，将字体库放在$JAVA_HOME/jre/lib/fonts/fallback下。</p>
+<p>该代码配置默认的上下文类型为JSON，配置默认的内容格式。本来是为了解决意外转换为xml的问题。此处也可以解决。</p>
 
       
       <!-- reward -->
@@ -315,7 +341,7 @@
 
 </article>
     
-    <article id="post-MySQL/mysql常见问题" class="article article-type-post" itemscope
+    <article id="post-Docker/docker-compose相关操作" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -323,8 +349,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/03/30/MySQL/mysql%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/"
-    >mysql常见问题</a
+  <a class="article-title" href="/2021/04/13/Docker/docker-compose%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
+    >docker-compose相关操作</a
   >
 </h2>
   
@@ -334,12 +360,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/03/30/MySQL/mysql%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-03-30T04:00:00.000Z" itemprop="datePublished">2021-03-30</time>
+      <a href="/2021/04/13/Docker/docker-compose%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2021-04-13T04:00:00.000Z" itemprop="datePublished">2021-04-13</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/MySQL/">MySQL</a>
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
   </div>
 
       
@@ -356,11 +382,27 @@
       
 
       
-      <h3 id="Error-executing-DDL-type-MyISAM-via-JDBC-Statement"><a href="#Error-executing-DDL-type-MyISAM-via-JDBC-Statement" class="headerlink" title="Error executing DDL type=MyISAM via JDBC Statement"></a><a target="_blank" rel="noopener" href="https://blog.csdn.net/shandeai520/article/details/103955014">Error executing DDL type=MyISAM via JDBC Statement</a></h3><p>异常:</p>
-<p>2020-01-09 19:22:42.347 WARN 13276 — [ main] o.h.t.s.i.ExceptionHandlerLoggedImpl : GenerationTarget encountered exception accepting command : Error executing DDL “create table Rfe (id bigint not null, reference varchar(255), title varchar(255), primary key (id)) type=MyISAM” via JDBC Statement</p>
-<p>org.hibernate.tool.schema.spi.CommandAcceptanceException: Error executing DDL “create table Rfe (id bigint not null, reference varchar(255), title varchar(255), primary key (id)) type=MyISAM” via JDBC Statement</p>
-<p>at org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase.accept(GenerationTargetToDatabase.java:67) ~[hibernate-core-5.4.9.Final.jar:5.4.9.Final]</p>
-<p>解决: org.hibernate.dialect.MySQLDialect 改为 org.hibernate.dialect.MySQL5Dialect</p>
+      <h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><p>启动容器,-d为后台运行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml up -d [name]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>停止容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml stop [name]</span><br></pre></td></tr></table></figure>
+
+
+
+<p>删除容器，删除前需要先停止容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml rm [name]</span><br></pre></td></tr></table></figure>
+
+<h2 id="docker-compose启动"><a href="#docker-compose启动" class="headerlink" title="docker-compose启动"></a>docker-compose启动</h2><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;2.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">redis-server</span> <span class="string">/usr/local/etc/redis/redis.conf</span> <span class="string">--appendonly</span> <span class="literal">yes</span> <span class="string">--requirepass</span> <span class="string">&#x27;123456&#x27;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/data:/data&quot;</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;6379:6379&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">postgis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">postgis/postgis:11-3.1-alpine</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">postgis</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">POSTGRES_PASSWORD:</span> <span class="string">postgres</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">           <span class="bullet">-</span> <span class="string">&quot;5432:5432&quot;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">           <span class="bullet">-</span> <span class="string">&quot;/home/postgres/data:/var/lib/postgresql/data&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">nacos:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nacos/nacos-server:latest</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">nacos</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">PREFER_HOST_MODE:</span> <span class="string">hostname</span></span><br><span class="line">            <span class="attr">MODE:</span> <span class="string">standalone</span></span><br><span class="line">            <span class="attr">SPRING_DATASOURCE_PLATFORM:</span> <span class="string">mysql</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_HOST:</span> <span class="number">192.168</span><span class="number">.0</span><span class="number">.165</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_DB_NAME:</span> <span class="string">nacos_devtest</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_PORT:</span> <span class="number">3306</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_USER:</span> <span class="string">nacos</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_PASSWORD:</span> <span class="string">nacos</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_DB_PARAM:</span> <span class="string">characterEncoding=utf8&amp;connectTimeout=1000&amp;socketTimeout=3000&amp;autoReconnect=true&amp;useSSL=false</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/nacos/standalone-logs/:/home/nacos/logs&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/nacos/plugins/mysql/:/home/nacos/plugins/mysql/&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;8848:8848&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;9555:9555&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;9848:9848&quot;</span></span><br><span class="line">        <span class="attr">depends_on:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">mysql</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="在docker-compose中使用自定义网关"><a href="#在docker-compose中使用自定义网关" class="headerlink" title="在docker-compose中使用自定义网关"></a>在docker-compose中使用自定义网关</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create custom_nt --subnet 192.168.137.0/24</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;2.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">	<span class="attr">custom_nt:</span></span><br><span class="line">		<span class="attr">external:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">redis</span></span><br><span class="line">        <span class="comment">#network_mode: bridge</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">redis-server</span> <span class="string">/usr/local/etc/redis/redis.conf</span> <span class="string">--appendonly</span> <span class="literal">yes</span> <span class="string">--requirepass</span> <span class="string">&#x27;123456&#x27;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/data:/data&quot;</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;6379:6379&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">          <span class="attr">custom_nt:</span></span><br><span class="line">            <span class="attr">ipv4_address:</span> <span class="number">192.168</span><span class="number">.137</span><span class="number">.5</span></span><br></pre></td></tr></table></figure>
+
 
       
       <!-- reward -->
@@ -388,18 +430,33 @@
 
 </article>
     
-    <article id="post-mysql" class="article article-type-post" itemscope
+    <article id="post-Java/Java设计模式" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
     
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/13/Java/Java%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"
+    >Java 设计模式</a
+  >
+</h2>
+  
+
+    </header>
+    
 
     
     <div class="article-meta">
-      <a href="/2021/03/30/mysql/" class="article-date">
-  <time datetime="2021-03-30T01:10:21.923Z" itemprop="datePublished">2021-03-30</time>
+      <a href="/2021/04/13/Java/Java%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="article-date">
+  <time datetime="2021-04-13T04:00:00.000Z" itemprop="datePublished">2021-04-13</time>
 </a>
       
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
       
       
       
@@ -414,10 +471,7 @@
       
 
       
-      <h4 id="技巧"><a href="#技巧" class="headerlink" title="技巧"></a>技巧</h4><p>避免使用blob和text进行排序，否则使用substring(column,length)截取为字符串进行排序，尽量截取的足够短，不会使临时表的大小超过max_heap_table_size或temp_table_size。或mysql默认的max_sort_length配置，并可以减小此配置的值。</p>
-<p>如果explain执行计划中的Extra包含“Using temporay”，说明这个查询使用了隐式临时表。</p>
-<p>枚举数据类型存储常用的字符串类型，应避免枚举值为数字，且排序是按照枚举出的值的先后顺序排序的，与本身枚举值无关。</p>
-
+      <h2 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h2><h2 id="工厂方法模式"><a href="#工厂方法模式" class="headerlink" title="工厂方法模式"></a>工厂方法模式</h2><h2 id="适配器模式"><a href="#适配器模式" class="headerlink" title="适配器模式"></a>适配器模式</h2>
       
       <!-- reward -->
       
@@ -450,7 +504,7 @@
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/6/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/51/">51</a><a class="extend next" rel="next" href="/page/8/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/6/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/5/">5</a><a class="page-number" href="/page/6/">6</a><span class="page-number current">7</span><a class="page-number" href="/page/8/">8</a><a class="page-number" href="/page/9/">9</a><span class="space">&hellip;</span><a class="page-number" href="/page/53/">53</a><a class="extend next" rel="next" href="/page/8/">下一页</a>
   </nav>
   
 </section>

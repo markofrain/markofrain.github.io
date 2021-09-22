@@ -1,6 +1,148 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>IDEA中.gitignore无效的问题</title>
+    <url>/2021/09/22/IDEA%E4%B8%AD.gitignore%E6%97%A0%E6%95%88%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<blockquote>
+<p>参考</p>
+<p><a href="https://blog.csdn.net/qq_43705131/article/details/107989768">https://blog.csdn.net/qq_43705131/article/details/107989768</a></p>
+<p><a href="https://blog.csdn.net/wqkeep/article/details/110670280">https://blog.csdn.net/wqkeep/article/details/110670280</a></p>
+</blockquote>
+<p>首先执行 </p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git rm -rf --cached .</span><br></pre></td></tr></table></figure>
+
+<p>然后执行add或者手动选择进行add</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">git add .</span><br></pre></td></tr></table></figure>
+
+<p>理论上上这种情况就好了。</p>
+<p>但是还有另一种情况就是在github上已经存在了你要排除的文件，此时上面的操作依然会导致changelist中有无法排出的目录文件。</p>
+<p>所以需要在github上删除之前误提交的target，然后重新更新即可。</p>
+]]></content>
+      <categories>
+        <category>杂项</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>内网穿透vue项目时提示Invalid Host header问题</title>
+    <url>/2021/09/20/Vue/%E5%86%85%E7%BD%91%E7%A9%BF%E9%80%8Fvue%E9%A1%B9%E7%9B%AE%E6%97%B6%E6%8F%90%E7%A4%BAInvalid-Host-header%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>在Vue根目录下创建Vue.config.js并添加代码</p>
+<figure class="highlight javascript"><table><tr><td class="code"><pre><span class="line"><span class="built_in">module</span>.exports = &#123;</span><br><span class="line">   devServer: &#123;</span><br><span class="line">      disableHostCheck: <span class="literal">true</span></span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Vue</category>
+      </categories>
+      <tags>
+        <tag>Vue</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title></title>
+    <url>/2021/09/19/Spring/Spring%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90%E8%AF%B4%E6%98%8E/</url>
+    <content><![CDATA[<p>AbstractApplicationContext#prepareBeanFactory</p>
+<h3 id="ignoreDependencyInterface"><a href="#ignoreDependencyInterface" class="headerlink" title="ignoreDependencyInterface"></a>ignoreDependencyInterface</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">beanFactory.ignoreDependencyInterface(EnvironmentAware.class);</span><br><span class="line">beanFactory.ignoreDependencyInterface(EmbeddedValueResolverAware.class);</span><br><span class="line">beanFactory.ignoreDependencyInterface(ResourceLoaderAware.class);</span><br><span class="line">beanFactory.ignoreDependencyInterface(ApplicationEventPublisherAware.class);</span><br><span class="line">beanFactory.ignoreDependencyInterface(MessageSourceAware.class);</span><br><span class="line">beanFactory.ignoreDependencyInterface(ApplicationContextAware.class);</span><br></pre></td></tr></table></figure>
+
+<p>要忽略依赖的接口。实现了这些接口的Bean中的属性不会被自动注入了。</p>
+<p>普遍认为：</p>
+<p>Spring的普通bean的依赖注入时从容器中寻找符合条件的Bean注入进来，但对于特殊的bean如容器ApplicationContext，BeanFactory本身，是无法在容器中找到的，这种Bean需要特定的方法来进行注入，即通过ApplicationContextAware和BeanFactoryAware来注入。<br>Spring中已经将ApplicationContextAware和BeanFactoryAware作为依赖忽略接口，当有bean实现了这些接口，表示他们需要一个ApplicationContext注入到自己的applicationContextAware属性中，会存在以下情况：</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> ApplicationContext applicationContext;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> set <span class="title">applicationContext</span><span class="params">(ApplicationContext context)</span></span>&#123;</span><br><span class="line">	<span class="comment">//入参类型和属性类型相同，忽略注入</span></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此时就会忽略这个ApplicationContext依赖的注入。</p>
+<h3 id="registerResolvableDependency"><a href="#registerResolvableDependency" class="headerlink" title="registerResolvableDependency"></a>registerResolvableDependency</h3><figure class="highlight java"><table><tr><td class="code"><pre><span class="line">beanFactory.registerResolvableDependency(BeanFactory.class, beanFactory);</span><br><span class="line">beanFactory.registerResolvableDependency(ResourceLoader.class, <span class="keyword">this</span>);</span><br><span class="line">beanFactory.registerResolvableDependency(ApplicationEventPublisher.class, <span class="keyword">this</span>);</span><br><span class="line">beanFactory.registerResolvableDependency(ApplicationContext.class, <span class="keyword">this</span>);</span><br></pre></td></tr></table></figure>
+
+<p>表示任何实现该接口的bean，在被注入时的实例都为指定的该实例。</p>
+<p>例如bean实现ApplicationContext，则当bean的属性注入的时候，一旦检测到属性为ApplicationContext类型便会将ApplicationContext的实例注入进去</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>基于netty的简单rpc项目原理</title>
+    <url>/2021/09/18/Netty/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E7%AE%80%E5%8D%95rpc%E9%A1%B9%E7%9B%AE%E5%8E%9F%E7%90%86/</url>
+    <content><![CDATA[<blockquote>
+<p>个人理解项目来自：</p>
+<p><a href="https://github.com/luxiaoxun/NettyRpc">https://github.com/luxiaoxun/NettyRpc</a></p>
+<p><a href="https://www.cnblogs.com/luxiaoxun/p/5272384.html">https://www.cnblogs.com/luxiaoxun/p/5272384.html</a></p>
+<p><a href="https://www.cnblogs.com/LBSer/p/4853234.html">https://www.cnblogs.com/LBSer/p/4853234.html</a></p>
+</blockquote>
+<p>该程序是一个简单的rpc调用项目，客户端可以远程调用服务端的方法。</p>
+<p>使用zookeeper作为服务注册和服务发现，zookeeper可以充当一个<code>服务注册表</code>（Service Registry），让多个<code>服务提供者</code>形成一个集群，让<code>服务消费者</code>通过服务注册表获取具体的服务访问地址（ip+端口）去访问具体的服务提供者。同时zookeeper可以集群，放置多分，客户端可以负载均衡获取。</p>
+<h3 id="服务端"><a href="#服务端" class="headerlink" title="服务端"></a>服务端</h3><p>服务端会将要发布的服务的相关信息放到zk上。将需要发布的接口方法组成对象，上传到zk中的某个节点中。具体如何组成，项目中使用注解标注要作为发布服务的类上。在handler类中，获取客户端传来的数据，通过反射的方式执行，并将结果返回</p>
+<h3 id="客户端"><a href="#客户端" class="headerlink" title="客户端"></a>客户端</h3><p>客户端主要先进行服务发现，创建的RpcClient对象，首先从zk中获取指定位置的节点，并获取到数据。循环获取到的数据，其中包含了服务端的连接地址，进行客户端连接地址。连接完成后会获取通道中的RpcClientHandler客户端处理handler，并设置上服务端连接参数，将handler作为值，服务端参数对象作为键，添加到客户端的连接节点map中，这个连接的操作是异步的。</p>
+<p>通过调用createAsyncService方法获取到要调用的服务，其实是一个代理类，他需要指定服务类作为参数构建。当调用call方法时，会通过服务标识键获取RpcClientHandler，也就是获取zk中连接节点后，会通过负载均衡策略的方式。找到handler后，通过已有的需要调用的服务的服务类和方法、参数组成request对象在handler中发送这个对象。在服务端的处理handler中就会进行反射执行方法并返回结果。</p>
+]]></content>
+      <categories>
+        <category>Netty</category>
+      </categories>
+      <tags>
+        <tag>RPC</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Spring常用类接口说明</title>
+    <url>/2021/09/18/Spring/Spring%E5%B8%B8%E7%94%A8%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+      <tags>
+        <tag>Spring</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>在docker中使用jdk jstack工具没有权限无法输出的问题</title>
+    <url>/2021/09/16/Java/%E5%9C%A8docker%E4%B8%AD%E4%BD%BF%E7%94%A8jdk-jstack%E5%B7%A5%E5%85%B7%E6%B2%A1%E6%9C%89%E6%9D%83%E9%99%90%E6%97%A0%E6%B3%95%E8%BE%93%E5%87%BA%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p>docker中执行jdk提供的命令出现问题</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">root@f07b5d6d235c:/usr/local/tomcat# jstack -F 1</span><br><span class="line">Attaching to process ID 1, please wait...</span><br><span class="line">ERROR: ptrace(PTRACE_ATTACH, ..) failed for 1: Operation not permitted</span><br><span class="line">Error attaching to process: sun.jvm.hotspot.debugger.DebuggerException: Can&#x27;t attach to the process: ptrace(PTRACE_ATTACH, ..) failed for 1: Operation not permitted</span><br><span class="line">sun.jvm.hotspot.debugger.DebuggerException: sun.jvm.hotspot.debugger.DebuggerException: Can&#x27;t attach to the process: ptrace(PTRACE_ATTACH, ..) failed for 1: Operation not permitted</span><br><span class="line">        at sun.jvm.hotspot.debugger.linux.LinuxDebuggerLocal$LinuxDebuggerLocalWorkerThread.execute(LinuxDebuggerLocal.java:163)</span><br></pre></td></tr></table></figure>
+
+<p>解决方法</p>
+<p>运行容器时加入对应设置，使容器支持相关命令的使用。在日东容器时添加相关参数</p>
+<p><code>--cap-add=SYS_PTRACE</code></p>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
+        <tag>Java</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>记调用方法时执行一半就直接结束，控制台无日志的问题</title>
+    <url>/2021/09/16/Java/%E8%AE%B0%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95%E6%97%B6%E6%89%A7%E8%A1%8C%E4%B8%80%E5%8D%8A%E5%B0%B1%E7%9B%B4%E6%8E%A5%E7%BB%93%E6%9D%9F%EF%BC%8C%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%97%A0%E6%97%A5%E5%BF%97%E7%9A%84%E9%97%AE%E9%A2%98/</url>
+    <content><![CDATA[<p><img src="D:%5CmyBlog%5Csource_posts%5CJava%5C%E8%AE%B0%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95%E6%97%B6%E6%89%A7%E8%A1%8C%E4%B8%80%E5%8D%8A%E5%B0%B1%E7%9B%B4%E6%8E%A5%E7%BB%93%E6%9D%9F%EF%BC%8C%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%97%A0%E6%97%A5%E5%BF%97%E7%9A%84%E9%97%AE%E9%A2%98%5Cimage-20210916181209878.png" alt="image-20210916181209878"></p>
+<p>在子线程9调用方法执行时，执行到insert into 语句，后面就没有了，没有打印parameter参数日志和更新日志，也没有后续输出。没有报错显示。页面上接口请求结果状态为200，但没有任何响应内容。</p>
+<p>找不到原因，在本机是好的。</p>
+<p>因为是在docker中，因此尝试用jstack查看堆栈信息，arthas查看方法执行路径。</p>
+<p>通过jstack命令输出时，遇到了docker中的问题，因为权限禁止问题，无法输出结果。可在容器启动时增加<code>--cap-add=SYS_PTRACE</code>解决。但是没有查看到任何有用的信息。</p>
+<p>因此通过arthas查看方法执行路径。</p>
+<p>在已经启动容器后使用命令在docker中安装arthas并使用。此处对于有外网的这么执行，没有外网的，只能将arthas安装到基础镜像或集成到代码中。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker exec -it  $&#123;containerId&#125; /bin/bash -c &quot;wget https://arthas.aliyun.com/arthas-boot.jar &amp;&amp; java -jar arthas-boot.jar&quot;</span><br></pre></td></tr></table></figure>
+
+<p>使用<code>trace</code>命令，方法内部调用路径，并输出方法路径上的每个节点上耗时</p>
+<p>使用</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">trace 完全限定类名 方法名</span><br></pre></td></tr></table></figure>
+
+<p>此时arthas控制台处于监听状态，当程序执行到这个方法的时候就会打印出相关信息。</p>
+<figure class="highlight txt"><table><tr><td class="code"><pre><span class="line">`---ts=2021-09-16 16:54:49;thread_name=http-nio-8080-exec-4;id=3b;is_daemon=true;priority=5;TCCL=org.apache.catalina.loader.ParallelWebappClassLoader@2d20d2d3</span><br><span class="line">    `---[18.767993ms] com.jeeplus.modules.serve.resources.web.ResourcesController$$EnhancerBySpringCGLIB$$de1d72b3:save()</span><br><span class="line">        `---[18.734792ms] org.springframework.cglib.proxy.MethodInterceptor:intercept()</span><br><span class="line">            `---[18.436043ms] com.jeeplus.modules.serve.resources.web.ResourcesController:save() [throws Exception]</span><br><span class="line">                +---[0.00907ms] com.jeeplus.common.json.AjaxJson:&lt;init&gt;() #109</span><br><span class="line">                +---[0.023273ms] com.jeeplus.common.config.Global:isDemoMode() #110</span><br><span class="line">                +---[0.350471ms] com.jeeplus.modules.serve.resources.web.ResourcesController:beanValidator() #116</span><br><span class="line">                +---[0.006055ms] com.jeeplus.common.utils.StringUtils:isNotBlank() #117</span><br><span class="line">                +---[0.160716ms] com.jeeplus.modules.serve.resources.entity.Resources:getId() #124</span><br><span class="line">                +---[0.005772ms] com.jeeplus.common.utils.StringUtils:isBlank() #124</span><br><span class="line">                +---[0.00593ms] com.google.common.collect.Lists:newArrayList() #125</span><br><span class="line">                +---[7.40911ms] com.jeeplus.modules.serve.resources.service.ResourcesService:findAllResources() #126</span><br><span class="line">                +---[0.009522ms] com.jeeplus.modules.serve.resources.entity.Resources:getParentId() #127</span><br><span class="line">                +---[0.017844ms] com.jeeplus.modules.serve.resources.entity.Resources:sortList() #127</span><br><span class="line">                +---[0.005862ms] com.jeeplus.modules.serve.resources.entity.Resources:getSort() #129</span><br><span class="line">                +---[0.005607ms] com.jeeplus.modules.serve.resources.entity.Resources:setSort() #129</span><br><span class="line">                +---[4.375733ms] com.jeeplus.modules.serve.resources.service.ResourcesService:existMc() #133</span><br><span class="line">                +---[0.009542ms] com.jeeplus.common.utils.StringUtils:isNotBlank() #134</span><br><span class="line">                +---[0.006012ms] com.jeeplus.modules.serve.resources.entity.Resources:getName() #139</span><br><span class="line">                +---[0.005717ms] com.jeeplus.common.utils.StringUtils:isNotBlank() #139</span><br><span class="line">                +---[0.00614ms] com.jeeplus.common.utils.StringUtils:isBlank() #139</span><br><span class="line">                +---[5.325602ms] com.jeeplus.modules.serve.resources.service.ResourcesService:saveResources() #140 [throws Exception]</span><br><span class="line">                `---throw:org.springframework.jdbc.UncategorizedSQLException #89 [</span><br><span class="line">### Error updating database.  Cause: java.sql.SQLException: sql injection violation, syntax error: ERROR. pos 159, line 11, column 13, token SHOW : INSERT INTO sk_resources(</span><br><span class="line">                        id,</span><br><span class="line">                        parent_id,</span><br><span class="line">                        parent_ids,</span><br><span class="line">                        name,</span><br><span class="line">                        sort,</span><br><span class="line">                        create_by,</span><br><span class="line">                        create_date,</span><br><span class="line">                        update_by,</span><br><span class="line">                        update_date,</span><br><span class="line">                        remarks,</span><br><span class="line">                        show,</span><br><span class="line">                        del_flag</span><br><span class="line">                ) VALUES (</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?,</span><br><span class="line">                        ?</span><br><span class="line">                )</span><br><span class="line">### SQL: INSERT INTO sk_resources(    id,    parent_id,    parent_ids,    name,    sort,    create_by,    create_date,    update_by,    update_date,    remarks,    show,    del_flag   ) VALUES (    ?,    ?,    ?,    ?,    ?,    ?,    ?,    ?,    ?,    ?,    ?,    ?   )</span><br></pre></td></tr></table></figure>
+
+<p>可以看到在执行语句的时候报错。错误信息为sql injection violation, syntax error: ERROR. pos 159, line 11, column 13, token SHOW</p>
+<p>sql injection violation，经过多方面查找，发现其是druid数据源包的WallFilter类中输出的。该类是防火墙过滤器，因为某些原因拦截了不安全或注入问题的sql。输出的内容是token SHOW。推论可能是show字段的问题。在网上有很多，包括多逗号，update返回值为void等等都会导致sql injection violation问题。WallFilter里配置了各种方法。可能因为show字段是备用关键字或其他原因，在其他表的show字段上也出现了这个问题，都指向show字段。</p>
+<p>简单的解决方式是，配置druid的wall过滤器配置，默认情况下druid的wall过滤器是不配置的，如果配置了则删除或关闭。但是此处使用的baomidou的动态数据源框架整合的druid，它自己定义了druid的配置，并将过滤器的配置使用filters属性进行设置。</p>
+<p>配置druid在spring.datasource.dynamic.druid处。对应着<code>com.baomidou.dynamic.datasource.spring.boot.autoconfigure.druidDruidConfig</code>配置类，<code>filters</code>子属性就是配置过滤器，如果不配置默认设置为<code>stat,wall</code>，这是过滤器的简称。</p>
+<p>在druid包中，各过滤器的简称配置在META-INF/druid-filter.properties文件中，包括10个过滤器。</p>
+<p>因此最后的解决方案就是将filters的属性值改为<code>stat</code>即可。stat是主要负责监控sql的。</p>
+]]></content>
+      <categories>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>Docker</tag>
+        <tag>Java</tag>
+        <tag>SpringBoot</tag>
+        <tag>项目问题</tag>
+        <tag>Arthas</tag>
+      </tags>
+  </entry>
+  <entry>
     <title>有关使用Spring Security时跨域失效配置</title>
     <url>/2021/07/13/SpringBoot/%E6%9C%89%E5%85%B3%E4%BD%BF%E7%94%A8SpringSecurity%E6%97%B6%E8%B7%A8%E5%9F%9F%E5%A4%B1%E6%95%88%E9%85%8D%E7%BD%AE/</url>
     <content><![CDATA[<blockquote>
@@ -200,8 +342,11 @@
 ]]></content>
       <categories>
         <category>ArcGIS</category>
-        <category>PostgreSQL</category>
       </categories>
+      <tags>
+        <tag>ArcGIS</tag>
+        <tag>PostgreSQL</tag>
+      </tags>
   </entry>
   <entry>
     <title>Spring中出现的问题</title>
@@ -267,6 +412,7 @@
 <p>使用<code>ALTER DATABASE sxkfk set search_path to public,business,temp,current;</code>似乎没有任何效果，<code>alter user</code>是有效果的。</p>
 <p>但是使用<code>alter user sxkf reset search_path</code>来重置search_path，虽然pg_role看不到了。但是已经设置过的还在，没有重置，使用<code>alter database sxkfk reset search_path</code>确还原了，还原成默认<code>&quot;$user&quot;,public</code>。</p>
 <p>以上测试问题，通过postgresql.conf的参数设置章节了解到，配置文件&lt;alter database&lt;alter user&lt;set这种优先级。</p>
+<h4 id="设置权限"><a href="#设置权限" class="headerlink" title="设置权限"></a>设置权限</h4><p><a href="https://www.cnblogs.com/wang_yb/p/14262736.html">https://www.cnblogs.com/wang_yb/p/14262736.html</a></p>
 <h2 id="常用查询"><a href="#常用查询" class="headerlink" title="常用查询"></a>常用查询</h2><h3 id="查询当前数据库下的各模式信息"><a href="#查询当前数据库下的各模式信息" class="headerlink" title="查询当前数据库下的各模式信息"></a>查询当前数据库下的各模式信息</h3><ol>
 <li><p>查询各模式下所有表</p>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
@@ -427,11 +573,10 @@
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class </span><br><span class="line"><span class="keyword">where</span> relowner=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_roles <span class="keyword">where</span> rolname=<span class="string">&#x27;sxkf&#x27;</span>) <span class="comment">-- 角色名</span></span><br><span class="line"><span class="keyword">and</span> relname=<span class="string">&#x27;czkfbj&#x27;</span>;</span><br></pre></td></tr></table></figure>
 
 <ol start="2">
-<li><p>只有一个角色，多个模式，多个相同的表</p>
+<li>只有一个角色，多个模式，多个相同的表</li>
+</ol>
 <figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class</span><br><span class="line"><span class="keyword">where</span> relowner=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_roles <span class="keyword">where</span> rolname=<span class="string">&#x27;sxkf&#x27;</span>) <span class="comment">-- 角色名</span></span><br><span class="line">    <span class="keyword">and</span> relname=<span class="string">&#x27;czkfbj&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;temp&#x27;</span>)<span class="comment">--模式名</span></span><br><span class="line">;</span><br></pre></td></tr></table></figure>
 
-</li>
-</ol>
 <h3 id="获取指定模式下，某表的所有字段"><a href="#获取指定模式下，某表的所有字段" class="headerlink" title="获取指定模式下，某表的所有字段"></a>获取指定模式下，某表的所有字段</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> a.attnum, a.attname <span class="keyword">AS</span> <span class="keyword">field</span>, t.typname <span class="keyword">AS</span> <span class="keyword">type</span>, a.attlen <span class="keyword">AS</span> <span class="keyword">length</span> <span class="keyword">from</span> pg_class c ,pg_attribute a,pg_type t</span><br><span class="line"><span class="keyword">where</span> c.relname=<span class="string">&#x27;czkfbj&#x27;</span> <span class="comment">-- 指定表</span></span><br><span class="line">    <span class="keyword">AND</span> a.attnum &gt; <span class="number">0</span></span><br><span class="line">    <span class="keyword">AND</span> a.attrelid = c.oid</span><br><span class="line">    <span class="keyword">AND</span> a.atttypid = t.oid</span><br><span class="line"><span class="keyword">and</span> c.relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;temp&#x27;</span>) <span class="comment">-- 指定了此模式下</span></span><br><span class="line">;</span><br></pre></td></tr></table></figure>
 
 <p>如果不添加模式的话，如果多个模式都有同名的表，并且字段都不一样，那么取所有的字段到某个模式下查询表的话就会出现字段不存在的情况。</p>
@@ -526,6 +671,15 @@
 <td></td>
 </tr>
 </tbody></table>
+<h2 id="docker相关设置"><a href="#docker相关设置" class="headerlink" title="docker相关设置"></a>docker相关设置</h2><h3 id="在docker-compose启动的时候设置最大连接数"><a href="#在docker-compose启动的时候设置最大连接数" class="headerlink" title="在docker-compose启动的时候设置最大连接数"></a>在docker-compose启动的时候设置最大连接数</h3><p>在yml文件中，增加command属性，值为数组的yml展示方式</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">command:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">postgres</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">-c</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">max_connections=2000</span></span><br></pre></td></tr></table></figure>
+
+<p>使用docker命令启动时，在最后输入命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker run -d --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword postgres -c shared_buffers=256MB -c max_connections=2000</span><br></pre></td></tr></table></figure>
+
+<blockquote>
+<p><a href="https://registry.hub.docker.com/_/postgres?tab=description&page=1&ordering=last_updated">dockerhub postgres</a></p>
+</blockquote>
 ]]></content>
       <categories>
         <category>PostgreSQL</category>
@@ -806,6 +960,18 @@
       </categories>
   </entry>
   <entry>
+    <title>源码解析-缓存模块</title>
+    <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97/</url>
+    <content><![CDATA[<p>一级缓存是会话级别的缓存，在MyBatis中每创建一个SqlSession 对象，就表示开启一次数据库回话。</p>
+<p>在一次会话中，应用程序可能会在很短的时间内，例如执行一个事务内，反复执行完成相同的查询语句，如果不对数据进行缓存，那么每次查询都会执行一次数据库查询操作。</p>
+<p>一级缓存的生命周期与SqlSession相同，其实也就与SqlSession中封装的Executor对象的生命周期相同。当调用Executor对象的close()方法时，该Executor对象对应的一级缓存就变得不可用。</p>
+<p>在调用Executor.update()方法时，会先清空一级缓存。</p>
+]]></content>
+      <categories>
+        <category>MyBatis</category>
+      </categories>
+  </entry>
+  <entry>
     <title>源码解析-Executor-BaseExecutor</title>
     <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-Executor-BaseExecutor/</url>
     <content><![CDATA[<h2 id="关键类接口"><a href="#关键类接口" class="headerlink" title="关键类接口"></a>关键类接口</h2><p>Executor</p>
@@ -844,18 +1010,6 @@
 
 
 
-]]></content>
-      <categories>
-        <category>MyBatis</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>源码解析-缓存模块</title>
-    <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97/</url>
-    <content><![CDATA[<p>一级缓存是会话级别的缓存，在MyBatis中每创建一个SqlSession 对象，就表示开启一次数据库回话。</p>
-<p>在一次会话中，应用程序可能会在很短的时间内，例如执行一个事务内，反复执行完成相同的查询语句，如果不对数据进行缓存，那么每次查询都会执行一次数据库查询操作。</p>
-<p>一级缓存的生命周期与SqlSession相同，其实也就与SqlSession中封装的Executor对象的生命周期相同。当调用Executor对象的close()方法时，该Executor对象对应的一级缓存就变得不可用。</p>
-<p>在调用Executor.update()方法时，会先清空一级缓存。</p>
 ]]></content>
       <categories>
         <category>MyBatis</category>
@@ -1495,7 +1649,7 @@
   <entry>
     <title>docker-compose相关操作</title>
     <url>/2021/04/13/Docker/docker-compose%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[<h2 id=""><a href="#" class="headerlink" title=""></a></h2><p>启动容器,-d为后台运行</p>
+    <content><![CDATA[<h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><p>启动容器,-d为后台运行</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker-compose -f stack.yml up -d [name]</span><br></pre></td></tr></table></figure>
 
 
@@ -1507,6 +1661,14 @@
 
 <p>删除容器，删除前需要先停止容器</p>
 <figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker-compose -f stack.yml rm [name]</span><br></pre></td></tr></table></figure>
+
+<h2 id="docker-compose启动"><a href="#docker-compose启动" class="headerlink" title="docker-compose启动"></a>docker-compose启动</h2><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;2.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">redis-server</span> <span class="string">/usr/local/etc/redis/redis.conf</span> <span class="string">--appendonly</span> <span class="literal">yes</span> <span class="string">--requirepass</span> <span class="string">&#x27;123456&#x27;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/data:/data&quot;</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;6379:6379&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">postgis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">postgis/postgis:11-3.1-alpine</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">postgis</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">POSTGRES_PASSWORD:</span> <span class="string">postgres</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">           <span class="bullet">-</span> <span class="string">&quot;5432:5432&quot;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">           <span class="bullet">-</span> <span class="string">&quot;/home/postgres/data:/var/lib/postgresql/data&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">nacos:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nacos/nacos-server:latest</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">nacos</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">PREFER_HOST_MODE:</span> <span class="string">hostname</span></span><br><span class="line">            <span class="attr">MODE:</span> <span class="string">standalone</span></span><br><span class="line">            <span class="attr">SPRING_DATASOURCE_PLATFORM:</span> <span class="string">mysql</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_HOST:</span> <span class="number">192.168</span><span class="number">.0</span><span class="number">.165</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_DB_NAME:</span> <span class="string">nacos_devtest</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_PORT:</span> <span class="number">3306</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_USER:</span> <span class="string">nacos</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_PASSWORD:</span> <span class="string">nacos</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_DB_PARAM:</span> <span class="string">characterEncoding=utf8&amp;connectTimeout=1000&amp;socketTimeout=3000&amp;autoReconnect=true&amp;useSSL=false</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/nacos/standalone-logs/:/home/nacos/logs&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/nacos/plugins/mysql/:/home/nacos/plugins/mysql/&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;8848:8848&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;9555:9555&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;9848:9848&quot;</span></span><br><span class="line">        <span class="attr">depends_on:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">mysql</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="在docker-compose中使用自定义网关"><a href="#在docker-compose中使用自定义网关" class="headerlink" title="在docker-compose中使用自定义网关"></a>在docker-compose中使用自定义网关</h3><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker network create custom_nt --subnet 192.168.137.0/24</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;2.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">	<span class="attr">custom_nt:</span></span><br><span class="line">		<span class="attr">external:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">redis</span></span><br><span class="line">        <span class="comment">#network_mode: bridge</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">redis-server</span> <span class="string">/usr/local/etc/redis/redis.conf</span> <span class="string">--appendonly</span> <span class="literal">yes</span> <span class="string">--requirepass</span> <span class="string">&#x27;123456&#x27;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/data:/data&quot;</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;6379:6379&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">          <span class="attr">custom_nt:</span></span><br><span class="line">            <span class="attr">ipv4_address:</span> <span class="number">192.168</span><span class="number">.137</span><span class="number">.5</span></span><br></pre></td></tr></table></figure>
 
 ]]></content>
       <categories>
@@ -4981,8 +5143,8 @@
         <category>PostgreSQL</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>PostgreSQL</tag>
+        <tag>数据库</tag>
       </tags>
   </entry>
   <entry>
@@ -5068,28 +5230,6 @@
       </tags>
   </entry>
   <entry>
-    <title>Activiti获取当前节点的上下并行网关V5.21</title>
-    <url>/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/</url>
-    <content><![CDATA[<p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
-<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
-<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
-<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
-<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
-<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
-]]></content>
-      <categories>
-        <category>Activiti</category>
-      </categories>
-      <tags>
-        <tag>Activiti</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>Activiti自定义流程设计器用户简单属性V5.21</title>
     <url>/2020/05/22/Activiti/Activiti%E8%87%AA%E5%AE%9A%E4%B9%89%E6%B5%81%E7%A8%8B%E8%AE%BE%E8%AE%A1%E5%99%A8%E7%AE%80%E5%8D%95%E5%B1%9E%E6%80%A7/</url>
     <content><![CDATA[<h2 id="编辑stencilset-json文件"><a href="#编辑stencilset-json文件" class="headerlink" title="编辑stencilset.json文件"></a>编辑stencilset.json文件</h2><p>在集成activiti的流程会绘制工具后，在resource下会有stencilset.json文件，该文件为BPMN的流程编辑器配置。用于完善和布局整个流程设计器。</p>
@@ -5148,6 +5288,28 @@
 <p>在如上代码中，首先判断flowElements是否是UserTask，如果看bpmn20.xml可以完全的看出来</p>
 <img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200523170140.png" style="zoom:70%;" />
 
+]]></content>
+      <categories>
+        <category>Activiti</category>
+      </categories>
+      <tags>
+        <tag>Activiti</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>Activiti获取当前节点的上下并行网关V5.21</title>
+    <url>/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/</url>
+    <content><![CDATA[<p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
+<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
+<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
+<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
+<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
 ]]></content>
       <categories>
         <category>Activiti</category>
@@ -5582,8 +5744,8 @@
         <category>PostgreSQL</category>
       </categories>
       <tags>
-        <tag>数据库</tag>
         <tag>PostgreSQL</tag>
+        <tag>数据库</tag>
       </tags>
   </entry>
   <entry>
@@ -13314,8 +13476,8 @@ trigger = newTrigger()
         <category>Java</category>
       </categories>
       <tags>
-        <tag>quartz</tag>
         <tag>任务调度</tag>
+        <tag>quartz</tag>
       </tags>
   </entry>
   <entry>
@@ -15202,11 +15364,8 @@ $(&apos;#table&apos;).bootstrapTable(&apos;refresh&apos;);</code></pre><h3 id="�
 <p>win徽标+R，打开运行窗口，输入secpol.msc，进入【本地安全策略】，选择【账户策略】，【密码策略】，右侧【密码必须符合复杂性要求】，右击禁用</p>
 ]]></content>
       <categories>
-        <category>杂项</category>
+        <category>ArcGIS</category>
       </categories>
-      <tags>
-        <tag>Arcgis</tag>
-      </tags>
   </entry>
   <entry>
     <title>Oracle数据库expdp,impdp命令数据库导入导出</title>

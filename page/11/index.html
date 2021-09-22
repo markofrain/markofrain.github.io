@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-PostGIS/PostGIS相关操作" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/SpringBoot-actuator404-Could-not-find-acceptable-representation" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/02/24/PostGIS/PostGIS%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
-    >PostGIS相关操作</a
+  <a class="article-title" href="/2021/03/18/SpringBoot/SpringBoot-actuator404-Could-not-find-acceptable-representation/"
+    >SpringBoot actuator404 Could not find acceptable representation</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/02/24/PostGIS/PostGIS%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2021-02-24T06:00:00.000Z" itemprop="datePublished">2021-02-24</time>
+      <a href="/2021/03/18/SpringBoot/SpringBoot-actuator404-Could-not-find-acceptable-representation/" class="article-date">
+  <time datetime="2021-03-18T04:00:00.000Z" itemprop="datePublished">2021-03-18</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/PostGIS/">PostGIS</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
   </div>
 
       
@@ -119,439 +119,419 @@
       
 
       
-      <h2 id="基本操作"><a href="#基本操作" class="headerlink" title="基本操作"></a>基本操作</h2><p>为数据库加载空间数据拓展</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> EXTENSION postgis;</span><br></pre></td></tr></table></figure>
+      <p>解决方案：</p>
+<p>增加MediaType为<code>application/vnd.spring-boot.actuator.v2+json</code>的value值</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">supportedMediaTypes.add(MediaType.valueOf(<span class="string">&quot;application/vnd.spring-boot.actuator.v2+json&quot;</span>));</span><br></pre></td></tr></table></figure>
 
-<p>查看postgis版本</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> postgis_full_version();</span><br></pre></td></tr></table></figure>
+<p>默认初始搭建的项目不会出现此问题。若重写了HttpMessageConverter的SupportedMediaTypes配置可能出现此问题</p>
+<p><strong>附：</strong></p>
+<p>sprog-boot-actuator集成</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-actuator<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
+<p>开放所有端点</p>
+<figure class="highlight yml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">management:</span></span><br><span class="line">  <span class="attr">endpoints:</span></span><br><span class="line">    <span class="attr">web:</span></span><br><span class="line">      <span class="attr">exposure:</span></span><br><span class="line">        <span class="attr">include:</span> <span class="string">&#x27;*&#x27;</span></span><br><span class="line">  <span class="attr">endpoint:</span></span><br><span class="line">    <span class="attr">health:</span></span><br><span class="line">      <span class="attr">show-details:</span> <span class="string">ALWAYS</span></span><br></pre></td></tr></table></figure>
 
+<p>访问路径: <a target="_blank" rel="noopener" href="http://localhost:8080/autator">http://localhost:8080/autator</a></p>
+<p>更多操作可查看：<a target="_blank" rel="noopener" href="http://blog.battcn.com/2018/05/24/springboot/v2-actuator-introduce/">http://blog.battcn.com/2018/05/24/springboot/v2-actuator-introduce/</a></p>
 
-<p>元数据表:空间参照标准</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> spatial_ref_sys;</span><br></pre></td></tr></table></figure>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
 
-<p>元数据表:空间数据表信息描述(视图)</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> * <span class="keyword">FROM</span> geometry_columns;</span><br></pre></td></tr></table></figure>
+    </footer>
 
-<p>更新数据表的SRID(空间参考标识符)</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> UpdateGeometrySRID(‘nyc_neighborhoods’,’geom’,<span class="number">26918</span>);</span><br></pre></td></tr></table></figure>
+  </div>
 
-<h2 id="点线面对象"><a href="#点线面对象" class="headerlink" title="点线面对象"></a>点线面对象</h2><p>示例数据</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> geometries (<span class="keyword">name</span> <span class="built_in">varchar</span>, geom geometry);</span><br><span class="line"> </span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> geometries <span class="keyword">VALUES</span></span><br><span class="line">  (<span class="string">&#x27;Point&#x27;</span>, <span class="string">&#x27;POINT(0 0)&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;Linestring&#x27;</span>, <span class="string">&#x27;LINESTRING(0 0, 1 1, 2 1, 2 2)&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;Polygon&#x27;</span>, <span class="string">&#x27;POLYGON((0 0, 1 0, 1 1, 0 1, 0 0))&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;PolygonWithHole&#x27;</span>, <span class="string">&#x27;POLYGON((0 0, 10 0, 10 10, 0 10, 0 0),(1 1, 1 2, 2 2, 2 1, 1 1))&#x27;</span>),</span><br><span class="line">  (<span class="string">&#x27;Collection&#x27;</span>, <span class="string">&#x27;GEOMETRYCOLLECTION(POINT(2 0),POLYGON((0 0, 1 0, 1 1, 0 1, 0 0)))&#x27;</span>);</span><br><span class="line"> </span><br><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_AsText(geom) <span class="keyword">FROM</span> geometries;</span><br></pre></td></tr></table></figure>
+  
 
-<p>几何图形类型</p>
-<ul>
-<li><strong>ST_GeometryType(geometry)</strong>  ——  返回几何图形的类型</li>
-<li><strong>ST_NDims(geometry)</strong>  ——  返回几何图形的维数</li>
-<li><strong>ST_SRID(geometry)</strong>  ——  返回几何图形的空间参考标识码</li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_GeometryType(geom), ST_NDims(geom), ST_SRID(geom) <span class="keyword">FROM</span> geometries;</span><br></pre></td></tr></table></figure>
+  
+  
+  
 
-<h3 id="点-Point"><a href="#点-Point" class="headerlink" title="点(Point)"></a>点(Point)</h3><p>空间<strong>点</strong>（Point）表示地球上的单个位置。<strong>点</strong>由单个坐标表示（包括2维、3维或4维）。  当详细的细节（例如形状和大小）在目标空间尺度上不重要时，真实世界中的对象可以直接用<strong>点</strong>表示。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Point&#x27;</span>;</span><br></pre></td></tr></table></figure>
+  
 
-<p>空间函数:</p>
-<ul>
-<li><strong>ST_X(geometry)</strong>  ——  返回X坐标</li>
-<li><strong>ST_Y(geometry)</strong>  ——  返回Y坐标</li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_X(geom), ST_Y(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Point&#x27;</span>;</span><br></pre></td></tr></table></figure>
+</article>
+    
+    <article id="post-SpringBoot/SpringBoot配置logback日志" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
-<h3 id="线串-Linestring"><a href="#线串-Linestring" class="headerlink" title="线串(Linestring)"></a>线串(Linestring)</h3><p><strong>线串</strong>（Linestring）是表示两个或多个位置之间的路径，它的形式是由两个或多个<strong>点</strong>组成的有序序列。道路和河流通常表示为<strong>线串</strong>。</p>
-<p>如果<strong>线串</strong>的起始点和结束点是同一个<strong>点</strong>，则称其是<strong>闭合的</strong>（closed）。</p>
-<p>如果<strong>线串</strong>不与自身交叉或接触（如果<strong>线串</strong>是闭合的，则排除结束点），则称其是<strong>简单的</strong>（simple）。</p>
-<p><strong>线串</strong>既可以是<strong>闭合的</strong>，也可以是<strong>简单的</strong>。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Linestring&#x27;</span>;</span><br></pre></td></tr></table></figure>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/17/SpringBoot/SpringBoot%E9%85%8D%E7%BD%AElogback%E6%97%A5%E5%BF%97/"
+    >SpringBoot配置logback-spring.xml</a
+  >
+</h2>
+  
 
-<p>空间函数:</p>
-<ul>
-<li><strong>ST_Length(geometry)</strong>  ——  返回线串的长度</li>
-<li><strong>ST_StartPoint(geometry)</strong>  ——  将线串的第一个坐标作为点返回</li>
-<li><strong>ST_EndPoint(geometry）</strong>  ——  将线串的最后一个坐标作为点返回</li>
-<li><strong>ST_NPoints(geometry)</strong>  ——  返回线串的坐标数量</li>
-</ul>
-<h3 id="多边形-Poltgon"><a href="#多边形-Poltgon" class="headerlink" title="多边形(Poltgon)"></a>多边形(Poltgon)</h3><p><strong>多边形</strong>（Polygon）是区域的表示形式。<strong>多边形</strong>的外部边界由一个<strong>环</strong>（Ring）表示，这个<strong>环</strong>是一个<strong>线串</strong>，如上面定义的，它既是闭合的，又是简单的。<strong>多边形</strong>中的<strong>孔</strong>（hole）也由<strong>环</strong>表示。</p>
-<p><strong>多边形</strong>用于表示重视<strong>大小</strong>和<strong>形状</strong>这两个特征的地理对象。城市边界、公园、建筑或水体都通常需要表示为<strong>多边形</strong>，当比例尺足够大时，可以观测它们的面积。道路和河流有时也可以表示为<strong>多边形</strong>。</p>
-<p>第一个<strong>多边形</strong>只有一个<strong>环</strong>，第二个<strong>多边形</strong>有一个内部的”<strong>孔洞</strong>（hole）”，大多数图形系统都包含<strong>多边形</strong>的概念，但GIS系统在允许<strong>多边形</strong>有<strong>孔</strong>方面是比较独特的</p>
-<p>空间函数:</p>
-<ul>
-<li><strong>ST_Area(geometry)</strong>  ——   返回多边形的面积</li>
-<li><strong>ST_NRings(geometry)</strong>  ——  返回多边形中环的数量（通常为1个，其他是孔）</li>
-<li><strong>ST_ExteriorRing(geometry)</strong>  ——  以线串的形式返回多边形最外面的环</li>
-<li><strong>ST_InteriorRingN(geometry, n)</strong>  ——  以线串形式返回指定的内部环</li>
-<li><strong>ST_Perimeter(geometry)</strong>  ——  返回所有环的长度</li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_Area(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> <span class="keyword">LIKE</span> <span class="string">&#x27;Polygon%&#x27;</span>;</span><br></pre></td></tr></table></figure>
+    </header>
+    
 
-<h3 id="集合-Collection"><a href="#集合-Collection" class="headerlink" title="集合(Collection)"></a>集合(Collection)</h3><p>有四种<strong>集合</strong>（Collection）类型，它们将多个简单几何图形组合为<strong>图形集合</strong>：</p>
-<ul>
-<li><strong>MultiPoint</strong>   ——  点集合</li>
-<li><strong>MultiLineString</strong>  ——  线串集合</li>
-<li><strong>MultiPolygon</strong>  ——  多边形集合</li>
-<li><strong>GeometryCollection</strong>  ——  由任意几何图形（包括其他GeometryCollection）组成的异构集合</li>
-</ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="keyword">name</span>, ST_AsText(geom) <span class="keyword">FROM</span> geometries <span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Collection&#x27;</span>;</span><br></pre></td></tr></table></figure>
+    
+    <div class="article-meta">
+      <a href="/2021/03/17/SpringBoot/SpringBoot%E9%85%8D%E7%BD%AElogback%E6%97%A5%E5%BF%97/" class="article-date">
+  <time datetime="2021-03-17T04:00:00.000Z" itemprop="datePublished">2021-03-17</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+  </div>
 
-<p>空间函数:</p>
-<ul>
-<li><strong>ST_NumGeometries(geometry)</strong>  ——  返回集合中的组成部分的数量</li>
-<li><strong>ST_GeometryN(geometry, n)</strong>  ——  返回集合中指定的组成部分</li>
-<li><strong>ST_Area(geometry)</strong>  ——  返回集合中所有多边形组成部分的总面积</li>
-<li><strong>ST_Length(geometry)</strong>  ——  返回所有线段组成部分的总长度</li>
-</ul>
-<h3 id="几何图形输入输出函数"><a href="#几何图形输入输出函数" class="headerlink" title="几何图形输入输出函数"></a>几何图形输入输出函数</h3><p>WKT：Well Known Text 已知文本</p>
-<p>EWKT：Extended Well Known Text PostGIS拓展用于处理3维和4维的几何图形</p>
-<p>WKB：Well Known Binary 已知二进制</p>
-<p>EWKB：Extended Well Known Binary PostGIS拓展用于处理3维和4维的几何图形</p>
-<p>①Well-known text（<a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/glossary.html#term-wkt">WKT</a>）</p>
-<ul>
-<li><p><strong>ST_GeomFromText(text, srid)</strong>  ——  返回geometry</p>
-</li>
-<li><p><strong>ST_AsText(geometry)</strong>  ——  返回text</p>
-</li>
-<li><p><strong>ST_AsEWKT(geometry)</strong>  ——  返回text</p>
-<p>②Well-known binary（<a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/glossary.html#term-wkb">WKB</a>）</p>
-</li>
-<li><p><strong>ST_GeomFromWKB(bytea)</strong>  ——  返回geometry</p>
-</li>
-<li><p><strong>ST_AsBinary(geometry)</strong>  ——  返回bytea</p>
-</li>
-<li><p><strong>ST_AsEWKB(geometry)</strong>  ——  返回bytea</p>
-<p>③Geographic Mark-up Language（<a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/glossary.html#term-gml">GML</a>）</p>
-</li>
-<li><p><strong>ST_GeomFromGML(text)</strong>  ——  返回geometry</p>
-</li>
-<li><p><strong>ST_ASGML(geometry)</strong>  ——  返回text</p>
-<p>④Keyhole Mark-up Language（<a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/glossary.html#term-kml">KML</a>）</p>
-</li>
-<li><p><strong>ST_GeomFromKML(text)</strong>  ——  返回geometry</p>
-</li>
-<li><p><strong>ST_ASKML(geometry)</strong>  ——   返回text</p>
-<p>⑤<a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/glossary.html#term-geojson">GeoJson</a></p>
-</li>
-<li><p><strong>ST_AsGeoJSON(geometry)</strong>  ——  返回text</p>
-<p>⑥Scalable Vector Graphics(<a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/glossary.html#term-svg">SVG</a>）</p>
-</li>
-<li><p><strong>ST_AsSVG(geometry)</strong>  ——  返回text</p>
-</li>
-</ul>
-<p>EWKT和EWKB提供了与WKT和WKB相同的格式化功能，并且是在增加了<strong>维度</strong>的情况下。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(ST_GeometryFromText(<span class="string">&#x27;LINESTRING(0 0 0,1 0 0,1 1 2)&#x27;</span>));</span><br><span class="line">LINESTRING Z (0 0 0,1 0 0,1 1 2)</span><br></pre></td></tr></table></figure>
+      
+      
+      
+    </div>
+    
 
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsGeoJSON(ST_GeometryFromText(<span class="string">&#x27;LINESTRING(0 0 0,1 0 0,1 1 2)&#x27;</span>));</span><br><span class="line">&#123;&quot;type&quot;:&quot;LineString&quot;,&quot;coordinates&quot;:[[0,0,0],[1,0,0],[1,1,2]]&#125;</span><br></pre></td></tr></table></figure>
+    
 
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
 
-
-<p>注意：文本表示形式发生了变化！这是因为PostGIS的文本输入程序在使用方面是自由的。它可以使用：</p>
-<ul>
-<li><p>十六进制编码的EWKB</p>
-</li>
-<li><p>扩展的WKT</p>
-</li>
-<li><p>ISO标准的WKT</p>
-<p>在输出端，ST_AsText()只返回<strong>ISO标准</strong>的WKT。</p>
-<p>除了用于各种形式（WKT、WKB、GML、KML、JSON、SVG）的输出函数外，PostGIS还有基于四种形式（WKT、WKB、GML、KML）的输入函数。</p>
-<p>大多数应用程序使用WKT或WKB几何图形创建函数，但是也可以使用其他形式的几何图形创建函数。</p>
-</li>
-</ul>
-<p>WKT三维(3D)线串示例</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(ST_GeometryFromText(<span class="string">&#x27;LINESTRING(0 0 0,1 0 0,1 1 2)&#x27;</span>));</span><br></pre></td></tr></table></figure>
-
-<p>GML输入输出</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT ST_AsGeoJSON(ST_GeomFromGML(&#39;&lt;gml:Point&gt;&lt;gml:coordinates&gt;1,1&lt;&#x2F;gml:coordinates&gt;&lt;&#x2F;gml:Point&gt;&#39;));</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="文本类型转换"><a href="#文本类型转换" class="headerlink" title="文本类型转换"></a>文本类型转换</h3><p>将KWT字符串转换为几何图形geometry</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> <span class="string">&#x27;POINT(0 0)&#x27;</span>::geometry;</span><br></pre></td></tr></table></figure>
-
-<p>关于使用类型转换语法创建<strong>几何图形</strong>，需要注意一点：除非指定SRID，否则将得到一个包含未知SRID的<strong>几何图形</strong> </p>
-<p>可以使用EWKT形式指定SRID，该形式在前面包含一个SRID：</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">SELECT &#39;SRID&#x3D;4326;POINT(0 0)&#39;::geometry;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="基本函数集合"><a href="#基本函数集合" class="headerlink" title="基本函数集合"></a>基本函数集合</h2><table>
+      
+      <p>在<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/2.0.4.RELEASE/reference/htmlsingle/#boot-features-custom-log-configuration下是SpringBoot对log日志的配置说明">https://docs.spring.io/spring-boot/docs/2.0.4.RELEASE/reference/htmlsingle/#boot-features-custom-log-configuration下是SpringBoot对log日志的配置说明</a></p>
+<p>其中定义了环境变量SystemProperty，对应了Spring Environment，可以直接通过property标签进行引用，在文件中引入时为${指定变量}的方式</p>
+<table>
 <thead>
 <tr>
-<th>函数名</th>
-<th>描述</th>
-<th>示例</th>
+<th>Spring Environment</th>
+<th>System Property</th>
+<th>Comments</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>ST_GeometryType(geometry)</td>
-<td>返回集合图形的类型</td>
-<td>select ST_GeometryType(geom) from geometries;</td>
+<td><code>logging.exception-conversion-word</code></td>
+<td><code>LOG_EXCEPTION_CONVERSION_WORD</code></td>
+<td>The conversion word used when logging exceptions.</td>
 </tr>
 <tr>
-<td>ST_NDims(geometry)</td>
-<td>返回几何图形的维数</td>
-<td>select ST_NDims(geom) from geometries;<br />select ST_NDims(ST_GeometryFromText(‘LINESTRING(0 0 0,1 0 0,1 1 2)’));</td>
+<td><code>logging.file</code></td>
+<td><code>LOG_FILE</code></td>
+<td>If defined, it is used in the default log configuration.</td>
 </tr>
 <tr>
-<td>ST_SRID(geometry)</td>
-<td>返回几何图形的空间参考标识号</td>
-<td>select ST_SRID(geom) from geometries;</td>
+<td><code>logging.file.max-size</code></td>
+<td><code>LOG_FILE_MAX_SIZE</code></td>
+<td>Maximum log file size (if LOG_FILE enabled). (Only supported with the default Logback setup.)</td>
 </tr>
 <tr>
-<td>ST_X(point)</td>
-<td>返回X坐标，只适用于点</td>
-<td>select ST_X(geom) from geometries where name=’Point’;</td>
+<td><code>logging.file.max-history</code></td>
+<td><code>LOG_FILE_MAX_HISTORY</code></td>
+<td>Maximum number of archive log files to keep (if LOG_FILE enabled). (Only supported with the default Logback setup.)</td>
 </tr>
 <tr>
-<td>ST_Y(point)</td>
-<td>返回Y坐标，只适用于点</td>
-<td>select ST_Y(geom) from geometries where name=’Point’;</td>
+<td><code>logging.path</code></td>
+<td><code>LOG_PATH</code></td>
+<td>If defined, it is used in the default log configuration.</td>
 </tr>
 <tr>
-<td>ST_Length(linestring)</td>
-<td>返回线串长度，其他类型为0</td>
-<td>select ST_Length(geom) from geometries where name=’Linestring’;</td>
+<td><code>logging.pattern.console</code></td>
+<td><code>CONSOLE_LOG_PATTERN</code></td>
+<td>The log pattern to use on the console (stdout). (Only supported with the default Logback setup.)</td>
 </tr>
 <tr>
-<td>ST_StartPoint(geometry)</td>
-<td>返回第一个坐标作为点</td>
-<td>select ST_StartPoint(geom) from geometries where name=’Linestring’;</td>
+<td><code>logging.pattern.dateformat</code></td>
+<td><code>LOG_DATEFORMAT_PATTERN</code></td>
+<td>Appender pattern for log date format. (Only supported with the default Logback setup.)</td>
 </tr>
 <tr>
-<td>ST_EndPoint(geometry)</td>
-<td>返回最后一个坐标作为点</td>
-<td>select ST_EndPoint(geom) from geometries where name=’Linestring’;</td>
+<td><code>logging.pattern.file</code></td>
+<td><code>FILE_LOG_PATTERN</code></td>
+<td>The log pattern to use in a file (if <code>LOG_FILE</code> is enabled). (Only supported with the default Logback setup.)</td>
 </tr>
 <tr>
-<td>ST_NPoints(geometry)</td>
-<td>返回坐标点数量</td>
-<td>select ST_NPoints(geom) from geometries;</td>
+<td><code>logging.pattern.level</code></td>
+<td><code>LOG_LEVEL_PATTERN</code></td>
+<td>The format to use when rendering the log level (default <code>%5p</code>). (Only supported with the default Logback setup.)</td>
 </tr>
 <tr>
-<td>ST_Area(geometry)</td>
-<td>返回区域面积，适用与多边形或集合</td>
-<td>select ST_Area(geom) from geometries;</td>
-</tr>
-<tr>
-<td>ST_NRings(geometry)</td>
-<td>返回环的数量，适用于多边形或集合</td>
-<td>select ST_NRings(geom) from geometries;</td>
-</tr>
-<tr>
-<td>ST_ExteriorRing(geom)</td>
-<td>以字符串的形式返回外环</td>
-<td>select ST_ExteriorRing(geom) from geometries where name=’PolygonWithHole’;</td>
-</tr>
-<tr>
-<td>ST_InteriorRingN(polygon, integer)</td>
-<td>将指定的内环作为线字符串返回</td>
-<td>select st_astext(ST_InteriorRingN(geom,1)) from geometries where name=’PolygonWithHole’;</td>
-</tr>
-<tr>
-<td>ST_Perimeter(geometry)</td>
-<td>返回所有环的长度,包括多边形的内环与外环,集合</td>
-<td>select ST_Perimeter(geom) from geometries;</td>
-</tr>
-<tr>
-<td>ST_NumGeometries(multi/geomcollection)</td>
-<td>返回集合中的分片数</td>
-<td>select ST_NumGeometries(geom) from geometries where name=’Collection’;</td>
-</tr>
-<tr>
-<td>ST_GeometryN(geometry, integer)</td>
-<td>返回集合的指定部分</td>
-<td>select ST_AsText(ST_GeometryN(geom,2)) from geometries where name=’Collection’;</td>
-</tr>
-<tr>
-<td><strong>以下为转换函数</strong></td>
-<td></td>
-<td><strong>以下为转换函数</strong></td>
-</tr>
-<tr>
-<td>ST_GeomFromText(text)</td>
-<td>通过WKT字符串返回geometry</td>
-<td>select ST_AsText(ST_GeomFromText(‘Point(1 2)’));</td>
-</tr>
-<tr>
-<td>ST_AsText(geometry)</td>
-<td>返回WKT字符串</td>
-<td>select ST_AsText(geom) from geometries;</td>
-</tr>
-<tr>
-<td>ST_AsEWKT(geometry)</td>
-<td>返回EWKT字符串</td>
-<td>select ST_AsEWKT(geom) from geometries where name=’Collection’;</td>
-</tr>
-<tr>
-<td>ST_GeomFromWKB(bytea)</td>
-<td>通过WKB返回geometry</td>
-<td>select ST_AsEWKB(geom) from geometries where name=’Point’;<br /> select st_astext(st_geomfromewkb(E’\x010100000000000000000000000000000000000000’));</td>
-</tr>
-<tr>
-<td>ST_AsBinary(geometry)</td>
-<td>返回WKB</td>
-<td>select st_asbinary(geom) from geometries where name=’Point’;</td>
-</tr>
-<tr>
-<td>ST_AsEWKB(geometry)</td>
-<td>返回EWKB</td>
-<td>select ST_AsEWKB(geom) from geometries where name=’Point’;</td>
-</tr>
-<tr>
-<td>ST_GeomFromGML(text)</td>
-<td>通过GML字符串返回geometry</td>
-<td>SELECT ST_AsText(ST_GeomFromGML(‘&lt;gml:Point&gt;&lt;gml:coordinates&gt;1,1&lt;/gml:coordinates&gt;&lt;/gml:Point&gt;’));</td>
-</tr>
-<tr>
-<td>ST_AsGML(geometry)</td>
-<td>返回GML字符串</td>
-<td>select st_asgml(geom) from geometries;</td>
-</tr>
-<tr>
-<td>ST_AsKML(geometry)</td>
-<td>返回KML</td>
-<td>select ST_AsKML(‘SRID=4326;POINT(0 0)’::geometry);</td>
-</tr>
-<tr>
-<td>ST_GeomFromKML(text)</td>
-<td>通过KML返回geometry</td>
-<td>select ST_GeomFromKML(‘&lt;Point&gt;&lt;coordinates&gt;0,0&lt;/coordinates&gt;&lt;/Point&gt;’);</td>
-</tr>
-<tr>
-<td>ST_AsGeoJSON(geometry)</td>
-<td>返回geojson字符串</td>
-<td>select ST_AsGeoJSON(geom) from geometries;</td>
-</tr>
-<tr>
-<td>ST_AsSVG(geometry)</td>
-<td>返回svg字符串</td>
-<td>select ST_AsSVG(geom) from geometries;</td>
+<td><code>PID</code></td>
+<td><code>PID</code></td>
+<td>The current process ID (discovered if possible and when not already defined as an OS environment variable).</td>
 </tr>
 </tbody></table>
-<h2 id="空间关系函数"><a href="#空间关系函数" class="headerlink" title="空间关系函数"></a>空间关系函数</h2><h3 id="相等"><a href="#相等" class="headerlink" title="相等"></a>相等</h3><h4 id="ST-Equals-geometry-A-geomrtey-B"><a href="#ST-Equals-geometry-A-geomrtey-B" class="headerlink" title="ST_Equals(geometry A,geomrtey B)"></a>ST_Equals(geometry A,geomrtey B)</h4><p>两个空间元素完全相等时，相当于对比坐标值的精确值,直接将geometry查询会输出一串数字就是精确值。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span>  st_equals(st_geomfromtext(<span class="string">&#x27;Point(1 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;MultiPoint(0 1,1 1)&#x27;</span>)); // false</span><br><span class="line"><span class="keyword">select</span> st_equals(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;POINT(1 1)&#x27;</span>)); // true</span><br></pre></td></tr></table></figure>
+<p>除了执行的日志变量外，还可以使用spring配置文件里的任意变量</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">springProperty</span> <span class="attr">scope</span>=<span class="string">&quot;context&quot;</span> <span class="attr">name</span>=<span class="string">&quot;fluentHost&quot;</span> <span class="attr">source</span>=<span class="string">&quot;myapp.fluentd.host&quot;</span> <span class="attr">defaultValue</span>=<span class="string">&quot;localhost&quot;</span>/&gt;</span></span><br></pre></td></tr></table></figure>
 
-<h3 id="相交"><a href="#相交" class="headerlink" title="相交"></a>相交</h3><h4 id="ST-Intersects-geometry-A-geometry-B"><a href="#ST-Intersects-geometry-A-geometry-B" class="headerlink" title="ST_Intersects(geometry A, geometry B)"></a>ST_Intersects(geometry A, geometry B)</h4><h4 id="ST-Disjoint-geometry-A-geometry-B"><a href="#ST-Disjoint-geometry-A-geometry-B" class="headerlink" title="ST_Disjoint(geometry A, geometry B)"></a>ST_Disjoint(geometry A, geometry B)</h4><p>如果两个图形有相同的部分，即<strong>如果它们的边界或内部相交</strong>，则返回TRUE</p>
-<p>对立方法是ST_Disjoint(geometry A, geometry B)</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> st_intersects(st_geomfromtext(<span class="string">&#x27;Point(1 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(1 1,2 2)&#x27;</span>)); // true</span><br><span class="line"><span class="keyword">select</span>  st_intersects(st_geomfromtext(<span class="string">&#x27;Point(1 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;MultiPoint(0 1,1 1)&#x27;</span>));// true</span><br></pre></td></tr></table></figure>
-
-<h4 id="ST-Crosses-geometry-A-geometry-B"><a href="#ST-Crosses-geometry-A-geometry-B" class="headerlink" title="ST_Crosses(geometry A,geometry B)"></a>ST_Crosses(geometry A,geometry B)</h4><p> 对于multipoint/polygon、multipoint/linestring、linestring/linestring、linestring/polygon和linestring/multipolygon的比较，<strong>如果相交生成的几何图形的维度小于两个源几何图形的最大维度，且<u>相交集位于两个源几何图形的内部</u></strong>，则<strong>ST_Crosses(geometry A, geometry B)</strong>将返回TRUE</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">// 点集合与线串</span><br><span class="line">// 相交维度是点，且在线串内部</span><br><span class="line"><span class="keyword">select</span> ST_Crosses(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 2)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(0 0, 1 1,2 4)&#x27;</span>)); // true</span><br><span class="line">// 相交维度是点，但相交点在边界，不在线串内部</span><br><span class="line"><span class="keyword">select</span> ST_Crosses(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 2)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(2 2, 1 3,2 4)&#x27;</span>)); // false</span><br><span class="line">// 点集合与多边形</span><br><span class="line"><span class="keyword">select</span> ST_Crosses(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 2)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;POLYGON((2 1,1 2, 2 3,3 3,2 1))&#x27;</span>)); // true</span><br><span class="line">// 2 1点仍在多边形的边界，则为false</span><br><span class="line"><span class="keyword">select</span> ST_Crosses(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;POLYGON((2 1,1 2, 2 3,3 3,2 1))&#x27;</span>)); // false</span><br></pre></td></tr></table></figure>
-
-<h4 id="ST-Overlaps-geometry-A-geometry-B"><a href="#ST-Overlaps-geometry-A-geometry-B" class="headerlink" title="ST_Overlaps(geometry A, geometry B)"></a>ST_Overlaps(geometry A, geometry B)</h4><p>比较两个相同维度的几何图形，如果<strong>它们的结果集与两个源几何图形都不同但具有相同维度</strong>，则返回TRUE。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">// 点与点相交不会提升或降低维度</span><br><span class="line">// 源集合图形相同则返回false</span><br><span class="line"><span class="keyword">select</span> ST_Overlaps(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>)); // false</span><br><span class="line"><span class="keyword">select</span> ST_Overlaps(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1,2 2)&#x27;</span>), st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1,3 3)&#x27;</span>));// true</span><br><span class="line">// 线与线相交</span><br><span class="line">// 相交图形维度是点，不具有相同维度</span><br><span class="line"><span class="keyword">select</span> ST_Overlaps(st_geomfromtext(<span class="string">&#x27;LINESTRING(1 1,2 2,3 3)&#x27;</span>), st_geomfromtext(<span class="string">&#x27;LINESTRING(0 3,2 2,3 0)&#x27;</span>)); // false</span><br><span class="line"><span class="keyword">select</span> ST_Overlaps(st_geomfromtext(<span class="string">&#x27;LINESTRING(1 1,2 2,3 3)&#x27;</span>), st_geomfromtext(<span class="string">&#x27;LINESTRING(0 3,2 2,3 3)&#x27;</span>)); // true</span><br></pre></td></tr></table></figure>
-
-<h4 id="ST-Touches-geometry-A-geometry-B"><a href="#ST-Touches-geometry-A-geometry-B" class="headerlink" title="ST_Touches(geometry A, geometry B)"></a>ST_Touches(geometry A, geometry B)</h4><p>如果两个几何图形的<strong>边界相交</strong>，但不在内部相交，或者只有一个几何图形的内部与另一个几何图形的边界相交，则<strong>ST_Touches(geometry A, geometry B)</strong>将返回TRUE</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> st_touches(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 2)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(2 2, 1 3,2 4)&#x27;</span>)); // true</span><br><span class="line">// 交叉线串，认定为内部相交</span><br><span class="line"><span class="keyword">select</span> st_touches(st_geomfromtext(<span class="string">&#x27;LINESTRING(1 1,2 2,3 3)&#x27;</span>), st_geomfromtext(<span class="string">&#x27;LINESTRING(0 3,2 2,3 0)&#x27;</span>)); // false</span><br><span class="line">// 线串相交，在边界但内部也相交</span><br><span class="line"><span class="keyword">select</span> st_touches(st_geomfromtext(<span class="string">&#x27;LINESTRING(1 1,2 2,3 3)&#x27;</span>), st_geomfromtext(<span class="string">&#x27;LINESTRING(2 2,3 3,4 4)&#x27;</span>)); // false</span><br></pre></td></tr></table></figure>
-
-<h4 id="ST-Within-ST-Contain"><a href="#ST-Within-ST-Contain" class="headerlink" title="ST_Within,ST_Contain"></a>ST_Within,ST_Contain</h4><p>如果第一个几何图形完全位于第二个几何图形内，则ST_Within(geometry A, geometry B)返回TRUE</p>
-<p>如果第二个几何图形完全包含在第一个几何图形内，则ST_Contains(geometry A, geometry B)返回TRUE</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> st_contains(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>)); // true</span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> st_within(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(0 0,1 1,2 1,2 2)&#x27;</span>)); // true</span><br><span class="line"><span class="keyword">select</span> st_within(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(1 1,2 1)&#x27;</span>)); // false</span><br></pre></td></tr></table></figure>
-
-<h4 id="ST-Distance-geometry-A-geometry-B"><a href="#ST-Distance-geometry-A-geometry-B" class="headerlink" title="ST_Distance(geometry A, geometry B)"></a>ST_Distance(geometry A, geometry B)</h4><p>计算两个几何图形之间的最短距离，并将其作为浮点数返回</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> st_distance(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(4 4,5 5)&#x27;</span>)); // 3.605551275463989</span><br><span class="line"><span class="keyword">select</span> st_distance(st_geomfromtext(<span class="string">&#x27;MultiPoint(1 1,2 1)&#x27;</span>),st_geomfromtext(<span class="string">&#x27;LINESTRING(1 1,2 1)&#x27;</span>)); // 0</span><br></pre></td></tr></table></figure>
+<p>其中scope为context标识Spring上下文引用</p>
+<p>name为在当前日志要引用的名称，使用${name}来引用</p>
+<p>source是在spring配置文件中定义的属性</p>
+<p>defaultValue为无法获得值时的默认值</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--官方配置 start--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--保留官方配置，方便使用官方配置的特性,参考:spring-boot-2.1.0.RELEASE.jar!\org\springframework\boot\logging\logback\base.xml--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">resource</span>=<span class="string">&quot;org/springframework/boot/logging/logback/defaults.xml&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">property</span> <span class="attr">name</span>=<span class="string">&quot;LOG_FILE&quot;</span> <span class="attr">value</span>=<span class="string">&quot;$&#123;LOG_FILE:-$&#123;LOG_PATH:-$&#123;LOG_TEMP:-$&#123;java.io.tmpdir:-/tmp&#125;&#125;&#125;/spring.log&#125;&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">resource</span>=<span class="string">&quot;org/springframework/boot/logging/logback/console-appender.xml&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">include</span> <span class="attr">resource</span>=<span class="string">&quot;org/springframework/boot/logging/logback/file-appender.xml&quot;</span> /&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--全局输出--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">root</span> <span class="attr">level</span>=<span class="string">&quot;warn&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;CONSOLE&quot;</span> /&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;FILE&quot;</span> /&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">root</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--官方配置 end--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--从spring配置文件中获取属性--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--&lt;springProperty scope=&quot;context&quot; name=&quot;abc&quot; default=&quot;kjgh&quot; source=&quot;abc&quot;/&gt;--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--######自定义配置  start########--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--########################kjgh包所有内容日志输出配置#################################--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!-- 自定义配置__单独输出到一个日志文件中 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">appender</span> <span class="attr">name</span>=<span class="string">&quot;kjgh&quot;</span> <span class="attr">class</span>=<span class="string">&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">encoder</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">pattern</span>&gt;</span>$&#123;FILE_LOG_PATTERN&#125;<span class="tag">&lt;/<span class="name">pattern</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">encoder</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">file</span>&gt;</span>$&#123;LOG_FILE&#125;_kjgh.log<span class="tag">&lt;/<span class="name">file</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">rollingPolicy</span> <span class="attr">class</span>=<span class="string">&quot;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&quot;</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">fileNamePattern</span>&gt;</span>$&#123;LOG_FILE&#125;_kjgh.%d&#123;yyyy-MM-dd&#125;.%i.gz<span class="tag">&lt;/<span class="name">fileNamePattern</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">maxFileSize</span>&gt;</span>$&#123;LOG_FILE_MAX_SIZE:-10MB&#125;<span class="tag">&lt;/<span class="name">maxFileSize</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">maxHistory</span>&gt;</span>$&#123;LOG_FILE_MAX_HISTORY:-0&#125;<span class="tag">&lt;/<span class="name">maxHistory</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">rollingPolicy</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">appender</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--指定包或者类的日志配置（这里是局部配置，它能覆盖全局配置）--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- 自定义配置__配置业务日志输出至单独的日志文件中 --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">logger</span> <span class="attr">name</span>=<span class="string">&quot;com.jeeplus.modules.kjgh&quot;</span> <span class="attr">additivity</span>=<span class="string">&quot;false&quot;</span> <span class="attr">level</span>=<span class="string">&quot;debug&quot;</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 引用自定义的appender --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;kjgh&quot;</span>/&gt;</span></span><br><span class="line">        <span class="comment">&lt;!-- 这里也引用控制台appender，才能在控制台中看到我们的日志 --&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">appender-ref</span> <span class="attr">ref</span>=<span class="string">&quot;CONSOLE&quot;</span>/&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">logger</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--########################kjgh包所有内容日志输出配置#################################--&gt;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--名称为other的业务配置--&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--&lt;appender name=&quot;other&quot; class=&quot;ch.qos.logback.core.rolling.RollingFileAppender&quot;&gt;</span></span><br><span class="line"><span class="comment">        &lt;encoder&gt;</span></span><br><span class="line"><span class="comment">            &lt;pattern&gt;$&#123;FILE_LOG_PATTERN&#125;&lt;/pattern&gt;</span></span><br><span class="line"><span class="comment">        &lt;/encoder&gt;</span></span><br><span class="line"><span class="comment">        &lt;file&gt;$&#123;LOG_FILE&#125;_other.log&lt;/file&gt;</span></span><br><span class="line"><span class="comment">        &lt;rollingPolicy class=&quot;ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy&quot;&gt;</span></span><br><span class="line"><span class="comment">            &lt;fileNamePattern&gt;$&#123;LOG_FILE&#125;_other.%d&#123;yyyy-MM-dd&#125;.%i.gz&lt;/fileNamePattern&gt;</span></span><br><span class="line"><span class="comment">            &lt;maxFileSize&gt;$&#123;LOG_FILE_MAX_SIZE:-10MB&#125;&lt;/maxFileSize&gt;</span></span><br><span class="line"><span class="comment">            &lt;maxHistory&gt;$&#123;LOG_FILE_MAX_HISTORY:-0&#125;&lt;/maxHistory&gt;</span></span><br><span class="line"><span class="comment">        &lt;/rollingPolicy&gt;</span></span><br><span class="line"><span class="comment">    &lt;/appender&gt;</span></span><br><span class="line"><span class="comment"></span></span><br><span class="line"><span class="comment">    &lt;logger name=&quot;com.cgq.logback.other&quot; additivity=&quot;false&quot; level=&quot;debug&quot;&gt;</span></span><br><span class="line"><span class="comment">        &amp;lt;!&amp;ndash; 引用自定义的appender &amp;ndash;&amp;gt;</span></span><br><span class="line"><span class="comment">        &lt;appender-ref ref=&quot;other&quot;/&gt;</span></span><br><span class="line"><span class="comment">        &amp;lt;!&amp;ndash; 这里也引用控制台appender，才能在控制台中看到我们的日志 &amp;ndash;&amp;gt;</span></span><br><span class="line"><span class="comment">        &lt;appender-ref ref=&quot;CONSOLE&quot;/&gt;</span></span><br><span class="line"><span class="comment">    &lt;/logger&gt;--&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--######自定义配置  end########--&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br></pre></td></tr></table></figure>
 
 
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
 
-<h2 id="空间表连接"><a href="#空间表连接" class="headerlink" title="空间表连接"></a>空间表连接</h2><h2 id="空间索引"><a href="#空间索引" class="headerlink" title="空间索引"></a>空间索引</h2><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">INDEX</span> index_name</span><br><span class="line"><span class="keyword">ON</span> tabl_name</span><br><span class="line"><span class="keyword">USING</span> GIST (column_name);</span><br></pre></td></tr></table></figure>
+    </footer>
 
-<p><strong>USING GIST</strong>子句告诉PostgreSQL在构建索引时使用generic index structure（<strong>GIST-通用索引结构</strong>）。创建索引时，如果收到类似错误：ERROR:index row requires 11340 bytes，maximum size is 8911，则可能是因为没有添加USING GIST子句</p>
-<p> PostGIS和Oracle Spatial都具有相同的”R-Tree”空间索引结构。R-Tree将数据分解为<strong>矩形</strong>（rectangle）、<strong>子矩形</strong>（sub-rectangle）和<strong>子-子矩形</strong>（sub-sub rectangle）等。它是一种自调优（self-tuning）索引结构，可自动处理可变数据的密度和对象大小。</p>
-<h3 id="纯索引查询"><a href="#纯索引查询" class="headerlink" title="纯索引查询"></a>纯索引查询</h3><p>使用”<strong>&amp;&amp;</strong>“运算符。对于几何图形，&amp;&amp;运算符表示”边界框重叠或接触”（纯索引查询），就像对于数字，”<strong><em>\</em>=**</strong>“运算符表示”值相同”</p>
-<h3 id="分析"><a href="#分析" class="headerlink" title="分析"></a>分析</h3><p>PostgreSQL查询规划器（query planner）智能地选择何时使用或不使用<strong>空间索引</strong>来计算查询</p>
-<p>PostgreSQL保存每个索引列中数据分布的<strong>统计信息</strong>。默认情况下，PostgreSQL定期收集统计信息。但是，如果你在短时间内更改了表的构成，则统计数据将不会是最新的</p>
-<p>为确保统计信息与表内容匹配，明智的做法是在表中加载和删除大容量数据后运行<strong>ANALYZE命令</strong>。这将强制统计系统收集所有索引列的统计信息。</p>
-<p>ANALYZE命令要求PostgreSQL遍历该表并更新用于查询操作而估算的内部统计信息</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">ANALYZE</span> table_name</span><br></pre></td></tr></table></figure>
+  </div>
 
-<h3 id="清理"><a href="#清理" class="headerlink" title="清理"></a>清理</h3><p>仅仅创建<strong>空间索引</strong>不足以让PostgreSQL有效地使用它。每当创建新索引或对表大量更新、插入或删除后，都必须执行<strong>清理（VACUUMing）</strong>。<strong>VACUUM</strong>命令要求PostgreSQL回收表页面中因记录的更新或删除而留下的任何未使用的空间</p>
-<p><strong>清理</strong>对于数据库的高效运行非常关键，因此，PostgreSQL提供了一个“<strong>自动清理</strong>（autovacuum）”选项。</p>
-<p>默认情况下，<strong>自动清理机制</strong>会根据活动级别确定的合理时间间隔自动清理（恢复空间）和分析（更新统计信息）。虽然这对于高度事务性的数据库是必不可少的功能，但在添加索引或大容量数据之后等待自动清理运行是不明智的，如果执行大批量更新，则应该手动运行VACUUM命令。</p>
-<p>根据需要，可以单独执行清理和分析。发出VACUUM命令不会更新数据库统计信息；同样，执行ANALYZE命令也不会清理未使用的表空间。这两个命令都可以针对整个数据库、单个表或单个列运行</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">VACUUM <span class="keyword">ANALYZE</span> table_name;</span><br></pre></td></tr></table></figure>
+  
 
-<h2 id="投影数据"><a href="#投影数据" class="headerlink" title="投影数据"></a>投影数据</h2><p>地球不是平的，也没有简单的方法把它放在一张平面纸地图上（或电脑屏幕上），所以人们想出了各种巧妙的解决方案（<strong>投影</strong>）</p>
-<p>每种投影方案都有优点和缺点，一些<strong>投影</strong>保留面积特征；一些<strong>投影</strong>保留角度特征，如<strong>墨卡托投影</strong>（Mercator）；一些<strong>投影</strong>试图找到一个很好的中间混合状态，在几个参数上只有很小的失真。所有<strong>投影</strong>的共同之处在于，它们将（地球）转换为<strong>平面笛卡尔坐标系</strong>，选择哪种投影取决于你将如何使用数据（需要哪些数据特征，面积？角度？或者其他）。</p>
-<p>PostGIS包含更改数据投影（重投影）的功能，即使用<strong>ST_Transform(geometry, srid)</strong>函数就可以实现重投影</p>
-<p>为了查看和设置几何图形的空间参照标识符，PostGIS提供了<strong>ST_SRID(geometry）</strong>和<strong>ST_SetSRID(geometry，SRID）</strong>函数</p>
-<h3 id="比较数据"><a href="#比较数据" class="headerlink" title="比较数据"></a>比较数据</h3><p><u>坐标与SRID(空间参考系统)一起定义了地球上的一个位置</u>。“<strong>笛卡尔</strong>”坐标平面被定义为放置在地球表面的“平面”坐标系。由于PostGIS函数在这样的坐标系统上工作，因此关于两个几何图形的比较的操作都要基于同一SRID。</p>
-<p>如果输入具有不同SRID的几何图形，则会得到错误：</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_Equals(</span><br><span class="line">         ST_GeomFromText(<span class="string">&#x27;POINT(0 0)&#x27;</span>, <span class="number">4326</span>),</span><br><span class="line">         ST_GeomFromText(<span class="string">&#x27;POINT(0 0)&#x27;</span>, <span class="number">26918</span>)</span><br><span class="line">         );</span><br></pre></td></tr></table></figure>
+  
+  
+  
 
+  
 
+</article>
+    
+    <article id="post-fultter/安装" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
-<blockquote>
-<p><strong>空间索引</strong>是基于存储的几何图形的SRID构建的。如果在不同的SRID中进行比较，则通常不使用<strong>空间索引</strong>。最佳做法是为数据库中的所有表选择一个SRID。仅在向外部程序读取或写入数据时使用转换函数将数据转换为基于指定SRID的数据。</p>
-</blockquote>
-<h3 id="转换数据"><a href="#转换数据" class="headerlink" title="转换数据"></a>转换数据</h3><p>若要将数据从一种SRID转换为另一种SRID，必须首先验证几何图形是否具有有效的SRID。由于我们已经确认了当前数据中的SRID，所以接下来仅需要将<strong>投影坐标系统</strong>的SRID转换为<strong>地理坐标系统</strong>的SRID。</p>
-<p>地理坐标最常见的SRID是4326（WGS84地理坐标系统），对应于”<strong>WGS84球体</strong>上的<strong>经度</strong>/<strong>纬度</strong>“</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_AsText(ST_Transform(geom,<span class="number">4326</span>))</span><br><span class="line"><span class="keyword">FROM</span> nyc_subway_stations</span><br><span class="line"><span class="keyword">WHERE</span> <span class="keyword">name</span> = <span class="string">&#x27;Broad St&#x27;</span>;</span><br></pre></td></tr></table></figure>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/14/fultter/%E5%AE%89%E8%A3%85/"
+    >filtter安装使用</a
+  >
+</h2>
+  
 
-<h2 id="地理"><a href="#地理" class="headerlink" title="地理"></a>地理</h2><p>与Mercator（墨卡托）、UTM（通用横轴墨卡托）、Stateplane中的坐标不同，<strong>地理坐标</strong>不是笛卡尔平面坐标（Cartesian coordinates）。<strong>地理坐标</strong>并不表示平面上与原点的线性距离，相反，这些球坐标描述了地球上的角坐标。</p>
-<p>可以将<strong>地理坐标</strong>看作近似的笛卡尔平面坐标，并继续进行空间计算，然而，关于距离、长度和面积的测量将会是毫无意义的。由于球坐标测量角度距离，因此单位以”<strong>度</strong>“表示</p>
-<p>例如计算洛杉矶到巴黎的最近距离,4326声明了地理空间参考系统</p>
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/14/fultter/%E5%AE%89%E8%A3%85/" class="article-date">
+  <time datetime="2021-03-14T04:00:00.000Z" itemprop="datePublished">2021-03-14</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/flutter/">flutter</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="路由"><a href="#路由" class="headerlink" title="路由"></a>路由</h2><p><code>Navigator</code>是一个路由管理的组件，它提供了打开和退出路由页方法。<code>Navigator</code>通过一个栈来管理活动路由集合。通常当前屏幕显示的页面就是栈顶的路由。<code>Navigator</code>提供了一系列方法来管理路由栈。</p>
+<p><code>Navigator</code>提供了一系列方法来管理路由栈，在此我们只介绍其最常用的两个方法：</p>
 <ul>
-<li>Los Angeles: <code>POINT(-118.4079 33.9434)</code></li>
-<li>Paris: <code>POINT(2.3490 48.8533)</code></li>
+<li><p>Future push(BuildContext context, Route route)</p>
+<p>将给定的路由入栈(即打开新的页面)，返回一个<code>Future</code>对象，用以接收新路由出栈(即关闭)时返回的数据</p>
+</li>
+<li><p>bool pop(BuildContext context, [ result ])</p>
+<p>将栈顶路由出栈，result为页面关闭时返回给上一个页面的数据</p>
+</li>
 </ul>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> ST_Distance(</span><br><span class="line">  ST_GeometryFromText(<span class="string">&#x27;POINT(-118.4079 33.9434)&#x27;</span>, <span class="number">4326</span>), <span class="comment">-- Los Angeles (LAX)</span></span><br><span class="line">  ST_GeometryFromText(<span class="string">&#x27;POINT(2.5559 49.0083)&#x27;</span>, <span class="number">4326</span>)     <span class="comment">-- Paris (CDG)</span></span><br><span class="line">);</span><br></pre></td></tr></table></figure>
-
-<p>由geometry类型可以看到该单词为几何学的意思，对于点，线串，面而言，关于实际距离、长度、面积的测量都是不准确的。</p>
-<p>为了计算出真实的距离，我们不能把<strong>地理坐标</strong>近似的看成笛卡尔平面坐标，而应该把它们看成是球坐标。我们必须把点之间的距离作为球面上的真实路径来测量——大圆的一部分。</p>
-<p>使用geography类型来完成地理坐标的运算。使用ST_GeographyFromText函数</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">SELECT ST_Distance(</span><br><span class="line">  ST_GeographyFromText(&#39;POINT(-118.4079 33.9434)&#39;), -- Los Angeles (LAX)</span><br><span class="line">  ST_GeographyFromText(&#39;POINT(2.5559 49.0083)&#39;)     -- Paris (CDG)</span><br><span class="line">  );</span><br></pre></td></tr></table></figure>
-
-<p>所有地理计算的返回值都以<strong>米</strong>为单位，所以我们的答案是9124km。</p>
-<p>为了将geometry数据加载到geography表中，首先需要将geometry投影到EPSG:4326（经度-longitude/纬度-latitude），然后再将其转换为geography。<strong>ST_Transform(geometry, srid)</strong>函数能将坐标转换为地理坐标，<strong>Geography(geometry)</strong>函数能将geometry转换为geography</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> nyc_subway_stations_geog <span class="keyword">AS</span></span><br><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">  Geography(ST_Transform(geom,<span class="number">4326</span>)) <span class="keyword">AS</span> geog,</span><br><span class="line">  <span class="keyword">name</span>,</span><br><span class="line">  routes</span><br><span class="line"><span class="keyword">FROM</span> nyc_subway_stations;</span><br></pre></td></tr></table></figure>
+<p><code>Navigator</code> 还有很多其它方法，如<code>Navigator.replace</code>、<code>Navigator.popUntil</code>等。</p>
+<h3 id="命名路由"><a href="#命名路由" class="headerlink" title="命名路由"></a>命名路由</h3><p>路由配置，在MaterialApp添加属性routes，通过路由名和Widget对象，routes是一个map类型</p>
+<p>在使用路由的时候通过<code>Navigator.pushNamed(context, &quot;new_page&quot;);</code>push到新的路由界面</p>
+<h4 id="命名路由传参"><a href="#命名路由传参" class="headerlink" title="命名路由传参"></a>命名路由传参</h4><p><code>Navigator.pushNamed</code>的第三个参数是一个object类型的值，可传递参数</p>
+<h4 id="路由生成钩子"><a href="#路由生成钩子" class="headerlink" title="路由生成钩子"></a>路由生成钩子</h4><p><code>MaterialApp</code>有一个<code>onGenerateRoute</code>属性，它在打开命名路由时可能会被调用。</p>
+<p>当调用<code>Navigator.pushNamed(...)</code>打开命名路由时，如果指定的路由名在路由表中已注册，则会调用路由表中的<code>builder</code>函数来生成路由组件；如果路由表中没有注册，才会调用<code>onGenerateRoute</code>来生成路由。</p>
+<p><code>Route&lt;dynamic&gt; Function(RouteSettings settings)</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">onGenerateRoute:(RouteSettings settings)&#123;</span><br><span class="line"> return MaterialPageRoute(builder: (context)&#123;</span><br><span class="line">   String routeName &#x3D; settings.name;</span><br><span class="line">     &#x2F;&#x2F; 如果访问的路由页需要登录，但当前未登录，则直接返回登录页路由，</span><br><span class="line">     &#x2F;&#x2F; 引导用户登录；其它情况则正常打开路由。</span><br><span class="line">   &#125;</span><br><span class="line"> );</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 
 
-<h3 id="函数"><a href="#函数" class="headerlink" title="函数"></a>函数</h3><p>对于geography类型，只有相关的少量空间函数：</p>
+<h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><p>在执行fultter doctor后，出现需要执行添加android-license时，说命令不正确，找不到命令，则需要再android studio处安装commandtool</p>
+<p><img src="QQ%E6%88%AA%E5%9B%BE20210314152543.png" alt=""></p>
+<p>然后再执行<code>flutter doctor --android-licenses</code></p>
+<p>这个licenses一定要执行通过的，否则AVD Manger添加的虚拟设备，在执行android studio 的fultter demo的时候不会将包安装到虚拟设备中</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Linux/windows与deepin双系统" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/06/Linux/windows%E4%B8%8Edeepin%E5%8F%8C%E7%B3%BB%E7%BB%9F/"
+    >windows与deepin双系统</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/06/Linux/windows%E4%B8%8Edeepin%E5%8F%8C%E7%B3%BB%E7%BB%9F/" class="article-date">
+  <time datetime="2021-03-06T04:00:00.000Z" itemprop="datePublished">2021-03-06</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>deepin安装失败问题？<br>说磁盘为MBR，最大支持2T，最多4个分区，最后怎么设置大小都无法安装上。</p>
+<p>window双系统安装<br>先安装windows系统，默认是UEFI引导安装，将机械硬盘整个格式化，并修改为GPT格式。<br>安装Deepin，选择手动安装，首先添加挂载/分区,然后按提示添加efi分区、swap分区</p>
+<p><a target="_blank" rel="noopener" href="https://jingyan.baidu.com/article/ea24bc394ac30c9a63b33175.html">https://jingyan.baidu.com/article/ea24bc394ac30c9a63b33175.html</a><br><a target="_blank" rel="noopener" href="https://blog.csdn.net/weixin_36059638/article/details/112162511">https://blog.csdn.net/weixin_36059638/article/details/112162511</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Javascript/axios及xhr携带请求头下载文件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/03/03/Javascript/axios%E5%8F%8Axhr%E6%90%BA%E5%B8%A6%E8%AF%B7%E6%B1%82%E5%A4%B4%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/"
+    >axios携带请求头下载文件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/03/03/Javascript/axios%E5%8F%8Axhr%E6%90%BA%E5%B8%A6%E8%AF%B7%E6%B1%82%E5%A4%B4%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2021-03-03T04:00:00.000Z" itemprop="datePublished">2021-03-03</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a> / <a class="article-category-link" href="/categories/Vue2-0/Javascript/">Javascript</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">export</span> <span class="function"><span class="keyword">function</span> <span class="title">checkDownLoad</span>(<span class="params">id</span>)</span>&#123;</span><br><span class="line">  <span class="keyword">return</span> request(&#123;</span><br><span class="line">    url: <span class="string">&quot;sk-web/f/kjgh/plan/kjghQualityResult/download/pkg/&quot;</span>+id,</span><br><span class="line">    responseType:<span class="string">&#x27;blob&#x27;</span>,</span><br><span class="line">    method:<span class="string">&quot;get&quot;</span></span><br><span class="line">  &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>以上代码request函数是封装的，内部还是使用axios设置参数，重要的属性是responseType设置为blob类型。</p>
+<figure class="highlight js"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">checkDownLoad(val.id).then(<span class="function"><span class="params">res</span> =&gt;</span> &#123;</span><br><span class="line">    <span class="keyword">if</span> (res.data.type===<span class="string">&#x27;application/octet-stream&#x27;</span>) &#123;</span><br><span class="line">        <span class="keyword">const</span> filename = res.headers[<span class="string">&quot;content-disposition&quot;</span>];</span><br><span class="line">        <span class="keyword">const</span> blob = <span class="keyword">new</span> Blob([res.data]);</span><br><span class="line">        <span class="keyword">var</span> downloadElement = <span class="built_in">document</span>.createElement(<span class="string">&quot;a&quot;</span>);</span><br><span class="line">        <span class="keyword">var</span> href = <span class="built_in">window</span>.URL.createObjectURL(blob);</span><br><span class="line">        downloadElement.href = href;</span><br><span class="line">        downloadElement.download = filename.split(<span class="string">&quot;filename=&quot;</span>)[<span class="number">1</span>].replaceAll(<span class="string">&quot;\&quot;&quot;</span>,<span class="string">&quot;&quot;</span>);</span><br><span class="line">        downloadElement.click();</span><br><span class="line">        <span class="built_in">window</span>.URL.revokeObjectURL(href);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;)</span><br></pre></td></tr></table></figure>
+
+<p>在调用时，通过URL.createObjectURL(blob);的方式获取blob转href的一个功能进行a标签的下载。</p>
+<p>首先需要注意的是，跨域问题首先要解决，这不是主要的，因为其它接口也会出现跨域。</p>
+<p>其次<code>res.data.type</code>和<code>content-disposition</code>的响应头值需要得到。这两个是响应头需要在后台设置。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">response.addHeader(<span class="string">&quot;Content-Disposition&quot;</span>, <span class="string">&quot;attachment; filename=\&quot;&quot;</span> + downloadFile + <span class="string">&quot;\&quot;&quot;</span>);</span><br><span class="line"><span class="comment">// 二进制流</span></span><br><span class="line">response.setContentType(MediaType.APPLICATION_OCTET_STREAM_VALUE);</span><br><span class="line">response.setHeader(<span class="string">&quot;Access-Control-Expose-Headers&quot;</span>,<span class="string">&quot;Content-Disposition&quot;</span>);</span><br></pre></td></tr></table></figure>
+
+<p>第一行设置Content-Disposition包含文件名称</p>
+<p>第二行设置ContentType，值一定是MediaType下带VALUE的字符串返回值，不要拿APPLICATION_OCTET_STREAM来获取。</p>
+<p>第三行设置用于导出的响应头，因为需要拿到文件名,<code>Content-Disposition</code>属性是一定要前段拿到的。</p>
+<p>在默认请求下，浏览器只能访问到默认的响应头</p>
 <ul>
-<li><strong>ST_AsText(geography)</strong> returns <code>text</code></li>
-<li><strong>ST_GeographyFromText(text)</strong> returns <code>geography</code></li>
-<li><strong>ST_AsBinary(geography)</strong> returns <code>bytea</code></li>
-<li><strong>ST_GeogFromWKB(bytea)</strong> returns <code>geography</code></li>
-<li><strong>ST_AsSVG(geography)</strong> returns <code>text</code></li>
-<li><strong>ST_AsGML(geography)</strong> returns <code>text</code></li>
-<li><strong>ST_AsKML(geography)</strong> returns <code>text</code></li>
-<li><strong>ST_AsGeoJson(geography)</strong> returns <code>text</code></li>
-<li><strong>ST_Distance(geography, geography)</strong> returns <code>double</code></li>
-<li><strong>ST_DWithin(geography, geography, float8)</strong> returns <code>boolean</code></li>
-<li><strong>ST_Area(geography)</strong> returns <code>double</code></li>
-<li><strong>ST_Length(geography)</strong> returns <code>double</code></li>
-<li><strong>ST_Covers(geography, geography)</strong> returns <code>boolean</code></li>
-<li><strong>ST_CoveredBy(geography, geography)</strong> returns <code>boolean</code></li>
-<li><strong>ST_Intersects(geography, geography)</strong> returns <code>boolean</code></li>
-<li><strong>ST_Buffer(geography, float8)</strong> returns <code>geography</code> <a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/geography.html#casting-note">[1]</a></li>
-<li><strong>ST_Intersection(geography, geography)</strong> returns <code>geography</code> <a target="_blank" rel="noopener" href="https://postgis.net/workshops/postgis-intro/geography.html#casting-note">[1]</a></li>
+<li>Cache-Control</li>
+<li>Content-Language</li>
+<li>Content-Type</li>
+<li>Expires</li>
+<li>Last-Modified</li>
+<li>Pragma</li>
 </ul>
-<h3 id="创建geograpgy"><a href="#创建geograpgy" class="headerlink" title="创建geograpgy"></a>创建geograpgy</h3><p>用于创建含有geography列的新表的SQL与用于创建geography表的SQL非常相似。但是，geography包含在表创建时直接指定表类型的功能</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> airports (</span><br><span class="line">  code <span class="built_in">VARCHAR</span>(<span class="number">3</span>),</span><br><span class="line">  geog GEOGRAPHY(Point)</span><br><span class="line">);</span><br><span class="line"> </span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> airports <span class="keyword">VALUES</span> (<span class="string">&#x27;LAX&#x27;</span>, <span class="string">&#x27;POINT(-118.4079 33.9434)&#x27;</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> airports <span class="keyword">VALUES</span> (<span class="string">&#x27;CDG&#x27;</span>, <span class="string">&#x27;POINT(2.5559 49.0083)&#x27;</span>);</span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> airports <span class="keyword">VALUES</span> (<span class="string">&#x27;KEF&#x27;</span>, <span class="string">&#x27;POINT(-22.6056 63.9850)&#x27;</span>);</span><br></pre></td></tr></table></figure>
-
-<h3 id="转换为Geometry"><a href="#转换为Geometry" class="headerlink" title="转换为Geometry"></a>转换为Geometry</h3><p>虽然geography类型的空间函数已经可以处理许多问题，但有时你可能需要访问仅由geometry类型支持的其他空间函数。幸运的是，你可以将对象从geography转换为geometry。</p>
-<p>在postgresql中直接使用::typename进行强制转换即可。可以将对象转换为SRID为4326的geometry。现在，我们就可以使用任何的geometry函数了。但是，请记住-现在我们的对象是geometry，坐标将被解释为<strong>笛卡尔平面坐标</strong>，而不是<strong>球体坐标</strong></p>
-<p>直接支持geography类型的函数要少得多。其次，球体上的计算要比笛卡尔计算计算量大得多。例如，计算距离的笛卡尔坐标系的公式（Pythagoras)涉及一次对sqrt()的调用，计算距离的球体坐标的公式包含两次sqrt()调用、一次arctan()调用、四次sin()调用和两次cos()调用，三角函数的计算是非常耗费资源的。</p>
-<blockquote>
-<p><strong>如果你的数据在地理范围上是紧凑的（包含在州、县或市内），请使用基于笛卡尔坐标的geometry类型</strong></p>
-<p><strong>如果你需要测量在地理范围上是分散的数据集（覆盖世界大部分地区）的距离，请使用geography类型</strong></p>
-</blockquote>
-<h3 id="坐标系和空间参考系统的关系"><a href="#坐标系和空间参考系统的关系" class="headerlink" title="坐标系和空间参考系统的关系"></a>坐标系和空间参考系统的关系</h3><h3 id="投影坐标系和地理坐标系的关系"><a href="#投影坐标系和地理坐标系的关系" class="headerlink" title="投影坐标系和地理坐标系的关系"></a>投影坐标系和地理坐标系的关系</h3><h4 id="地理坐标系"><a href="#地理坐标系" class="headerlink" title="地理坐标系"></a>地理坐标系</h4><p>Geographic coordinate system，球面坐标系统。</p>
-<p>具有长半轴，短半轴，偏心率，还需要一个大地基准面(例如Datum: D_Beijing_1954)将这个椭球定位。</p>
-<p>用经线（子午线）、纬线、经度、纬度表示地面点位的球面坐标。</p>
-<p><strong>完整参数</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Alias:   </span><br><span class="line">Abbreviation:   </span><br><span class="line">Remarks:   </span><br><span class="line">Angular Unit: Degree (0.017453292519943299)   </span><br><span class="line">Prime Meridian（起始经度）: Greenwich (0.000000000000000000)   </span><br><span class="line">Datum（大地基准面）: D_Beijing_1954   </span><br><span class="line">Spheroid（参考椭球体）: Krasovsky_1940   </span><br><span class="line">Semimajor Axis: 6378245.000000000000000000   </span><br><span class="line">Semiminor Axis: 6356863.018773047300000000   </span><br><span class="line">Inverse Flattening: 298.300000000000010000 </span><br></pre></td></tr></table></figure>
-
-<h4 id="投影坐标系"><a href="#投影坐标系" class="headerlink" title="投影坐标系"></a>投影坐标系</h4><p>投影坐标系统，实质上便是平面坐标系统，其地图单位通常为米。<u>每一个投影坐标系都必须有地理坐标系</u></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">Projection: Gauss_Kruger   </span><br><span class="line">Parameters:   </span><br><span class="line">False_Easting: 500000.000000   </span><br><span class="line">False_Northing: 0.000000   </span><br><span class="line">Central_Meridian: 117.000000   </span><br><span class="line">Scale_Factor: 1.000000   </span><br><span class="line">Latitude_Of_Origin: 0.000000   </span><br><span class="line">Linear Unit: Meter (1.000000)   </span><br><span class="line">Geographic Coordinate System:   </span><br><span class="line">Name: GCS_Beijing_1954   </span><br><span class="line">Alias:   </span><br><span class="line">Abbreviation:   </span><br><span class="line">Remarks:   </span><br><span class="line">Angular Unit: Degree (0.017453292519943299)   </span><br><span class="line">Prime Meridian: Greenwich (0.000000000000000000)   </span><br><span class="line">Datum: D_Beijing_1954   </span><br><span class="line">Spheroid: Krasovsky_1940   </span><br><span class="line">Semimajor Axis: 6378245.000000000000000000   </span><br><span class="line">Semiminor Axis: 6356863.018773047300000000   </span><br><span class="line">Inverse Flattening: 298.300000000000010000</span><br></pre></td></tr></table></figure>
-
-<p>为什么投影坐标系中存在地理坐标系的参数？将球面坐标转化为平面坐标的过程便称为投影。</p>
-<p>投影的条件就出来了：</p>
-<p>a、球面坐标</p>
-<p>b、转化过程（也就是算法）</p>
-<p>也就是说，要得到投影坐标就必须得有一个“拿来”投影的球面坐标，然后才能使用算法去投影！</p>
-<p>即每一个投影坐标系统都必须要求有Geographic Coordinate System参数。</p>
-<h2 id="常见问题"><a href="#常见问题" class="headerlink" title="常见问题"></a>常见问题</h2><h3 id="在数据库多模式中使用PostGIS时，要查询的矢量数据在另一个模式business中，postgis拓展在check模式中。如果要使用函数的话就必须使用check-ST-AsGeoJSON函数"><a href="#在数据库多模式中使用PostGIS时，要查询的矢量数据在另一个模式business中，postgis拓展在check模式中。如果要使用函数的话就必须使用check-ST-AsGeoJSON函数" class="headerlink" title="在数据库多模式中使用PostGIS时，要查询的矢量数据在另一个模式business中，postgis拓展在check模式中。如果要使用函数的话就必须使用check.ST_AsGeoJSON函数?"></a>在数据库多模式中使用PostGIS时，要查询的矢量数据在另一个模式business中，postgis拓展在check模式中。如果要使用函数的话就必须使用check.ST_AsGeoJSON函数?</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alter database postgres set search_path to public,xxhacheck,business;</span><br></pre></td></tr></table></figure>
-
-<p>修改数据库默认的应用模式。一般情况下默认的是public，如果postgis没有注册在public，就会出现这种问题。</p>
+<p>其他属性需要通过Access-Control-Expose-Headers响应头设置要额外返回的响应头名字。</p>
+<p>携带head时：</p>
+<p>a标签download下载，非同源跨域，则download属性不起作用，若下载类型为浏览器不可直接预览的则依旧会自动下载。</p>
+<p>get进行下载时，全局设置跨域后依然跨域(有时候好的有时候不行)。</p>
+<p>post进行下载时，不跨域，但是无法弹出下载器进行下载(此问题不管是原生ajax还是封装的，只要res.data获取blob数据都会一次性将文件下载到浏览器内存，下载完成后拷贝到磁盘上，拷贝这个速度很快，如果下载的文件较大则会导致浏览器内存溢出并崩溃)。</p>
+<p>携带认证头的可选择使用param参数的方式，加密到后台，并进行解密，使用两种方式混合。然后直接使用get方式进行加载就正常。</p>
+<p>以上方式只适用于小文件。</p>
 
       
       <!-- reward -->
@@ -564,328 +544,6 @@
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/GIS/" rel="tag">GIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PostgreSQL/" rel="tag">PostgreSQL</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/Maven中repository和mirror的使用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/"
-    >Maven中repository和mirror的使用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/02/24/Java/Maven%E4%B8%ADrepository%E5%92%8Cmirror%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
-  <time datetime="2021-02-24T04:00:00.000Z" itemprop="datePublished">2021-02-24</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>原文参考自: <a target="_blank" rel="noopener" href="https://blog.csdn.net/sky_tree_delivery/article/details/105415048">https://blog.csdn.net/sky_tree_delivery/article/details/105415048</a></p>
-<p>本文也是在使用到geotool工具时找到原文博客描述。在此记录一下非中央仓库引入jar包的问题。</p>
-<p>repository称为仓库，是maven中储存jar包的站点，会提供pom文件、jar包等。为了使用户不配置任何仓库也可以加载资源，maven隐含地配置了maven的中央仓库（<code>name</code>属性为<code>central</code>），不论用户是否配置了自己的仓库。</p>
-<p>repository仓库在项目pom中引入后可直接进行使用仓库下的jar依赖</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">repositories</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">repository</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">id</span>&gt;</span>osgeo<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">name</span>&gt;</span>OSGeo Release Repository<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">url</span>&gt;</span>https://repo.osgeo.org/repository/release/<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">snapshots</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>false<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">snapshots</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">releases</span>&gt;</span><span class="tag">&lt;<span class="name">enabled</span>&gt;</span>true<span class="tag">&lt;/<span class="name">enabled</span>&gt;</span><span class="tag">&lt;/<span class="name">releases</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">repository</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">repositories</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.geotools<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>gt-referencing<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>24.2<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>但如果settings.xml文件中配置了,mirror标签，则mirror会对仓库进行拦截并代理下载。</p>
-<p>mirror称为镜像，起拦截器的作用，本身不存储资源，而是指向一个资源地址（url）。镜像对项目中配置的仓库进行拦截，当一个镜像的<code>mirrodOf</code>参数匹配上了仓库的<code>name</code>参数，则进行资源映射，否则使用仓库中指定的url地址请求资源。</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">mirror</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">id</span>&gt;</span>nexus-aliyun<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">mirrorOf</span>&gt;</span>central<span class="tag">&lt;/<span class="name">mirrorOf</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">name</span>&gt;</span>Nexus aliyun<span class="tag">&lt;/<span class="name">name</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">url</span>&gt;</span>http://maven.aliyun.com/nexus/content/groups/public<span class="tag">&lt;/<span class="name">url</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">mirror</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>如果mirrorOf设置了*，则所有的jar依赖 都匹配到从此url中获取jar依赖，但aliyun中只提供中央仓库central的jar，因此部分通过其他仓库引入的jar就回获取失败。</p>
-<p>所以可以认定为mirror的优先级别大于repository，不在mirrorOf中使用*匹配。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/arcgis/" rel="tag">arcgis</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/Echarts相关属性设置" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/02/22/Javascript/Echarts%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/"
-    >Echarts相关属性设置</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/02/22/Javascript/Echarts%E7%9B%B8%E5%85%B3%E5%B1%9E%E6%80%A7%E8%AE%BE%E7%BD%AE/" class="article-date">
-  <time datetime="2021-02-22T09:20:28.154Z" itemprop="datePublished">2021-02-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/echarts/">echarts</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="通用设置"><a href="#通用设置" class="headerlink" title="通用设置"></a>通用设置</h3><h4 id="图表整体上下左右位置设置"><a href="#图表整体上下左右位置设置" class="headerlink" title="图表整体上下左右位置设置"></a>图表整体上下左右位置设置</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">grid: &#123;</span><br><span class="line">    top:20,</span><br><span class="line">    bottom: 20,</span><br><span class="line">    right:&#x27;15%&#x27;</span><br><span class="line">&#125;,</span><br></pre></td></tr></table></figure>
-
-<p>图表整体居上空白20，居下空白20，右侧空白百分之15%</p>
-<h4 id="xy轴单位设置"><a href="#xy轴单位设置" class="headerlink" title="xy轴单位设置"></a>xy轴单位设置</h4><p>name属性则为单位</p>
-<h4 id="tooltip悬浮信息自定义"><a href="#tooltip悬浮信息自定义" class="headerlink" title="tooltip悬浮信息自定义"></a>tooltip悬浮信息自定义</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">formatter: function (params) &#123;</span><br><span class="line">    return params.data.name + &quot;: &quot; + params.data.value + &quot; &quot; + res.data.body.unit</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>params具有一些属性和值。</p>
-<h3 id="坐标系图表"><a href="#坐标系图表" class="headerlink" title="坐标系图表"></a>坐标系图表</h3><h4 id="折线图x轴上的值没有与刻度线对齐"><a href="#折线图x轴上的值没有与刻度线对齐" class="headerlink" title="折线图x轴上的值没有与刻度线对齐"></a>折线图x轴上的值没有与刻度线对齐</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    boundaryGap: false, //值是否在刻度中间</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h4 id="折线图x轴的值没有显示全"><a href="#折线图x轴的值没有显示全" class="headerlink" title="折线图x轴的值没有显示全"></a>折线图x轴的值没有显示全</h4><figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">xAxis:&#123;</span><br><span class="line">    axisLabel: &#123;</span><br><span class="line">        interval: 0,</span><br><span class="line">        rotate: 30</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>interval表示间隔多少个值才显示一个值，设为0则全部显示。</p>
-<p>此时x轴密密麻麻，rotate属性设置值的倾斜角度，值越大倾斜越大</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/echarts/" rel="tag">echarts</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/Vue相关操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/02/17/Vue/Vue%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
-    >Vue相关操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/02/17/Vue/Vue%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2021-02-17T05:58:50.012Z" itemprop="datePublished">2021-02-17</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="for循环为指定元素设置事件"><a href="#for循环为指定元素设置事件" class="headerlink" title="for循环为指定元素设置事件"></a>for循环为指定元素设置事件</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&lt;i :class&#x3D;&quot;item.name&quot; class&#x3D;&quot;icon&quot; @dblclick&#x3D;&quot;chooseMethod(item.num)&quot; :style&#x3D;&quot;&#123;zIndex:item.zIndex&#125;&quot; v-for&#x3D;&quot;(item,i) in names&quot; :key&#x3D;&quot;i&quot;&gt;&lt;&#x2F;i&gt;</span><br></pre></td></tr></table></figure>
-
-<p>为当前循环的设置一个事件，以dblclick为例，向方法参数传递num，整个num是一个标识，是一个已经在methods中定义的方法的方法名。</p>
-<p>例如我的names的数据为</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[</span><br><span class="line">    &#123;</span><br><span class="line">		name: &#x27;el-icon-setting&#x27;,</span><br><span class="line">    &#125;,</span><br><span class="line">    &#123;</span><br><span class="line">		name: &#x27;el-icon-delete&#x27;,</span><br><span class="line">        num: &#x27;openClose&#x27;</span><br><span class="line">    &#125;</span><br><span class="line">]</span><br></pre></td></tr></table></figure>
-
-<p>在第二个元素中设置num标识位openClose，则通过一下方式会自动调用绑定的方法</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">chooseMethod(method)&#123;</span><br><span class="line">	if (method&#x3D;&#x3D;&#x3D; undefined || method&#x3D;&#x3D;&#x3D;&#39;&#39; || method&#x3D;&#x3D;&#x3D;null)&#123;</span><br><span class="line">        return</span><br><span class="line">    &#125;</span><br><span class="line">	this[method]()</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>直接会调用this[openClose]()这个方法。需要进行method判断，否则会发出异常。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Vue/常见问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/02/06/Vue/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/"
-    >Vue常见问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/02/06/Vue/%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-02-06T04:00:00.000Z" itemprop="datePublished">2021-02-06</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="window定义的属性不能再vue渲染时引用"><a href="#window定义的属性不能再vue渲染时引用" class="headerlink" title="window定义的属性不能再vue渲染时引用"></a>window定义的属性不能再vue渲染时引用</h3><p>Property or method “window” is not defined on the instance but referenced during render. Make sure that this property is reactive, either in the data option, or for class-based components, by initializing the property. See: <a target="_blank" rel="noopener" href="https://vuejs.org/v2/guide/reactivity.html#Declaring-Reactive-Properties">https://vuejs.org/v2/guide/reactivity.html#Declaring-Reactive-Properties</a>.</p>
-<p>如果需要进行循环属性拼接，则在method中定义。</p>
-<h3 id="JSONObject对象转换HashMap-lt-String-Bean-gt-类型"><a href="#JSONObject对象转换HashMap-lt-String-Bean-gt-类型" class="headerlink" title="JSONObject对象转换HashMap&lt;String,Bean&gt;类型"></a>JSONObject对象转换HashMap&lt;String,Bean&gt;类型</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 设置缓存</span><br><span class="line">redisUtil.set(Constants.PICTURE_CATEGORY_REFIX+userId,JSONObject.toJSONString(collect));</span><br><span class="line">&#x2F;&#x2F; json字符串转HashMap</span><br><span class="line">HashMap&lt;String, PictureCategory&gt; hashMap &#x3D; JSONObject.parseObject(o.toString(), new TypeReference&lt;HashMap&lt;String, PictureCategory&gt;&gt;() &#123;&#125;);</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用-他销毁的是这个组件"><a href="#Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用-他销毁的是这个组件" class="headerlink" title="Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用,他销毁的是这个组件"></a>Element-ui中el-dialog的destroy-on-close属性仅用于dialog内元素是组件的时候才可用,他销毁的是这个组件</h3><p>参考: <a target="_blank" rel="noopener" href="https://www.jianshu.com/p/77d1ba476a6d">https://www.jianshu.com/p/77d1ba476a6d</a></p>
-<h3 id="在el-dialog使用-before-close属性时，绑定的回调方法中一定要在最后执行done-函数，否则无法关闭"><a href="#在el-dialog使用-before-close属性时，绑定的回调方法中一定要在最后执行done-函数，否则无法关闭" class="headerlink" title="在el-dialog使用:before-close属性时，绑定的回调方法中一定要在最后执行done()函数，否则无法关闭"></a>在el-dialog使用:before-close属性时，绑定的回调方法中一定要在最后执行done()函数，否则无法关闭</h3>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li></ul>
-
 
     </footer>
 
@@ -907,7 +565,7 @@
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/10/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/51/">51</a><a class="extend next" rel="next" href="/page/12/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/10/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/9/">9</a><a class="page-number" href="/page/10/">10</a><span class="page-number current">11</span><a class="page-number" href="/page/12/">12</a><a class="page-number" href="/page/13/">13</a><span class="space">&hellip;</span><a class="page-number" href="/page/53/">53</a><a class="extend next" rel="next" href="/page/12/">下一页</a>
   </nav>
   
 </section>

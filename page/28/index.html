@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-开源/JFinal搭建后jar的部署" class="article article-type-post" itemscope
+    <article id="post-Java/使用java gdal将shp文件转为geojson" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/"
-    >JFinal搭建后jar的部署</a
+  <a class="article-title" href="/2020/01/02/Java/%E4%BD%BF%E7%94%A8java%20gdal%E5%B0%86shp%E6%96%87%E4%BB%B6%E8%BD%AC%E4%B8%BAgeojson/"
+    >使用java gdal将shp文件转为geojson</a
   >
 </h2>
   
@@ -97,293 +97,8 @@
 
     
     <div class="article-meta">
-      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E6%90%AD%E5%BB%BA%E5%90%8Ejar%E7%9A%84%E9%83%A8%E7%BD%B2/" class="article-date">
-  <time datetime="2019-09-04T06:32:44.000Z" itemprop="datePublished">2019-09-04</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>使用jfinal开发确实是非常非常的便利，虽然我才接触了两天，看点文档和社区才把一些资源常用操作等给弄完。唯一一个不怎么舒服的就是打包了。</p>
-<p>正常springmvc或springboot打包，要么是war，要么是jar，不用做什么操作，只有有默认创建maven项目的插件，就能正常的打好包。</p>
-<p>打包里，我遇到算是最困难的就是该博客里提到的，springboot+jdk6,打的war包，要是再有个axis2的使用。就会更麻烦。</p>
-<p>虽然jfinal官方提供的打包方式很好，可以使zip，tar.gz等打包。但是关于package.xml文件配置和插件的配置始终没搞懂怎么运行。最后才在社区里找到打jar包的方法。这里我先打一个地址，行不行还得根据项目来定</p>
-<p><a target="_blank" rel="noopener" href="http://www.jfinal.com/share/422">http://www.jfinal.com/share/422</a></p>
-<p>首先按照社区的说法是要把webapp的东西放到resource中再打包。这里呢，根据上一篇的环境搭建，已经把所有的东西都放到resources了，不必大费周折。</p>
-<p>依据上一篇搭建的之后，还需要做的如下。</p>
-<ul>
-<li><p>添加jfinal的jetty依赖</p>
-<dependency>
-    <groupId>com.jfinal</groupId>
-    <artifactId>jetty-server</artifactId>
-    <version>2019.3</version>
-</dependency>
-</li>
-<li><p>配置社区里截图得maven插件</p>
-<plugins>
-    <plugin>
-        <groupId>org.apache.maven.plugins</groupId>
-        <artifactId>maven-compiler-plugin</artifactId>
-        <version>2.3.2</version>
-        <configuration>
-            <source>1.8</source>
-            <target>1.8</target>
-            <encoding>UTF-8</encoding>
-        </configuration>
-    </plugin>
-
-<pre><code>&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-surefire-plugin&lt;/artifactId&gt;
-    &lt;configuration&gt;
-        &lt;skip&gt;true&lt;/skip&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;
-&lt;plugin&gt;&lt;!--核心打成jar包插件--&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-jar-plugin&lt;/artifactId&gt;
-    &lt;version&gt;2.6&lt;/version&gt;
-    &lt;configuration&gt;
-        &lt;archive&gt;
-            &lt;manifest&gt;
-                &lt;addClasspath&gt;true&lt;/addClasspath&gt;
-                &lt;classpathPrefix&gt;lib/&lt;/classpathPrefix&gt;
-                &lt;mainClass&gt;com.fsats.demo.DemoConfig&lt;/mainClass&gt;
-            &lt;/manifest&gt;
-        &lt;/archive&gt;
-    &lt;/configuration&gt;
-&lt;/plugin&gt;
-&lt;plugin&gt;
-    &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
-    &lt;artifactId&gt;maven-dependency-plugin&lt;/artifactId&gt;
-    &lt;version&gt;2.10&lt;/version&gt;
-    &lt;executions&gt;
-        &lt;execution&gt;
-            &lt;id&gt;copy-dependencies&lt;/id&gt;
-            &lt;phase&gt;package&lt;/phase&gt;
-            &lt;goals&gt;
-                &lt;goal&gt;copy-dependencies&lt;/goal&gt;
-            &lt;/goals&gt;
-            &lt;configuration&gt;
-                &lt;outputDirectory&gt;$&#123;project.build.directory&#125;/lib&lt;/outputDirectory&gt;
-            &lt;/configuration&gt;
-        &lt;/execution&gt;
-    &lt;/executions&gt;
-&lt;/plugin&gt;</code></pre></plugins>
-</li>
-<li><p>配置主启动类，就是manifest的设置。</p>
-<p>public class DemoConfig{</p>
-<pre><code>public static void main(String[] args) &#123;
-    //打包时使用
-    String baseBath = String.valueOf(DemoConfig.class.getProtectionDomain().getCodeSource().getLocation());
-    String classPath, webRootPath, jarPath;
-    if (StrKit.notBlank(baseBath) &amp;&amp; baseBath.contains(&quot;file:/&quot;)) &#123;
-        // 获取运行操作系统的运行方式  window和linux的细微区别
-        boolean windows = System.getProperties().getProperty(&quot;os.name&quot;).contains(&quot;Windows&quot;);
-        System.out.println(System.getProperties().getProperty(&quot;os.name&quot;));
-        jarPath = (windows ? &quot;&quot; : &quot;/&quot;) + baseBath.substring(&quot;file:/&quot;.length());
-        classPath = (windows ? &quot;&quot; : &quot;/&quot;) + jarPath.substring(0, jarPath.lastIndexOf(&quot;/&quot;)) + &quot;/classes&quot;;
-        System.out.println(&quot;jarPath:&quot; + jarPath);
-        System.out.println(&quot;classPath:&quot; + classPath);
-        webRootPath = classPath;
-        ZipUtil.unzip(jarPath, classPath);
-    &#125;
-    UndertowServer.start(DemoConfig.class, 80, true);
-&#125;</code></pre><p>}</p>
-</li>
-</ul>
-<p>上面的代码和社区给的有些不同</p>
-<p>PathKit似乎并没有什么用，而且社区中解压目录为class-path，这个可以再上面改，这里我改成了classes。</p>
-<p>社区里值提供了maven和启动类main方法的代码。没有继承JFinalConfig类中配置的方法出来。以目前的项目若是访问页面，可能不可行，访问的路径就有问题，访问模板路径访问不到classes，查看报错，这里被webapp替换。这是他默认的模板存放位置，就像undertow.txt中配置的resource的src/main/resources一样。但是好像读不到，所以只能修改configEngine方法，添加基础模板路径，值就是设置的最后一级目录名称。</p>
-<pre><code>public void configEngine(Engine engine) &#123;
-    engine.setBaseTemplatePath(&quot;classes&quot;);
-&#125;</code></pre><p>根据社区打包完成后，会生成一个jar包和一个lib文件夹到taraget下。你可以直接运行java -jar jar包，此时jar包里的东西就会被解压到classes目录下。</p>
-<p>其实依据之前的springboot的问题，好像可以不必要解压，而且直接将lib放在jar里，运行jar</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-开源/JFinal基础搭建" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/"
-    >JFinal基础搭建</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/09/04/%E5%BC%80%E6%BA%90/JFinal%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA/" class="article-date">
-  <time datetime="2019-09-04T02:40:26.000Z" itemprop="datePublished">2019-09-04</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/FJinal/">FJinal</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>创建Maven普通项目，添加依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
-    &lt;artifactId&gt;jfinal&lt;/artifactId&gt;
-    &lt;version&gt;4.5&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;com.jfinal&lt;/groupId&gt;
-    &lt;artifactId&gt;jfinal-undertow&lt;/artifactId&gt;
-    &lt;version&gt;1.9&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>创建DemoConfig集成JFinalConfig类，实现所有方法</p>
-<p>创建main方法启动</p>
-<pre><code>public static void main(String[] args) &#123;
-    UndertowServer.start(DemoConfig.class, 80, true);
-&#125;</code></pre><p>在resources下创建undertow.txt文件，文件名可通过程序修改。</p>
-<pre><code># 配置 undertow
-
-undertow.devMode=true
-undertow.host=localhost
-undertow.port=80
-
-# 打成 fatjar 部署的项目开启下面的配置。。。。。第一个是模板资源存放位置，第二个是静态文件存放位置(暂时可以这么认为)
-undertow.resourcePath=src/main/resources, classpath:static</code></pre><p>这个文件会被自动加载装配，以上分别表示热部署，主机地址，端口号。</p>
-<p>undertow.resourcePath表示资源文件存放位置，目前也不具体清楚，只是测试了一下项目跑起来。src/amin/resources表示模板资源存放的位置，后面的是静态资源存放的位置。</p>
-<p>在DemoConfig里实现的方法configConstant</p>
-<pre><code>private static Prop prop;
-public void configConstant(Constants constants) &#123;
-    if (prop==null)&#123;
-        prop = PropKit.use(&quot;undertow.txt&quot;);
-    &#125;
-    constants.setDevMode(prop.getBoolean(&quot;undertow.devMode&quot;));
-    constants.setViewType(ViewType.JFINAL_TEMPLATE);
-&#125;</code></pre><p>上面的代码表示，获取文件并设置属性</p>
-<p>配置configRoute方法</p>
-<pre><code>public void configRoute(Routes routes) &#123;
-    routes.setBaseViewPath(&quot;/template&quot;);//设置视图基础路径
-    routes.add(&quot;/&quot;,DemoController.class);
-&#125;</code></pre><p>需要创建DemoController类</p>
-<pre><code>@Log4j
-public class DemoController extends Controller &#123;
-
-    public void index()&#123;
-        set(&quot;name&quot;,&quot;chen&quot;);
-        log.info(&quot;inf&quot;);
-        log.error(&quot;error&quot;);
-        render(&quot;index.html&quot;);
-    &#125;
-&#125;</code></pre><p>render方法可传入视图名称，可直接返回到视图中。</p>
-<p>那么模板和静态文件的存储位置为</p>
-<ul>
-<li>模板位置:resources/template/index.html(因为上面设置了BaseViewPath所以有template目录，然后因为路由直接设置的是/所以没有目录，直接index.html)</li>
-<li>静态资源位置:resources/static/index.js</li>
-</ul>
-<p>如何在页面中访问静态资源。通过以上的配置之后，在index.html可直接通过/static/index.js获取script文件</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-other/IDEA打断点也无法debug问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/"
-    >IDEA打断点也无法debug问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/08/07/other/IDEA%E6%89%93%E6%96%AD%E7%82%B9%E4%B9%9F%E6%97%A0%E6%B3%95debug%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2019-08-07T02:26:40.000Z" itemprop="datePublished">2019-08-07</time>
+      <a href="/2020/01/02/Java/%E4%BD%BF%E7%94%A8java%20gdal%E5%B0%86shp%E6%96%87%E4%BB%B6%E8%BD%AC%E4%B8%BAgeojson/" class="article-date">
+  <time datetime="2020-01-02T06:33:16.000Z" itemprop="datePublished">2020-01-02</time>
 </a>
       
   <div class="article-category">
@@ -404,14 +119,271 @@ public class DemoController extends Controller &#123;
       
 
       
-      <p>首先，出现这个问题肯定是莫名其妙的。其他项目就可以，刚导入这个项目就不可以。</p>
-<p>去google搜索，搜索到低级问题，是点击了左边的禁用断点。</p>
-<p>然后还有的就是springboot-devtool的问题</p>
-<p>我的问题是catalina.bat设置的java_opts问题,因为设置了这个，导致的无法启动断点。但是之前的项目也是使用的这个设置就没问题。莫名其妙了。</p>
-<p>检查一下catalina.bat里的SET JAVA_OPTS配置吧。</p>
-<p>原因是idea里的环境变量java_opts也有配置，导致catalina.bat里的覆盖了debug的这个配置，导致无法debug。因此在IDEA的start/connection里的配置不用改。只需要将cataina.bat的SET JAVA_OPTS = xxxxxx修改为</p>
-<p>SET JAVA_OPTS = %JAVA_OPTS% -xxxxxxx即可，这样就可以继承环境变量。</p>
-<p>但是，这个问题也会导致，你的项目启动会多启动一两次，也就是说你点了一下启动，然后控制台上走了两遍三遍项目启动。</p>
+      <p>原因描述:因为要使用乡镇级别的地图进行显示，但是网上都没有对应的geojosn格式的文件，最低到区县级别。网上说是可以手绘的，在geojson开源网站上绘制自动生成json。 <a target="_blank" rel="noopener" href="http://geojson.io/">http://geojson.io/</a></p>
+<p>于是找了又找发现可将shp转为geojson格式，于是使用java gdal来转换shp为geojson文件。你只需要找shp文件即可了，如果没有找到，看看公司有没有arcgis相关的开发人员，问他们要。</p>
+<p>首先需要下载包，从<a target="_blank" rel="noopener" href="http://download.gisinternals.com/sdk.php">http://download.gisinternals.com/sdk.php</a>中去下载，解压后进入release-版本好-x64/bin中,将当前目录下所有dll文件放到java 的jdk/bin下,然后进入./gdal/java目录,将下面的所有dll也放到jdk/bin下面，然后再把这些放到java功能根目录下,jar供程序使用。</p>
+<p>1900版本gdal/java下只有gdal.jar和gdalalljni.dll,因此将dll分别分别放在jdk/bin下和项目根目录下即可。</p>
+<pre><code>public class Application &#123;
+    //http://download.gisinternals.com/sdk.php
+    public static void main(String[] args) &#123;
+        // 注册所有的驱动
+        ogr.RegisterAll();
+        // 为了支持中文路径，请添加下面这句代码
+        gdal.SetConfigOption(&quot;GDAL_FILENAME_IS_UTF8&quot;,&quot;YES&quot;);
+        // 为了使属性表字段支持中文，请添加下面这句
+        gdal.SetConfigOption(&quot;SHAPE_ENCODING&quot;,&quot;&quot;);
+
+        String strVectorFile = &quot;J:\\行政区\\XZQ.shp&quot;;
+        //打开数据
+        DataSource ds = ogr.Open(strVectorFile,0);
+        if (ds == null)
+        &#123;
+            System.out.println(&quot;打开文件失败！&quot; );
+            return;
+        &#125;
+        System.out.println(&quot;打开文件成功！&quot; );
+        Driver dv = ogr.GetDriverByName(&quot;GeoJSON&quot;);
+        if (dv == null)
+        &#123;
+            System.out.println(&quot;打开驱动失败！&quot; );
+            return;
+        &#125;
+        System.out.println(&quot;打开驱动成功！&quot; );
+        dv.CopyDataSource(ds, &quot;J:\\行政区\\fibercable.geojson&quot;);
+        System.out.println(&quot;转换成功！&quot; );
+    &#125;
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Hadoop/超简单基础搭建分布式hadoop" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/12/07/Hadoop/%E8%B6%85%E7%AE%80%E5%8D%95%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8Fhadoop/"
+    >超简单基础搭建分布式hadoop</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/12/07/Hadoop/%E8%B6%85%E7%AE%80%E5%8D%95%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E5%88%86%E5%B8%83%E5%BC%8Fhadoop/" class="article-date">
+  <time datetime="2019-12-06T16:59:47.000Z" itemprop="datePublished">2019-12-07</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>新文章，之前的hadoop部署文章教程均可能出现问题，仅作为参考。以本文为准</p>
+<h1 id="第一章-虚拟机配置"><a href="#第一章-虚拟机配置" class="headerlink" title="第一章 虚拟机配置"></a>第一章 虚拟机配置</h1><p>创建centos7.x虚拟机不再描述,网卡连接方式使用NAT方式</p>
+<p><strong>网络问题,创建NAT虚拟网络</strong><br>可在VMware的编辑，虚拟网络编辑器中，添加网络，点击右下角的管理员操作权限，点击添加网络按钮，随意选一个VMnet，选择VMnet为NAT模式。<br>勾选将主机虚拟适配器连接到此网络和勾选使用本地DHCP服务将IP地址分配给虚拟机。然后可以修改HDCP设置，默认可以不更改。</p>
+<h2 id="创建完虚拟机后，无法使用sudo问题"><a href="#创建完虚拟机后，无法使用sudo问题" class="headerlink" title="创建完虚拟机后，无法使用sudo问题"></a>创建完虚拟机后，无法使用sudo问题</h2><p>使用命令<code>su root</code>进入root用户,执行<code>visudo</code>命令打开sudoer文件,找到</p>
+<pre><code>root    ALL=(ALL)       ALL</code></pre><p>在其下面添加与其一样的一行，并把root改为自己的用户名,然后保存退出,如:</p>
+<pre><code>centos    ALL=(ALL)       ALL</code></pre><h2 id="安装jdk和hadoop"><a href="#安装jdk和hadoop" class="headerlink" title="安装jdk和hadoop"></a>安装jdk和hadoop</h2><p>jdk选JDK8的,hadoop建议选择3.x版本的，这里，我使用JDK8和hadoop3.1.3。目前JDK11与hadoop3.x版本的匹配问题还没有找到解决办法，使用jdk会导致在启动时出现java.lang.ClassNotFoundException: javax.activation.DataSource的异常。</p>
+<pre><code>[centos@centos3 ~]$ java -version
+java version &quot;1.8.0_231&quot;
+Java(TM) SE Runtime Environment (build 1.8.0_231-b11)
+Java HotSpot(TM) 64-Bit Server VM (build 25.231-b11, mixed mode)
+[centos@localhost ~]$ hadoop version
+Hadoop 3.1.3
+Source code repository https://gitbox.apache.org/repos/asf/hadoop.git -r ba631c436b806728f8ec2f54ab1e289526c90579
+Compiled by ztang on 2019-09-12T02:47Z
+Compiled with protoc 2.5.0
+From source with checksum ec785077c385118ac91aadde5ec9799
+This command was run using /home/centos/hadoop/share/hadoop/common/hadoop-common-3.1.3.jar</code></pre><p>将jdk8和hadoop解压，放置在~/下,在/etc/profile中配置环境变量,<code>sudo vim /etc/profile</code>命令，打开后在结尾追加</p>
+<pre><code>export JAVA_HOME=/home/centos/jdk8
+export PATH=$JAVA_HOME/bin:$PATH
+export HADOOP_HOME=/home/centos/hadoop
+export PATH=$HADOOP_HOME/bin:$HADOOP_HOME/sbin:$PATH</code></pre><p>然后使用<code>source /etc/profile</code>编译文件。然后可以输入上面的版本命令，看看信息。</p>
+<h2 id="暂时关闭防火墙"><a href="#暂时关闭防火墙" class="headerlink" title="暂时关闭防火墙"></a>暂时关闭防火墙</h2><pre><code>systemctl stop firewalld.service</code></pre><h2 id="规定三台服务器的IP-这个ip地址是随意的。"><a href="#规定三台服务器的IP-这个ip地址是随意的。" class="headerlink" title="规定三台服务器的IP,这个ip地址是随意的。"></a>规定三台服务器的IP,这个ip地址是随意的。</h2><pre><code>192.168.181.129 centos1
+192.168.181.130 centos2
+192.168.181.131 centos3</code></pre><p>修改/etc/host文件，配置映射文件,将上面的配置放在该文件中。</p>
+<h2 id="克隆虚拟机"><a href="#克隆虚拟机" class="headerlink" title="克隆虚拟机"></a>克隆虚拟机</h2><p>关闭虚拟机，点击菜单栏的虚拟机，选择管理，选择克隆，选择完全克隆，选择存储位置，然后进行克隆。如果你的当前磁盘是固态，那么是非常非常快的，不超过1分钟。</p>
+<h2 id="配置网络"><a href="#配置网络" class="headerlink" title="配置网络"></a>配置网络</h2><p>打开全部虚拟机，其实完全克隆后，主机名已经变了，从centos1到centos3，hostname是直接改过了的。你可以到设置-详细信息-用户里改一下用户名称为主机名名称。<br>然后配置一下另外两个的网络,这里配ip，上面好像没说。可以直接到设置-网络，点有线连接下的那个网卡点IPV4，设为手动，分别填写，你在虚拟网络配置里配置的网络ip，或者可以不用这用，因为是hdcp的，所以直接ifconfig查看ip结构，把之前预先设计好的ip填进去，并把地址和子网掩码放进去，网关为.1，DNS设为114.114.114.114。然后ipv6这点击禁用。<br>然后尝试互相ping并ping一下<a target="_blank" rel="noopener" href="http://www.baidu.com看是否外网可以通。">www.baidu.com看是否外网可以通。</a><br>如果找不到地方，看不到英文的话，可以设置成中文，点设置-region-language，看上部分，选择语言，汉语中文，然后根据他的提示重启一下就好了，让修改home下的文件名称的话，<strong>选不修改且不再提示</strong>。</p>
+<h2 id="虚拟机免密登录"><a href="#虚拟机免密登录" class="headerlink" title="虚拟机免密登录"></a>虚拟机免密登录</h2><p>在三台机器都执行以下指令</p>
+<pre><code>ssh-keygen -t rsa ；
+ssh-copy-id IP (自身)
+ssh-copy-id IP (其他节点)</code></pre><p>执行第一条指令时，回车三次，第二条和第三条是一样的，输入yes，然后输入ip的密码。<br>这三条指令，每台机器都执行一遍。<br>执行完毕后，从129开始，ssh centos1,ssh centos2,ssh centos3,三台机器都执行一遍这三个命令，表示要ssh连接一次，记住ip。</p>
+<h1 id="第二章-集群配置"><a href="#第二章-集群配置" class="headerlink" title="第二章 集群配置"></a>第二章 集群配置</h1><h2 id="集群规划"><a href="#集群规划" class="headerlink" title="集群规划"></a>集群规划</h2><p>centos1</p>
+<p>centos2</p>
+<p>centos3</p>
+<p>HDFS</p>
+<p>NameNode<br>DataNode</p>
+<p>DataNode</p>
+<p>SecondaryNameNode<br>DataNode</p>
+<p>YARN</p>
+<p>NodeManager</p>
+<p>NodeManager<br>ResourceManager</p>
+<p>NodeManager</p>
+<p>每个DataNode一定是有个NodeManager的。NameNode是比较重要的，管理所有的节点，所以一般是单独占一个服务器，但是只有三台机器又要做三个机器的数据存储。</p>
+<h2 id="集群配置"><a href="#集群配置" class="headerlink" title="集群配置"></a>集群配置</h2><p>进入hadoop的etc/hadoop</p>
+<ol>
+<li><p>配置hadoop-env.sh，找到被注释的JAVA_HOME与HADOOP_HOME，解开注释，修改为对应位置。</p>
+</li>
+<li><p>修改core-site.xml,添加如下</p>
+<!-- 指定HDFS中的NameNode地址 -->
+<property>
+<name>fs.defaultFS</name>
+   <value>hdfs://centos1:9000</value>
+</property>
+<!-- 指定hadoop运行时产生的临时文件 -->
+<property>
+<name>hadoop.tmp.dir</name>
+   <value>/home/centos/hadoop/data/hadoopdata</value>
+</property>
+</li>
+<li><p>修改hdfs-site.xml，添加如下</p>
+<property>
+    <name>dfs.namenode.secondary.http-address</name>
+        <value>centos3:50090</value>
+    <description>secondarynamenode运行节点的信息,和namenode不同节点</description>
+</property>
+<property>
+        <name>dfs.replication</name>
+        <value>3</value>
+    <description>HDFS的数据块副本存储个数</description>
+</property>
+<property>
+    <name>dfs.namenode.http-address</name>
+    <value>centos1:50070</value>
+</property>
+<property>
+        <name>dfs.namenode.name.dir</name>
+        <value>/home/centos/hadoop/data/name</value>
+    <description>namenode的数据存储目录</description>
+</property>
+<property>
+        <name>dfs.datanode.data.dir</name>
+        <value>/home/centos/hadoop/data/data</value>
+    <description>datanode的数据存储目录</description>
+</property>
+</li>
+<li><p>修改yarn-site.xml，添加如下</p>
+<property>
+        <name>yarn.resourcemanager.hostname</name>
+        <value>centos2</value>
+</property>
+<property>
+        <name>yarn.nodemanager.aux-services</name>
+        <value>mapreduce_shuffle</value>
+        <description>yarn集群为mapreduce程序提供的shuffle服务</description>
+</property>
+
+</li>
+</ol>
+<p>有时候，有的yarn还是什么日志报错，具体问题忘了，是需要配置<code>yarn.application.classpath</code>的属性，它的值通过<code>hadoop classpath</code>命令打出来</p>
+<pre><code>&lt;property&gt;
+&lt;name&gt;yarn.application.classpath&lt;/name&gt;
+&lt;value&gt;/home/hadoop/install/hadoop/etc/hadoop:/home/hadoop/install/hadoop/share/hadoop/common/lib/*:/home/hadoop/install/hadoop/share/hadoop/common/*:/home/hadoop/install/hadoop/share/hadoop/hdfs:/home/hadoop/install/hadoop/share/hadoop/hdfs/lib/*:/home/hadoop/install/hadoop/share/hadoop/hdfs/*:/home/hadoop/install/hadoop/share/hadoop/mapreduce/lib/*:/home/hadoop/install/hadoop/share/hadoop/mapreduce/*:/home/hadoop/install/hadoop/share/hadoop/yarn:/home/hadoop/install/hadoop/share/hadoop/yarn/lib/*:/home/hadoop/install/hadoop/share/hadoop/yarn/*&lt;/value&gt;
+&lt;/property&gt;</code></pre><ol>
+<li><p>修改mapred-site.xml，添加如下</p>
+<property>
+        <name>mapreduce.framework.name</name>
+        <value>yarn</value>
+</property>
+<property>
+        <name>mapreduce.jobhistory.address</name>
+        <value>centos1:10020</value>
+</property>
+<property>
+        <name>mapreduce.jobhistory.webapp.address</name>
+        <value>centos1:19888</value>
+</property>
+
+</li>
+</ol>
+<h2 id="hadoop拷贝到centos2和centos3"><a href="#hadoop拷贝到centos2和centos3" class="headerlink" title="hadoop拷贝到centos2和centos3"></a>hadoop拷贝到centos2和centos3</h2><p>之前的克隆的时候的从centos1中克隆来的，但没有配置，在这里，先把centos2和centos3的hadoop目录删了，通过命令吧刚配置的centos1的hadoop拷贝过去。当前，如果读到这，你还没有克隆的话，先把这里的配置配了再克隆吧</p>
+<pre><code>scp -r ./hadoop centos@centos2:~/
+scp -r ./hadoop centos@centos3:~/</code></pre><h2 id="启动集群"><a href="#启动集群" class="headerlink" title="启动集群"></a>启动集群</h2><ol>
+<li><p>首先执行一次格式化hdf,centos1中(namenode)<br>这是必须的，但下此再要重启服务的话就不需要了。</p>
+<p>[centos@centos1 hadoop]$ hdfs namenode -format<br>2019-12-06 08:00:49,798 INFO namenode.NameNode: STARTUP_MSG:<br>/<strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong><strong>****</strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong></strong><br>STARTUP_MSG: Starting NameNode<br>STARTUP_MSG:   host = centos1/192.168.181.129<br>STARTUP_MSG:   args = [-format]<br>STARTUP_MSG:   version = 3.1.3<br>STARTUP_MSG:   classpath = /home/centos/hadoop/etc/hadoop:/home/ce<br>….省略</p>
+</li>
+<li><p>启动start-dfs,start-yarn</p>
+</li>
+</ol>
+<p>在centos1中，也就是namenode中启动<code>start-dfs.sh</code>,必须在namenode中启动<br>然后去centos2,也就是resourceManager，<code>start-yarn.sh</code>,必须在resourceManager上启动<br>以上的启动位置，是强制的，否则出现服务启动缺失等其他异常情况。</p>
+<pre><code>[centos@centos1 hadoop]$ start-dfs.sh 
+Starting namenodes on [centos1]
+Starting datanodes
+Starting secondary namenodes [centos3]
+[centos@centos2 hadoop]$ start-yarn.sh 
+Starting resourcemanager
+Starting nodemanagers
+[centos@centos1 hadoop]$ jps
+15426 NameNode
+15938 Jps
+15561 DataNode
+15868 NodeManager
+[centos@centos2 hadoop]$ jps
+15028 ResourceManager
+15428 Jps
+14872 DataNode
+15161 NodeManager
+[centos@centos3 hadoop]$ jps
+14214 SecondaryNameNode
+14104 DataNode
+14317 NodeManager
+14414 Jps</code></pre><p>这里，因为测试的时候忘记执行<code>hdfs namenode -format</code>命令了，所以出现了错误，所以日志目录没有删除，这里如果第一次启动的话会提示WARN没有logs文件，会自动创建。不必在意。</p>
+<p>以上服务，一个都不能少。如果少了哪个，则查看nameNode机器的日志或其他节点的日志。<br>如果集群启动失败，则必须把服务先关停，然后删除每个节点的data 和logs目录，然后再hdfs namenode -format。</p>
+<p>记得关闭防火墙，避免无法访问web服务，如果不想关闭，那么去开放端口吧。每次重启需要执行关闭命令，也可以永久关闭。</p>
+<pre><code># 查看状态
+systemctl status firewalld.service
+# 临时关闭
+systemctl stop firewalld.service</code></pre><p>然后可以再宿主机上，通过访问centos1的ip地址:50070端口即可访问web页面。这里的地址是192.168.181.129:50070.<br>进入后选择最后一项Utilities，选择呢Brower the file system即可看到HDFS文件系统。</p>
+<h2 id="HDFS文件测试"><a href="#HDFS文件测试" class="headerlink" title="HDFS文件测试"></a>HDFS文件测试</h2><pre><code>hdfs dfs -mkdir -p /user/input
+hdfs dfs -put abc.txt /user/input
+
+hdfs dfs -mkdir -p /user/package
+hdfs dfs -put ~/jdk-8u231-linux-x64.tar.gzip /user/package</code></pre><p>上传了一个小文件，一个大文件。查看centos1:50070,发现是有的。以128M为一个block，abc.txt占用一个块，jdk为俩个块。</p>
+<p>如何在本地查找,进入到data目录中找<br><code>/home/centos/hadoop/data/data/current/BP-2112740988-192.168.181.129-1562738006972/current/finalized/subdir0/subdir0</code></p>
 
       
       <!-- reward -->
@@ -439,7 +411,7 @@ public class DemoController extends Controller &#123;
 
 </article>
     
-    <article id="post-Javascript/jExcel web交互式电子表格" class="article article-type-post" itemscope
+    <article id="post-SpringCloud/SpringCloud项目基础搭建2" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -447,8 +419,8 @@ public class DemoController extends Controller &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/"
-    >jExcel web交互式电子表格</a
+  <a class="article-title" href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/"
+    >SpringCloud项目基础搭建2</a
   >
 </h2>
   
@@ -458,12 +430,12 @@ public class DemoController extends Controller &#123;
 
     
     <div class="article-meta">
-      <a href="/2019/08/05/Javascript/jExcel%20web%E4%BA%A4%E4%BA%92%E5%BC%8F%E7%94%B5%E5%AD%90%E8%A1%A8%E6%A0%BC/" class="article-date">
-  <time datetime="2019-08-05T08:28:12.000Z" itemprop="datePublished">2019-08-05</time>
+      <a href="/2019/11/03/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA2/" class="article-date">
+  <time datetime="2019-11-03T09:01:49.000Z" itemprop="datePublished">2019-11-03</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
   </div>
 
       
@@ -480,169 +452,1365 @@ public class DemoController extends Controller &#123;
       
 
       
-      <p><a target="_blank" rel="noopener" href="https://bossanova.uk/jexcel/v3/"><strong>jExcel</strong></a>是一个轻量级的vanilla javascript插件，用于创建与Excel或任何其他电子表格软件兼容的基于Web的交互式表格和电子表格。可以从JS数组，JSON，CSV或XSLX文件创建在线电子表格表 。 可以从excel复制并直接粘贴到jExcel电子表格，反之亦然 。 可以创建自己的自定义列，自定义编辑器，并在应用程序中自定义任何功能 。</p>
-<p>以上官方介绍的话。并且也真的可以实现。而且仅需要进入两个js和两个css即可。</p>
-<p>可以访问gihub的地址<a target="_blank" rel="noopener" href="https://github.com/paulhodel/jexcel">https://github.com/paulhodel/jexcel</a></p>
-<p>或码云的镜像地址:<a target="_blank" rel="noopener" href="https://gitee.com/mirrors/jExcel/tree/master">https://gitee.com/mirrors/jExcel/tree/master</a></p>
-<h3 id="basic"><a href="#basic" class="headerlink" title="basic"></a>basic</h3><p>首先可以看一下官方基础的实例</p>
-<pre><code>&lt;!DOCTYPE html&gt;
-&lt;html lang=&quot;en&quot;&gt;
-&lt;head&gt;
-    &lt;meta charset=&quot;UTF-8&quot;&gt;
-    &lt;meta name=&quot;viewport&quot; content=&quot;width=device-width, initial-scale=1.0&quot;&gt;
-    &lt;meta http-equiv=&quot;X-UA-Compatible&quot; content=&quot;ie=edge&quot;&gt;
-    &lt;script src=&quot;https://bossanova.uk/jexcel/v3/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;title&gt;Document&lt;/title&gt;
-&lt;/head&gt;
-
-&lt;body&gt;
-    &lt;div id=&quot;mytable&quot;&gt;&lt;/div&gt;
-    &lt;script&gt;
-        data = [
-            [&apos;Google&apos;, 1998, 807.80],
-            [&apos;Apple&apos;, 1976, 116.52],
-            [&apos;Yahoo&apos;, 1994, 38.66],
-        ];
-
-        jexcel(document.getElementById(&apos;mytable&apos;), &#123;
-            data: data,
-            colWidths: [300, 80, 100]
-        &#125;);
-    &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</code></pre><p>访问这个页面，会出现一个web表格。</p>
+      <p>基本结构已经搭起来了,使用的是feign进行访问的。<br>接下来我们继续完善这个项目，做到更加的适用可靠。<br>项目均使用的yml配置文件，但是文章中使用properties的.符号来代替文章格式显示的问题。</p>
+<p>以下项目的配置，如果说出现报错的问题，也就是说最开始没问题，改了哪个不影响的地方却突然出问题。任何问题首先clean，重新package，在重新启动一下。看看有没有解决，如果开没有解决，就检查一下当前报错应用的配置文件，最后再去百度上搜。</p>
+<h2 id="配置服务的info信息"><a href="#配置服务的info信息" class="headerlink" title="配置服务的info信息"></a>配置服务的info信息</h2><p>服务的info信息可以再注册中心查看，可以描述说明当前服务主要是干什么的。访问服务即可进入一个json打开的页面。<br>我们来注册服务者的info信息,项目结构在上一篇已经有了。下面的依赖actuator可以直接放在cloudservice这个模块中就可以</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>然后再build元素里添加如下内容</p>
+<pre><code>&lt;build&gt;
+    &lt;finalName&gt;USER-SERVICE&lt;/finalName&gt;
+    &lt;resources&gt;
+        &lt;resource&gt;
+            &lt;directory&gt;src/main/resources&lt;/directory&gt;
+            &lt;filtering&gt;true&lt;/filtering&gt;
+        &lt;/resource&gt;
+    &lt;/resources&gt;
+    &lt;plugins&gt;
+        &lt;plugin&gt;
+            &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;
+            &lt;artifactId&gt;maven-resources-plugin&lt;/artifactId&gt;
+            &lt;configuration&gt;
+                &lt;delimiters&gt;
+                    &lt;delimit&gt;$&lt;/delimit&gt;
+                &lt;/delimiters&gt;
+            &lt;/configuration&gt;
+        &lt;/plugin&gt;
+    &lt;/plugins&gt;
+&lt;/build&gt;</code></pre><p>最后,服务的info信息在application.yml里配置。</p>
+<pre><code>info:
+  app.name: USER-SERVICE-9001
+  company.name: www.fsats.com
+  build.artifactId: @project.artifactId@
+  build.version: @project.version@</code></pre><p>这里呢，其实应该是$符号不该是@,因为已经在pom中定义过了，但是总是个别问题出现，网上也有情况，这里也不描述为什么出现这总情况，不深究这些。</p>
+<p>默认呢,actuator会给我们两个接口,info和health分别表示应用信息和健康指标,还有一个单独的根节点访问。另外还有其他的访问节点，但是并没有默认对外暴露，在官方文档上都有，可以进行开启。</p>
 <ul>
-<li>选中列，右击可以进行一些列操作，导出，新增行，删除行，修改列名等</li>
-<li>选中列拷贝，可拷贝到当前表格和office excel表格中。</li>
-<li>双击列排序</li>
-<li>选中表格，右击save as可保存为cvs文件</li>
-<li>选中表格，右下角的点可以和office一样拉伸填充</li>
-<li>列宽度可以直接拉伸</li>
-<li>双击单元格可直接修改值</li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/info">http://192.168.88.1:9001/actuator/info</a></li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator/health">http://192.168.88.1:9001/actuator/health</a></li>
+<li><a target="_blank" rel="noopener" href="http://192.168.88.1:9001/actuator">http://192.168.88.1:9001/actuator</a></li>
 </ul>
-<h3 id="列类型"><a href="#列类型" class="headerlink" title="列类型"></a>列类型</h3><p>在此web电子表格中，首先与office excel不同的一点是，office的类型为单元格设置类型，而jexcel中为更简易，设置为每列为一类型，称之为列类型。作用相类似于前端table数据展示的那种，每列都是同一个属性或同一个列类型。</p>
-<pre><code>&lt;html&gt;
-    &lt;script src=&quot;jexcel-master/dist/jexcel.js&quot;&gt;&lt;/script&gt;
-    &lt;script src=&quot;https://bossanova.uk/jsuites/v2/jsuites.js&quot;&gt;&lt;/script&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jexcel/v3/jexcel.css&quot; type=&quot;text/css&quot; /&gt;
-    &lt;link rel=&quot;stylesheet&quot; href=&quot;https://bossanova.uk/jsuites/v2/jsuites.css&quot; type=&quot;text/css&quot; /&gt;
-
-    &lt;div id=&quot;spreadsheet&quot;&gt;&lt;/div&gt;
-
-    &lt;script&gt;
-        var data = [
-            [&apos;Jazz&apos;, &apos;Honda&apos;, &apos;2019-02-12&apos;, &apos;&apos;, true, &apos;$ 2.000,00&apos;, &apos;#777700&apos;],
-            [&apos;Civic&apos;, &apos;Honda&apos;, &apos;2018-07-11&apos;, &apos;&apos;, true, &apos;$ 4.000,01&apos;, &apos;#007777&apos;],
-        ];
-
-        jexcel(document.getElementById(&apos;spreadsheet&apos;), &#123;
-            data:data,
-            columns: [
-                &#123; type: &apos;text&apos;, title:&apos;Car&apos;, width:120 &#125;,
-                &#123; type: &apos;dropdown&apos;, title:&apos;Make&apos;, width:200, source:[ &quot;Alfa Romeo&quot;, &quot;Audi&quot;, &quot;Bmw&quot;,&apos;Honda&apos; ] &#125;,
-                &#123; type: &apos;calendar&apos;, title:&apos;Available&apos;, width:200 &#125;,
-                &#123; type: &apos;image&apos;, title:&apos;Photo&apos;, width:120 &#125;,
-                &#123; type: &apos;checkbox&apos;, title:&apos;Stock&apos;, width:80 &#125;,
-                &#123; type: &apos;numeric&apos;, title:&apos;Price&apos;, width:100, mask:&apos;$ #.##,00&apos;, decimal:&apos;,&apos; &#125;,
-                &#123; type: &apos;color&apos;, width:100, render:&apos;circle&apos;, &#125;
-                ]
-        &#125;);
-    &lt;/script&gt;
-&lt;/html&gt;</code></pre><p>以上官方示例，表示配置columns类型，按顺序进行配置，包括</p>
+<p>文档<a target="_blank" rel="noopener" href="https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。">https://docs.spring.io/spring-boot/docs/2.1.6.RELEASE/actuator-api/html/#overview描述了actuator的所有提供信息端点。</a><br>我们在application.yml中输入management.endpoints.web就可以自动提示叫base-path的，他的路径默认值是/actuator，也就是访问的名称，是可以改的，然后引入端点的话是management.endpoints.web.exposure.include，它是一个数组，默认值就是info和health,我们可以依据文档上新增,如果要引入全部的话可以吧值写成 “*” ，注意包含双引号。然后访问actuator就可以显示了。</p>
+<p>如果想修改访问名称，也就是映射，可以设置path-mapping属性，他是一个map形式。</p>
+<p>哦对了，这个东西页面可以直接在eureka页面中点服务的名称就可以跳转到actuator页面了。其他的可以看官网和其他博客看。</p>
+<h2 id="注册实例名称的修改和左下角ip更改"><a href="#注册实例名称的修改和左下角ip更改" class="headerlink" title="注册实例名称的修改和左下角ip更改"></a>注册实例名称的修改和左下角ip更改</h2><p>注册实例id是唯一的通过eureka.instance.instance-id设置一个值。这样页面上就会变。然后你碰status后，左下角不是ip路径而是服务名称，要改成ip的话只需要配置eureka.instance.prefer-ip-address: true即可。</p>
+<h2 id="eureka服务实例的自我保护机制-了解"><a href="#eureka服务实例的自我保护机制-了解" class="headerlink" title="eureka服务实例的自我保护机制(了解)"></a>eureka服务实例的自我保护机制(了解)</h2><p>自我保护机制是应对注册进注册中心的服务的，当服务注册进后，服务会向注册中心发送特定消息(心跳)，eureka server会接收到,在一定时间内(默认90秒，可以修改)没有收到某个微服务的心跳，eureka server便会移除这个注册服务实例，而某些情况可能只是网络通信的原因导致心跳消息无法及时发送到，导致实例被移除，因此引入了自我保护机制，该微服务实例并不会移除。</p>
+<p>那自我保护机制是怎么个机制，如果接受的心跳在15分钟内低于应收总量的85%，那么这个实例就会处于保护状态，那么这个实例就不会过期。而如果收到的请求回到那个阙值，就会关闭保护机制。</p>
+<p>但如果开启了保护机制，万一请求到这个实例，那么就处于非正常的请求，可能是空的或者是错误请求。我们可以取消保护机制，那么在一定时间内该实例就会被下线，不会再注册中心中出现。</p>
+<p>eureka server关闭自我保护:eureka.server.enable-self-preservation: false<br>微服务注册客户端设置心跳:</p>
 <ul>
-<li>text:表示文本类型</li>
-<li>dropdown:表示下拉类型，需要设置source属性，列表</li>
-<li>calendar:表示日期类型，该日期格式可在js的323行处修改日期格式</li>
-<li>image:为图片，点击列，双击弹出的框，可选择图片，选择后，点击表格可关闭弹框并填充图片</li>
-<li>numberic:为数字类型，mask为数字格式，decimal为分隔符</li>
-<li>color:表示为颜色框，width为绘制宽度，render为为形状</li>
+<li>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态</li>
+<li>lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</li>
 </ul>
+<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>首先eureka是注册中心，所有服务都注册于此，但难免某个服务所在的服务器出现问题或网络出现问题，这样，当某用户在请求时，刚好将请求分配到这个服务实例去响应，然而却无法通信，可能就会出现无响应或者请求阻塞等问题。<br>这也是，如果eureka server的自我保护机制中如果出现了这种问题，那么请求不也有问题了么。</p>
+<p>因此就有负载均衡来解决这个问题，通常的单机应用程序，可以使用nginx，多台服务器启动多个程序，并使用nginx来进行负载均衡，属于集中式的。<br>而我们现在要说的Netflix Ribbon是进程式的，可以嵌入到消费者服务中，从注册中心中获取哪个服务地址有用，在选择适合的服务器请求</p>
+<p>因为Ribbon是嵌入到服务消费者中的，因此在eureka-consumer中配置<br>添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-ribbon&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>然后第二步时创建数据库,分别再创建cloud2和cloud3，用来表示另外两个userservice服务的各自的库，并把user表给建上。</p>
+<p>然后第三步是,新建模块userservice2和userservice3,将java下的包和resources下的mapper及application.yml拷贝一份。然后修改，端口号为9002和9002，修改instance-id的命名，修改数据库分别为cloud2和cloud3,修改info.app.name的名字。<br><strong>除了更改配置文件，其他的是完全一模一样的</strong>。</p>
+<p>然后就可以测试了，之前在单个服务的时候已经测试过了，cloud1里面也已经有数据了，然后当我们执行<a target="_blank" rel="noopener" href="http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。">http://loclahost:8001/consumer/user/list的时候，发现每执行3次会查询出一次结果，因为其中一个库有数据，另两个是新建的没有数据。而这种查询的负载均衡就是默认的轮询模式，多个服务循环依次请求。</a><br>我们看一下现在包的结构:</p>
+<p><img src="https://i.loli.net/2019/11/02/l4De82QVfRWxihN.png" alt="title"></p>
+<p>然后我们说一下负载均衡的策略，默认的轮询模式已经知道是怎么个形式了。拿一个表，列出其他的模式</p>
+<table>
+<thead>
+<tr>
+<th>类名</th>
+<th>描述</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>RoundRobinRule</td>
+<td>轮询,按照定义顺序一次循环访问</td>
+</tr>
+<tr>
+<td>RandomRule</td>
+<td>随机进行访问</td>
+</tr>
+<tr>
+<td>AvailabilityFilteringRule</td>
+<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问</td>
+</tr>
+<tr>
+<td>WeightedResponseTimeRule</td>
+<td>根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule</td>
+</tr>
+<tr>
+<td>RetryRule</td>
+<td>先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务</td>
+</tr>
+<tr>
+<td>BestAvailableRule</td>
+<td>会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务</td>
+</tr>
+<tr>
+<td>ZoneAvoidanceRule</td>
+<td>复合判断server所在区域的性能和server的可用性选择服务器</td>
+</tr>
+</tbody></table>
+<p>如果要修改默认的策略，只需要注入对应的Bean就好了。处于cfg包里</p>
+<pre><code>@Configuration
+public class MyConfiguration &#123;
 
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
+    @Bean
+    public IRule myRule()&#123;
+        return new RandomRule();
+    &#125;
+&#125;</code></pre><p>当然这是对当前应用所有请求都是用这个规则，如果你的这个消费者模块想要处理两个模块的请求，可以分开处理请求规则。你可以在启动类上标注注解</p>
+<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
+@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
 
-    </footer>
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+&#125;</code></pre><p>这个注解使用的是应对单个模块SPRING-PROD，configuration属性就是规则类。如果因为业务需要这个应用程序处理两个模块的业务，那么么可以使用@RibbonClients注解。另外，在注解上标注的和通用配置的不能重复。否则会报错说找到两个匹配的规则。</p>
+<p><strong>自定义规则</strong><br>自定义规则也是在configuration中配置，可以继承AbstractLoadBalancerRule类来配置规则。<br>我们在cfg包里创建MyRule类</p>
+<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
 
-  </div>
+    @Override
+    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
 
-  
+    &#125;
 
-  
-  
-  
+    private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次
+    private int currentIndex = 0;    // 当前提供服务的机器号
 
-  
+    public Server choose(ILoadBalancer lb, Object key) &#123;
+        if (lb == null) &#123;
+            return null;
+        &#125;
+        Server server = null;
 
-</article>
-    
-    <article id="post-Javascript/bootstrap table列行都有滚动条造成查看不便" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
+        while (server == null) &#123;
+            if (Thread.interrupted()) &#123;
+                return null;
+            &#125;
+            List&lt;Server&gt; upList = lb.getReachableServers();
+            List&lt;Server&gt; allList = lb.getAllServers();
 
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/"
-    >bootstrap table列行都有滚动条造成查看不便</a
-  >
-</h2>
-  
+            int serverCount = allList.size();
+            if (serverCount == 0) &#123;
+                return null;
+            &#125;
+            if (total &lt; 5) &#123;
+                server = upList.get(currentIndex);
+                total++;
+            &#125; else &#123;
+                total = 0;
+                currentIndex++;
+                if (currentIndex &gt;= upList.size()) &#123;
+                    currentIndex = 0;
+                &#125;
+            &#125;
+            if (server == null) &#123;
+                Thread.yield();
+                continue;
+            &#125;
+            if (server.isAlive()) &#123;
+                return (server);
+            &#125;
+            server = null;
+            Thread.yield();
+        &#125;
 
-    </header>
-    
+        return server;
 
-    
-    <div class="article-meta">
-      <a href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/" class="article-date">
-  <time datetime="2019-08-05T01:00:08.000Z" itemprop="datePublished">2019-08-05</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
-  </div>
+    &#125;
 
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>bootstrap table在显示数据的时候，由于列过多导致出现的横向滚动条。而页面高度又很低，所以分页时，纵向也有一个滚动条，必须滚到最下面才能拉动横向滚动条。否则只能按左右键查看数据。</p>
-<p>因此有需求取消纵向滚动条，将bootstrap table整体高度缩小到页面剩余高度，让分页框也显示在页面上。</p>
-<pre><code>$(window).resize(function () &#123;
-    //重置表格
-    $(&quot;#fwdyDetailTable&quot;).bootstrapTable(&apos;resetView&apos;);
-    initBootstrapTableHeight();
-&#125;);
-//初始化表格高度
-function initBootstrapTableHeight()&#123;
-    var total = $(window).height();//窗口高度
-    var page = $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).parent(&apos;.fixed-table-container&apos;).parent(&apos;.bootstrap-table&apos;).next(&apos;.clearfix&apos;).height();
-    $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,(total-page-100)+&quot;px&quot;);//100为固定的弹框的上标题和底部按钮高度之和。
+    @Override
+    public Server choose(Object o) &#123;
+        return choose(getLoadBalancer(),o);
+    &#125;
+&#125;</code></pre><p>该类定义规则是每个服务都请求5次后再请求下一个服务。然后更改MyConfiguration的注入的规则Bean，注入MyRule。然后修改注解上的配置类MyConfiguration.class,或者直接把MyRule.class写在configuration属性上。</p>
+<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>服务器负载均衡的策略已经说好了，那如果程序出现异常错误，请求超时等等其他问题该怎么办，如果特殊原因把某个服务停了，而刚好请求到这里该怎么办。<br>断路器，字面意思就如电路保险丝一样。<br>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</p>
+<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>如果执行一个方法报错了，怎么办，我们来模拟一下:<br>在consumer添加依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>在UserController中添加方法,请求路径get改为getn,然后添加注解，配置fallbackMethod为某个方法名称</p>
+<pre><code>@HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
+@GetMapping(&quot;/consumer/user/getn/&#123;id&#125;&quot;)
+public User getWithNull(@PathVariable(&quot;id&quot;) Long id)&#123;
+    User user = iUserClient.get(id);
+    if (user==null)&#123;
+        throw new RuntimeException();
+    &#125;
+    return user;
 &#125;
-$(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,($(window).height()-125)+&quot;px&quot;);</code></pre><p>我们设置其高度，只能设置class为fixed-table-body的div高度才有效。只需要给它一个合适的高度。在这里，我用的是弹框显示，所以窗口较小。需要用总高度减去分页高度和弹框标题高度和弹框底部高度。</p>
-<p>在弹出框放大缩小时，监听window.resize。刷新bootstrap table视图。并重新设置表格高度</p>
+
+public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
+    return new User().setId((long) 0).setName(&quot;没有找到记录&quot;).setAge((long) 21);
+&#125;</code></pre><p>然后给consumer启动类添加@EnableCircuitBreaker注解。即可测试，发现如果数据入库请求请求到cloud2或cloud3，就会获取null，然后抛出异常，就执行requestErrorGet方法了。</p>
+<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。<br>所以服务降级的配置在api模块上，api模块要请求服务提供者，但服务提供者挂了。那么这个就会被触发。但是如果同时配置服务熔断，那么会先执行服务熔断@HystrixCommand注解上的fallbackMethod。因此这里我们先把这个注解注释掉。</p>
+<p>配置api模块,在feign包同级创建fallback包，创建类</p>
+<pre><code>@Component
+public class UserClientFallbackFactory implements FallbackFactory&lt;IUserClient&gt; &#123;
+    @Override
+    public IUserClient create(Throwable throwable) &#123;
+        return new IUserClient() &#123;
+            @Override
+            public boolean add(User user) &#123;
+                return false;
+            &#125;
+
+            @Override
+            public User get(Long id) &#123;
+                return new User().setId((long) 0).setName(&quot;服务降级&quot;).setAge((long) 0);
+            &#125;
+
+            @Override
+            public List&lt;User&gt; list() &#123;
+                return new ArrayList&lt;&gt;();
+            &#125;
+        &#125;;
+    &#125;
+&#125;</code></pre><p>然后再feign中IUserClient接口类上的@FeighClient注解上新增属性fallbackFactory,然后现在是这样的@FeignClient(value = “SPRING-PROD”,fallbackFactory = UserClientFallbackFactory.class)<br>最后在consumer上加上配置，开启feign和Hystrix，feign.hystrix.enabled:true</p>
+<p>接下来测试，首先把consumer的@HystrixCommand注解注释掉，这个会在服务降级之前处理。/consumer/user/getn/1<br>我们只启动ecurekaServer和consumer来测试，服务提供者均不启动，当我们请求get的时候，因为api那请求服务提供者不了啊，所以就进入那个类的方法里，打印了服务降级的信息。<br>那我们此时再启动三个服务提供者，会发现有时候有结果，有时候报错，因为cloud1有数据，而且服务熔断的注释被注掉了，所以请求到另两个的时候会报错。<br>现在，再停止consumer，把@HystrixCommand服务熔断注释解开，在重新启动，再请求发现，有的是返回正确信息，有的返回没有记录(cloud2，cloud3)。</p>
+<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
+<p>我们为三个userservice添加依赖，可以放在父pom里</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>然后为各自启动类添加@EnableHystrixDashboard注解<br>因2.0版本情况原因，还需要在userservice中配置一段代码,才能访问</p>
+<pre><code>@Configuration
+public class MyConfiguration &#123;
+
+    @Bean
+    public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
+        ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
+        registration.addUrlMappings(&quot;/hystrix.stream&quot;);
+        return registration;
+    &#125;
+&#125;</code></pre><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:9001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
+<p>不过奇怪的是，一直loding中，没有图像显示,因为他必须要在经过请求的方法上添加@HystrixCommand注解来监控，因此需要在userservice的UserController的方法上添加此注解。然后再多次请求就有结果了。</p>
+<p>不过更奇怪的是，再服务熔断的时候不是配置在consumer中了么。可见好像配置的位置不怎么正确，不过功能依据注解，还是可以使用的。<br>但是，我们尝试把consumer的服务熔断给取消掉，然后由userservice来处理服务熔断这个问题，发现，是没有问题的。可以放在userservice中，那么这个监控的问题就顺理成章了。</p>
+<p>此时我们的consumer就还是feign和ribbon负载均衡了。而uservice则承载着服务熔断和服务监控，而api依旧是负责服务降级的问题。</p>
+<p>我列一下userservice的UserController和启动类</p>
+<pre><code>@RestController
+public class UserController &#123;
+
+    @Autowired
+    private UserService userService;
+
+    @ResponseBody
+    @PostMapping(&quot;/user/add&quot;)
+    public boolean add(@RequestBody User user)&#123;
+        return userService.add(user);
+    &#125;
+    @HystrixCommand(fallbackMethod = &quot;requestErrorGet&quot;)
+    @ResponseBody
+    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
+    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
+        User user = userService.get(id);
+        if (user==null)&#123;
+            throw  new RuntimeException();
+        &#125;
+        return user;
+    &#125;
+
+    @ResponseBody
+    @GetMapping(&quot;/user/list&quot;)
+    public List&lt;User&gt; list()&#123;
+        return userService.list();
+    &#125;
+
+    public User requestErrorGet(@PathVariable(&quot;id&quot;) Long id)&#123;
+        return new User().setAge((long) 0).setName(&quot;Asd&quot;).setId((long) 0);
+    &#125;
+&#125;
+
+@EnableCircuitBreaker
+@EnableHystrixDashboard
+@EnableEurekaClient
+@SpringBootApplication
+public class UserServiceApplication &#123;
+    public static void main(String[] args) &#123;
+        SpringApplication.run(UserServiceApplication.class,args);
+    &#125;
+&#125;</code></pre><p>application.yml是没变的，pom是父pom添加的依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-hystrix-dashboard&lt;/artifactId&gt;
+&lt;/dependency&gt;</code></pre><p>consumer的启动类</p>
+<pre><code>@RibbonClient(name = &quot;SPRING-PROD&quot;,configuration = RoundRobinRule.class)
+@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+
+&#125;</code></pre><p>项目下载:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/72">https://nas.tsaving.cn/file/download/72</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringCloud/SpringCloud项目基础搭建1" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/"
+    >SpringCloud项目基础搭建1</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/11/01/SpringCloud/SpringCloud%E9%A1%B9%E7%9B%AE%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA1/" class="article-date">
+  <time datetime="2019-11-01T12:57:49.000Z" itemprop="datePublished">2019-11-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>首先从可以通信开始，然后再配置负载均衡熔断器之类的。<br>首先，学完了springcloud之后，许多名词，虽然了解一点，但是他们之间的关系还是不太明确清晰。<br>分布式微服务，既然是分布式肯定会通信的，离不开ip的。</p>
+<p>服务注册:也就是注册中心，通俗一点就是 将服务提供者注册到这个服务中心中，<strong>由注册中心来进行资源调配管理，上线下线等</strong>，服务提供者可以同时注册多个，可以负载均衡。</p>
+<p>服务提供者:就是平常写的一套单机程序，controller，service,mapper一整套代码，它能对外提供接口，因此被称为提供者，他需要注册到注册中心去</p>
+<p>服务消费者:也就是对外部开放的,而提供者可以不对外开放，也就是说，浏览器直接调用服务消费者的代码，而在后台，直接由服务消费者请求服务提供者，而中间请求的过程就是请求服务注册中心，由他来确定请求哪个服务提供者的服务。</p>
+<p>简而言之,服务注册是管理所有的服务，服务提供者对内，服务消费者对外。<br>服务消费者通过什么调用请求注册中心调用服务提供者,Feign。<br>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。</p>
+<p>虽然说到这，基本简单的微服务已经形成了，但是还无法明确项目搭建的机构。Feign，服务消费者，服务提供者该往哪写。</p>
+<h2 id="搭建环境"><a href="#搭建环境" class="headerlink" title="搭建环境"></a>搭建环境</h2><p>springcloud如果没有教程入门，可能还没进门就卡死在外。<br>springboot 与springcloud，springcloud是依赖springboot的，而springboot的版本有1.x和2.x，而2.x又分为2.1和2.2。而springcloud的版本号却不是以数字命名，这就很难搞。而且两者版本的依赖是有非常严格的，否则就会莫名的出错，甚至连项目都起不来。springboot2.1和2.2也有很大的区别，以及springcloud的不同版本引用有有较大的改动。<br>还有就是依赖的问题,老版本的eureka依赖名教eureka，而新版本的叫eureka-server，feign也有老版和新版,为openfeign和feign。<br>通过教程的学习以及多次尝试，最后找到匹配的版本。</p>
+<p><strong>父工程POM</strong></p>
+<pre><code>&lt;parent&gt;
+    &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-boot-starter-parent&lt;/artifactId&gt;
+    &lt;version&gt;2.1.6.RELEASE&lt;/version&gt;
+    &lt;relativePath/&gt; &lt;!-- lookup parent from repository --&gt;
+&lt;/parent&gt;
+&lt;properties&gt;
+    &lt;java.version&gt;1.8&lt;/java.version&gt;
+    &lt;spring-cloud.version&gt;Greenwich.BUILD-SNAPSHOT&lt;/spring-cloud.version&gt;
+&lt;/properties&gt;
+
+&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;!--&lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-data-jpa&lt;/artifactId&gt;
+    &lt;/dependency&gt;--&gt;
+    &lt;!--&lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-oauth2-client&lt;/artifactId&gt;
+    &lt;/dependency&gt;--&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;mysql&lt;/groupId&gt;
+        &lt;artifactId&gt;mysql-connector-java&lt;/artifactId&gt;
+        &lt;scope&gt;runtime&lt;/scope&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-configuration-processor&lt;/artifactId&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
+        &lt;artifactId&gt;lombok&lt;/artifactId&gt;
+        &lt;optional&gt;true&lt;/optional&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-test&lt;/artifactId&gt;
+        &lt;scope&gt;test&lt;/scope&gt;
+        &lt;exclusions&gt;
+            &lt;exclusion&gt;
+                &lt;groupId&gt;org.junit.vintage&lt;/groupId&gt;
+                &lt;artifactId&gt;junit-vintage-engine&lt;/artifactId&gt;
+            &lt;/exclusion&gt;
+        &lt;/exclusions&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.alibaba&lt;/groupId&gt;
+        &lt;artifactId&gt;druid&lt;/artifactId&gt;
+        &lt;version&gt;1.1.16&lt;/version&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;
+
+&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;$&#123;spring-cloud.version&#125;&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+            &lt;scope&gt;import&lt;/scope&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;</code></pre><p>以上的版本匹配是:<br>SpringBoot:2.1.6.RELEASE<br>SpringCloud:Greenwich.BUILD-SNAPSHOT<br>这个是没有问题的。</p>
+<h2 id="服务注册"><a href="#服务注册" class="headerlink" title="服务注册"></a>服务注册</h2><p>服务注册是用eureka,分为eureka-server和eureka-client。<br>server及服务注册中心本身，他也是服务，但他不需要注册自己，只作为服务管理者。<br>模块名:eureka-server<br><strong>POM文件</strong></p>
+<pre><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre><p>依赖security的原因是，这个springcloud的版本对安全要求更严格，当然也有方法来阻止这种安全检查。<br><strong>application.yml</strong></p>
+<pre><code>server:
+  port: 7001
+eureka:
+  instance:
+    hostname: localhost
+  client:
+    register-with-eureka: false
+    fetch-registry: false
+    service-url:
+      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/
+spring:
+  security:
+    user:
+      name: root
+      password: root</code></pre><p>以上配置文件标识注册中心端口为7001，注册服务地址为defaultZone的值地址，然后是配置一下security的用户名密码，这个用户名密码需要在eureka-client连接时写上。<br>此处需要添加对security的配置</p>
+<pre><code>@EnableWebSecurity
+public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter &#123;
+    @Override
+    protected void configure(HttpSecurity http) throws Exception &#123;
+        // Configure HttpSecurity as needed (e.g. enable http basic).
+        http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
+        http.csrf().disable();
+        //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
+        // 如果是form方式,不能使用url格式登录
+        http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
+    &#125;
+&#125;</code></pre><p>然后就是启动类了,只需要@EnableEurekaServer注解</p>
+<pre><code>@EnableEurekaServer
+@SpringBootApplication
+public class EurekaServerApplication &#123;
+    public static void main(String[] args) &#123;
+        SpringApplication.run(EurekaServerApplication.class,args);
+    &#125;
+&#125;</code></pre><p>最后访问localhost:7001即可进入页面，如果有密码，则输入security配置的即可。</p>
+<h2 id="服务提供者"><a href="#服务提供者" class="headerlink" title="服务提供者"></a>服务提供者</h2><p>接下来讲就是服务提供者，就是一般的访问数据库的，我只列出Controller的简单代码。</p>
+<pre><code>@RestController
+public class UserController &#123;
+
+    @Autowired
+    private UserService userService;
+
+    @ResponseBody
+    @PostMapping(&quot;/user/add&quot;)
+    public boolean add(@RequestBody User user)&#123;
+        return userService.add(user);
+    &#125;
+
+    @ResponseBody
+    @GetMapping(&quot;/user/get/&#123;id&#125;&quot;)
+    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
+        return userService.get(id);
+    &#125;
+
+    @ResponseBody
+    @GetMapping(&quot;/user/list&quot;)
+    public List&lt;User&gt; list()&#123;
+        return userService.list();
+    &#125;
+&#125;</code></pre><p>接下来，重要的还是配置文件</p>
+<pre><code>server:
+  port: 9001
+eureka:
+  instance:
+    instance-id: springcloud8001
+    prefer-ip-address: true
+  client:
+    service-url:
+      defaultZone: http://root:root@localhost:7001/eureka/
+spring:
+  application:
+    name: SPRING-PROD
+  datasource:
+    type: com.alibaba.druid.pool.DruidDataSource            # 当前数据源操作类型
+    driver-class-name: com.mysql.jdbc.Driver              # mysql驱动包
+    url: jdbc:mysql://localhost:3306/cloud1?serverTimezone=UTC&amp;characterEncoding=utf-8              # 数据库名称
+    username: root
+    password: root
+    dbcp2:
+      min-idle: 5                                           # 数据库连接池的最小维持连接数
+      initial-size: 5                                       # 初始化连接数
+      max-total: 5                                          # 最大连接数
+      max-wait-millis: 200                                  # 等待连接获取的最大超时时间
+mybatis:
+  type-aliases-package: com.fsats.user.entity    # 所有Entity别名类所在包
+  mapper-locations:
+    - classpath:mapper/**/*.xml                       # mapper映射文件
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl</code></pre><p>以上配置表示,服务提供者的端口,eureka.instance.instance-id表示注册在服务上的显示的名称。而spring.application.name就比较重要了，是当前服务的应用名称,多个相同的服务提供者负载均衡，instance-id可以不同，但这个值一定要一样，他表示一个独立的微服务应用。而且feign使用也是需要这个应用名称的。<br>剩下的就是mybatis和连接数据库了。<br>这个service提供者，我使用了新模块，并在新模块cloudservice里再新建的user-service模块,因此把依赖放到父模块cloudservice里。</p>
+<pre><code>&lt;dependencies&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;com.fsats&lt;/groupId&gt;
+        &lt;artifactId&gt;user-api&lt;/artifactId&gt;
+        &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.mybatis.spring.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;mybatis-spring-boot-starter&lt;/artifactId&gt;
+        &lt;version&gt;2.0.1&lt;/version&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-jetty&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-devtools&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-boot-starter-actuator&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+    &lt;dependency&gt;
+        &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+        &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
+    &lt;/dependency&gt;
+&lt;/dependencies&gt;</code></pre><p>启动类的话只需要加上@EnableEurekaClient注解即可。</p>
+<p>服务提供者的主要内容就是，作为服务提供外部访问，然后把自己注册到服务注册中心去。</p>
+<p>在上面依赖里依赖了user-api，它是feign客户端，是服务消费者与服务提供者沟通的桥梁。<br>如果桥梁呢,首先这个api定义后，服务提供者和服务消费者都可以依赖他，提供者可以获取实体类，也可以在自己模块定义实体类。<br>先看一下UserFeignClient类</p>
+<pre><code>@FeignClient(value = &quot;SPRING-PROD&quot;)
+public interface UserFeignClient&#123;
+
+    @PostMapping(&quot;/user/add&quot;)
+    boolean add(@RequestBody User user);
+
+    @GetMapping(&quot;/user/&#123;id&#125;&quot;)
+    User get(@PathVariable(&quot;id&quot;) Long id);
+
+    @GetMapping(&quot;/user/list&quot;)
+    List&lt;User&gt; list();
+
+&#125;</code></pre><p>它就表示一个feign客户端,主要调用SPRING-PROD应用里的请求。<br>那么，逻辑明显了，服务消费者通过自己的请求，然后注入这个UserFeignClient类，便可以操作了。这个类的方法因为已经标识了应用名称，所以他会以webservice的方式和方法上定义的请求路径去请求这个地址。并把结果给服务消费者。<br>那么很显然，服务消费者是一定需要这个类的包的，但是如何知道这个feign，那就是通过另一个注解@EnableFeignClients扫描，在服务提供者类里扫描包含@FeignClient注解的方法,因为已经引入api这个包了，所以一定是扫描的上的，并且如果扫描上，直接被注入容器中。</p>
+<h2 id="服务消费者"><a href="#服务消费者" class="headerlink" title="服务消费者"></a>服务消费者</h2><p>服务消费者也属于服务，但可以不注册。<br>看一下yml</p>
+<pre><code>server:
+  port: 8001
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://root:root@localhost:7001/eureka
+    register-with-eureka: false
+
+info:
+  app.name: springcloud-test-8001
+  company.name: www.fsats.com
+  build.artifactId: $project.artifactId$
+  build.version: $project.version$</code></pre><p>register-with-eureka表示，不在注册中心注册自己，虽然这里已经定义了路径，但是是没有注册的。info后面的可以去掉，这个是服务的相关定义信息。</p>
+<p><strong>POM文件</strong></p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-openfeign&lt;/artifactId&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;com.fsats&lt;/groupId&gt;
+    &lt;artifactId&gt;user-api&lt;/artifactId&gt;
+    &lt;version&gt;0.0.1-SNAPSHOT&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>接下来需要在启动类中标注@EnableFeignClients注解</p>
+<pre><code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.user&quot;&#125;)
+@EnableEurekaClient
+@SpringBootApplication
+public class ConsumerApplication &#123;
+
+    public static void main(String[] args) &#123;
+        SpringApplication.run(ConsumerApplication.class,args);
+    &#125;
+&#125;</code></pre><p>其中，basePackage表示扫描的注解基础路径,此处填写api模块的包名。</p>
+<pre><code>@RestController
+public class UserController &#123;
+
+    //@Autowired
+    private IUserClient iUserClient;
+
+    @PostMapping(&quot;/consumer/user/add&quot;)
+    public boolean add(User user)&#123;
+        return this.iUserClient.add(user);
+    &#125;
+
+    @GetMapping(&quot;/consumer/user/get/&#123;id&#125;&quot;)
+    public User get(@PathVariable(&quot;id&quot;) Long id)&#123;
+        return this.iUserClient.get(id);
+    &#125;
+
+    @GetMapping(&quot;/consumer/user/list&quot;)
+    public List&lt;User&gt; list(User user)&#123;
+        return this.iUserClient.list();
+    &#125;
+&#125;</code></pre><p>在Controller中，既然启动类上已经扫描feignClient了，这里也不需要@AutoWired注解也是可以请求的。<br>另外，这个PostMapping在postman使用里测试，不能在params里写参数并使用post提交，必须在Body里，选择raw，然后填写json格式数据才能正确提交。因为feignClient里定义了@RequestBody注解。</p>
+<p>包结构如下:</p>
+<p><img src="https://i.loli.net/2019/11/01/GkJfy9WDsbRLmZC.png" alt="TIM截图20191101131246.png"></p>
+<p>项目下载地址:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/71">https://nas.tsaving.cn/file/download/71</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringCloud/SpringCloud微服务快速学习零碎文档" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/"
+    >SpringCloud微服务快速学习零碎文档</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/" class="article-date">
+  <time datetime="2019-11-01T10:34:46.000Z" itemprop="datePublished">2019-11-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>项目位置为H盘符ideaProject下的springcloud-test项目</p>
+<p>该项目以尚硅谷springcloud课程为例，以dept部分为案例的项目</p>
+<h2 id="模块分析"><a href="#模块分析" class="headerlink" title="模块分析"></a>模块分析</h2><ul>
+<li>springcloud-test:项目父包，存储相关通用依赖，插件等。</li>
+<li>api模块:目前存放实体类和相关通用类</li>
+<li>provider-dept-8001:为dao，service，controller层，连接访问数据库，并提供Rest风格的请求,该模块为生产者模块</li>
+<li>consumer-dept-80:该模块为消费者模块，启动端口为80，通过RestTemplate以客户端消费者的模式来访问生产者提供的rest接口</li>
+<li>eureka-7001:该模块为eureka server模块,需添加依赖</li>
+</ul>
+<h2 id="Eureka组件相关"><a href="#Eureka组件相关" class="headerlink" title="Eureka组件相关"></a>Eureka组件相关</h2><p>添加Eureka依赖,添加之前需要在springcloud-test父工程下添加springcloud依赖管理,版本需要匹配</p>
+<pre><code>&lt;dependencyManagement&gt;
+    &lt;dependencies&gt;
+        &lt;dependency&gt;
+            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
+            &lt;version&gt;Greenwich.SR1&lt;/version&gt;
+            &lt;type&gt;pom&lt;/type&gt;
+        &lt;/dependency&gt;
+    &lt;/dependencies&gt;
+&lt;/dependencyManagement&gt;
+
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>添加yml配置</p>
+<pre><code>server:
+  port: 7001
+
+eureka:
+  instance:
+    hostname: localhost #eureka服务端的实例名称
+  client:
+    register-with-eureka: false     #false表示不向注册中心注册自己。
+    fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
+    service-url:
+      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
+      #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>添加App启动类，添加@SpringBootApplication注解和@EnableEurekaServer注解</p>
+<p>为8001服务提供者模块添加eureka-client依赖，并配置，将模块注册到eureka注册中心。该依赖引入，若出现右侧maven红线，则检查依赖包是否下载成功，若pom.xml没有报红线，且在application.xml中有提示eureka配置则说明引入依赖成功。</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;
+&lt;dependency&gt;
+    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
+    &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>application.yml追加eureka配置</p>
+<pre><code>eureka:
+  client: #客户端注册进eureka服务列表
+    service-url:
+      defaultZone: http://localhost:7001/eureka</code></pre><p>为8001服务提供者主启动类添加@EnableEurekaClient注解。</p>
+<blockquote>
+<p><strong>以上在springcloud2.0中并无法注册成功</strong></p>
+</blockquote>
+<p>解决方案:<br>因为2.0的原因，安全问题，所以</p>
+<ol>
+<li><p>在eureka server模块添加security依赖<br><code>xml &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt; &lt;/dependency&gt;</code></p>
+</li>
+<li><p>修改配置</p>
+<p>eureka:<br>  instance:</p>
+<pre><code>hostname: localhost #eureka服务端的实例名称</code></pre><p>  client:</p>
+<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
+fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
+service-url:
+  defaultZone: http://root:root@$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
+  #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>spring:<br>  security:</p>
+<pre><code>user:
+  name: root
+  password: root</code></pre></li>
+<li><p>添加配置类</p>
+<p>@EnableWebSecurity<br>public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {</p>
+<pre><code>@Override
+protected void configure(HttpSecurity http) throws Exception &#123;
+    // Configure HttpSecurity as needed (e.g. enable http basic).
+    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
+    http.csrf().disable();
+    //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
+    // 如果是form方式,不能使用url格式登录
+    http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
+&#125;</code></pre><p>}</p>
+</li>
+<li><p>在eureka client修改配置</p>
+<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
+<pre><code>service-url:
+  defaultZone: http://root:root@localhost:7001/eureka</code></pre></li>
+</ol>
+<p>然后，重新clean install后启动，eureka server启动会需要密码。在eureka client启动后显示启动时间后会出现类似这样的信息说明注册成功</p>
+<pre><code>2019-05-27 19:00:16.538  INFO 3396 --- [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SPRINGCLOUD-TEST/192.168.43.216:springcloud-test:8001 - registration status: 204</code></pre><h3 id="主机名称的修改，即服务注册页status名称修改"><a href="#主机名称的修改，即服务注册页status名称修改" class="headerlink" title="主机名称的修改，即服务注册页status名称修改"></a>主机名称的修改，即服务注册页status名称修改</h3><p>在springcloud下，其名称为IP地址:${spring.application.name}:端口号,但，若要改成一个名称，则需要在eureka client配置如下</p>
+<pre><code>eureka:
+  client: #客户端注册进eureka服务列表
+    service-url:
+      defaultZone: http://root:root@localhost:7001/eureka
+  instance:
+    instance-id: springcloud8001</code></pre><p>即多添加后两行的代码。<strong>修改完成后，若没有自动加载修改，则需要重新clean install</strong></p>
+<blockquote>
+<p>默认情况下可能是当前主机的ip在hosts文件中的映射，请检查windows下或linux下的hosts文件的当前主机ip配置。</p>
+</blockquote>
+<h3 id="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"><a href="#修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。" class="headerlink" title="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"></a>修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。</h3><p>只需要在eureka client中instance-id下面再添加<code>prefer-ip-address: true</code>的配置即可。</p>
+<h3 id="服务注册客户端配置info信息"><a href="#服务注册客户端配置info信息" class="headerlink" title="服务注册客户端配置info信息"></a>服务注册客户端配置info信息</h3><p>点击status下的instance-id，即可打开到新页面查看相关信息。<br>该信息为当前模块的服务信息，可进行配置。</p>
+<ol>
+<li><p>在父工程的pom.xml下配置build</p>
+<build>
+    <finalName>springcloud-test</finalName>
+    <resources>
+        <resource>
+            <directory>src/main/resources</directory>
+            <filtering>true</filtering>
+        </resource>
+    </resources>
+    <plugins>
+        <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-resources-plugin</artifactId>
+            <configuration>
+                <delimiters>
+                    <delimit>$</delimit>
+                </delimiters>
+            </configuration>
+        </plugin>
+    </plugins>
+</build>
+</li>
+<li><p>然后在服务的pom.xml添加监控依赖</p>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+</li>
+<li><p>然后配置application.yml文件</p>
+<p>info:<br>  app.name: springcloud-test-8001<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
+</li>
+</ol>
+<p>可以再info下添加各类信息，然后$的配置为父工程里的配置，可引用maven中的${}里的变量来显示信息。</p>
+<h3 id="自我保护机制"><a href="#自我保护机制" class="headerlink" title="自我保护机制"></a>自我保护机制</h3><p>在自我保护模式中，Eureka Server会保护注册表的信息，不再注销任何服务实例。当它收到心跳数重新恢复到阙值以上时，该节点就会退出自我保护模式。<br>默认情况下，Eureka Server在一定时间内(默认90秒)没有收到服务的实例心跳，该服务就会处于自我保护。<br>若需关闭自我保护机制则配置<code>eureka.server.enable-self-preservation: false</code>。</p>
+<p>配置Eureka Client设置心跳检测</p>
+<pre><code>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态
+lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</code></pre><h3 id="单机版集群配置"><a href="#单机版集群配置" class="headerlink" title="单机版集群配置"></a>单机版集群配置</h3><ol>
+<li><p>新增两个模块分别为eureka7002和eureka7003,pom依赖坐标一致。</p>
+</li>
+<li><p>因为是单机版，所以是一台服务器模拟三个eureka server，所以在windows下hosts文件修改域名ip映射，或在linux下的etc下的hosts修改</p>
+<p>127.0.0.1 eureka7001.com<br>127.0.0.1 eureka7002.com<br>127.0.0.1 eureka7003.com</p>
+</li>
+<li><p>修改7001,7002,7003的yml配置<br>修改<code>eureka.instance.hostname</code>为配置的映射域名,每个yml对应每个修改。<br>修改<code>eureka.client.service-url.defaultZone</code>的值为除当前url之外的另外两个serviceUrl,使用逗号分开<br>一下以7001的application.yml为例</p>
+<p>eureka:<br>  instance:</p>
+<pre><code>hostname: eureka7001.com #eureka服务端的实例名称</code></pre><p>  client:</p>
+<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
+fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
+service-url:
+  defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre></li>
+<li><p>修改8001的服务提供者，eureka client的yml配置如下<br>即，将其写成3个server服务</p>
+<p>defaultZone: <a target="_blank" rel="noopener" href="http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka">http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka</a></p>
+</li>
+<li><p>替换另外两个的启动类<br>修改启动类名称</p>
+</li>
+</ol>
+<h3 id="Eureka-和Zookeeper的区别和好处"><a href="#Eureka-和Zookeeper的区别和好处" class="headerlink" title="Eureka 和Zookeeper的区别和好处"></a>Eureka 和Zookeeper的区别和好处</h3><p>CAP是强一致性，高可用性，和分区容错性。<br>Zookeeper使用CP，而Eureka使用的是AP。</p>
+<ul>
+<li>zk在master节点出现网络故障后会与其他节点失去联系，然后会leader选举一个新的master，选举的时间可能太长，导致整个集群不可用。虽然能最终恢复，但是漫长的选举时间导致注册长期不可用。</li>
+<li>eureka在设计时就保证可用性。保证了每个节点都是平等的。几个节点挂掉不会影响正常工作，剩余的依旧可以正常提供注册和查询服务，保证注册可用，不过查询的结果不保证是最新的(<strong>不保证强一致性</strong>)。除此之外，eureka的自我保护机制，如果在15分钟内超过85%的节点都没有正常心跳，那么eureka认为客户端与注册中心出现网络故障，此时出现以下情况:<ul>
+<li>Eureka不再从注册中心中移除因为长时间没有接收心跳而过期的服务</li>
+<li>仍然能够接收新服务的注册和查询服务，但是不会被同步到其他节点上(保证当前节点依然可用)</li>
+<li>当网络稳定时，当前实例新的注册信息被同步到其他节点中</li>
+</ul>
+</li>
+</ul>
+<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>Ribbon是基于Netflix Ribbon实现的客户端 负载均衡工具，其功能是提供客户端的软件负载均衡算法，。<br>Load balance分为集中式和进程内</p>
+<ul>
+<li>集中式即多数为硬件，如:F5，也可以是软件如:nginx。由该设施负责把访问请求通过某种策略转发到服务的提供方。</li>
+<li>进程内：即集成到消费方，从服务中心获知哪个地址有用，再从中选出合适的服务器。Ribbon属于进程内LB，只是一个类库，继承于消费方进程，消费方通过它来获取到服务提供方的地址。</li>
+</ul>
+<h3 id="Ribbon的入门配置"><a href="#Ribbon的入门配置" class="headerlink" title="Ribbon的入门配置"></a>Ribbon的入门配置</h3><p>Ribbon为客户端的负载均衡，且为进程内的，所以，那么集成到客户端调用consumer80模块中</p>
+<ol>
+<li><p>首先需要引入相关依赖</p>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
+    <version>2.1.1.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+    <version>2.1.1.RELEASE</version>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+    <version>2.1.1.RELEASE</version>
+</dependency>
+</li>
+<li><p>配置负载均衡注解。在ConfigBean中的配置RestTempldate方法添加@LoadBalanced注解</p>
+</li>
+<li><p>在启动类上添加@EnableEurekaClient注解</p>
+</li>
+<li><p>修改Controller中的RestTempldate，访问服务提供者8001的前缀REST_URL_PREFIX。将localhost:8001修改为服务的应用名称，即注册服务的名称。</p>
+</li>
+<li><p>修改yml文件，新增eurekaclient配置</p>
+<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
+<pre><code>service-url:
+  defaultZone: http://root:root@eureka7001.com:7001/eureka/,http://root:root@eureka7002.com:7002/eureka/,http://root:root@eureka7003.com:7003/eureka/
+register-with-eureka: false</code></pre></li>
+</ol>
+<p>以上的配置，Ribbon为进程内的，即一个类库，且为<strong>客户端负载均衡</strong>，所以在80上进行操作，直接在RestTemplate访问时添加注解，但是其客户端需要到注册中心去查找服务地址，而非是直接访问服务提供者的地址，所以需要eureka client的依赖，因此要引入client依赖，并配置集群访问的defaultZone。通过<strong>服务注册中心注册的服务的名称来访问</strong>。</p>
+<blockquote>
+<p>经测试，要想在dept80上访问前缀<a href="http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。">http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。</a></p>
+</blockquote>
+<h3 id="多服务实例负载均衡"><a href="#多服务实例负载均衡" class="headerlink" title="多服务实例负载均衡"></a>多服务实例负载均衡</h3><p>以拷贝8001服务为8002,8003来模拟另外两台服务器部署服务，即同服务多实例的负载均衡体现。</p>
+<ol>
+<li>创建cloud02,cloud03数据库并插入数据(数据同cloud01)。</li>
+<li>拷贝8001的代码和myabtis配置及yml配置</li>
+<li>修改启动类名称</li>
+<li>修改yml文件，分别修改<code>端口号</code>,<code>数据库名称</code>，即可能的<code>info信息</code>。注意spring.application.name不需要更改，否则就不是同一个服务了。</li>
+<li>分别启动7001,7002,7001 eureka server，然后启动8001，8002，8003服务实例，然后进行localhost:8001自测</li>
+<li>启动80，使用consumer来进行测试,发现打印的信息为不同数据库的数据，且负载均衡访问为三个实例循环访问。</li>
+</ol>
+<h3 id="核心组件IRule，修改配置负载均衡算法"><a href="#核心组件IRule，修改配置负载均衡算法" class="headerlink" title="核心组件IRule，修改配置负载均衡算法"></a>核心组件IRule，修改配置负载均衡算法</h3><p>只需要在80客户端配置IRule Bean即可，默认没有配置会使用默认的IRule配置，RoundRobinRule</p>
+<pre><code>@Configuration
+public class ConfigBean &#123;
+
+    @Bean
+    @LoadBalanced
+    public RestTemplate getRestTemplate() &#123;
+        return new RestTemplate();
+    &#125;
+
+    @Bean
+    public IRule myIRule()&#123;
+        return new RandomRule();
+    &#125;
+
+&#125;</code></pre><p>在Ribbon中自带的负载均衡算法有如下几种：<br>| 类名 | 描述 |<br>|-|-|<br>|RoundRobinRule |轮询,按照定义顺序一次循环访问|<br>|RandomRule|随机进行访问|<br>|AvailabilityFilteringRule |会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问|<br>|WeightedResponseTimeRule|根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule|<br>|RetryRule|先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务|<br>|BestAvailableRule|会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务|<br>|ZoneAvoidanceRule|复合判断server所在区域的性能和server的可用性选择服务器|</p>
+<h3 id="Ribbon的自定义负载均衡策略"><a href="#Ribbon的自定义负载均衡策略" class="headerlink" title="Ribbon的自定义负载均衡策略"></a>Ribbon的自定义负载均衡策略</h3><p>负载均衡策略，主要就是继承AbstractLoadBalancerRule抽象类,可以参考RandomRule类的配置，其实现了getLoadBalancer()方法，可以获取所有的服务和可用服务。主要就是choose方法，并返回Server对象，也就是服务。</p>
+<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
+
+    @Override
+    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
+
+    &#125;
+
+    // total = 0 // 当total==5以后，我们指针才能往下走，
+    // index = 0 // 当前对外提供服务的服务器地址，
+    // total需要重新置为零，但是已经达到过一个5次，我们的index = 1
+    // 分析：我们5次，但是微服务只有8001 8002 8003 三台，OK？
+    //</code></pre><p>​<br>        private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次<br>        private int currentIndex = 0;    // 当前提供服务的机器号</p>
+<pre><code>    public Server choose(ILoadBalancer lb, Object key) &#123;
+        if (lb == null) &#123;
+            return null;
+        &#125;
+        Server server = null;
+
+        while (server == null) &#123;
+            if (Thread.interrupted()) &#123;
+                return null;
+            &#125;
+            List&lt;Server&gt; upList = lb.getReachableServers();
+            List&lt;Server&gt; allList = lb.getAllServers();
+
+            int serverCount = allList.size();
+            if (serverCount == 0) &#123;
+                /*
+                 * No servers. End regardless of pass, because subsequent passes only get more
+                 * restrictive.
+                 */
+                return null;
+            &#125;
+
+//            int index = rand.nextInt(serverCount);// java.util.Random().nextInt(3);
+//            server = upList.get(index);
+//            private int total = 0;          // 总共被调用的次数，目前要求每台被调用5次
+//            private int currentIndex = 0;   // 当前提供服务的机器号
+            if (total &lt; 5) &#123;
+                server = upList.get(currentIndex);
+                total++;
+            &#125; else &#123;
+                total = 0;
+                currentIndex++;
+                if (currentIndex &gt;= upList.size()) &#123;
+                    currentIndex = 0;
+                &#125;
+            &#125;
+            if (server == null) &#123;
+                /*
+                 * The only time this should happen is if the server list were somehow trimmed.
+                 * This is a transient condition. Retry after yielding.
+                 */
+                Thread.yield();
+                continue;
+            &#125;
+            if (server.isAlive()) &#123;
+                return (server);
+            &#125;
+
+            // Shouldn&apos;t actually happen.. but must be transient or a bug.
+            server = null;
+            Thread.yield();
+        &#125;
+        return server;
+    &#125;
+
+    @Override
+    public Server choose(Object o) &#123;
+        return choose(getLoadBalancer(), o);
+    &#125;
+&#125;</code></pre><p>该类为自定义的负载均衡算法规则类，要想使用需要进行配置。首先需要在当前启动类无法进行@CompomentScan的地方创建configuration类，即无法被Spring容器扫描到。该类有@Configuration注解，并配置IRule Bean，返回当前自定义规则类。<br>然后在启动类上配置@RibbonClient注解</p>
+<pre><code>@RibbonClient(name = &quot;SPRINGCLOUD-TEST&quot;,configuration = MyRuleConfiguration.class)</code></pre><p>name表示负载均衡所应用的服务名称，configuration为配置的configuration类</p>
+<h2 id="Feign声明式WebService客户端"><a href="#Feign声明式WebService客户端" class="headerlink" title="Feign声明式WebService客户端"></a>Feign声明式WebService客户端</h2><p>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。<br>Feign可以和Eureka与Ribbon结合使用负载均衡。<br>其使用过程就像类似于MyBatis Dao，接口访问，其作用<strong>是代替RestTemplate，而是直接使用类似Mybatis接口调用的方式</strong>。<br>步骤定义如下:</p>
+<ol>
+<li><p>首先需要在api模块处定义service接口方法，所以需要添加相关依赖</p>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-openfeign</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-web</artifactId>
+</dependency>
+</li>
+<li><p>配置Service接口DeptClientService接口类,其注解，值为提供接口的服务名称，此接口将关联到服务提供者。</p>
+<p>@FeignClient(value = “SPRINGCLOUD-TEST”)<br>public interface DeptClientService {</p>
+<pre><code>@PostMapping(&quot;/dept/add&quot;)
+public boolean add(@RequestBody Dept dept);
+
+@GetMapping(&quot;/dept/get/&#123;id&#125;&quot;)
+public Dept get(@PathVariable(&quot;id&quot;) Long id);
+
+@GetMapping(&quot;/dept/list&quot;)
+public List&lt;Dept&gt; list();</code></pre><p>}</p>
+</li>
+<li><p>在客户端80 Controller中注入DeptClientService对象,通过其方法返回，不在使用RestTemplate</p>
+<p>@RestController<br>public class DeptController_Consumer {</p>
+<pre><code>@Autowired
+private DeptClientService deptClientService;</code></pre><p>   //private static final String REST_URL_PREFIX = “<a href="http://localhost:8001&quot;">http://localhost:8001&quot;</a>;</p>
+<pre><code>private static final String REST_URL_PREFIX = &quot;http://SPRINGCLOUD-TEST&quot;;
+
+@Autowired
+private RestTemplate restTemplate;
+
+@PostMapping(&quot;/consumer/dept/add&quot;)
+public boolean add(Dept dept)&#123;
+    //return restTemplate.postForObject(REST_URL_PREFIX+&quot;/dept/add&quot;,dept,Boolean.class);
+    return this.deptClientService.add(dept);
+&#125;
+
+@GetMapping(&quot;/consumer/dept/get/&#123;id&#125;&quot;)
+public Dept get(@PathVariable(&quot;id&quot;) Long id)&#123;
+    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/get/&quot; + id,Dept.class);
+    return this.deptClientService.get(id);
+&#125;
+
+@GetMapping(&quot;/consumer/dept/list&quot;)
+public List&lt;Dept&gt; list(Dept dept)&#123;
+    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/list&quot;,List.class);
+    return this.deptClientService.list();
+&#125;</code></pre><p>}</p>
+</li>
+<li><p>在80的启动类中，配置<code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.springcloud&quot;&#125;)</code>,表示扫描当前包下的FeignClient,那么其就会被Spring发现，步骤三不会报错，所以在配置Service接口的时候就不必使用@ComponentScan注解。</p>
+</li>
+</ol>
+<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>案例:多个服务，依赖调用，如A-&gt;B,B-&gt;C,C-&gt;D，如果某个服务出现错误或异常，会导致请求超时，或响应报错，等其他情况。或者项目实施原因为停止某个服务的使用是，该服务无法使用该如何处理。这是断路器要做的。<br><strong>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</strong></p>
+<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>其问题可以理解为Spring的AOP异常增强处理。通过添加注解并给予服务出错时要执行的方法。<br>只需要在方法上标注@HystrixCommand注解，并设置fallbackMethod属性值为回调方法。</p>
+<ol>
+<li><p>首先依据8001创建一个新的模块，新增hystrix依赖</p>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+</li>
+<li><p>在controller的get方法上模拟Dept为null时抛出异常的情况</p>
+<p>@HystrixCommand(fallbackMethod = “requestErrorGet”)<br>@GetMapping(“/dept/get/{id}”)<br>public Dept get(@PathVariable(“id”) Long id){</p>
+<pre><code>Dept dept = deptService.get(id);
+if (dept==null)&#123;
+    throw new RuntimeException();
+&#125;
+return dept;</code></pre><p>}<br>public Dept requestErrorGet(@PathVariable(“id”) Long id){</p>
+<pre><code>return new Dept(id,&quot;没有此部门&quot;,&quot;请确认部门编号&quot;);</code></pre><p>}</p>
+</li>
+<li><p>在主启动类上标注@EnableCircuitBreaker注解</p>
+</li>
+<li><p>启动7001，当前hystrix8001,和feign80</p>
+</li>
+<li><p>测试访问localhost/consumer/dept/get/123获得服务熔断打印信息</p>
+</li>
+</ol>
+<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。</p>
+<ol>
+<li><p>在api模块，deptClientService同包目录下创建DeptClientServiceFallbackFactory实现FallbackFactory</p>
+<p>/**</p>
+<ul>
+<li><p>DeptClientService里的每一个方法的熔断都统一放在当前类中</p>
+</li>
+<li><p>/<br>@Component<br>public class DeptClientServiceFallbackFactory implements FallbackFactory<DeptClientService> {<br>  @Override<br>  public DeptClientService create(Throwable throwable) {</p>
+<pre><code>return new DeptClientService() &#123;
+    @Override
+    public boolean add(Dept dept) &#123;
+        return false;
+    &#125;
+
+    @Override
+    public Dept get(Long id) &#123;
+        return new Dept(id,&quot;服务降级&quot;,&quot;确认数据库&quot;);
+    &#125;
+
+    @Override
+    public List&lt;Dept&gt; list() &#123;
+        return null;
+    &#125;
+&#125;;</code></pre><p>  }<br>}</p>
+</li>
+</ul>
+</li>
+<li><p>在DeptClientService的FeignClient注解上，配置fallbackFactory属性，即为DeptClientServiceFallbackFactory类</p>
+<p>@FeignClient(value = “SPRINGCLOUD-TEST”,fallbackFactory = DeptClientServiceFallbackFactory.class)<br>public interface DeptClientService {<br>….<br>}</p>
+</li>
+<li><p>在客户端80feign项目中开启<code>feign.hystrix.enable:true</code>配置。使两个技术关联开启，步骤2的Feign才能解析fallbackFactory属性。</p>
+</li>
+<li><p>启动7001，当前hystrix8001,和feign80</p>
+</li>
+<li><p>测试，首先访问localhost/consumer/dept/get/123获得服务熔断的信息。然后关闭hystrix8001服务，再次访问，出现服务降级的信息。</p>
+</li>
+</ol>
+<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
+<ol>
+<li><p>创建新项目hystrixDashboard,添加依赖</p>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
+</dependency>
+</li>
+<li><p>为启动类添加添加@EnableHystrixDashboard注解表示开启</p>
+</li>
+<li><p>为所有服务提供者8001,8002,8003服务，添加监控依赖</p>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+</li>
+<li><p>使用<code>http://localhost:8001/hystrix.stream</code>可以看到ping:,data:,如果使用2.0以上版本，使用此地址404，那么，要在每个服务提供模块添加配置Bean，且需要hystrix依赖</p>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+
+<p>@Configuration<br>public class MyConfiguration {</p>
+<pre><code>@Bean
+public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
+    ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
+    registration.addUrlMappings(&quot;/hystrix.stream&quot;);
+    return registration;
+&#125;</code></pre><p>}</p>
+</li>
+<li><p>需要服务提供者主启动类上加上@EnableCircuitBreaker注解</p>
+</li>
+<li><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
+</li>
+</ol>
+<blockquote>
+<p>需要注意的是，以上步骤并不完整，如果你的代码中没有类似@HystrixCommand注解，则尽管能访问hystrix.stream，但没有data数据，无法进行图表查看,所以，需要在方法上加上@HystrixCommand注解配置，具体问题详见<a target="_blank" rel="noopener" href="https://www.cnblogs.com/jinjiyese153/p/9172885.html">https://www.cnblogs.com/jinjiyese153/p/9172885.html</a></p>
+</blockquote>
+<h3 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h3><h2 id="Zuul路由"><a href="#Zuul路由" class="headerlink" title="Zuul路由"></a>Zuul路由</h2><p>Zuul包含了对请求的路由和过滤两个功能，<br>其中路由功能负责将外部请求转发到具体的微服务实例上，是实现外部访问统一入口的基础。<br>过滤功能负责对请求的处理过程进行干预，是实现请求校验，服务聚合等功能的基础，<br>Zuul和Eureka整合，将Zuul资深注册到Eureka服务治理下的应用，同时从Eureka获得其他微服务的消息，也即以后的微服务都是通过Zuul跳转后获得。</p>
+<h3 id="路由的简单应用"><a href="#路由的简单应用" class="headerlink" title="路由的简单应用"></a>路由的简单应用</h3><p>使用类似如下的地址通过路由即可访问服务<code>http://localhost:9527/springcloud-test/dept/list</code>,localhost:9527即为路由微服务，通过路由(路由注册到Eureka中)访问注册中心的服务。</p>
+<ol>
+<li><p>创建路由项目,添加依赖</p>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
+</dependency>
+</li>
+<li><p>配置yml</p>
+<p>server:<br>  port: 9527</p>
+<p>eureka:<br>  client:</p>
+<pre><code>service-url:
+  defaultZone: http://root:root@eureka7001.com:7001/eureka/</code></pre><p>  instance:</p>
+<pre><code>instance-id: dept-zuul-9537
+prefer-ip-address: true</code></pre><p>spring:<br>  application:</p>
+<pre><code>name: dept-zuul-geteway</code></pre><p>info:<br>  app.name: springcloud-test<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
+</li>
+<li><p>主启动类配置注解</p>
+<p>@EnableEurekaClient<br>@EnableZuulProxy<br>@SpringBootApplication<br>public class DeptZuul9527_App {</p>
+<pre><code>public static void main(String[] args) &#123;
+    SpringApplication.run(DeptZuul9527_App.class,args);
+&#125;</code></pre><p>}</p>
+</li>
+</ol>
+<h3 id="路由访问配置"><a href="#路由访问配置" class="headerlink" title="路由访问配置"></a>路由访问配置</h3><p>隐藏实际服务名称，使用自定义的名称</p>
+<pre><code>zuul:
+  routes:
+    mydept.serviceId: springcloud-test
+    mydept.path: /mydept/**</code></pre><ul>
+<li>表示将springcloud-test的服务，其路径改为mydept,使用原服务名称和mydept均可访问。</li>
+<li>配置<code>zuul.ignored-services: springcloud-test</code>可取消原服务名称的访问。若要忽略全部的服务，则使用<code>&quot;*&quot;</code>配置。</li>
+<li>若需要服务访问的前缀，则配置<code>zuul.prefix: /xxx</code>,即可使用前缀访问</li>
+</ul>
+<h2 id="Spring-Cloud-Config"><a href="#Spring-Cloud-Config" class="headerlink" title="Spring Cloud Config"></a>Spring Cloud Config</h2><p>Spring Cloud Config分为<strong>服务端和客户端两部分</strong>。<br>服务端也称为分布式配置中心，他是一个<strong>独立的微服务应用</strong>，用来++连接配置服务器并为客户端提供配置信息，加密/解密信息等访问接口。++<br>客户端是通过指定的配置中心来管理应用资源，以及业务相关的配置，并在启动的时候从配置中心获取和加载配置信息，配置服务器默认采用git来存储配置信息，有助于对环境配置进行版本管理。<br>在运行期间动态调整配置，不需要在每个服务部署的机器上编写配置文件，服务会向配置中心统一拉取自己的信息。当配置变动时，服务不需要重启即可感知到配置的变化并应用新的配置。</p>
+<h3 id="服务端配置，以Github为例，若无法访问，可使用Gitee码云"><a href="#服务端配置，以Github为例，若无法访问，可使用Gitee码云" class="headerlink" title="服务端配置，以Github为例，若无法访问，可使用Gitee码云"></a>服务端配置，以Github为例，若无法访问，可使用Gitee码云</h3><ol>
+<li><p>首先在码云创建公共仓库，然后clone到本地，在本地创建application.yml文件(注意保存为UTF-8格式)并上传拿到远程仓库,配置如下:</p>
+<p>spring:<br>  active:</p>
+<pre><code>- dev</code></pre><hr>
+<p>spring:<br>  profile: dev<br>  application:</p>
+<pre><code>name: springcloud-dev</code></pre><hr>
+<p>spring:<br>  profile: test<br>  application:</p>
+<pre><code>name: springcloud-test</code></pre></li>
+<li><p>创建configserver模块，添加依赖如下:</p>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-config-server</artifactId>
+</dependency>
+</li>
+<li><p>配置application.yml文件</p>
+<p>server:<br>  port: 3344<br>spring:<br>  application:</p>
+<pre><code>name: springcloud-config-server</code></pre><p>  cloud:</p>
+<pre><code>config:
+  server:
+    git:
+      uri: https://gitee.com/snow_rain/springcloud-config.git</code></pre></li>
+</ol>
+<p>表示，配置的服务git的uri为公共仓库的地址。</p>
+<ol>
+<li><p>配置主启动类，并添加@EnableConfigServer注解</p>
+</li>
+<li><p>启动项目，访问<code>http://localhost:3344/application-dev.yml</code>即可获得如下</p>
+<p>spring:<br>  active:</p>
+<ul>
+<li>dev<br>application:<br>name: springcloud-test<br>profile: test</li>
+</ul>
+</li>
+<li><p>访问的方式，有如下几种:</p>
+<p>/{application}/{profile}[/{label}]<br>/{application}-{profile}.yml<br>/{label}/{application}-{profile}.yml</p>
+</li>
+</ol>
+<p>上面访问的是第二种，另外两个可以以下方式访问:</p>
+<ul>
+<li><a target="_blank" rel="noopener" href="http://localhost:3344/application/dev/master">http://localhost:3344/application/dev/master</a></li>
+<li><a target="_blank" rel="noopener" href="http://localhost:3344/master/application-dev.yml">http://localhost:3344/master/application-dev.yml</a></li>
+</ul>
+<h3 id="创建客户端模拟服务器提供者连通配置中心"><a href="#创建客户端模拟服务器提供者连通配置中心" class="headerlink" title="创建客户端模拟服务器提供者连通配置中心"></a>创建客户端模拟服务器提供者连通配置中心</h3><ol>
+<li><p>创建新模块，配置依赖如下:</p>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-devtools</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-actuator</artifactId>
+</dependency>
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-config</artifactId>
+</dependency>
+</li>
+<li><p>创建springcloud-config-client.yml上传到远程仓库中</p>
+<p>spring:<br>  profile:</p>
+<pre><code>active: dev</code></pre><hr>
+<p>server:<br>  port: 8201<br>spring:<br>  profile: dev<br>  application:</p>
+<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
+<pre><code>service-url:
+  defaultZone: http://eureka7001.com:7001/eureka</code></pre><hr>
+<p>server:<br>  port: 8202<br>spring:<br>  profile: test<br>  application:</p>
+<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
+<pre><code>service-url:
+  defaultZone: http://eureka7002.com:7002/eureka</code></pre></li>
+<li><p>在client端,resources下创建bootstrap.yml文件<br>bootstrap是最高优先级的加载文件，是系统级的.<br>SpringCloud 会创建<code>BootStrap Context</code>作为Spring应用<code>Application Context</code>的父上下文。初始化时BootStrap Context负责从外部加载配置属性并解析配置，BootStrap具有较高优先级，默认情况下，他们不会被本地配置覆盖。<br>新增BootStrap.yml保证<code>BootStrap Context</code>和<code>Application Context</code>配置的分离。</p>
+<p>spring:<br>  cloud:</p>
+<pre><code>config:
+  label: master
+  name: springcloud-config-client
+  profile: dev
+  uri: http://localhost:3344</code></pre></li>
+</ol>
+<p>以上配置中label表示仓库的分支，name表示仓库中的要使用的yml文件名称,profile表示文件中的dev环境，uri表示配置中心服务端地址。即需要通过服务端的连接，即以上配置参数，即可通过服务端连接到仓库并获得对应的信息。</p>
+<ol>
+<li><p>可配置application.yml</p>
+<p>spring:<br>  application:</p>
+<pre><code>name: springcloud-config-client</code></pre></li>
+</ol>
+<p>如果想配置，则name值需要和上面的name值一样，否则可以没有application.yml文件。即默认约定，该仓库springcloud-config-client名称为服务名称。<br>项目启动配置服务server和client，</p>
 
       
       <!-- reward -->
@@ -676,7 +1844,7 @@ $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/27/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/26/">26</a><a class="page-number" href="/page/27/">27</a><span class="page-number current">28</span><a class="page-number" href="/page/29/">29</a><a class="page-number" href="/page/30/">30</a><span class="space">&hellip;</span><a class="page-number" href="/page/51/">51</a><a class="extend next" rel="next" href="/page/29/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/27/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/26/">26</a><a class="page-number" href="/page/27/">27</a><span class="page-number current">28</span><a class="page-number" href="/page/29/">29</a><a class="page-number" href="/page/30/">30</a><span class="space">&hellip;</span><a class="page-number" href="/page/53/">53</a><a class="extend next" rel="next" href="/page/29/">下一页</a>
   </nav>
   
 </section>
