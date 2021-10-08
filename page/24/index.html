@@ -78,6 +78,87 @@
     
     
     
+    <article id="post-Activiti/Activiti获取当前节点的上下并行网关" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/"
+    >Activiti获取当前节点的上下并行网关V5.21</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/" class="article-date">
+  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
+<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
+<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
+<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
+<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Go/Go基础" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -639,152 +720,6 @@
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/DIY/" rel="tag">DIY</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-PostgreSQL/Postgresql常用函数" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/24/PostgreSQL/Postgresql%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/"
-    >Postgresql常用函数</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/24/PostgreSQL/Postgresql%E5%B8%B8%E7%94%A8%E5%87%BD%E6%95%B0/" class="article-date">
-  <time datetime="2020-03-24T01:01:02.000Z" itemprop="datePublished">2020-03-24</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/PostgreSQL/">PostgreSQL</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="日期函数"><a href="#日期函数" class="headerlink" title="日期函数"></a>日期函数</h2><h3 id=""><a href="#" class="headerlink" title=""></a></h3><p>获取最近一周，一个月，一年的日期函数</p>
-<ul>
-<li>近一周<br>select now() - interval ‘1 week’;</li>
-<li>近一月<br>select now() - interval ‘1 month’;</li>
-<li>近一年<br>select now() - interval ‘1 year’;</li>
-<li>下一周<br>select now() + interval ‘1 week’;</li>
-<li>下一月<br>select now() + interval ‘1 month’;</li>
-<li>下一年<br>select now() + interval ‘1 year’;<h3 id="获取指定时间段内的日期列表"><a href="#获取指定时间段内的日期列表" class="headerlink" title="获取指定时间段内的日期列表"></a>获取指定时间段内的日期列表</h3>select to_char(generate_series(‘2018-10-01’::date,’2018-10-25’,’1 day’),’yyyy-mm-dd’);<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> daytime::<span class="built_in">date</span> <span class="keyword">from</span> generate_series(</span><br><span class="line">	(<span class="string">&#x27;2017-06-01&#x27;</span>),		<span class="comment">--查询开始日期（可根据需求调整） </span></span><br><span class="line">	(<span class="keyword">select</span> <span class="keyword">now</span>()::<span class="built_in">date</span>),	<span class="comment">--查询结束日期（可根据需求调整） </span></span><br><span class="line"> 	<span class="string">&#x27;1 day&#x27;</span>			<span class="comment">--间隔（可根据需求调整）</span></span><br><span class="line">) s(daytime)</span><br></pre></td></tr></table></figure>
-
-</li>
-</ul>
-<h3 id="日期截断-获取当前日期的年月日"><a href="#日期截断-获取当前日期的年月日" class="headerlink" title="日期截断,获取当前日期的年月日"></a>日期截断,获取当前日期的年月日</h3><p>date_trunc(‘&lt;unit&gt;’,&lt;date&gt;);</p>
-<ul>
-<li>截取为当天日期<br>select date_trunc(‘day’,now())</li>
-<li>截取为当月日期<br>select date_trunc(‘month’,now())</li>
-<li>截取小时，即当天0点整合12点整<br>select date_trunc(‘h’,now())<br>select date_trunc(‘h’,to_date(‘2020-02-12 09:00:00’,’YYYY-MM-DD HH24:mi:ss’))</li>
-<li>截取分钟，即当前当前分钟整，秒数归零<br>select date_trunc(‘minute’,now())</li>
-<li>截取当前季度，以1234位第一季度，当前月为2月则季度获取为1月1日<br>select date_trunc(‘quarter’,now())</li>
-</ul>
-<p>第二个参数为日期类型，可以使用日期函数，也可以使用<code>date &#39;2020-01-23 12:23:34&#39;</code>的方式表示为一个日期。还可使用time、timestamp、timestamptz定义对应格式的字符串。</p>
-<p><strong>interval ‘&lt;number&gt; &lt;unit&gt;’</strong><br>interval表示间隔多少，可以不要这个单词</p>
-<ul>
-<li>number 表示数量</li>
-<li>unit 表示单位,second、minute、hour、day、week、month、quarter、year都可以。</li>
-</ul>
-<h3 id="截取年月日时分秒"><a href="#截取年月日时分秒" class="headerlink" title="截取年月日时分秒"></a>截取年月日时分秒</h3><p>使用<strong>to_char</strong>函数，可进行截取</p>
-<ul>
-<li>获取年份,使用YYYY或YY<br>select to_char(date ‘1989-12-12’,’YYYY’)</li>
-<li>获取月份MM</li>
-<li>获取天DD</li>
-<li>获取星期,小写表示星期小写，首字母大写为星期首字母大小，全大写为星期字母全大写<br>select to_char(date ‘1989-12-13’,’day’)</li>
-</ul>
-<p><strong>extract(&lt;unit&gt; from &lt;date&gt;)</strong><br>该函数表示从date中提取，unit为单位，date为日期时间。但unit中的day表示的是日不是星期</p>
-<p><a target="_blank" rel="noopener" href="https://www.postgresql.org/docs/10/functions-formatting.html">此处为日期格式化中文官方文档</a></p>
-<h2 id="常用逻辑函数"><a href="#常用逻辑函数" class="headerlink" title="常用逻辑函数"></a>常用逻辑函数</h2><h3 id="COALESCE-val-val2-val3"><a href="#COALESCE-val-val2-val3" class="headerlink" title="COALESCE(val,val2[,val3])"></a>COALESCE(val,val2[,val3])</h3><p>该函数表示为空判断，如果val为空则使用val2的值，否则使用val的值。<br>如果3个参数表示，如果不为空使用val3</p>
-<h3 id="case-when-then-else-end可使用多条件判断"><a href="#case-when-then-else-end可使用多条件判断" class="headerlink" title="case when then else end可使用多条件判断"></a>case when then else end可使用多条件判断</h3><h3 id="单条数据的列转行操作"><a href="#单条数据的列转行操作" class="headerlink" title="单条数据的列转行操作"></a>单条数据的列转行操作</h3><table>
-<thead>
-<tr>
-<th>plan_value</th>
-<th>t</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>0.23</td>
-<td>one</td>
-</tr>
-<tr>
-<td>0.45</td>
-<td>two</td>
-</tr>
-<tr>
-<td>0.24</td>
-<td>three</td>
-</tr>
-</tbody></table>
-<p>对该结果进行列转行，转换为</p>
-<table>
-<thead>
-<tr>
-<th>one</th>
-<th>two</th>
-<th>three</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>0.23</td>
-<td>0.45</td>
-<td>0.24</td>
-</tr>
-</tbody></table>
-<p>以上one、two、three分别为标识的每行数据</p>
-<p>转换使用case when的方式，该方式使用sum函数包裹，则会聚合函数成一行，但是如果有重复的t列标识，则不能使用sum函数。如果你要求t标识的数量，则使用count可以得到。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;one&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;one&quot;</span>,</span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;two&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;two&quot;</span>,</span><br><span class="line">	<span class="keyword">sum</span>(<span class="keyword">case</span> <span class="keyword">when</span> t=<span class="string">&#x27;three&#x27;</span> <span class="keyword">then</span> <span class="keyword">value</span> <span class="keyword">end</span>) <span class="keyword">as</span> <span class="string">&quot;three&quot;</span></span><br><span class="line"><span class="keyword">from</span> (</span><br><span class="line">	 <span class="keyword">select</span> value_plan <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;one&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value_before</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line">	 <span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">	 <span class="keyword">select</span> recentyear <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;two&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line">	 <span class="keyword">union</span> <span class="keyword">all</span></span><br><span class="line">	 <span class="keyword">select</span> value_plan <span class="keyword">as</span> <span class="keyword">value</span>, <span class="string">&#x27;three&#x27;</span> <span class="keyword">as</span> t</span><br><span class="line">	 <span class="keyword">from</span> business.kjgh_quota_value</span><br><span class="line">	 <span class="keyword">where</span> item_id = <span class="comment">#&#123;itemId&#125;</span></span><br><span class="line">	   <span class="keyword">and</span> area_id = <span class="comment">#&#123;areaId&#125;</span></span><br><span class="line"> ) a</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="拓展"><a href="#拓展" class="headerlink" title="拓展"></a>拓展</h2><h3 id="uuid拓展"><a href="#uuid拓展" class="headerlink" title="uuid拓展"></a>uuid拓展</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">create</span> extension <span class="string">&quot;uuid-ossp&quot;</span></span><br></pre></td></tr></table></figure>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PostgreSQL/" rel="tag">PostgreSQL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
 
 
     </footer>

@@ -78,6 +78,158 @@
     
     
     
+    <article id="post-XML/XML的使用——DOM4J以及XPath语法" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/"
+    >XML的使用——DOM4J以及XPath语法</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/" class="article-date">
+  <time datetime="2018-07-06T07:50:18.000Z" itemprop="datePublished">2018-07-06</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="dom4J"><a href="#dom4J" class="headerlink" title="dom4J"></a>dom4J</h2><p>基于Java Collections Framework的XML文档对象模型 <a target="_blank" rel="noopener" href="https://dom4j.github.io">官网地址及文档</a> maven pom添加依赖</p>
+<pre><code> &lt;dependency&gt;
+    &lt;groupId&gt;org.dom4j&lt;/groupId&gt;
+    &lt;artifactId&gt;dom4j&lt;/artifactId&gt;
+    &lt;version&gt;2.1.1&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><h4 id="创建XML"><a href="#创建XML" class="headerlink" title="创建XML"></a>创建XML</h4><p>首先通过DocumentHelper对象创建一个Document实例。 然后通过Element设置元素节点 最后可通过document.write写到文件中，或者通过OutputFormat对象和XMLWriter对象打印出特定格式和特定设置的文件</p>
+<pre><code>//获得Document对象
+Document document = DocumentHelper.createDocument();
+
+//开始建立dom树根元素
+Element bookstoreEle = document.addElement(&quot;bookstore&quot;);
+
+//创建子元素
+Element bookEle = bookstore.addElement(&quot;book&quot;);
+
+Element bookNameEle = bookEle.addElement(&quot;bookName&quot;).addText(&quot;巴黎圣母院&quot;);
+Element priceEle = bookEle.addElement(&quot;price&quot;).addText(&quot;20&quot;);
+Element authorEle = bookEle.addElement(&quot;author&quot;).addText(&quot;雨果&quot;);
+
+//直接写入到文件
+//document.write(new FileWriter(&quot;bookstore.xml&quot;));
+或
+
+//设置xml格式和参数
+OutputFormat format = OutputFormat.createPrettyPrint();
+FileOutputStream outputStream = new FileOutputStream(new File(&quot;bookstore.xml&quot;));
+XMLWriter writer = new XMLWriter(outputStream,format);
+//是否转义
+writer.setEscapeText(false);
+writer.write(document);</code></pre><p>Element对象还有很多方法，根据方法名能判断该方法是干什么的。 在创建之前，不仅可以设置xml的输出格式,还可以自己通过OutputFormat对象设置一些属性。 以及设置DocumentType,XMLEncoding,以及EntityResolver解析器(XML解析器，默认是SAXEntityResolver),都可以在Document中设置，然后在解析时再获得。</p>
+<h4 id="解析xml"><a href="#解析xml" class="headerlink" title="解析xml"></a>解析xml</h4><p>首先需要通过File文件获得Document对象，再通过iterator迭代器循环得到元素。</p>
+<pre><code>//实例化SAXReader对象,并获得Document
+SAXReader reader = new SAXReader();
+Document document = reader.read(file);
+//获得xml的根节点
+Element rootEle = document.getRootElement();
+
+//1.通过迭代器的方式获得该元素的子节点
+Iterator iterator = rootEle.element(&quot;book&quot;).elementIterator();
+while(iterator.hasNext())&#123;
+    Element element = (Element) iterator.next();
+    System.out.println(element.getName() +&quot;---&quot; + element.getText());
+&#125;
+
+//2.通过elements的方式遍历子节点
+List&lt;Element&gt; elements = rootEle.element(&quot;chanel&quot;).elements();
+for (Element element:elements)&#123;
+    System.out.println(element.getName()+ &quot;----&quot; + element.getText());
+&#125;
+
+//3.通过xpath的方式遍历子节点
+List&lt;Node&gt; nodes = rootEle.selectNodes(&quot;//chanel&quot;);
+if (nodes.get(0) instanceof Element)&#123;
+    Element element = (Element) nodes.get(0);
+    System.out.println(element.elements().size());
+&#125;</code></pre><p>除了遍历元素Element之外，还可以遍历该元素的所有属性。 通过attributeIterator()方法,attributes()等，以及通过索引获得。 Element对象的部分方法 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144222.png" alt="Element的部分Element开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144254.png" alt="Element的部分attribute开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706145854.png" alt="Element的部分attribute开头方法"> Element.element(String s)表示获得某个子节点的Element对象 Element.elements()表示获得该节点元素的所有子节点集合 Element.selectNodes(String s)方法通过xpath语法获得一个节点集合 如果想跟方便的看文档获得方法说明，建议使用idea+maven+mavenHelper插件，通过mavenHelper插件下载包的source和documention</p>
+<h4 id="Document对象的其他操作"><a href="#Document对象的其他操作" class="headerlink" title="Document对象的其他操作"></a>Document对象的其他操作</h4><ol>
+<li><p>将document对象或Node，Element，Attribute，通过asXML()方法转换成字符串</p>
+<p>Document document = …;<br>String text = document.asXML();</p>
+</li>
+</ol>
+<p>或者通过DocumentHelper对象的parseText()方法将字符串转换为Document对象</p>
+<pre><code>String text = &quot;&lt;person&gt; &lt;name&gt;James&lt;/name&gt; &lt;/person&gt;&quot;;
+Document document = DocumentHelper.parseText(text);</code></pre><ol start="2">
+<li><p>获得文档的类型，字符编码</p>
+<p>System.out.println(document.getDocType());<br>System.out.println(document.getXMLEncoding());</p>
+</li>
+</ol>
+<p>需判断DocType是否为空，它将获得DocumentType对象，在生成XML时，通过Document对象设置documentType属性。</p>
+<ol start="3">
+<li><p>通过Element实例获得path路径</p>
+<p>document.getPath(Element e);</p>
+</li>
+</ol>
+<p>以及各节点对象的节点类型，getNodeType()可获得节点类型的short值，getNodeTypeName()获得节点类型的名称。 getPath()获得节点对象的所在路径</p>
+<h4 id="XPath语法"><a href="#XPath语法" class="headerlink" title="XPath语法"></a>XPath语法</h4><p>XPath 使用路径表达式来选取 XML 文档中的节点或者节点集。这些路径表达式和我们在常规的电脑文件系统中看到的表达式非常相似。 需添加依赖包</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;jaxen&lt;/groupId&gt;
+    &lt;artifactId&gt;jaxen&lt;/artifactId&gt;
+    &lt;version&gt;1.1.6&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>然后通过任意节点类型的selectNodes方法和selectSingleNode方法，并设置xpath值，返回List<Node>或Node对象 <strong>选取节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150204.png" alt="选取节点"> <strong>查找特定节点或某个指定值的节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150225.png" alt="获得特定或指定值或范围的节点"> <strong>选取未知节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150237.png" alt="选取未知节点"> <strong>通过|符号选取若干路径</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150246.png" alt="通过|符号选取若干路径"></p>
+<h4 id="部分代码"><a href="#部分代码" class="headerlink" title="部分代码"></a>部分代码</h4><p>使用idea开发工具，maven项目，mavenHelper插件更利于maven依赖包管理 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/learnxml.rar">下载地址</a></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/Oracle序列Sequence" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -723,107 +875,6 @@ BEGIN
     raise_application_error(-20000,&apos;错误&apos;);
   END IF;
 END;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle PLSQL中执行DML数据操作语言和DDL数据定义语言" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%B8%AD%E6%89%A7%E8%A1%8CDML%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80%E5%92%8CDDL%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80/"
-    >Oracle PL/SQL中执行DML数据操作语言和DDL数据定义语言</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/06/26/Oracle/Oracle%20PLSQL%E4%B8%AD%E6%89%A7%E8%A1%8CDML%E6%95%B0%E6%8D%AE%E6%93%8D%E4%BD%9C%E8%AF%AD%E8%A8%80%E5%92%8CDDL%E6%95%B0%E6%8D%AE%E5%AE%9A%E4%B9%89%E8%AF%AD%E8%A8%80/" class="article-date">
-  <time datetime="2018-06-26T08:21:08.000Z" itemprop="datePublished">2018-06-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="PL-SQL中使用DML和DDL语言"><a href="#PL-SQL中使用DML和DDL语言" class="headerlink" title="PL/SQL中使用DML和DDL语言"></a>PL/SQL中使用DML和DDL语言</h3><p>PL/SQL中除了可以执行查询语句外，还可以执行DML数据操纵语言和DDL数据定义语言。</p>
-<h4 id="DML数据操作语言语句的使用"><a href="#DML数据操作语言语句的使用" class="headerlink" title="DML数据操作语言语句的使用"></a>DML数据操作语言语句的使用</h4><p><strong>示例:</strong> 添加一条新纪录，编号为表中最大编号+1</p>
-<pre><code>DECLARE
-    v_new_id product.productId%TYPE;
-BEGIN
-    SELECT MAX(productId) INTO v_new_id FROM product;
-    v_new_id := v_new_id+1;
-    INSERT INTO product VALUES(v_new_id,&apos;MacBook Pro 13.3&apos;,12000,1500,NULL);
-    COMMIT;
-END;</code></pre><h4 id="DDL数据定义语言的使用"><a href="#DDL数据定义语言的使用" class="headerlink" title="DDL数据定义语言的使用"></a>DDL数据定义语言的使用</h4><p>要想在PL/SQL中使用，需要一条命令来执行，该命令是<strong>EXECUTE IMMEDIATE</strong>,利用它可以执行动态的SQL语句，也就是不仅可以执行DDL语句，也可以执行DML语句。 <strong>示例</strong></p>
-<pre><code>DECLARE
-    prod_createStr varchar2(200);
-BEGIN
-    prod_createStr := &apos;CREATE TABLE TAB_STUDENT
-                                (
-                                    STUDENTID number(8) primary key,
-                                    STUDENTNAME varchar2(20),
-                                    AGE nchar(2)
-                                )&apos;;
-
-    EXECUTE IMMEDIATE prod_createStr;
-END;
-
-
-DECLARE
-  v_alter_address varchar2(200);
-BEGIN
-  v_alter_address := &apos;ALTER TABLE TAB_STUDENT ADD ADDRESS VARCHAR2(50)&apos;;
-
-  EXECUTE IMMEDIATE v_alter_address;
-END;</code></pre><p>需要注意，将数据定义语言作为字符串，通过EXECUTE IMMEDATE动态执行的时候，最后的分号要去掉，否则错误，这是与一般执行DDL的不同之处。 通常情况下，利用EXECUTE IMMEDATE命令执行DDL语句用在存储过程当中。</p>
-
       
       <!-- reward -->
       

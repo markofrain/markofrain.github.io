@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">216字</span>
+            <span class="post-count">326字</span>
         </span>
     </span>
 
@@ -116,6 +116,15 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> Cache&lt;String,String&gt; cache = CacheBuilder.newBuilder()</span><br><span class="line">            .initialCapacity(<span class="number">10</span>) <span class="comment">//初始化30个缓存大小</span></span><br><span class="line">            .maximumSize(<span class="number">100</span>)  <span class="comment">//最大100个</span></span><br><span class="line">            .concurrencyLevel(<span class="number">10</span>) <span class="comment">//同一时间最多只能有10个线程往cache执行写入操作</span></span><br><span class="line">            .expireAfterAccess(<span class="number">1</span>, TimeUnit.HOURS) <span class="comment">//一小时内没有读取则回收</span></span><br><span class="line">            .removalListener(notification -&gt; &#123; <span class="comment">//删除key监听</span></span><br><span class="line">                Object key = notification.getKey();</span><br><span class="line">                <span class="comment">// 表示由入库gdb生成的zip压缩包</span></span><br><span class="line">                <span class="keyword">if</span> (key!=<span class="keyword">null</span> &amp;&amp; key.toString().contains(<span class="string">&quot;gdbzip&quot;</span>))&#123;</span><br><span class="line">                    Object value = notification.getValue();</span><br><span class="line">                    <span class="keyword">if</span> (value!=<span class="keyword">null</span>)&#123;</span><br><span class="line">                        logger.warn(<span class="string">&quot;gdbzip压缩包路径缓存已超时,清除并删除压缩文件&quot;</span>);</span><br><span class="line">                        FileUtils.deleteFile(value.toString());</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;).build();</span><br></pre></td></tr></table></figure>
 
 <p>此缓存的删除并不是时间到了一定删除，而是到数量快满的时候。除非使用提供直接删除的方法进行删除。</p>
+</li>
+<li><p>java LinkedHashMap map有序分组</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LinkedHashMap&lt;String, List&lt;CityCheckQuotaInit&gt;&gt; collect = list.stream().collect(Collectors.groupingBy(CityCheckQuotaInit::getOneName, LinkedHashMap::<span class="keyword">new</span>,Collectors.toList()));</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>原生的distinct()不支持按照列表里的对象某个属性去重,对某个字段过滤重复数据：使用HashMap</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Predicate&lt;T&gt; <span class="title">distinctByKey</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ?&gt; keyExtractor)</span> </span>&#123;</span><br><span class="line">    Map&lt;Object, Boolean&gt; seen = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line">    <span class="keyword">return</span> t -&gt; seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">list.stream().filter(distinctByKey(User::getId)).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
+
 </li>
 </ol>
 

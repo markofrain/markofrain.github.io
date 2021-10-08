@@ -78,6 +78,85 @@
     
     
     
+    <article id="post-Java/Window共享目录的访问" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/05/24/Java/Window%E5%85%B1%E4%BA%AB%E7%9B%AE%E5%BD%95%E7%9A%84%E8%AE%BF%E9%97%AE/"
+    >Window共享目录访问</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/05/24/Java/Window%E5%85%B1%E4%BA%AB%E7%9B%AE%E5%BD%95%E7%9A%84%E8%AE%BF%E9%97%AE/" class="article-date">
+  <time datetime="2020-05-24T10:45:12.000Z" itemprop="datePublished">2020-05-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.samba.jcifs<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jcifs<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.3.19<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">scope</span>&gt;</span>system<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">systemPath</span>&gt;</span>$&#123;lib.path&#125;/jcifs-1.3.19.jar<span class="tag">&lt;/<span class="name">systemPath</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p><a target="_blank" rel="noopener" href="https://chen-sys.oss-cn-beijing.aliyuncs.com/package/jcifs-1.3.19.jar">jcifs.jar</a></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">String url = <span class="string">&quot;smb://192.168.6.44/d/空间规划数据库电子成果数据/&quot;</span>;</span><br><span class="line">NtlmPasswordAuthentication authentication = <span class="keyword">new</span> NtlmPasswordAuthentication(<span class="keyword">null</span>, <span class="string">&quot;administrator&quot;</span>, <span class="string">&quot;XXHA5367fkm@&quot;</span>);</span><br><span class="line">SmbFile file = <span class="keyword">new</span> SmbFile(url, authentication);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (file.exists()) &#123;</span><br><span class="line">    SmbFile[] smbFiles = file.listFiles();</span><br><span class="line">    <span class="keyword">for</span> (SmbFile smbFile : smbFiles) &#123;</span><br><span class="line">        downloadShare(smbFile,local);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">downloadShare</span><span class="params">(SmbFile smbFile, String local)</span> <span class="keyword">throws</span> SmbException </span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (smbFile.isDirectory())&#123;</span><br><span class="line">        String aName = smbFile.getName();</span><br><span class="line">        String aDir = local + <span class="string">&quot;/&quot;</span> + aName;</span><br><span class="line">        createDirectory(aDir);</span><br><span class="line">        SmbFile[] smbFiles = smbFile.listFiles();</span><br><span class="line">        <span class="keyword">for</span> (SmbFile file : smbFiles) &#123;</span><br><span class="line">            <span class="keyword">if</span> (file.isDirectory())&#123;</span><br><span class="line">                downloadShare(file,aDir);</span><br><span class="line">            &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">                downShareIO(file,aDir + <span class="string">&quot;/&quot;</span> + file.getName());</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        downShareIO(smbFile,local + <span class="string">&quot;/&quot;</span> + smbFile.getName());</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">downShareIO</span><span class="params">(SmbFile file, String local)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">try</span> (InputStream in = <span class="keyword">new</span> BufferedInputStream(<span class="keyword">new</span> SmbFileInputStream(file));</span><br><span class="line">         OutputStream out = <span class="keyword">new</span> BufferedOutputStream(<span class="keyword">new</span> FileOutputStream(<span class="keyword">new</span> File(local)));) &#123;</span><br><span class="line">        <span class="keyword">byte</span>[] buffer = <span class="keyword">new</span> <span class="keyword">byte</span>[<span class="number">4096</span>];</span><br><span class="line">        <span class="keyword">int</span> len = <span class="number">0</span>;</span><br><span class="line">        <span class="keyword">while</span> ((len = in.read(buffer, <span class="number">0</span>, buffer.length)) != -<span class="number">1</span>) &#123;</span><br><span class="line">            out.write(buffer, <span class="number">0</span>, len);</span><br><span class="line">            out.flush(); <span class="comment">//刷新缓冲的输出流</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">        e.printStackTrace();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-PostgreSQL/Postgresql批量执行" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -473,87 +552,6 @@
 <p>在如上代码中，首先判断flowElements是否是UserTask，如果看bpmn20.xml可以完全的看出来</p>
 <img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200523170140.png" style="zoom:70%;" />
 
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Activiti/" rel="tag">Activiti</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Activiti/Activiti获取当前节点的上下并行网关" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/"
-    >Activiti获取当前节点的上下并行网关V5.21</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/05/22/Activiti/Activiti%E8%8E%B7%E5%8F%96%E5%BD%93%E5%89%8D%E8%8A%82%E7%82%B9%E7%9A%84%E4%B8%8A%E4%B8%8B%E5%B9%B6%E8%A1%8C%E7%BD%91%E5%85%B3/" class="article-date">
-  <time datetime="2020-05-22T10:26:00.000Z" itemprop="datePublished">2020-05-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Activiti/">Activiti</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>并行网关的获取，不光是并行网关，包括其他网关和用户任务。向上获取、向下获取从流程定义中获取。</p>
-<p>流程定义有activities方法，包含了所有的activity活动,每个活动都有一组<code>PvmTransition</code>实例，getDestination方法可表示其流向的目的地<code>PvmActivity</code>，他是activityImpl的实现接口。pvm好像在后续版本没有了，但是获取所有的activites和流向对象一定有其他类和方法代替。</p>
-<p>以一个简单的并行阶段为例，上下均为开始结束并行网关，中间为3个并行节点。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line">ProcessDefinitionEntity definitionEntity = (ProcessDefinitionEntity) ((RepositoryServiceImpl) repositoryService)</span><br><span class="line">				.getDeployedProcessDefinition(processInstance.getProcessDefinitionId());</span><br><span class="line">List&lt;ActivityImpl&gt; activitiList = definitionEntity.getActivities();</span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">int</span> i = <span class="number">0</span>; i &lt; activitiList.size(); i++) &#123;</span><br><span class="line">	ActivityImpl activity = activitiList.get(i);</span><br><span class="line"></span><br><span class="line">	List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">	<span class="keyword">if</span> (outgoingTransitions.size()&gt;<span class="number">0</span>)&#123;</span><br><span class="line">		Object type = activity.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">		<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString())) &#123;</span><br><span class="line">			<span class="keyword">for</span> (PvmTransition outgoingTransition : outgoingTransitions) &#123;</span><br><span class="line">				String id = outgoingTransition.getDestination().getId();</span><br><span class="line">				<span class="keyword">if</span> (id.equals(activityId) &amp;&amp; PARALLE.equals(type.toString())) &#123;</span><br><span class="line">					<span class="keyword">return</span> activity.getId();</span><br><span class="line">				&#125;</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>getActivities获取当前流程定义的所有活动，获取当前activityImpl的PvmTransition,它可以得到目标activity，如果某个PvmTransition的目标是要找的东西，那么当前循环的activity就是要找的了。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">for</span> (ActivityImpl activity : activitiList) &#123;</span><br><span class="line">	<span class="keyword">if</span> (activity.getId().equals(activityId))&#123;</span><br><span class="line">		List&lt;PvmTransition&gt; outgoingTransitions = activity.getOutgoingTransitions();</span><br><span class="line">		<span class="keyword">if</span> (outgoingTransitions.size()==<span class="number">1</span>)&#123;</span><br><span class="line">			PvmActivity destination = outgoingTransitions.get(<span class="number">0</span>).getDestination();</span><br><span class="line">			Object type = destination.getProperty(<span class="string">&quot;type&quot;</span>);</span><br><span class="line">			<span class="keyword">if</span> (type!=<span class="keyword">null</span> &amp;&amp; <span class="string">&quot;parallelGateway&quot;</span>.equals(type.toString()))&#123;</span><br><span class="line">				<span class="keyword">return</span> destination.getId();</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>而向下找，那就是destination目标activity与期望的一样，即获得其id。</p>
-<p>虽然描述不太明确。但主要的方式就是<code>getOutgoingTransitions</code>和<code>getDestination</code>。</p>
-<p>向上和向下，一个获取当前循环的对象id，一个获取当前循环的某个pvm流出目标destination的id</p>
 
       
       <!-- reward -->

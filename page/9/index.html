@@ -78,6 +78,93 @@
     
     
     
+    <article id="post-Docker/openjdk8-jdk-alpine镜像相关问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
+    >openjdk:8-jdk-alpine镜像相关问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2021-04-02T04:00:00.000Z" itemprop="datePublished">2021-04-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Docker/">Docker</a> / <a class="article-category-link" href="/categories/Docker/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>openjdk:8-jdk-alpine镜像没有字体库字体资源(其他版本也可能会有)。若业务有部分字体渲染，图片渲染情况，将无法使用，并且会导致正常的程序出现空指针等异常情况?</p>
+<p>解决办法：增加字体库字体资源</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">8</span>-jdk-alpine</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update ttf-dejavu fontconfig &amp;&amp; rm -rf /var/cache/apk/*</span></span><br></pre></td></tr></table></figure>
+
+
+
+<p>如果业务使用到定时任务，则需要设置容器的时区，时间?</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tzdata &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone &amp;&amp; apk del tzdata</span></span><br></pre></td></tr></table></figure>
+
+<p>在Dockerfile增加此语句</p>
+<blockquote>
+<p> 以上，感谢<code>https://www.jianshu.com/p/eaac0b8ee385</code>解决了这些问题</p>
+</blockquote>
+<p>部分图片渲染使用宋体等中文字体时，无法正常显示文字，显示为方框的问题?</p>
+<p>解决方法：增加字体文件</p>
+<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">COPY</span><span class="bash"> SIMSUN.TTC /usr/share/fonts/</span></span><br></pre></td></tr></table></figure>
+
+<p>将window下C:\windows\fonts下的宋体字体文件拷贝到fonts目录下。如果容器在运行中使用cp到容器里命令，则容器需要重启生效。</p>
+<p>如果以上方式不可用，可参照其他博客，将字体库放在$JAVA_HOME/jre/lib/fonts/fallback下。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-MySQL/mysql常见问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -321,74 +408,6 @@
 <h3 id="其他相关配置项"><a href="#其他相关配置项" class="headerlink" title="其他相关配置项"></a>其他相关配置项</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 开启该参数后，如果开启了RDB快照（即配置了bgsave指令），并且最近一次快照执行失败，则Redis将停止接收写相关的请求</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 开启该参数后，如果后台正在执行一次RDB快照或者AOF重写，则主进程不再进行fsync操作（即使将appendfsync配置为always或者everysec）</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"># AOF文件以追加日志的方式生成，所以服务端发生故障时可能会有尾部命令不完整的情况。</span><br><span class="line"># 该参数后，在此种情况下，AOF文件会截断尾部不完整的命令然后继续加载，并且会在日志中进行提示。如果不开启该参数，则加载AOF文件时会打印错误日志，然后直接退出</span><br><span class="line"># 在重新启动服务器之前，可以尝试执行bin下的redis-check-AOF工具检查修改AOF</span><br><span class="line">aof-load-truncated yes</span><br></pre></td></tr></table></figure>
 
 
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Redis/Redis命令操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/22/Redis/Redis%E5%91%BD%E4%BB%A4%E6%93%8D%E4%BD%9C/"
-    >Redis命令操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/03/22/Redis/Redis%E5%91%BD%E4%BB%A4%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Redis/">Redis</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      
       
       <!-- reward -->
       

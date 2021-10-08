@@ -78,6 +78,125 @@
     
     
     
+    <article id="post-Javascript/关于使用BootStrap Table出现的一些问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/08/28/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8BootStrap%20Table%E5%87%BA%E7%8E%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/"
+    >关于使用BootStrap Table出现的一些问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/08/28/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8BootStrap%20Table%E5%87%BA%E7%8E%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-08-28T02:59:08.000Z" itemprop="datePublished">2018-08-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/JS/">JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="页面无法分页，传入多少就显示多少"><a href="#页面无法分页，传入多少就显示多少" class="headerlink" title="页面无法分页，传入多少就显示多少"></a><strong>页面无法分页，传入多少就显示多少</strong></h3><p>通常你会按照网上或官网的实例，map转json，返回rows和total，可是，前台始终无法得到这两个数据来显示。那么请检查你的</p>
+<pre><code>sidePagination: &apos;server&apos;</code></pre><p>是否配置正确，且注意名称是否正确 如果设置了此方式，则每次点击，排序啊，等等将是通过server来实现，将params参数传递到后台服务器进行排序，而不是客户端(不请求)排序</p>
+<h3 id="关于queryParams参数始终无法向后台传递参数"><a href="#关于queryParams参数始终无法向后台传递参数" class="headerlink" title="关于queryParams参数始终无法向后台传递参数"></a>关于queryParams参数始终无法向后台传递参数</h3><p>需要配置如下参数:</p>
+<pre><code>contentType: &quot;application/x-www-form-urlencoded&quot;,//请求数据内容格式 默认是 application/json</code></pre><p>但是有些项目不写，依然能传递参数，这我就不知道为什么了，可能后台配置了什么吧</p>
+<h3 id="queryParamType值为空字符串和limit的问题"><a href="#queryParamType值为空字符串和limit的问题" class="headerlink" title="queryParamType值为空字符串和limit的问题"></a>queryParamType值为空字符串和limit的问题</h3><ol>
+<li>当设置为limit时,返回参数为limit, offset, search, sort, order</li>
+</ol>
+<p>其中: sort值在column属性中的列中设置，sortable:true,那么请求时sort值就是该字段的名称，如果超过1个设置了sortable，那么sort为undefined search表示当你在属性设置中设置了search:true时，显示搜索框，输入完毕后自动请求，而值就给了search参数。 order表示在设置了sortOrder:’asc’或值为desc时，将值传递导order参数中 limit表示请求数量，属性中设置的pageSize: 5，那么limit就是5，如果设置了pageList，那么选择多少页数，就将数传递到limit并立刻发起请求 offset表示偏移量的意思，就是当前页之前的数据量，包含当前页</p>
+<ol start="2">
+<li>当值设置为空字符串””时,返回参数为pageSize, pageNumber, searchText, sortName, sortOrder</li>
+</ol>
+<p>其中pageSize和pageNumber，以及searchText分别都是对应属性值，searchText与search一样，都是搜索框里的值。 sortName表示，属性设置sortName:’对象名’,设置什么，返回什么,设置值为name，则返回name sortOrder与值为limit时的order一样，属性设置sortOrder值为asc或desc时返回的值</p>
+<h3 id="如果每个属性你设置了，并且功能不出来"><a href="#如果每个属性你设置了，并且功能不出来" class="headerlink" title="如果每个属性你设置了，并且功能不出来"></a>如果每个属性你设置了，并且功能不出来</h3><p>那么首先要看的就是属性名是否错误，在<a target="_blank" rel="noopener" href="http://bootstrap-table.wenzhixin.net.cn/zh-cn/documentation/?tdsourcetag=s_pctim_aiomsg">Bootstrap Table文档中</a>，搜索一下(Ctrl+F)，没有这个这属性。 其次就是js文件的引入问题，可能是少了，可能是js的script标签少了结束标签，这中情况很小 还有一种就是某个关键属性错误，比如sidePagination:’server’设置错误，导致无法分页。以及网上搜索可能会遇到的问题。</p>
+<h3 id="为表格添加增删改操作"><a href="#为表格添加增删改操作" class="headerlink" title="为表格添加增删改操作"></a>为表格添加增删改操作</h3><p>在table标签上定义toolbar</p>
+<pre><code>&lt;div id=&quot;toolbar&quot;&gt;
+    &lt;a id=&quot;add&quot; class=&quot;btn btn-primary&quot; onclick=&quot;add()&quot;&gt;&lt;i class=&quot;glyphicon glyphicon-plus&quot;&gt;&lt;/i&gt; 新建&lt;/a&gt;
+    &lt;button id=&quot;edit&quot; class=&quot;btn btn-success&quot; disabled&gt;
+        &lt;i class=&quot;glyphicon glyphicon-edit&quot;&gt;&lt;/i&gt; 修改
+    &lt;/button&gt;
+    &lt;button id=&quot;remove&quot; class=&quot;btn btn-danger&quot; disabled&gt;
+        &lt;i class=&quot;glyphicon glyphicon-remove&quot;&gt;&lt;/i&gt; 删除
+    &lt;/button&gt;
+&lt;/div&gt;</code></pre><p>并在bootStrapTable中设置toolbar属性值为toolbar的id。在column属性中，最前面添加一列(也就是{})，定义属性checkbox:true，表示为复选框。 对修改删除的操作是依据数据选中的数目判定，</p>
+<ul>
+<li><p>无选择则修改删除为禁用</p>
+</li>
+<li><p>当有且只有1个选中时修改按钮可用</p>
+</li>
+<li><p>当选中一个或一个以上时删除可用</p>
+</li>
+<li><p>当任何不选时，修改和删除又都被禁用。</p>
+<p>//表示设置禁用/启用按钮<br>$(“#basic”).on(‘check.bs.table uncheck.bs.table ‘ +</p>
+<pre><code>&apos;check-all.bs.table uncheck-all.bs.table&apos;, function () &#123;
+$(&quot;#remove&quot;).prop(&apos;disabled&apos;, !$(&quot;#basic&quot;).bootstrapTable(&apos;getSelections&apos;).length);
+$(&apos;#edit&apos;).prop(&apos;disabled&apos;, $(&apos;#basic&apos;).bootstrapTable(&apos;getSelections&apos;).length!=1);//false为可用</code></pre><p>});<br>//获得id选项行<br>function getIdSelections() {</p>
+<pre><code>return $.map($(&quot;#basic&quot;).bootstrapTable(&apos;getSelections&apos;), function (row) &#123;
+    return row.id//返回改行数据的id
+&#125;);</code></pre><p>}</p>
+</li>
+</ul>
+<p>每选中一个个复选框，都会执行在后台存储这条数据，而$(‘#basic’).bootstrapTable(‘getSelections’)可以获得所有选中的数据，那么就可以根据数量来判定是否禁用按钮，prop方法表示删除或返回一个属性，那么值为false表示删除该属性，true则使用该属性。 对新增自行定义方法 修改，删除，只需要自己定义click方法，然后在方法体里添加</p>
+<pre><code>var ids = getIdSelections();</code></pre><p>获得所有数据对象，注意不是id数组，而是一个包含所有字段的object类型数组，你需要提取id。 另外还可以通过这个两个方法更新表格和按钮</p>
+<pre><code>$(&quot;#basic&quot;).bootstrapTable(&apos;remove&apos;, &#123;//前台删除该数据
+    field: &apos;id&apos;,
+    values: ids
+&#125;);
+$(&quot;#remove&quot;).prop(&apos;disabled&apos;, true);//禁用按钮</code></pre><p>当然，前台删除可能不太保险，那么就再查一遍</p>
+<pre><code>//刷新表格，将重新请求
+$(&apos;#table&apos;).bootstrapTable(&apos;refresh&apos;);</code></pre><h3 id="对于字段值转换的情况可以使用formatter"><a href="#对于字段值转换的情况可以使用formatter" class="headerlink" title="对于字段值转换的情况可以使用formatter"></a>对于字段值转换的情况可以使用formatter</h3><p>对于日期如果有好的方法，可以直接前台json到后台Date类型，但如果前台没有好的方法解析，那么后台直接传到前台已经解析好的字符串，这种方式可以直接在查询数据库时转换为string类型，或通过其他定义的转换方法转换。 如果有图片的显示，如头像，可以使用此属性函数，其可用参数有value，row，index。通过img即可转成图片。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BootStrap-Table/" rel="tag">BootStrap Table</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Arcgis/关于在Windows Server 2008中安装arcgis server的小问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -442,121 +561,6 @@ flush privileges</code></pre>
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-常用代码/项目开发中遇到的问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/"
-    >项目开发中遇到的问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2018-08-08T01:19:18.000Z" itemprop="datePublished">2018-08-08</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <ol>
-<li><p>idea连接oracle数据库 首先不要忘了开启服务和监听程序，另外jdbc配置信息，driver不要写错，oracle.jdbc.driver.OracleDriver不要写成oracle.jdbc.OracleDriver</p>
-</li>
-<li><p>pl/sql工具，idea database，sqlplus都能连接成功，账号密码也是对的，配置也没问题，但是就是没法连接上数据库</p>
-<p>Cannot create PoolableConnectionFactory (ORA-01017: invalid username/password; logon denied 这个问题的最终结果以前也遇到过，没往这边想 首先就是一一核对配置信息和用户名密码。可能没有问题 然后就你的数据库配置文件了，在spring 中配置database bean，其中什么问题，${username}可能无法的到配置文件的值，所以你还是手写吧，或者jdbc.username=xxx解决</p>
-</li>
-<li><p>关于Bean装配的问题，Dao接口始终无法装配，不管是@Autowired还是Resource，都无法解决。</p>
-<p>但是有说接口不能装配，但是事实上可以装配，具体什么情况不太知道。然后查了applicationContext.xml配置，包括SqlSessionFactoryBean的配置和MapperScannerConfigurer的配置。 于是，当你认真发现时，MapperScannerConfigurer的basePackage属性的配置有些异样，因为你的包结构的问题，如果你不清楚basePackage设置什么，那么很可能将他设置成了mapper.xml所在的包。应该是dao的包。 所以basePackage配置有误，value设置到dao包</p>
-</li>
-<li><p>当有出现，无法找到mapper的方法时，例如:not find xxx.xxx.xxx.UserMapper.getUser()方法。</p>
-<p>查看是否配置了SqlSessionFactoryBean的mapperLocations参数,如果配置完成了，若再发现，找不到某某类，那么你的Mapper.xml文件里要注意实体类的名称，是别名还是完全限定名，可能着这个地方出现了问题。</p>
-</li>
-<li><p>java.sql.SQLSyntaxErrorException: ORA-00933: SQL 命令未正确结束</p>
-<p>初次使用mybatis时，可能犯的错误就是，sql语句后面的分号问题，在学数据库时一定要加分号，而在myabtis mapper中语句后加了分号就导致出现此问题。所以去掉分号就好了。</p>
-</li>
-<li><p>springmvc 引入静态资源文件，比如进入jquery.js，有时出现200，有时出现304，但无论如何不能通过$(function(){});函数中获得任何内容</p>
-<p>大部分网上都没有出现这种情况，都只是静态文件位置放错了，然后说三种进入静态文件的方法。 一个在web.xml，一个是mvc:resources，一个是mvc:deault-servlet-handler，这三种方法都对，配置任意一个都是正确的。 这时，<strong>你要检查引入js文件的script标签，它必须有一个开始标签和闭合标签，不能是自闭标签。否则，一定是无法使用的。这是新手不注意的错误。</strong></p>
-</li>
-<li><p>关于jstl库c标签的问题，c:if中test不能使用表达式，或c:xx标签怎么怎么不可用</p>
-<p>这个情况，你就要检查taglib标签是否引入错了，uri，一个是<a target="_blank" rel="noopener" href="http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误">http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误</a></p>
-</li>
-<li><p>mybatis接口方法的重载问题</p>
-<p>在mybatis中，dao接口是不可以有重载方法的</p>
-</li>
-<li><p>在$(function(){});中定义js方法，外部或onclick，onfocus等标签中属性无法调用，因为它相当于匿名函数，不可调用里面的方法，而你又需要jquery选择器操作，所以你只能通过window.function_name=function(){}的方式定义，外部才能访问到。</p>
-</li>
-<li><p>防止表单重复提交</p>
-</li>
-</ol>
-<pre><code>网上大部分都是注解+拦截器。所有的几乎都是一个模板，但是设置完成后，重复提交的话只是会跳到空白页，没办法正常显示数据，我们想要的是，第一次正常请求提交，第二次之后再点击只是在请求前被拦截器拦截到，检查重复了，我们不管它。就相当于第二次点一下就跟没反应一样。但是网上还是没找到的。 除此之外，就是使用禁用按钮了，click事件后form submit()提交，时候就禁用按钮，也就提交了一次了。</code></pre><ol start="11">
-<li><p>Neither BindingResult nor plain target object for bean name ‘user’ available as request attribute</p>
-<p>此问题是spring form表单的问题，因为form标签的modelAttrubute属性在绑定之前必须有一个实例才能够绑定，所以进login之前需要把一个空实例传过去。 于是网上大部分处理这些问题的解决方案是：在进入登录页面的方法，参数加上对象User user，或者处理登录时，对象User添加@ModelAttribute注解，而且参数名和form表单的ModelAttribute值一致。但是经过这样的测试之后还是不行的。 最终谷歌了一下，发现不能直接放在参数上不管，而是手动把空对象放到model对象中传递到页面</p>
-</li>
-<li><p>数据校验，validator数据校验，对象前添加@Valid注解，这是必须的，但是其后紧跟的就是BindingResult对象，这个不能丢</p>
-<p>通过Errors对象的hasErrors判断是否有错误，有错误直接返回到页面去。 数据校验，spring-servlet.xml配置时，bean ReloadableResourceBundleMessageSource的baseName属性为classpath:ValidationMessages，classpath:要加上，后面的文件后缀去掉,如果你这样做的话IDEA会报错，不用管不妨碍项目启动</p>
-</li>
-<li><p>aop切面，环绕通知，环绕通知相当于前置通知、返回通知、异常通知的合体。但是在我的一个简单的项目中出现了问题</p>
-<p>说不能使用POST什么的，而其他的三个完全没问题，只有环绕，项目运行登录时调用了一个方法，就出现一行异常，该网页无法正常运作 如果问题仍然存在，请与网站所有者联系。 HTTP ERROR 405，然后请求地址是正确的登录请求地址。 问题的原因可能某处出现了错误，但是错误没有抛出,因为切面比较特殊，不想其他地方错误了直接抛出错误，所以需要在业务层，把操作try-catch起来 (废弃)问题位置在，环绕通知的返回值，它的joinPoint.proceed();方法是继续目标执行。你必须返回它的值，也就是说该方法必须有返回值的。所以，因为之前是无返回值void，才出现了问题。</p>
-</li>
-<li><p>postgresql时区问题，本次测试和服务器测试总会导致两者时间不一致情况，使用@JsonFormat注解，导致要不多8小时要不少8小时</p>
-<p>需要确保timestamp字段是含时区的，也就是with time zone，字段类型 timestamptz，显示为timestamp with time zone，没有时区的就是without time zone。</p>
-<p>同时需要确定数据库的timezone是什么。并且每个不同的ide数据库连接工具可能会有不同的timezone设置，因此例如datagrip和navcat可能查询出的时间不一样，一个带时区查询，一个不带时区查询。最后返回的结果会根据@JsonFormat是否加时区进行转换。时区使用Asia/Shanghai，UTC可能不一定好使。</p>
-<p>需要进行@JsonFormat测试</p>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98/" rel="tag">开发问题</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
 
 
     </footer>

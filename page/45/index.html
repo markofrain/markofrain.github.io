@@ -78,6 +78,121 @@
     
     
     
+    <article id="post-常用代码/项目开发中遇到的问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/"
+    >项目开发中遇到的问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-08-08T01:19:18.000Z" itemprop="datePublished">2018-08-08</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <ol>
+<li><p>idea连接oracle数据库 首先不要忘了开启服务和监听程序，另外jdbc配置信息，driver不要写错，oracle.jdbc.driver.OracleDriver不要写成oracle.jdbc.OracleDriver</p>
+</li>
+<li><p>pl/sql工具，idea database，sqlplus都能连接成功，账号密码也是对的，配置也没问题，但是就是没法连接上数据库</p>
+<p>Cannot create PoolableConnectionFactory (ORA-01017: invalid username/password; logon denied 这个问题的最终结果以前也遇到过，没往这边想 首先就是一一核对配置信息和用户名密码。可能没有问题 然后就你的数据库配置文件了，在spring 中配置database bean，其中什么问题，${username}可能无法的到配置文件的值，所以你还是手写吧，或者jdbc.username=xxx解决</p>
+</li>
+<li><p>关于Bean装配的问题，Dao接口始终无法装配，不管是@Autowired还是Resource，都无法解决。</p>
+<p>但是有说接口不能装配，但是事实上可以装配，具体什么情况不太知道。然后查了applicationContext.xml配置，包括SqlSessionFactoryBean的配置和MapperScannerConfigurer的配置。 于是，当你认真发现时，MapperScannerConfigurer的basePackage属性的配置有些异样，因为你的包结构的问题，如果你不清楚basePackage设置什么，那么很可能将他设置成了mapper.xml所在的包。应该是dao的包。 所以basePackage配置有误，value设置到dao包</p>
+</li>
+<li><p>当有出现，无法找到mapper的方法时，例如:not find xxx.xxx.xxx.UserMapper.getUser()方法。</p>
+<p>查看是否配置了SqlSessionFactoryBean的mapperLocations参数,如果配置完成了，若再发现，找不到某某类，那么你的Mapper.xml文件里要注意实体类的名称，是别名还是完全限定名，可能着这个地方出现了问题。</p>
+</li>
+<li><p>java.sql.SQLSyntaxErrorException: ORA-00933: SQL 命令未正确结束</p>
+<p>初次使用mybatis时，可能犯的错误就是，sql语句后面的分号问题，在学数据库时一定要加分号，而在myabtis mapper中语句后加了分号就导致出现此问题。所以去掉分号就好了。</p>
+</li>
+<li><p>springmvc 引入静态资源文件，比如进入jquery.js，有时出现200，有时出现304，但无论如何不能通过$(function(){});函数中获得任何内容</p>
+<p>大部分网上都没有出现这种情况，都只是静态文件位置放错了，然后说三种进入静态文件的方法。 一个在web.xml，一个是mvc:resources，一个是mvc:deault-servlet-handler，这三种方法都对，配置任意一个都是正确的。 这时，<strong>你要检查引入js文件的script标签，它必须有一个开始标签和闭合标签，不能是自闭标签。否则，一定是无法使用的。这是新手不注意的错误。</strong></p>
+</li>
+<li><p>关于jstl库c标签的问题，c:if中test不能使用表达式，或c:xx标签怎么怎么不可用</p>
+<p>这个情况，你就要检查taglib标签是否引入错了，uri，一个是<a target="_blank" rel="noopener" href="http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误">http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误</a></p>
+</li>
+<li><p>mybatis接口方法的重载问题</p>
+<p>在mybatis中，dao接口是不可以有重载方法的</p>
+</li>
+<li><p>在$(function(){});中定义js方法，外部或onclick，onfocus等标签中属性无法调用，因为它相当于匿名函数，不可调用里面的方法，而你又需要jquery选择器操作，所以你只能通过window.function_name=function(){}的方式定义，外部才能访问到。</p>
+</li>
+<li><p>防止表单重复提交</p>
+</li>
+</ol>
+<pre><code>网上大部分都是注解+拦截器。所有的几乎都是一个模板，但是设置完成后，重复提交的话只是会跳到空白页，没办法正常显示数据，我们想要的是，第一次正常请求提交，第二次之后再点击只是在请求前被拦截器拦截到，检查重复了，我们不管它。就相当于第二次点一下就跟没反应一样。但是网上还是没找到的。 除此之外，就是使用禁用按钮了，click事件后form submit()提交，时候就禁用按钮，也就提交了一次了。</code></pre><ol start="11">
+<li><p>Neither BindingResult nor plain target object for bean name ‘user’ available as request attribute</p>
+<p>此问题是spring form表单的问题，因为form标签的modelAttrubute属性在绑定之前必须有一个实例才能够绑定，所以进login之前需要把一个空实例传过去。 于是网上大部分处理这些问题的解决方案是：在进入登录页面的方法，参数加上对象User user，或者处理登录时，对象User添加@ModelAttribute注解，而且参数名和form表单的ModelAttribute值一致。但是经过这样的测试之后还是不行的。 最终谷歌了一下，发现不能直接放在参数上不管，而是手动把空对象放到model对象中传递到页面</p>
+</li>
+<li><p>数据校验，validator数据校验，对象前添加@Valid注解，这是必须的，但是其后紧跟的就是BindingResult对象，这个不能丢</p>
+<p>通过Errors对象的hasErrors判断是否有错误，有错误直接返回到页面去。 数据校验，spring-servlet.xml配置时，bean ReloadableResourceBundleMessageSource的baseName属性为classpath:ValidationMessages，classpath:要加上，后面的文件后缀去掉,如果你这样做的话IDEA会报错，不用管不妨碍项目启动</p>
+</li>
+<li><p>aop切面，环绕通知，环绕通知相当于前置通知、返回通知、异常通知的合体。但是在我的一个简单的项目中出现了问题</p>
+<p>说不能使用POST什么的，而其他的三个完全没问题，只有环绕，项目运行登录时调用了一个方法，就出现一行异常，该网页无法正常运作 如果问题仍然存在，请与网站所有者联系。 HTTP ERROR 405，然后请求地址是正确的登录请求地址。 问题的原因可能某处出现了错误，但是错误没有抛出,因为切面比较特殊，不想其他地方错误了直接抛出错误，所以需要在业务层，把操作try-catch起来 (废弃)问题位置在，环绕通知的返回值，它的joinPoint.proceed();方法是继续目标执行。你必须返回它的值，也就是说该方法必须有返回值的。所以，因为之前是无返回值void，才出现了问题。</p>
+</li>
+<li><p>postgresql时区问题，本次测试和服务器测试总会导致两者时间不一致情况，使用@JsonFormat注解，导致要不多8小时要不少8小时</p>
+<p>需要确保timestamp字段是含时区的，也就是with time zone，字段类型 timestamptz，显示为timestamp with time zone，没有时区的就是without time zone。</p>
+<p>同时需要确定数据库的timezone是什么。并且每个不同的ide数据库连接工具可能会有不同的timezone设置，因此例如datagrip和navcat可能查询出的时间不一样，一个带时区查询，一个不带时区查询。最后返回的结果会根据@JsonFormat是否加时区进行转换。时区使用Asia/Shanghai，UTC可能不一定好使。</p>
+<p>需要进行@JsonFormat测试</p>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98/" rel="tag">开发问题</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Javascript/前端js插件技术整合" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -754,104 +869,6 @@ update temp set temp.id=temp.STUDENTID;
 alter table temp drop column STUDENTID;
 //更改列名
 alter table temp rename column id to STUDENTID;</code></pre><p><strong>非常建议，使用事物。并且操作前，一定备份表。</strong></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/关于Oracle的监听程序配置问题与excel文件导入数据库" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/07/28/Oracle/%E5%85%B3%E4%BA%8EOracle%E7%9A%84%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98%E4%B8%8Eexcel%E6%96%87%E4%BB%B6%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93/"
-    >关于Oracle的监听程序配置问题与excel文件导入数据库</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/07/28/Oracle/%E5%85%B3%E4%BA%8EOracle%E7%9A%84%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98%E4%B8%8Eexcel%E6%96%87%E4%BB%B6%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93/" class="article-date">
-  <time datetime="2018-07-28T03:11:04.000Z" itemprop="datePublished">2018-07-28</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="Oracle监听程序的错误问题"><a href="#Oracle监听程序的错误问题" class="headerlink" title="Oracle监听程序的错误问题"></a>Oracle监听程序的错误问题</h3><p>对于Oracle的监听程序，是客户端连接Oracle数据库额必经之路，当然sqlplus除外。 对于没有监听服务的情况，就是你注册表被删了，你可以网上搜索解决办法。<strong>此问题时对应于监听正常启动而客户端始终无法连接的问题。</strong> <strong>如果你监听无法正常启动那么请重新配置监听，没必要修改任何监听文件,开始菜单下，oracle目录下的Net configuration Assistant配置可以重新配置监听程序。</strong> 在启动监听时，经常有如下几种情况:</p>
-<ol>
-<li>监听启动不起来，一开启服务，下一秒就不带提示的自动关闭服务。</li>
-<li>监听刚已启动，就弹框说因为某某原因自动关闭监听服务。</li>
-<li>监听正常启动，可是客户端就是连接不起来。并伴随着客户端报错<strong>无监听程序</strong>或<strong>适配器错误</strong>。</li>
-</ol>
-<p>关于以上情况，网上有很多博客及论坛的描述，大多都是大庭相近的，说是要配置listener.ora和tnsnames.ora文件的host的值。并且有很多人改了，然而并没有发生正确结果。 对于客户端连接错误情况，无非是监听导致的，通常导致不可用的原因在网上归结于:</p>
-<ol>
-<li>防火墙</li>
-<li>监听文件出错,listener.ora文件</li>
-<li>以及说注册表的某个表少了imagePath关键值</li>
-</ol>
-<p>然而，关于这些解决办法对一些人有用，对一些人没用。关于防火墙，这点在windows时没用的，监听文件无非就是host值错了，对于注册表，只要不是使用什么清理工具，误把注册表删了，一般情况就没问题。 而对于我的情况，安装了卸载了数据库两次，最后通过其他人oracle配置才发现与之不一样的地方。 <strong>问题解决:</strong> 首先你不必管你的监听文件。打开开始菜单，oracle目录下的Net configuration Assistant配置,删除监听，并从新配置一个监听。 然后打开Net Manager配置，把配置的监听程序删掉。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728102647.png" alt="Net Manager配置"> 最后需重启Oracle服务和监听服务。 随后你尝试重新客户端登陆，应该可以登陆上。 如果仍然不可用，请重新配置监听，不再Net Manager删除监听，再次重新重启服务。 另外，实在不行,修改监听文件也是一种办法。 保证listener.ora和tnsnames.ora文件的host相同，可以都设置为机器名.lan,就是电脑右击–&gt;系统–&gt;计算机名</p>
-<h3 id="通过Excel文件导入Oracle数据库，如xlsx等"><a href="#通过Excel文件导入Oracle数据库，如xlsx等" class="headerlink" title="通过Excel文件导入Oracle数据库，如xlsx等"></a>通过Excel文件导入Oracle数据库，如xlsx等</h3><ol>
-<li><p>先把表格文件打开，另存为txt(制表符分隔)文件,注意你的列不能有任何空列(通常第一行是表名，之后是数据。不能整列都是空的，否则你需要把此列删除再另存txt)</p>
-</li>
-<li><p>你需要有pl/sql Developer软件,打开tool菜单下的Text Importer选项，如果你没有登录的话，是不能选中的。</p>
-</li>
-<li><p>打开后选择txt文件 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728105257.png" alt=""></p>
-</li>
-<li><p>导入后出现如下界面，Result Preview中，第一行是表名，如果不是，则请注意你的excel文件，如果某列都是空的，请注意你的Excel文件 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728105615.png" alt=""></p>
-</li>
-<li><p>然后打开Data to Oracle框,设置Owner，Table，为每个列填写field表名与下面的类型。前提是你得表应该是之前就被创建的，如果不是，请先看6 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110155.png" alt=""></p>
-</li>
-<li><p>先创建表 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110357.png" alt=""></p>
-</li>
-</ol>
-<p>填写owner为那个用户的，Name为表名 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110443.png" alt=""> 点击column，设置owner和name，分别为用户和表名。设置列名，类型，非空，与注释(可以不写)。完毕后点击左下的apply，如果报错则重新修改。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110649.png" alt=""> 如果点击apply后无提示，那么创建完毕，close。如果你的field都设置了，那么么import按钮才会可用。就点击import就好了。</p>
 
       
       <!-- reward -->

@@ -78,6 +78,74 @@
     
     
     
+    <article id="post-Java/Java设计模式" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/13/Java/Java%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"
+    >Java 设计模式</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/04/13/Java/Java%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="article-date">
+  <time datetime="2021-04-13T04:00:00.000Z" itemprop="datePublished">2021-04-13</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h2><h2 id="工厂方法模式"><a href="#工厂方法模式" class="headerlink" title="工厂方法模式"></a>工厂方法模式</h2><h2 id="适配器模式"><a href="#适配器模式" class="headerlink" title="适配器模式"></a>适配器模式</h2>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Spring/ObjectMapper相关说明" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -420,93 +488,6 @@
 <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedissonConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedisProperties properties;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RedissonClient <span class="title">redissonClient</span><span class="params">()</span></span>&#123;</span><br><span class="line">        RedissonClient redissonClient;</span><br><span class="line">        Config config = <span class="keyword">new</span> Config();</span><br><span class="line">        String url = <span class="string">&quot;redis://&quot;</span> + properties.getHost()</span><br><span class="line">                + <span class="string">&quot;:&quot;</span> + properties.getPort();</span><br><span class="line">        config.useSingleServer().setAddress(url) <span class="comment">//单机</span></span><br><span class="line">                .setPassword(StringUtils.isNotBlank(properties.getPassword())? properties.getPassword() : <span class="keyword">null</span>)</span><br><span class="line">                .setDatabase(properties.getDatabase());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//添加主从配置</span></span><br><span class="line">        <span class="comment">//config.useMasterSlaveServers().setMasterAddress(&quot;&quot;).setPassword(&quot;&quot;).addSlaveAddress(new String[]&#123;&quot;&quot;,&quot;&quot;&#125;);</span></span><br><span class="line">        <span class="comment">//集群</span></span><br><span class="line">        <span class="comment">//config.useClusterServers().addNodeAddress(new String[]&#123;&quot;&quot;,&quot;&quot;&#125;).setPassword(&quot;&quot;);</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            redissonClient = Redisson.create(config);</span><br><span class="line">            <span class="keyword">return</span> redissonClient;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            log.error(<span class="string">&quot;RedissonClient init redis url :[&#123;&#125;]&quot;</span>,url,e.getMessage());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
 <p>使用RedissonClient操作分布式锁</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Docker/openjdk8-jdk-alpine镜像相关问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
-    >openjdk:8-jdk-alpine镜像相关问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-04-02T04:00:00.000Z" itemprop="datePublished">2021-04-02</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Docker/">Docker</a> / <a class="article-category-link" href="/categories/Docker/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>openjdk:8-jdk-alpine镜像没有字体库字体资源(其他版本也可能会有)。若业务有部分字体渲染，图片渲染情况，将无法使用，并且会导致正常的程序出现空指针等异常情况?</p>
-<p>解决办法：增加字体库字体资源</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">8</span>-jdk-alpine</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update ttf-dejavu fontconfig &amp;&amp; rm -rf /var/cache/apk/*</span></span><br></pre></td></tr></table></figure>
-
-
-
-<p>如果业务使用到定时任务，则需要设置容器的时区，时间?</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tzdata &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone &amp;&amp; apk del tzdata</span></span><br></pre></td></tr></table></figure>
-
-<p>在Dockerfile增加此语句</p>
-<blockquote>
-<p> 以上，感谢<code>https://www.jianshu.com/p/eaac0b8ee385</code>解决了这些问题</p>
-</blockquote>
-<p>部分图片渲染使用宋体等中文字体时，无法正常显示文字，显示为方框的问题?</p>
-<p>解决方法：增加字体文件</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">COPY</span><span class="bash"> SIMSUN.TTC /usr/share/fonts/</span></span><br></pre></td></tr></table></figure>
-
-<p>将window下C:\windows\fonts下的宋体字体文件拷贝到fonts目录下。如果容器在运行中使用cp到容器里命令，则容器需要重启生效。</p>
-<p>如果以上方式不可用，可参照其他博客，将字体库放在$JAVA_HOME/jre/lib/fonts/fallback下。</p>
 
       
       <!-- reward -->

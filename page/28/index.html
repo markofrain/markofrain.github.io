@@ -78,6 +78,273 @@
     
     
     
+    <article id="post-Java/openOffce和jacob方式转换office为pdf文件" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/"
+    >openOffce和jacob方式转换office为pdf文件</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/01/02/Java/openOffce%E5%92%8Cjacob%E6%96%B9%E5%BC%8F%E8%BD%AC%E6%8D%A2office%E4%B8%BApdf%E6%96%87%E4%BB%B6/" class="article-date">
+  <time datetime="2020-01-02T07:34:05.000Z" itemprop="datePublished">2020-01-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/">项目问题</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="OpenOffice-转换"><a href="#OpenOffice-转换" class="headerlink" title="OpenOffice 转换"></a>OpenOffice 转换</h2><p>首先需要到apache openoffice下载包并安装<a target="_blank" rel="noopener" href="http://www.openoffice.org/download/index.html">http://www.openoffice.org/download/index.html</a></p>
+<p>windows默认会安装到c盘program file(x86)中的openoffice4中，可以把这个文件文件夹拷贝到任意位置。</p>
+<p>要想使用转换首先需要jar包,他需要jodconverter的jar包，这包可能在maven中央仓库没有。详细的转换代码如下</p>
+<pre><code>@Component
+public class OfficeConverterUtils &#123;
+
+    private Logger logger = LoggerFactory.getLogger(OfficeConverterUtils.class);
+
+    @Value(&quot;$&#123;openoffice.path&#125;&quot;)
+    private  String openOfficePath;
+
+    public void WordToPDF(String startFile, String overFile) &#123;
+        if (StringUtils.isBlank(openOfficePath))&#123;
+            return;
+        &#125;
+
+        // 源文件目录
+        File inputFile = new File(startFile);
+        if (!inputFile.exists()) &#123;
+            System.out.println(&quot;源文件不存在！&quot;);
+            return;
+        &#125;
+
+        // 输出文件目录
+        File outputFile = new File(overFile);
+        if (!outputFile.getParentFile().exists()) &#123;
+            outputFile.getParentFile().exists();
+        &#125;
+        OpenOfficeConnection connection = null;
+        Process p = null;
+        try &#123;
+
+            // 调用openoffice服务线程
+            /** 我把openOffice下载到了 C:/Program Files (x86)/下  ,下面的写法自己修改编辑就可以**/
+            String command = openOfficePath + &quot; -headless -accept=\&quot;socket,host=127.0.0.1,port=8100;urp;\&quot;&quot;;
+            try &#123;
+                p = Runtime.getRuntime().exec(command);
+            &#125;catch (Exception e)&#123;
+                logger.error(&quot;服务无法启动或已经启动,请确认文件是否转换成功&quot;);
+            &#125;
+            // 连接openoffice服务
+            connection = new SocketOpenOfficeConnection(&quot;127.0.0.1&quot;, 8100);
+            connection.connect();
+
+            // 转换
+            DocumentConverter converter = new OpenOfficeDocumentConverter(connection);
+            converter.convert(inputFile, outputFile);
+        &#125; catch (Exception e) &#123;
+            e.printStackTrace();
+            logger.error(&quot;转换PDF出现异常&quot;);
+            logger.error(&quot;切换使用jocob方式转换&quot;);
+            if (startFile.lastIndexOf(&quot;.docx&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.doc&quot;)!=-1)&#123;
+                JocobUtil.word2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xlsx&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;else if(startFile.lastIndexOf(&quot;.xls&quot;)!=-1)&#123;
+                JocobUtil.excel2Pdf(startFile, overFile);
+            &#125;
+        &#125; finally &#123;
+            // 关闭连接
+            if (connection != null &amp;&amp; connection.isConnected()) &#123;
+                connection.disconnect();
+            &#125;
+            // 关闭进程
+            if (p != null &amp;&amp; p.isAlive()) &#123;
+                p.destroy();
+            &#125;
+        &#125;
+
+    &#125;
+
+    public static void main(String[] args) &#123;
+        //openOfficePath = &quot;D:/soft/OpenOffice4/program/soffice.exe&quot;;
+        String start = &quot;C:\\Users\\lics\\Desktop\\abc.docx&quot;;
+        String over = &quot;C:\\Users\\lics\\Desktop\\abc.pdf&quot;;
+
+            new OfficeConverterUtils().WordToPDF(start, over);
+    &#125;
+
+
+&#125;</code></pre><p>以上是通过代码的方式启动服务，操作完成后会关闭服务。</p>
+<p>还有通过cmd直接启动服务的。</p>
+<pre><code>soffice -headless -accept=&quot;socket,host=127.0.0.1,port=8100;urp;&quot; -nofirststartwizard</code></pre><p>以上中，在C:\Program Files (x86)\OpenOffice 4\program目录下执行此命令，因此soffice不需要写全，否则需要写绝对路径。执行后cmd不会有等待占用窗口，会在后台启动服务。</p>
+<p>有时候，可能莫名其妙的在服务器上有时候可以连接成功有时候就连接不上服务。所以可以试用jacob方式补充，但是经过测验，jacob比openOffice慢点，而且是越大越慢，但是转换ppt的时候openOffice却比较慢，无论怎么大jacob都比openOffice快。</p>
+<h2 id="Jacob转换"><a href="#Jacob转换" class="headerlink" title="Jacob转换"></a>Jacob转换</h2><p>jacob转换时dll方式操作，需要将dll放到jdk/bin中。首先需要jacob.jar包。然后有一个dll。</p>
+<p>有了这两个东西便可以进行转换了。</p>
+<pre><code>public class JacobUtil &#123;
+    private static Logger logger = Logger.getLogger(JocobUtil.class.getName());
+
+    public static void main(String[] args) &#123;
+        long b = System.currentTimeMillis();
+        //ppt2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\iOS多边形.pptx&quot;);
+        word2Pdf(&quot;C:\\Users\\cgq_r\\Desktop\\abc.doc&quot;,&quot;C:\\Users\\cgq_r\\Desktop\\abc.pdf&quot;);
+        long c = System.currentTimeMillis();
+        System.out.println(c-b);
+    &#125;
+
+    public static void ppt2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;PowerPoint.Application&quot;);
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Presentations&quot;).toDispatch();
+            doc = Dispatch.call(
+                    docs,
+                    &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.TRUE, Boolean.TRUE,
+                            Boolean.FALSE &#125;).toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(32) &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+    public static void word2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Word.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Documents&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;SaveAs&quot;,
+                    new Object[] &#123; tar, Integer.valueOf(17) &#125;);
+        &#125; catch (Throwable t) &#123;
+            logger.log(Level.SEVERE, t.getMessage(), t);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;, new Variant[] &#123;new Variant(false)&#125;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+
+        &#125;
+    &#125;
+
+    public static void excel2Pdf(String src, String tar) &#123;
+        ActiveXComponent app = null;
+        Dispatch doc = null;
+        try &#123;
+            app = new ActiveXComponent(&quot;Excel.Application&quot;);
+            app.setProperty(&quot;Visible&quot;, new Variant(false));
+            app.setProperty(&quot;AutomationSecurity&quot;, new Variant(3));
+            Dispatch docs = app.getProperty(&quot;Workbooks&quot;).toDispatch();
+            doc = Dispatch.call(docs, &quot;Open&quot;,
+                    new Object[] &#123; src, Boolean.FALSE, Boolean.TRUE &#125;)
+                    .toDispatch();
+            Dispatch.call(doc, &quot;ExportAsFixedFormat&quot;,
+                    new Object[] &#123; Integer.valueOf(0), tar &#125;);
+        &#125; finally &#123;
+            if (doc != null) &#123;
+                try &#123;
+                    Dispatch.call(doc, &quot;Close&quot;, new Object[] &#123; Boolean.FALSE &#125;);
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+            if (app != null) &#123;
+                try &#123;
+                    app.invoke(&quot;Quit&quot;);
+                    app.safeRelease();
+                &#125; catch (Throwable t) &#123;
+                    logger.log(Level.SEVERE, t.getMessage(), t);
+                &#125;
+            &#125;
+        &#125;
+    &#125;
+
+&#125;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Java/使用java gdal将shp文件转为geojson" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -1127,690 +1394,6 @@ public class UserController &#123;
 <p>包结构如下:</p>
 <p><img src="https://i.loli.net/2019/11/01/GkJfy9WDsbRLmZC.png" alt="TIM截图20191101131246.png"></p>
 <p>项目下载地址:<a target="_blank" rel="noopener" href="https://nas.tsaving.cn/file/download/71">https://nas.tsaving.cn/file/download/71</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringCloud/SpringCloud微服务快速学习零碎文档" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/"
-    >SpringCloud微服务快速学习零碎文档</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/11/01/SpringCloud/SpringCloud%E5%BE%AE%E6%9C%8D%E5%8A%A1%E5%BF%AB%E9%80%9F%E5%AD%A6%E4%B9%A0%E9%9B%B6%E7%A2%8E%E6%96%87%E6%A1%A3/" class="article-date">
-  <time datetime="2019-11-01T10:34:46.000Z" itemprop="datePublished">2019-11-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/%E5%BE%AE%E6%9C%8D%E5%8A%A1/">微服务</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>项目位置为H盘符ideaProject下的springcloud-test项目</p>
-<p>该项目以尚硅谷springcloud课程为例，以dept部分为案例的项目</p>
-<h2 id="模块分析"><a href="#模块分析" class="headerlink" title="模块分析"></a>模块分析</h2><ul>
-<li>springcloud-test:项目父包，存储相关通用依赖，插件等。</li>
-<li>api模块:目前存放实体类和相关通用类</li>
-<li>provider-dept-8001:为dao，service，controller层，连接访问数据库，并提供Rest风格的请求,该模块为生产者模块</li>
-<li>consumer-dept-80:该模块为消费者模块，启动端口为80，通过RestTemplate以客户端消费者的模式来访问生产者提供的rest接口</li>
-<li>eureka-7001:该模块为eureka server模块,需添加依赖</li>
-</ul>
-<h2 id="Eureka组件相关"><a href="#Eureka组件相关" class="headerlink" title="Eureka组件相关"></a>Eureka组件相关</h2><p>添加Eureka依赖,添加之前需要在springcloud-test父工程下添加springcloud依赖管理,版本需要匹配</p>
-<pre><code>&lt;dependencyManagement&gt;
-    &lt;dependencies&gt;
-        &lt;dependency&gt;
-            &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-            &lt;artifactId&gt;spring-cloud-dependencies&lt;/artifactId&gt;
-            &lt;version&gt;Greenwich.SR1&lt;/version&gt;
-            &lt;type&gt;pom&lt;/type&gt;
-        &lt;/dependency&gt;
-    &lt;/dependencies&gt;
-&lt;/dependencyManagement&gt;
-
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-server&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>添加yml配置</p>
-<pre><code>server:
-  port: 7001
-
-eureka:
-  instance:
-    hostname: localhost #eureka服务端的实例名称
-  client:
-    register-with-eureka: false     #false表示不向注册中心注册自己。
-    fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-    service-url:
-      defaultZone: http://$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
-      #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>添加App启动类，添加@SpringBootApplication注解和@EnableEurekaServer注解</p>
-<p>为8001服务提供者模块添加eureka-client依赖，并配置，将模块注册到eureka注册中心。该依赖引入，若出现右侧maven红线，则检查依赖包是否下载成功，若pom.xml没有报红线，且在application.xml中有提示eureka配置则说明引入依赖成功。</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-netflix-eureka-client&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.springframework.cloud&lt;/groupId&gt;
-    &lt;artifactId&gt;spring-cloud-starter-config&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1.RELEASE&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>application.yml追加eureka配置</p>
-<pre><code>eureka:
-  client: #客户端注册进eureka服务列表
-    service-url:
-      defaultZone: http://localhost:7001/eureka</code></pre><p>为8001服务提供者主启动类添加@EnableEurekaClient注解。</p>
-<blockquote>
-<p><strong>以上在springcloud2.0中并无法注册成功</strong></p>
-</blockquote>
-<p>解决方案:<br>因为2.0的原因，安全问题，所以</p>
-<ol>
-<li><p>在eureka server模块添加security依赖<br><code>xml &lt;dependency&gt; &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt; &lt;artifactId&gt;spring-boot-starter-security&lt;/artifactId&gt; &lt;/dependency&gt;</code></p>
-</li>
-<li><p>修改配置</p>
-<p>eureka:<br>  instance:</p>
-<pre><code>hostname: localhost #eureka服务端的实例名称</code></pre><p>  client:</p>
-<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
-fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-service-url:
-  defaultZone: http://root:root@$&#123;eureka.instance.hostname&#125;:$&#123;server.port&#125;/eureka/       #设置与Eureka Server交互的地址查询服务和注册服务都需要依赖这个地址（单机）。
-  #defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre><p>spring:<br>  security:</p>
-<pre><code>user:
-  name: root
-  password: root</code></pre></li>
-<li><p>添加配置类</p>
-<p>@EnableWebSecurity<br>public class WebSecurityConfigurer extends WebSecurityConfigurerAdapter {</p>
-<pre><code>@Override
-protected void configure(HttpSecurity http) throws Exception &#123;
-    // Configure HttpSecurity as needed (e.g. enable http basic).
-    http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.NEVER);
-    http.csrf().disable();
-    //注意：为了可以使用 http://$&#123;user&#125;:$&#123;password&#125;@$&#123;host&#125;:$&#123;port&#125;/eureka/ 这种方式登录,所以必须是httpBasic,
-    // 如果是form方式,不能使用url格式登录
-    http.authorizeRequests().anyRequest().authenticated().and().httpBasic();
-&#125;</code></pre><p>}</p>
-</li>
-<li><p>在eureka client修改配置</p>
-<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@localhost:7001/eureka</code></pre></li>
-</ol>
-<p>然后，重新clean install后启动，eureka server启动会需要密码。在eureka client启动后显示启动时间后会出现类似这样的信息说明注册成功</p>
-<pre><code>2019-05-27 19:00:16.538  INFO 3396 --- [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SPRINGCLOUD-TEST/192.168.43.216:springcloud-test:8001 - registration status: 204</code></pre><h3 id="主机名称的修改，即服务注册页status名称修改"><a href="#主机名称的修改，即服务注册页status名称修改" class="headerlink" title="主机名称的修改，即服务注册页status名称修改"></a>主机名称的修改，即服务注册页status名称修改</h3><p>在springcloud下，其名称为IP地址:${spring.application.name}:端口号,但，若要改成一个名称，则需要在eureka client配置如下</p>
-<pre><code>eureka:
-  client: #客户端注册进eureka服务列表
-    service-url:
-      defaultZone: http://root:root@localhost:7001/eureka
-  instance:
-    instance-id: springcloud8001</code></pre><p>即多添加后两行的代码。<strong>修改完成后，若没有自动加载修改，则需要重新clean install</strong></p>
-<blockquote>
-<p>默认情况下可能是当前主机的ip在hosts文件中的映射，请检查windows下或linux下的hosts文件的当前主机ip配置。</p>
-</blockquote>
-<h3 id="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"><a href="#修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。" class="headerlink" title="修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。"></a>修改ip信息提示，即触碰status注册名称则右下角连接出现url访问地址。</h3><p>只需要在eureka client中instance-id下面再添加<code>prefer-ip-address: true</code>的配置即可。</p>
-<h3 id="服务注册客户端配置info信息"><a href="#服务注册客户端配置info信息" class="headerlink" title="服务注册客户端配置info信息"></a>服务注册客户端配置info信息</h3><p>点击status下的instance-id，即可打开到新页面查看相关信息。<br>该信息为当前模块的服务信息，可进行配置。</p>
-<ol>
-<li><p>在父工程的pom.xml下配置build</p>
-<build>
-    <finalName>springcloud-test</finalName>
-    <resources>
-        <resource>
-            <directory>src/main/resources</directory>
-            <filtering>true</filtering>
-        </resource>
-    </resources>
-    <plugins>
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-resources-plugin</artifactId>
-            <configuration>
-                <delimiters>
-                    <delimit>$</delimit>
-                </delimiters>
-            </configuration>
-        </plugin>
-    </plugins>
-</build>
-</li>
-<li><p>然后在服务的pom.xml添加监控依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-</li>
-<li><p>然后配置application.yml文件</p>
-<p>info:<br>  app.name: springcloud-test-8001<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
-</li>
-</ol>
-<p>可以再info下添加各类信息，然后$的配置为父工程里的配置，可引用maven中的${}里的变量来显示信息。</p>
-<h3 id="自我保护机制"><a href="#自我保护机制" class="headerlink" title="自我保护机制"></a>自我保护机制</h3><p>在自我保护模式中，Eureka Server会保护注册表的信息，不再注销任何服务实例。当它收到心跳数重新恢复到阙值以上时，该节点就会退出自我保护模式。<br>默认情况下，Eureka Server在一定时间内(默认90秒)没有收到服务的实例心跳，该服务就会处于自我保护。<br>若需关闭自我保护机制则配置<code>eureka.server.enable-self-preservation: false</code>。</p>
-<p>配置Eureka Client设置心跳检测</p>
-<pre><code>lease-expiration-duration-in-seconds: 90 #表示若90秒内没有发送服务端心跳，说明服务为Down状态
-lease-renewal-interval-in-seconds: 30 #表示每30秒向服务端发送一次心跳，保证出于连接状态</code></pre><h3 id="单机版集群配置"><a href="#单机版集群配置" class="headerlink" title="单机版集群配置"></a>单机版集群配置</h3><ol>
-<li><p>新增两个模块分别为eureka7002和eureka7003,pom依赖坐标一致。</p>
-</li>
-<li><p>因为是单机版，所以是一台服务器模拟三个eureka server，所以在windows下hosts文件修改域名ip映射，或在linux下的etc下的hosts修改</p>
-<p>127.0.0.1 eureka7001.com<br>127.0.0.1 eureka7002.com<br>127.0.0.1 eureka7003.com</p>
-</li>
-<li><p>修改7001,7002,7003的yml配置<br>修改<code>eureka.instance.hostname</code>为配置的映射域名,每个yml对应每个修改。<br>修改<code>eureka.client.service-url.defaultZone</code>的值为除当前url之外的另外两个serviceUrl,使用逗号分开<br>一下以7001的application.yml为例</p>
-<p>eureka:<br>  instance:</p>
-<pre><code>hostname: eureka7001.com #eureka服务端的实例名称</code></pre><p>  client:</p>
-<pre><code>register-with-eureka: false     #false表示不向注册中心注册自己。
-fetch-registry: false     #false表示自己端就是注册中心，我的职责就是维护服务实例，并不需要去检索服务
-service-url:
-  defaultZone: http://eureka7002.com:7002/eureka/,http://eureka7003.com:7003/eureka/</code></pre></li>
-<li><p>修改8001的服务提供者，eureka client的yml配置如下<br>即，将其写成3个server服务</p>
-<p>defaultZone: <a target="_blank" rel="noopener" href="http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka">http://root:root@eureka7001.com:7001/eureka,http://root:root@eureka7002.com:7002/eureka,http://root:root@eureka7003.com:7003/eureka</a></p>
-</li>
-<li><p>替换另外两个的启动类<br>修改启动类名称</p>
-</li>
-</ol>
-<h3 id="Eureka-和Zookeeper的区别和好处"><a href="#Eureka-和Zookeeper的区别和好处" class="headerlink" title="Eureka 和Zookeeper的区别和好处"></a>Eureka 和Zookeeper的区别和好处</h3><p>CAP是强一致性，高可用性，和分区容错性。<br>Zookeeper使用CP，而Eureka使用的是AP。</p>
-<ul>
-<li>zk在master节点出现网络故障后会与其他节点失去联系，然后会leader选举一个新的master，选举的时间可能太长，导致整个集群不可用。虽然能最终恢复，但是漫长的选举时间导致注册长期不可用。</li>
-<li>eureka在设计时就保证可用性。保证了每个节点都是平等的。几个节点挂掉不会影响正常工作，剩余的依旧可以正常提供注册和查询服务，保证注册可用，不过查询的结果不保证是最新的(<strong>不保证强一致性</strong>)。除此之外，eureka的自我保护机制，如果在15分钟内超过85%的节点都没有正常心跳，那么eureka认为客户端与注册中心出现网络故障，此时出现以下情况:<ul>
-<li>Eureka不再从注册中心中移除因为长时间没有接收心跳而过期的服务</li>
-<li>仍然能够接收新服务的注册和查询服务，但是不会被同步到其他节点上(保证当前节点依然可用)</li>
-<li>当网络稳定时，当前实例新的注册信息被同步到其他节点中</li>
-</ul>
-</li>
-</ul>
-<h2 id="Ribbon负载均衡"><a href="#Ribbon负载均衡" class="headerlink" title="Ribbon负载均衡"></a>Ribbon负载均衡</h2><p>Ribbon是基于Netflix Ribbon实现的客户端 负载均衡工具，其功能是提供客户端的软件负载均衡算法，。<br>Load balance分为集中式和进程内</p>
-<ul>
-<li>集中式即多数为硬件，如:F5，也可以是软件如:nginx。由该设施负责把访问请求通过某种策略转发到服务的提供方。</li>
-<li>进程内：即集成到消费方，从服务中心获知哪个地址有用，再从中选出合适的服务器。Ribbon属于进程内LB，只是一个类库，继承于消费方进程，消费方通过它来获取到服务提供方的地址。</li>
-</ul>
-<h3 id="Ribbon的入门配置"><a href="#Ribbon的入门配置" class="headerlink" title="Ribbon的入门配置"></a>Ribbon的入门配置</h3><p>Ribbon为客户端的负载均衡，且为进程内的，所以，那么集成到客户端调用consumer80模块中</p>
-<ol>
-<li><p>首先需要引入相关依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-ribbon</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-    <version>2.1.1.RELEASE</version>
-</dependency>
-</li>
-<li><p>配置负载均衡注解。在ConfigBean中的配置RestTempldate方法添加@LoadBalanced注解</p>
-</li>
-<li><p>在启动类上添加@EnableEurekaClient注解</p>
-</li>
-<li><p>修改Controller中的RestTempldate，访问服务提供者8001的前缀REST_URL_PREFIX。将localhost:8001修改为服务的应用名称，即注册服务的名称。</p>
-</li>
-<li><p>修改yml文件，新增eurekaclient配置</p>
-<p>eureka:<br>  client: #客户端注册进eureka服务列表</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@eureka7001.com:7001/eureka/,http://root:root@eureka7002.com:7002/eureka/,http://root:root@eureka7003.com:7003/eureka/
-register-with-eureka: false</code></pre></li>
-</ol>
-<p>以上的配置，Ribbon为进程内的，即一个类库，且为<strong>客户端负载均衡</strong>，所以在80上进行操作，直接在RestTemplate访问时添加注解，但是其客户端需要到注册中心去查找服务地址，而非是直接访问服务提供者的地址，所以需要eureka client的依赖，因此要引入client依赖，并配置集群访问的defaultZone。通过<strong>服务注册中心注册的服务的名称来访问</strong>。</p>
-<blockquote>
-<p>经测试，要想在dept80上访问前缀<a href="http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。">http://localhost:8081替换为http://SPRINGCLOUD-TEST就必须和Ribbon一块使用，单使用@EnableEurekaClient注解，并替换前缀，是无法访问到服务的，会出现超时错误。需要添加上Ribbon的依赖,且为RestTemplateBean加上@LoadBalanced注解。</a></p>
-</blockquote>
-<h3 id="多服务实例负载均衡"><a href="#多服务实例负载均衡" class="headerlink" title="多服务实例负载均衡"></a>多服务实例负载均衡</h3><p>以拷贝8001服务为8002,8003来模拟另外两台服务器部署服务，即同服务多实例的负载均衡体现。</p>
-<ol>
-<li>创建cloud02,cloud03数据库并插入数据(数据同cloud01)。</li>
-<li>拷贝8001的代码和myabtis配置及yml配置</li>
-<li>修改启动类名称</li>
-<li>修改yml文件，分别修改<code>端口号</code>,<code>数据库名称</code>，即可能的<code>info信息</code>。注意spring.application.name不需要更改，否则就不是同一个服务了。</li>
-<li>分别启动7001,7002,7001 eureka server，然后启动8001，8002，8003服务实例，然后进行localhost:8001自测</li>
-<li>启动80，使用consumer来进行测试,发现打印的信息为不同数据库的数据，且负载均衡访问为三个实例循环访问。</li>
-</ol>
-<h3 id="核心组件IRule，修改配置负载均衡算法"><a href="#核心组件IRule，修改配置负载均衡算法" class="headerlink" title="核心组件IRule，修改配置负载均衡算法"></a>核心组件IRule，修改配置负载均衡算法</h3><p>只需要在80客户端配置IRule Bean即可，默认没有配置会使用默认的IRule配置，RoundRobinRule</p>
-<pre><code>@Configuration
-public class ConfigBean &#123;
-
-    @Bean
-    @LoadBalanced
-    public RestTemplate getRestTemplate() &#123;
-        return new RestTemplate();
-    &#125;
-
-    @Bean
-    public IRule myIRule()&#123;
-        return new RandomRule();
-    &#125;
-
-&#125;</code></pre><p>在Ribbon中自带的负载均衡算法有如下几种：<br>| 类名 | 描述 |<br>|-|-|<br>|RoundRobinRule |轮询,按照定义顺序一次循环访问|<br>|RandomRule|随机进行访问|<br>|AvailabilityFilteringRule |会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，还有并发的连接数量超过阙值的服务，然后对剩余服务列表按照轮询策略访问|<br>|WeightedResponseTimeRule|根据平均响应时间计算所有服务的权重，响应时间越快的服务权重越大被选中的概率越高，如果刚启动统计信息不足，则使用RoundRobinRule策略，等统计信息足够时，切换到WeightedResponseTimeRule|<br>|RetryRule|先按照RoundRobinRule的策略获取服务，如果获取失败则在指定时间内进行重试，获取可用的服务|<br>|BestAvailableRule|会先过滤掉由于多次访问故障而处于断路器跳闸状态的服务，然后选择并发量最小的服务|<br>|ZoneAvoidanceRule|复合判断server所在区域的性能和server的可用性选择服务器|</p>
-<h3 id="Ribbon的自定义负载均衡策略"><a href="#Ribbon的自定义负载均衡策略" class="headerlink" title="Ribbon的自定义负载均衡策略"></a>Ribbon的自定义负载均衡策略</h3><p>负载均衡策略，主要就是继承AbstractLoadBalancerRule抽象类,可以参考RandomRule类的配置，其实现了getLoadBalancer()方法，可以获取所有的服务和可用服务。主要就是choose方法，并返回Server对象，也就是服务。</p>
-<pre><code>public class MyRule extends AbstractLoadBalancerRule &#123;
-
-    @Override
-    public void initWithNiwsConfig(IClientConfig iClientConfig) &#123;
-
-    &#125;
-
-    // total = 0 // 当total==5以后，我们指针才能往下走，
-    // index = 0 // 当前对外提供服务的服务器地址，
-    // total需要重新置为零，但是已经达到过一个5次，我们的index = 1
-    // 分析：我们5次，但是微服务只有8001 8002 8003 三台，OK？
-    //</code></pre><p>​<br>        private int total = 0;            // 总共被调用的次数，目前要求每台被调用5次<br>        private int currentIndex = 0;    // 当前提供服务的机器号</p>
-<pre><code>    public Server choose(ILoadBalancer lb, Object key) &#123;
-        if (lb == null) &#123;
-            return null;
-        &#125;
-        Server server = null;
-
-        while (server == null) &#123;
-            if (Thread.interrupted()) &#123;
-                return null;
-            &#125;
-            List&lt;Server&gt; upList = lb.getReachableServers();
-            List&lt;Server&gt; allList = lb.getAllServers();
-
-            int serverCount = allList.size();
-            if (serverCount == 0) &#123;
-                /*
-                 * No servers. End regardless of pass, because subsequent passes only get more
-                 * restrictive.
-                 */
-                return null;
-            &#125;
-
-//            int index = rand.nextInt(serverCount);// java.util.Random().nextInt(3);
-//            server = upList.get(index);
-//            private int total = 0;          // 总共被调用的次数，目前要求每台被调用5次
-//            private int currentIndex = 0;   // 当前提供服务的机器号
-            if (total &lt; 5) &#123;
-                server = upList.get(currentIndex);
-                total++;
-            &#125; else &#123;
-                total = 0;
-                currentIndex++;
-                if (currentIndex &gt;= upList.size()) &#123;
-                    currentIndex = 0;
-                &#125;
-            &#125;
-            if (server == null) &#123;
-                /*
-                 * The only time this should happen is if the server list were somehow trimmed.
-                 * This is a transient condition. Retry after yielding.
-                 */
-                Thread.yield();
-                continue;
-            &#125;
-            if (server.isAlive()) &#123;
-                return (server);
-            &#125;
-
-            // Shouldn&apos;t actually happen.. but must be transient or a bug.
-            server = null;
-            Thread.yield();
-        &#125;
-        return server;
-    &#125;
-
-    @Override
-    public Server choose(Object o) &#123;
-        return choose(getLoadBalancer(), o);
-    &#125;
-&#125;</code></pre><p>该类为自定义的负载均衡算法规则类，要想使用需要进行配置。首先需要在当前启动类无法进行@CompomentScan的地方创建configuration类，即无法被Spring容器扫描到。该类有@Configuration注解，并配置IRule Bean，返回当前自定义规则类。<br>然后在启动类上配置@RibbonClient注解</p>
-<pre><code>@RibbonClient(name = &quot;SPRINGCLOUD-TEST&quot;,configuration = MyRuleConfiguration.class)</code></pre><p>name表示负载均衡所应用的服务名称，configuration为配置的configuration类</p>
-<h2 id="Feign声明式WebService客户端"><a href="#Feign声明式WebService客户端" class="headerlink" title="Feign声明式WebService客户端"></a>Feign声明式WebService客户端</h2><p>Feign是一个声明式的Web Service客户端，它的目的是让Web Service调用更简单。Feign提供了HTTP请求的模板，通过编写简单的接口和插入注解，就可以定义好HTTP请求的参数、格式、地址等信息。<br>Feign可以和Eureka与Ribbon结合使用负载均衡。<br>其使用过程就像类似于MyBatis Dao，接口访问，其作用<strong>是代替RestTemplate，而是直接使用类似Mybatis接口调用的方式</strong>。<br>步骤定义如下:</p>
-<ol>
-<li><p>首先需要在api模块处定义service接口方法，所以需要添加相关依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-openfeign</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-</li>
-<li><p>配置Service接口DeptClientService接口类,其注解，值为提供接口的服务名称，此接口将关联到服务提供者。</p>
-<p>@FeignClient(value = “SPRINGCLOUD-TEST”)<br>public interface DeptClientService {</p>
-<pre><code>@PostMapping(&quot;/dept/add&quot;)
-public boolean add(@RequestBody Dept dept);
-
-@GetMapping(&quot;/dept/get/&#123;id&#125;&quot;)
-public Dept get(@PathVariable(&quot;id&quot;) Long id);
-
-@GetMapping(&quot;/dept/list&quot;)
-public List&lt;Dept&gt; list();</code></pre><p>}</p>
-</li>
-<li><p>在客户端80 Controller中注入DeptClientService对象,通过其方法返回，不在使用RestTemplate</p>
-<p>@RestController<br>public class DeptController_Consumer {</p>
-<pre><code>@Autowired
-private DeptClientService deptClientService;</code></pre><p>   //private static final String REST_URL_PREFIX = “<a href="http://localhost:8001&quot;">http://localhost:8001&quot;</a>;</p>
-<pre><code>private static final String REST_URL_PREFIX = &quot;http://SPRINGCLOUD-TEST&quot;;
-
-@Autowired
-private RestTemplate restTemplate;
-
-@PostMapping(&quot;/consumer/dept/add&quot;)
-public boolean add(Dept dept)&#123;
-    //return restTemplate.postForObject(REST_URL_PREFIX+&quot;/dept/add&quot;,dept,Boolean.class);
-    return this.deptClientService.add(dept);
-&#125;
-
-@GetMapping(&quot;/consumer/dept/get/&#123;id&#125;&quot;)
-public Dept get(@PathVariable(&quot;id&quot;) Long id)&#123;
-    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/get/&quot; + id,Dept.class);
-    return this.deptClientService.get(id);
-&#125;
-
-@GetMapping(&quot;/consumer/dept/list&quot;)
-public List&lt;Dept&gt; list(Dept dept)&#123;
-    //return restTemplate.getForObject(REST_URL_PREFIX+&quot;/dept/list&quot;,List.class);
-    return this.deptClientService.list();
-&#125;</code></pre><p>}</p>
-</li>
-<li><p>在80的启动类中，配置<code>@EnableFeignClients(basePackages = &#123;&quot;com.fsats.springcloud&quot;&#125;)</code>,表示扫描当前包下的FeignClient,那么其就会被Spring发现，步骤三不会报错，所以在配置Service接口的时候就不必使用@ComponentScan注解。</p>
-</li>
-</ol>
-<h2 id="Hystrix断路器"><a href="#Hystrix断路器" class="headerlink" title="Hystrix断路器"></a>Hystrix断路器</h2><p>案例:多个服务，依赖调用，如A-&gt;B,B-&gt;C,C-&gt;D，如果某个服务出现错误或异常，会导致请求超时，或响应报错，等其他情况。或者项目实施原因为停止某个服务的使用是，该服务无法使用该如何处理。这是断路器要做的。<br><strong>Hystrix能够保证在一个依赖出问题的情况下，不会导致整体服务失败，避免级联故障，以提高分布式系统的弹性。</strong></p>
-<h3 id="服务熔断"><a href="#服务熔断" class="headerlink" title="服务熔断"></a>服务熔断</h3><p>服务熔断，可以理解为当客户端访问服务时，因为服务的原因，导致服务响应报错，或响应失败，导致响应超时造成资源损失，作出的处理(<strong>向调用方法返回一个符合预期的可处理的备选响应Fallback</strong>),而不是一直等待响应或抛出异常。<br>其问题可以理解为Spring的AOP异常增强处理。通过添加注解并给予服务出错时要执行的方法。<br>只需要在方法上标注@HystrixCommand注解，并设置fallbackMethod属性值为回调方法。</p>
-<ol>
-<li><p>首先依据8001创建一个新的模块，新增hystrix依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-</li>
-<li><p>在controller的get方法上模拟Dept为null时抛出异常的情况</p>
-<p>@HystrixCommand(fallbackMethod = “requestErrorGet”)<br>@GetMapping(“/dept/get/{id}”)<br>public Dept get(@PathVariable(“id”) Long id){</p>
-<pre><code>Dept dept = deptService.get(id);
-if (dept==null)&#123;
-    throw new RuntimeException();
-&#125;
-return dept;</code></pre><p>}<br>public Dept requestErrorGet(@PathVariable(“id”) Long id){</p>
-<pre><code>return new Dept(id,&quot;没有此部门&quot;,&quot;请确认部门编号&quot;);</code></pre><p>}</p>
-</li>
-<li><p>在主启动类上标注@EnableCircuitBreaker注解</p>
-</li>
-<li><p>启动7001，当前hystrix8001,和feign80</p>
-</li>
-<li><p>测试访问localhost/consumer/dept/get/123获得服务熔断打印信息</p>
-</li>
-</ol>
-<h3 id="服务降级"><a href="#服务降级" class="headerlink" title="服务降级"></a>服务降级</h3><p>服务降级属于服务的较大问题，例如服务所在服务器关机或其他情况，导致访问服务无法响应。与熔断的区别在于，服务熔断其服务是可用的，但服务降级的问题是可能服务不可用，在注册中心处于Down状态。即服务为暂停状态，无法访问。此时做服务降级处理。任何访问此服务的都会返回相应的自定义信息。<br>而因为诸多个方法，每个方法都需要一个熔断后处理方法，所以，他需要一个FallbackFactory来集中处理每个服务中方法的请求。它放在Feign中，也是与实际业务解耦。</p>
-<ol>
-<li><p>在api模块，deptClientService同包目录下创建DeptClientServiceFallbackFactory实现FallbackFactory</p>
-<p>/**</p>
-<ul>
-<li><p>DeptClientService里的每一个方法的熔断都统一放在当前类中</p>
-</li>
-<li><p>/<br>@Component<br>public class DeptClientServiceFallbackFactory implements FallbackFactory<DeptClientService> {<br>  @Override<br>  public DeptClientService create(Throwable throwable) {</p>
-<pre><code>return new DeptClientService() &#123;
-    @Override
-    public boolean add(Dept dept) &#123;
-        return false;
-    &#125;
-
-    @Override
-    public Dept get(Long id) &#123;
-        return new Dept(id,&quot;服务降级&quot;,&quot;确认数据库&quot;);
-    &#125;
-
-    @Override
-    public List&lt;Dept&gt; list() &#123;
-        return null;
-    &#125;
-&#125;;</code></pre><p>  }<br>}</p>
-</li>
-</ul>
-</li>
-<li><p>在DeptClientService的FeignClient注解上，配置fallbackFactory属性，即为DeptClientServiceFallbackFactory类</p>
-<p>@FeignClient(value = “SPRINGCLOUD-TEST”,fallbackFactory = DeptClientServiceFallbackFactory.class)<br>public interface DeptClientService {<br>….<br>}</p>
-</li>
-<li><p>在客户端80feign项目中开启<code>feign.hystrix.enable:true</code>配置。使两个技术关联开启，步骤2的Feign才能解析fallbackFactory属性。</p>
-</li>
-<li><p>启动7001，当前hystrix8001,和feign80</p>
-</li>
-<li><p>测试，首先访问localhost/consumer/dept/get/123获得服务熔断的信息。然后关闭hystrix8001服务，再次访问，出现服务降级的信息。</p>
-</li>
-</ol>
-<h3 id="hystrixDashboard服务调用监控"><a href="#hystrixDashboard服务调用监控" class="headerlink" title="hystrixDashboard服务调用监控"></a>hystrixDashboard服务调用监控</h3><p>Hystrix会持续记录所有通过Hystrix发起的请求的执行信息，以统计报表和图形的方式展现给用户，每秒执行多少成功，多少失败等等。<br>Spring Cloud提供Hystrix Dashboard的整合将监控内容转化成可视化界面。</p>
-<ol>
-<li><p>创建新项目hystrixDashboard,添加依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix-dashboard</artifactId>
-</dependency>
-</li>
-<li><p>为启动类添加添加@EnableHystrixDashboard注解表示开启</p>
-</li>
-<li><p>为所有服务提供者8001,8002,8003服务，添加监控依赖</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-</li>
-<li><p>使用<code>http://localhost:8001/hystrix.stream</code>可以看到ping:,data:,如果使用2.0以上版本，使用此地址404，那么，要在每个服务提供模块添加配置Bean，且需要hystrix依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-
-<p>@Configuration<br>public class MyConfiguration {</p>
-<pre><code>@Bean
-public ServletRegistrationBean hystrixMetricsStreamServlet() &#123;
-    ServletRegistrationBean registration = new ServletRegistrationBean(new HystrixMetricsStreamServlet());
-    registration.addUrlMappings(&quot;/hystrix.stream&quot;);
-    return registration;
-&#125;</code></pre><p>}</p>
-</li>
-<li><p>需要服务提供者主启动类上加上@EnableCircuitBreaker注解</p>
-</li>
-<li><p>访问<a target="_blank" rel="noopener" href="http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。">http://lcoalhost:9001/hystrix可以访问搭配监控页面,在地址栏输入`http://localhost:8001/hystrix.stream`,下面可是输入刷新间隔个监控名称。点击按钮即可进入监控。</a></p>
-</li>
-</ol>
-<blockquote>
-<p>需要注意的是，以上步骤并不完整，如果你的代码中没有类似@HystrixCommand注解，则尽管能访问hystrix.stream，但没有data数据，无法进行图表查看,所以，需要在方法上加上@HystrixCommand注解配置，具体问题详见<a target="_blank" rel="noopener" href="https://www.cnblogs.com/jinjiyese153/p/9172885.html">https://www.cnblogs.com/jinjiyese153/p/9172885.html</a></p>
-</blockquote>
-<h3 id="集群"><a href="#集群" class="headerlink" title="集群"></a>集群</h3><h2 id="Zuul路由"><a href="#Zuul路由" class="headerlink" title="Zuul路由"></a>Zuul路由</h2><p>Zuul包含了对请求的路由和过滤两个功能，<br>其中路由功能负责将外部请求转发到具体的微服务实例上，是实现外部访问统一入口的基础。<br>过滤功能负责对请求的处理过程进行干预，是实现请求校验，服务聚合等功能的基础，<br>Zuul和Eureka整合，将Zuul资深注册到Eureka服务治理下的应用，同时从Eureka获得其他微服务的消息，也即以后的微服务都是通过Zuul跳转后获得。</p>
-<h3 id="路由的简单应用"><a href="#路由的简单应用" class="headerlink" title="路由的简单应用"></a>路由的简单应用</h3><p>使用类似如下的地址通过路由即可访问服务<code>http://localhost:9527/springcloud-test/dept/list</code>,localhost:9527即为路由微服务，通过路由(路由注册到Eureka中)访问注册中心的服务。</p>
-<ol>
-<li><p>创建路由项目,添加依赖</p>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-zuul</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-netflix-hystrix</artifactId>
-</dependency>
-</li>
-<li><p>配置yml</p>
-<p>server:<br>  port: 9527</p>
-<p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://root:root@eureka7001.com:7001/eureka/</code></pre><p>  instance:</p>
-<pre><code>instance-id: dept-zuul-9537
-prefer-ip-address: true</code></pre><p>spring:<br>  application:</p>
-<pre><code>name: dept-zuul-geteway</code></pre><p>info:<br>  app.name: springcloud-test<br>  company.name: <a target="_blank" rel="noopener" href="http://www.fsats.com">www.fsats.com</a><br>  build.artifactId: $project.artifactId$<br>  build.version: $project.version$</p>
-</li>
-<li><p>主启动类配置注解</p>
-<p>@EnableEurekaClient<br>@EnableZuulProxy<br>@SpringBootApplication<br>public class DeptZuul9527_App {</p>
-<pre><code>public static void main(String[] args) &#123;
-    SpringApplication.run(DeptZuul9527_App.class,args);
-&#125;</code></pre><p>}</p>
-</li>
-</ol>
-<h3 id="路由访问配置"><a href="#路由访问配置" class="headerlink" title="路由访问配置"></a>路由访问配置</h3><p>隐藏实际服务名称，使用自定义的名称</p>
-<pre><code>zuul:
-  routes:
-    mydept.serviceId: springcloud-test
-    mydept.path: /mydept/**</code></pre><ul>
-<li>表示将springcloud-test的服务，其路径改为mydept,使用原服务名称和mydept均可访问。</li>
-<li>配置<code>zuul.ignored-services: springcloud-test</code>可取消原服务名称的访问。若要忽略全部的服务，则使用<code>&quot;*&quot;</code>配置。</li>
-<li>若需要服务访问的前缀，则配置<code>zuul.prefix: /xxx</code>,即可使用前缀访问</li>
-</ul>
-<h2 id="Spring-Cloud-Config"><a href="#Spring-Cloud-Config" class="headerlink" title="Spring Cloud Config"></a>Spring Cloud Config</h2><p>Spring Cloud Config分为<strong>服务端和客户端两部分</strong>。<br>服务端也称为分布式配置中心，他是一个<strong>独立的微服务应用</strong>，用来++连接配置服务器并为客户端提供配置信息，加密/解密信息等访问接口。++<br>客户端是通过指定的配置中心来管理应用资源，以及业务相关的配置，并在启动的时候从配置中心获取和加载配置信息，配置服务器默认采用git来存储配置信息，有助于对环境配置进行版本管理。<br>在运行期间动态调整配置，不需要在每个服务部署的机器上编写配置文件，服务会向配置中心统一拉取自己的信息。当配置变动时，服务不需要重启即可感知到配置的变化并应用新的配置。</p>
-<h3 id="服务端配置，以Github为例，若无法访问，可使用Gitee码云"><a href="#服务端配置，以Github为例，若无法访问，可使用Gitee码云" class="headerlink" title="服务端配置，以Github为例，若无法访问，可使用Gitee码云"></a>服务端配置，以Github为例，若无法访问，可使用Gitee码云</h3><ol>
-<li><p>首先在码云创建公共仓库，然后clone到本地，在本地创建application.yml文件(注意保存为UTF-8格式)并上传拿到远程仓库,配置如下:</p>
-<p>spring:<br>  active:</p>
-<pre><code>- dev</code></pre><hr>
-<p>spring:<br>  profile: dev<br>  application:</p>
-<pre><code>name: springcloud-dev</code></pre><hr>
-<p>spring:<br>  profile: test<br>  application:</p>
-<pre><code>name: springcloud-test</code></pre></li>
-<li><p>创建configserver模块，添加依赖如下:</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-config-server</artifactId>
-</dependency>
-</li>
-<li><p>配置application.yml文件</p>
-<p>server:<br>  port: 3344<br>spring:<br>  application:</p>
-<pre><code>name: springcloud-config-server</code></pre><p>  cloud:</p>
-<pre><code>config:
-  server:
-    git:
-      uri: https://gitee.com/snow_rain/springcloud-config.git</code></pre></li>
-</ol>
-<p>表示，配置的服务git的uri为公共仓库的地址。</p>
-<ol>
-<li><p>配置主启动类，并添加@EnableConfigServer注解</p>
-</li>
-<li><p>启动项目，访问<code>http://localhost:3344/application-dev.yml</code>即可获得如下</p>
-<p>spring:<br>  active:</p>
-<ul>
-<li>dev<br>application:<br>name: springcloud-test<br>profile: test</li>
-</ul>
-</li>
-<li><p>访问的方式，有如下几种:</p>
-<p>/{application}/{profile}[/{label}]<br>/{application}-{profile}.yml<br>/{label}/{application}-{profile}.yml</p>
-</li>
-</ol>
-<p>上面访问的是第二种，另外两个可以以下方式访问:</p>
-<ul>
-<li><a target="_blank" rel="noopener" href="http://localhost:3344/application/dev/master">http://localhost:3344/application/dev/master</a></li>
-<li><a target="_blank" rel="noopener" href="http://localhost:3344/master/application-dev.yml">http://localhost:3344/master/application-dev.yml</a></li>
-</ul>
-<h3 id="创建客户端模拟服务器提供者连通配置中心"><a href="#创建客户端模拟服务器提供者连通配置中心" class="headerlink" title="创建客户端模拟服务器提供者连通配置中心"></a>创建客户端模拟服务器提供者连通配置中心</h3><ol>
-<li><p>创建新模块，配置依赖如下:</p>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-devtools</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-actuator</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.cloud</groupId>
-    <artifactId>spring-cloud-starter-config</artifactId>
-</dependency>
-</li>
-<li><p>创建springcloud-config-client.yml上传到远程仓库中</p>
-<p>spring:<br>  profile:</p>
-<pre><code>active: dev</code></pre><hr>
-<p>server:<br>  port: 8201<br>spring:<br>  profile: dev<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://eureka7001.com:7001/eureka</code></pre><hr>
-<p>server:<br>  port: 8202<br>spring:<br>  profile: test<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre><p>eureka:<br>  client:</p>
-<pre><code>service-url:
-  defaultZone: http://eureka7002.com:7002/eureka</code></pre></li>
-<li><p>在client端,resources下创建bootstrap.yml文件<br>bootstrap是最高优先级的加载文件，是系统级的.<br>SpringCloud 会创建<code>BootStrap Context</code>作为Spring应用<code>Application Context</code>的父上下文。初始化时BootStrap Context负责从外部加载配置属性并解析配置，BootStrap具有较高优先级，默认情况下，他们不会被本地配置覆盖。<br>新增BootStrap.yml保证<code>BootStrap Context</code>和<code>Application Context</code>配置的分离。</p>
-<p>spring:<br>  cloud:</p>
-<pre><code>config:
-  label: master
-  name: springcloud-config-client
-  profile: dev
-  uri: http://localhost:3344</code></pre></li>
-</ol>
-<p>以上配置中label表示仓库的分支，name表示仓库中的要使用的yml文件名称,profile表示文件中的dev环境，uri表示配置中心服务端地址。即需要通过服务端的连接，即以上配置参数，即可通过服务端连接到仓库并获得对应的信息。</p>
-<ol>
-<li><p>可配置application.yml</p>
-<p>spring:<br>  application:</p>
-<pre><code>name: springcloud-config-client</code></pre></li>
-</ol>
-<p>如果想配置，则name值需要和上面的name值一样，否则可以没有application.yml文件。即默认约定，该仓库springcloud-config-client名称为服务名称。<br>项目启动配置服务server和client，</p>
 
       
       <!-- reward -->

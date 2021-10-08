@@ -78,6 +78,104 @@
     
     
     
+    <article id="post-Oracle/关于Oracle的监听程序配置问题与excel文件导入数据库" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/28/Oracle/%E5%85%B3%E4%BA%8EOracle%E7%9A%84%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98%E4%B8%8Eexcel%E6%96%87%E4%BB%B6%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93/"
+    >关于Oracle的监听程序配置问题与excel文件导入数据库</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/28/Oracle/%E5%85%B3%E4%BA%8EOracle%E7%9A%84%E7%9B%91%E5%90%AC%E7%A8%8B%E5%BA%8F%E9%85%8D%E7%BD%AE%E9%97%AE%E9%A2%98%E4%B8%8Eexcel%E6%96%87%E4%BB%B6%E5%AF%BC%E5%85%A5%E6%95%B0%E6%8D%AE%E5%BA%93/" class="article-date">
+  <time datetime="2018-07-28T03:11:04.000Z" itemprop="datePublished">2018-07-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="Oracle监听程序的错误问题"><a href="#Oracle监听程序的错误问题" class="headerlink" title="Oracle监听程序的错误问题"></a>Oracle监听程序的错误问题</h3><p>对于Oracle的监听程序，是客户端连接Oracle数据库额必经之路，当然sqlplus除外。 对于没有监听服务的情况，就是你注册表被删了，你可以网上搜索解决办法。<strong>此问题时对应于监听正常启动而客户端始终无法连接的问题。</strong> <strong>如果你监听无法正常启动那么请重新配置监听，没必要修改任何监听文件,开始菜单下，oracle目录下的Net configuration Assistant配置可以重新配置监听程序。</strong> 在启动监听时，经常有如下几种情况:</p>
+<ol>
+<li>监听启动不起来，一开启服务，下一秒就不带提示的自动关闭服务。</li>
+<li>监听刚已启动，就弹框说因为某某原因自动关闭监听服务。</li>
+<li>监听正常启动，可是客户端就是连接不起来。并伴随着客户端报错<strong>无监听程序</strong>或<strong>适配器错误</strong>。</li>
+</ol>
+<p>关于以上情况，网上有很多博客及论坛的描述，大多都是大庭相近的，说是要配置listener.ora和tnsnames.ora文件的host的值。并且有很多人改了，然而并没有发生正确结果。 对于客户端连接错误情况，无非是监听导致的，通常导致不可用的原因在网上归结于:</p>
+<ol>
+<li>防火墙</li>
+<li>监听文件出错,listener.ora文件</li>
+<li>以及说注册表的某个表少了imagePath关键值</li>
+</ol>
+<p>然而，关于这些解决办法对一些人有用，对一些人没用。关于防火墙，这点在windows时没用的，监听文件无非就是host值错了，对于注册表，只要不是使用什么清理工具，误把注册表删了，一般情况就没问题。 而对于我的情况，安装了卸载了数据库两次，最后通过其他人oracle配置才发现与之不一样的地方。 <strong>问题解决:</strong> 首先你不必管你的监听文件。打开开始菜单，oracle目录下的Net configuration Assistant配置,删除监听，并从新配置一个监听。 然后打开Net Manager配置，把配置的监听程序删掉。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728102647.png" alt="Net Manager配置"> 最后需重启Oracle服务和监听服务。 随后你尝试重新客户端登陆，应该可以登陆上。 如果仍然不可用，请重新配置监听，不再Net Manager删除监听，再次重新重启服务。 另外，实在不行,修改监听文件也是一种办法。 保证listener.ora和tnsnames.ora文件的host相同，可以都设置为机器名.lan,就是电脑右击–&gt;系统–&gt;计算机名</p>
+<h3 id="通过Excel文件导入Oracle数据库，如xlsx等"><a href="#通过Excel文件导入Oracle数据库，如xlsx等" class="headerlink" title="通过Excel文件导入Oracle数据库，如xlsx等"></a>通过Excel文件导入Oracle数据库，如xlsx等</h3><ol>
+<li><p>先把表格文件打开，另存为txt(制表符分隔)文件,注意你的列不能有任何空列(通常第一行是表名，之后是数据。不能整列都是空的，否则你需要把此列删除再另存txt)</p>
+</li>
+<li><p>你需要有pl/sql Developer软件,打开tool菜单下的Text Importer选项，如果你没有登录的话，是不能选中的。</p>
+</li>
+<li><p>打开后选择txt文件 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728105257.png" alt=""></p>
+</li>
+<li><p>导入后出现如下界面，Result Preview中，第一行是表名，如果不是，则请注意你的excel文件，如果某列都是空的，请注意你的Excel文件 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728105615.png" alt=""></p>
+</li>
+<li><p>然后打开Data to Oracle框,设置Owner，Table，为每个列填写field表名与下面的类型。前提是你得表应该是之前就被创建的，如果不是，请先看6 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110155.png" alt=""></p>
+</li>
+<li><p>先创建表 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110357.png" alt=""></p>
+</li>
+</ol>
+<p>填写owner为那个用户的，Name为表名 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110443.png" alt=""> 点击column，设置owner和name，分别为用户和表名。设置列名，类型，非空，与注释(可以不写)。完毕后点击左下的apply，如果报错则重新修改。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180728110649.png" alt=""> 如果点击apply后无提示，那么创建完毕，close。如果你的field都设置了，那么么import按钮才会可用。就点击import就好了。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-开源/Jeesite开源项目SSM基础搭建——前端js插件技术" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -937,158 +1035,6 @@ public Date getBirth() &#123;
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JAXB/" rel="tag">JAXB</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-XML/XML的使用——DOM4J以及XPath语法" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/"
-    >XML的使用——DOM4J以及XPath语法</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/07/06/XML/XML%E7%9A%84%E4%BD%BF%E7%94%A8%E2%80%94%E2%80%94DOM4J%E4%BB%A5%E5%8F%8AXPath%E8%AF%AD%E6%B3%95/" class="article-date">
-  <time datetime="2018-07-06T07:50:18.000Z" itemprop="datePublished">2018-07-06</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/XML/">XML</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="dom4J"><a href="#dom4J" class="headerlink" title="dom4J"></a>dom4J</h2><p>基于Java Collections Framework的XML文档对象模型 <a target="_blank" rel="noopener" href="https://dom4j.github.io">官网地址及文档</a> maven pom添加依赖</p>
-<pre><code> &lt;dependency&gt;
-    &lt;groupId&gt;org.dom4j&lt;/groupId&gt;
-    &lt;artifactId&gt;dom4j&lt;/artifactId&gt;
-    &lt;version&gt;2.1.1&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><h4 id="创建XML"><a href="#创建XML" class="headerlink" title="创建XML"></a>创建XML</h4><p>首先通过DocumentHelper对象创建一个Document实例。 然后通过Element设置元素节点 最后可通过document.write写到文件中，或者通过OutputFormat对象和XMLWriter对象打印出特定格式和特定设置的文件</p>
-<pre><code>//获得Document对象
-Document document = DocumentHelper.createDocument();
-
-//开始建立dom树根元素
-Element bookstoreEle = document.addElement(&quot;bookstore&quot;);
-
-//创建子元素
-Element bookEle = bookstore.addElement(&quot;book&quot;);
-
-Element bookNameEle = bookEle.addElement(&quot;bookName&quot;).addText(&quot;巴黎圣母院&quot;);
-Element priceEle = bookEle.addElement(&quot;price&quot;).addText(&quot;20&quot;);
-Element authorEle = bookEle.addElement(&quot;author&quot;).addText(&quot;雨果&quot;);
-
-//直接写入到文件
-//document.write(new FileWriter(&quot;bookstore.xml&quot;));
-或
-
-//设置xml格式和参数
-OutputFormat format = OutputFormat.createPrettyPrint();
-FileOutputStream outputStream = new FileOutputStream(new File(&quot;bookstore.xml&quot;));
-XMLWriter writer = new XMLWriter(outputStream,format);
-//是否转义
-writer.setEscapeText(false);
-writer.write(document);</code></pre><p>Element对象还有很多方法，根据方法名能判断该方法是干什么的。 在创建之前，不仅可以设置xml的输出格式,还可以自己通过OutputFormat对象设置一些属性。 以及设置DocumentType,XMLEncoding,以及EntityResolver解析器(XML解析器，默认是SAXEntityResolver),都可以在Document中设置，然后在解析时再获得。</p>
-<h4 id="解析xml"><a href="#解析xml" class="headerlink" title="解析xml"></a>解析xml</h4><p>首先需要通过File文件获得Document对象，再通过iterator迭代器循环得到元素。</p>
-<pre><code>//实例化SAXReader对象,并获得Document
-SAXReader reader = new SAXReader();
-Document document = reader.read(file);
-//获得xml的根节点
-Element rootEle = document.getRootElement();
-
-//1.通过迭代器的方式获得该元素的子节点
-Iterator iterator = rootEle.element(&quot;book&quot;).elementIterator();
-while(iterator.hasNext())&#123;
-    Element element = (Element) iterator.next();
-    System.out.println(element.getName() +&quot;---&quot; + element.getText());
-&#125;
-
-//2.通过elements的方式遍历子节点
-List&lt;Element&gt; elements = rootEle.element(&quot;chanel&quot;).elements();
-for (Element element:elements)&#123;
-    System.out.println(element.getName()+ &quot;----&quot; + element.getText());
-&#125;
-
-//3.通过xpath的方式遍历子节点
-List&lt;Node&gt; nodes = rootEle.selectNodes(&quot;//chanel&quot;);
-if (nodes.get(0) instanceof Element)&#123;
-    Element element = (Element) nodes.get(0);
-    System.out.println(element.elements().size());
-&#125;</code></pre><p>除了遍历元素Element之外，还可以遍历该元素的所有属性。 通过attributeIterator()方法,attributes()等，以及通过索引获得。 Element对象的部分方法 <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144222.png" alt="Element的部分Element开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706144254.png" alt="Element的部分attribute开头方法"> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706145854.png" alt="Element的部分attribute开头方法"> Element.element(String s)表示获得某个子节点的Element对象 Element.elements()表示获得该节点元素的所有子节点集合 Element.selectNodes(String s)方法通过xpath语法获得一个节点集合 如果想跟方便的看文档获得方法说明，建议使用idea+maven+mavenHelper插件，通过mavenHelper插件下载包的source和documention</p>
-<h4 id="Document对象的其他操作"><a href="#Document对象的其他操作" class="headerlink" title="Document对象的其他操作"></a>Document对象的其他操作</h4><ol>
-<li><p>将document对象或Node，Element，Attribute，通过asXML()方法转换成字符串</p>
-<p>Document document = …;<br>String text = document.asXML();</p>
-</li>
-</ol>
-<p>或者通过DocumentHelper对象的parseText()方法将字符串转换为Document对象</p>
-<pre><code>String text = &quot;&lt;person&gt; &lt;name&gt;James&lt;/name&gt; &lt;/person&gt;&quot;;
-Document document = DocumentHelper.parseText(text);</code></pre><ol start="2">
-<li><p>获得文档的类型，字符编码</p>
-<p>System.out.println(document.getDocType());<br>System.out.println(document.getXMLEncoding());</p>
-</li>
-</ol>
-<p>需判断DocType是否为空，它将获得DocumentType对象，在生成XML时，通过Document对象设置documentType属性。</p>
-<ol start="3">
-<li><p>通过Element实例获得path路径</p>
-<p>document.getPath(Element e);</p>
-</li>
-</ol>
-<p>以及各节点对象的节点类型，getNodeType()可获得节点类型的short值，getNodeTypeName()获得节点类型的名称。 getPath()获得节点对象的所在路径</p>
-<h4 id="XPath语法"><a href="#XPath语法" class="headerlink" title="XPath语法"></a>XPath语法</h4><p>XPath 使用路径表达式来选取 XML 文档中的节点或者节点集。这些路径表达式和我们在常规的电脑文件系统中看到的表达式非常相似。 需添加依赖包</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;jaxen&lt;/groupId&gt;
-    &lt;artifactId&gt;jaxen&lt;/artifactId&gt;
-    &lt;version&gt;1.1.6&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>然后通过任意节点类型的selectNodes方法和selectSingleNode方法，并设置xpath值，返回List<Node>或Node对象 <strong>选取节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150204.png" alt="选取节点"> <strong>查找特定节点或某个指定值的节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150225.png" alt="获得特定或指定值或范围的节点"> <strong>选取未知节点</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150237.png" alt="选取未知节点"> <strong>通过|符号选取若干路径</strong> <img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180706150246.png" alt="通过|符号选取若干路径"></p>
-<h4 id="部分代码"><a href="#部分代码" class="headerlink" title="部分代码"></a>部分代码</h4><p>使用idea开发工具，maven项目，mavenHelper插件更利于maven依赖包管理 <a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/learnxml.rar">下载地址</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
 
 
     </footer>

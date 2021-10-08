@@ -78,6 +78,299 @@
     
     
     
+    <article id="post-SpringBoot/Spring Boot整合ElasticSearch全文检索引擎" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88ElasticSearch%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%E5%BC%95%E6%93%8E/"
+    >Spring Boot整合ElasticSearch全文检索引擎</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88ElasticSearch%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%E5%BC%95%E6%93%8E/" class="article-date">
+  <time datetime="2019-01-17T15:19:14.000Z" itemprop="datePublished">2019-01-17</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Spring-Boot整合ElasticSearch全文检索引擎"><a href="#Spring-Boot整合ElasticSearch全文检索引擎" class="headerlink" title="Spring Boot整合ElasticSearch全文检索引擎"></a>Spring Boot整合ElasticSearch全文检索引擎</h1><p>docker镜像安装:</p>
+<pre><code>docker pull elasticsearch:6.5.4
+docker run -e ES_JAVA_OPTS=&quot;-Xms256m -Xmx256m&quot; -d -p 9200:9200 -p 9300:9300 --name myes 93109ce1d590</code></pre><p>此处尽量选择拉取2.4.6的版本，因为spring boot data elasticsearch与elasticsearch版本会不匹配以至于无法操作。 访问localhost:9200返回响应json</p>
+<pre><code>&#123;
+  &quot;name&quot; : &quot;HBCk3xN&quot;,
+  &quot;cluster_name&quot; : &quot;docker-cluster&quot;,
+  &quot;cluster_uuid&quot; : &quot;fzfscgtWQ1-9hlVbBU038Q&quot;,
+  &quot;version&quot; : &#123;
+    &quot;number&quot; : &quot;6.5.4&quot;,
+    &quot;build_flavor&quot; : &quot;default&quot;,
+    &quot;build_type&quot; : &quot;tar&quot;,
+    &quot;build_hash&quot; : &quot;d2ef93d&quot;,
+    &quot;build_date&quot; : &quot;2018-12-17T21:17:40.758843Z&quot;,
+    &quot;build_snapshot&quot; : false,
+    &quot;lucene_version&quot; : &quot;7.5.0&quot;,
+    &quot;minimum_wire_compatibility_version&quot; : &quot;5.6.0&quot;,
+    &quot;minimum_index_compatibility_version&quot; : &quot;5.0.0&quot;
+  &#125;,
+  &quot;tagline&quot; : &quot;You Know, for Search&quot;
+&#125;</code></pre><p>有两种方式操作elasticsearch,一种是spring-data-elasticsearch，一种是jest，一个是使用java客户端操作，一个是使用restful方式操作的。Spring-data的方式非常类似Spring data-jpa，都是repository接口。</p>
+<h3 id="官方文档示例"><a href="#官方文档示例" class="headerlink" title="官方文档示例"></a>官方文档示例</h3><p>Elasticsearch 是 <em>面向文档</em> 的，意味着它存储整个对象或 _文档_。Elasticsearch 不仅存储文档，而且 _索引_每个文档的内容使之可以被检索。在 Elasticsearch 中，你 对文档进行索引、检索、排序和过滤–而不是对行列数据。这是一种完全不同的思考数据的方式，也是 Elasticsearch 能支持复杂全文检索的原因。 Elasticsearch 使用 JavaScript Object Notation 或者 <a target="_blank" rel="noopener" href="http://en.wikipedia.org/wiki/Json"><em>JSON</em></a> 作为文档的序列化格式。JSON 序列化被大多数编程语言所支持，并且已经成为 NoSQL 领域的标准格式</p>
+<pre><code>&#123;
+    &quot;email&quot;:      &quot;john@smith.com&quot;,
+    &quot;first_name&quot;: &quot;John&quot;,
+    &quot;last_name&quot;:  &quot;Smith&quot;,
+    &quot;info&quot;: &#123;
+        &quot;bio&quot;:         &quot;Eco-warrior and defender of the weak&quot;,
+        &quot;age&quot;:         25,
+        &quot;interests&quot;: [ &quot;dolphins&quot;, &quot;whales&quot; ]
+    &#125;,
+    &quot;join_date&quot;: &quot;2014/05/01&quot;
+&#125;</code></pre><p>在官方文档中存在这样一段话： <strong>一个文档代表一个雇员。存储数据到 Elasticsearch 的行为叫做 <em>索引</em> ，但在索引一个文档之前，需要确定将文档存储在哪里。</strong> <strong>一个 Elasticsearch 集群可以 包含多个 <em>索引</em> ，相应的每个索引可以包含多个 <em>类型</em> 。 这些不同的类型存储着多个 <em>文档</em> ，每个文档又有 多个 <em>属性</em> 。</strong> 官网也有了解释，一个索引是名词，类似关系型数据库的mysql的数据库，一个索引时动词，类似于insert。 首先理解一下第二段，多个索引就是类似多个数据库；每个索引包含多个类型，类似于每个数据库的多个表；不同类型存储多个文档，类似于不同表存储多条数据；每个文档由多个属性，类似于每个数据记录的属性字段。 首先运行测试一下<a target="_blank" rel="noopener" href="https://www.elastic.co/guide/cn/elasticsearch/guide/current/_indexing_employee_documents.html">官网的雇员例子</a>。 只需要发送PUT请求，并添加json数据即可，使用postman,添加3个雇员 <img src="images/20190113234018.png" alt=""></p>
+<ol>
+<li><p><strong>检索某个文档</strong>,发送get请求，指定索引库，类型和ID，/megacorp/employee/1</p>
+<pre><code>GET localhost:9200/megacorp/employee/1</code></pre></li>
+<li><p><strong>检索所有</strong>,结果都放在hits数组中</p>
+<pre><code>GET localhost:9200/megacorp/employee/_search</code></pre></li>
+<li><p><strong>指定属性检索</strong></p>
+<pre><code>GET localhost:9200/megacorp/employee/_search?q=last_name:Smith</code></pre></li>
+<li><p><strong>查询表达式搜索</strong>，发送查询json,qurey表示查询，match为匹配，匹配last_name</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match&quot; : &#123;
+           &quot;last_name&quot; : &quot;Smith&quot;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>复杂表达式搜索</strong>,依然是传入json请求体，添加filter过滤搜索,使用范围搜索，检索age的范围匹配</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;bool&quot;: &#123;
+           &quot;must&quot;: &#123;
+               &quot;match&quot; : &#123;
+                   &quot;last_name&quot; : &quot;smith&quot; 
+               &#125;
+           &#125;,
+           &quot;filter&quot;: &#123;
+               &quot;range&quot; : &#123;
+                   &quot;age&quot; : &#123; &quot;gt&quot; : 30 &#125; 
+               &#125;
+           &#125;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>全文检索</strong>,所有符合条件都会匹配，此时查出两条记录，按照_score匹配相关性得分排序。由空格分隔，前后都可能被匹配，此为全文检索非精确匹配</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match&quot; : &#123;
+           &quot;about&quot; : &quot;rock climbing&quot;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>全文检索，精确匹配</strong>,使用match_phrase进行精确匹配，这样只匹配一条</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match_phrase&quot; : &#123;
+           &quot;about&quot; : &quot;rock climbing&quot;
+       &#125;
+   &#125;
+&#125;</code></pre></li>
+<li><p><strong>高亮搜索，添加请求体highlight参数</strong>，设置某个属性，将查询某个文档，并高亮当前查询的匹配结果,此结果携带html标签，可以在页面上渲染。</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+   &quot;query&quot; : &#123;
+       &quot;match_phrase&quot; : &#123;
+           &quot;about&quot; : &quot;rock climbing&quot;
+       &#125;
+   &#125;,
+   &quot;highlight&quot;: &#123;
+       &quot;fields&quot; : &#123;
+           &quot;about&quot; : &#123;&#125;
+       &#125;
+   &#125;
+&#125;
+
+&#123;
+  ...
+  &quot;hits&quot;: &#123;
+     &quot;total&quot;:      1,
+     &quot;max_score&quot;:  0.23013961,
+     &quot;hits&quot;: [
+        &#123;
+           ...
+           &quot;_score&quot;:         0.23013961,
+           &quot;_source&quot;: &#123;
+              &quot;first_name&quot;:  &quot;John&quot;,
+              &quot;last_name&quot;:   &quot;Smith&quot;,
+              &quot;age&quot;:         25,
+              &quot;about&quot;:       &quot;I love to go rock climbing&quot;,
+              &quot;interests&quot;: [ &quot;sports&quot;, &quot;music&quot; ]
+           &#125;,
+           &quot;highlight&quot;: &#123;
+              &quot;about&quot;: [
+                 &quot;I love to go &lt;em&gt;rock&lt;/em&gt; &lt;em&gt;climbing&lt;/em&gt;&quot; 
+              ]
+           &#125;
+        &#125;
+     ]
+  &#125;
+&#125;</code></pre></li>
+<li><p><strong>聚合搜索</strong>，类似sql的groupby分组,可以依据某个属性做一些精细结果。aggs表示聚合，聚合interests。结果返回分片信息，某个值的数量。</p>
+<pre><code>POST localhost:9200/megacorp/employee/_search
+&#123;
+ &quot;aggs&quot;: &#123;
+   &quot;all_interests&quot;: &#123;
+     &quot;terms&quot;: &#123; &quot;field&quot;: &quot;interests&quot; &#125;
+   &#125;
+ &#125;
+&#125;
+
+&#123;
+  ...
+  &quot;hits&quot;: &#123; ... &#125;,
+  &quot;aggregations&quot;: &#123;
+     &quot;all_interests&quot;: &#123;
+        &quot;buckets&quot;: [
+           &#123;
+              &quot;key&quot;:       &quot;music&quot;,
+              &quot;doc_count&quot;: 2
+           &#125;,
+           &#123;
+              &quot;key&quot;:       &quot;forestry&quot;,
+              &quot;doc_count&quot;: 1
+           &#125;,
+           &#123;
+              &quot;key&quot;:       &quot;sports&quot;,
+              &quot;doc_count&quot;: 1
+           &#125;
+        ]
+     &#125;
+  &#125;
+&#125;</code></pre></li>
+</ol>
+<h3 id="Jest操作Elasticsearch"><a href="#Jest操作Elasticsearch" class="headerlink" title="Jest操作Elasticsearch"></a>Jest操作Elasticsearch</h3><p>jest是专门的restful风格的api 首先引入pom依赖</p>
+<pre><code>&lt;dependency&gt;
+    &lt;groupId&gt;io.searchbox&lt;/groupId&gt;
+    &lt;artifactId&gt;jest&lt;/artifactId&gt;
+    &lt;version&gt;5.3.4&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>配置yml，配置访问uris，默认localhost:9200</p>
+<pre><code>spring:
+  elasticsearch:
+    jest:
+      uris: localhost:9200</code></pre><p>使用JestClient自动注入，进行操作,构建文档添加到elasticsearch</p>
+<pre><code>@Autowired
+private JestClient jestClient;
+
+@ResponseBody
+@RequestMapping(&quot;test&quot;)
+public String test()&#123;
+    //创建实体类
+    Dept dept = new Dept();
+    dept.setId(1);
+    dept.setName(&quot;产品部&quot;);
+    dept.setFloor(1);
+    dept.setDesc(&quot;这是产品部&quot;);
+    //构建一个文档
+    Index index = new Index.Builder(dept).index(&quot;xxha&quot;).type(&quot;dept&quot;).id(&quot;1&quot;).build();
+    try &#123;
+        //执行
+        jestClient.execute(index);
+    &#125; catch (IOException e) &#123;
+        e.printStackTrace();
+    &#125;
+    return &quot;ok&quot;;
+&#125;</code></pre><p>​    </p>
+<p>从elasticsearch中查询</p>
+<pre><code>@ResponseBody
+@RequestMapping(&quot;test&quot;)
+public String test()&#123;
+    //Builder中携带query参数，用于传入json请求体，不填则为_search
+    Search build = new Search.Builder(&quot;&quot;).addIndex(&quot;xxha&quot;).addType(&quot;dept&quot;).build();
+    try &#123;
+        SearchResult execute = jestClient.execute(build);
+        System.out.println(execute.getJsonObject());
+    &#125; catch (IOException e) &#123;
+        e.printStackTrace();
+    &#125;
+
+    return &quot;ok&quot;;
+&#125;</code></pre><p>使用id获得</p>
+<pre><code>public String test()&#123;
+    Get build = new Get.Builder(&quot;xxha&quot;, &quot;1&quot;).index(&quot;xxha&quot;).type(&quot;dept&quot;).build();
+    try &#123;
+    DocumentResult execute = jestClient.execute(build);
+    System.out.println(execute.getJsonObject());
+    &#125; catch (IOException e) &#123;
+    e.printStackTrace();
+    &#125;
+
+    return &quot;ok&quot;;
+&#125;</code></pre><p>其他操作</p>
+<pre><code>//创建索引
+CreateIndex build = new CreateIndex.Builder(&quot;&quot;).build();
+//删除索引
+DeleteIndex build = new DeleteIndex.Builder(&quot;&quot;).build();</code></pre><p>其他具体参照jest github。</p>
+<h3 id="spring-data-elasticsearch操作"><a href="#spring-data-elasticsearch操作" class="headerlink" title="spring-data-elasticsearch操作"></a>spring-data-elasticsearch操作</h3><p>首先注意的就是版本问题，data-elasticsearch与elasticsearch的版本问题，建议是2.4.6的把，首先看好版本再说。</p>
+<pre><code>spring:
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: localhost:9300</code></pre><p>我们只需同jpa一样，创建一个<strong>repository接口继承elasticsearchRepository</strong>接口,可以使用接口提供的方法。也可以同jpa一样使用自定义方法名匹配查询。以及elasticsearch的@Query注解。 同时，关联的持久化类需要添加@Docuemnt注解,添加indexName属性及type属性。 还有另外一种方式是ElasticsearchTemplate实例操作，它雷同JPA的EntityManager。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-SpringBoot/SpringBoot国际化及接管SpringMVC拦截器格式化配置" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -719,91 +1012,6 @@ public void setData() throws KeeperException, InterruptedException &#123;
 <li>第二个参数为要修改的节点值</li>
 <li>第三个参数为被修改节点的版本</li>
 </ul>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Zoopeeker/zookeeper的监听器原理和客户端写数据流程" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/"
-    >zookeeper的监听器原理和客户端写数据流程</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/" class="article-date">
-  <time datetime="2018-12-29T15:35:39.000Z" itemprop="datePublished">2018-12-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a> / <a class="article-category-link" href="/categories/Zookeeper/%E5%A4%A7%E6%95%B0%E6%8D%AE/">大数据</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="监听器原理"><a href="#监听器原理" class="headerlink" title="监听器原理"></a>监听器原理</h2><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229231357.png" alt="监听器原理"> 如图所示: 首先要有一个main线程，这个main线程创建zookeeper客户端，zkClient会分发两个子线程，一个用来监听，一个用来连接服务器。 通过connect线程将注册的监听事件发送给Zookeeper，Zookeeper的注册监听器列表将注册的监听事件添加到列表中。 Zookeeper监听到有数据变化或路径变化，就会将消息发送到listener线程。 而listener线程内部则调用process()方法。 通常有这两种监听，分别是监听节点值和子节点</p>
-<ul>
-<li>get path [watch]:监听节点数据变化</li>
-<li>ls path [watch]:监听子节点增减的变化</li>
-</ul>
-<h2 id="客户端写数据到服务器流程"><a href="#客户端写数据到服务器流程" class="headerlink" title="客户端写数据到服务器流程"></a>客户端写数据到服务器流程</h2><p>下图为客户端请求写数据到服务器流程 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229232711.png" alt=""></p>
-<ol>
-<li>首先Client会请求到某台服务器</li>
-<li>如果请求的服务器不是Leader，则刚服务器将吧请求转发给Leader服务器</li>
-<li>Leader会发通知各个服务器进行数据写入操作。</li>
-<li>各个服务器写入完成后会再通知给Leader。</li>
-<li>当Leader收到大多数服务器写成功后，就认为写成功了</li>
-<li>Leader会将写入成功的通知发给请求的服务器</li>
-<li>由服务器再把结果返回给客户端</li>
-</ol>
 
       
       <!-- reward -->

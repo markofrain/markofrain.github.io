@@ -78,6 +78,122 @@
     
     
     
+    <article id="post-MyBatis/Mybatis对存储过程的调用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/"
+    >Mybatis对存储过程的调用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
+  <time datetime="2019-07-30T15:56:15.000Z" itemprop="datePublished">2019-07-30</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="调用存储过程，输出参数为CURSOR"><a href="#调用存储过程，输出参数为CURSOR" class="headerlink" title="调用存储过程，输出参数为CURSOR"></a>调用存储过程，输出参数为CURSOR</h3><p>使用mybatis来调用存储过程，然后输出参数为CURSOR类型，在存储过程中，输出参数为SYS_REFCURSOR类型的游标。简易存储过程如下:</p>
+<pre><code>create or replace procedure testproc(test in varchar2,RETURNVAL out sys_refcursor)
+is
+test1 VARCHAR2(50);
+begin
+open RETURNVAL for
+     select * from baowen.bizmsg where trunc(receivedate)&gt;=to_date(&apos;2019-07-12&apos;,&apos;yyyy-mm-dd&apos;);
+end;</code></pre><p>那么mybatis中调用的方式如下:</p>
+<pre><code>&lt;resultMap id=&quot;test&quot; type=&quot;hashmap&quot;&gt;
+
+&lt;/resultMap&gt;
+&lt;select id=&quot;testProcedure&quot; parameterType=&quot;map&quot; statementType=&quot;CALLABLE&quot;&gt;
+        &lt;![CDATA[
+           &#123;call baowen.TESTPROC(
+             #&#123;test,mode=IN,jdbcType=VARCHAR&#125;,
+             #&#123;v_cursor,mode=OUT,jdbcType=CURSOR,resultMap=test&#125;
+           )&#125;
+       ]]&gt;
+&lt;/select&gt;</code></pre><p>在mybatis中，dao层定义的方法是无返回值的，参数为map类型，并有test和v_cursor参数，test值设置为实际值，v_cursor值为创建一个空的ArrayList，泛型为map。注意游标接收，一定需要有resultMap指定，否则，会报错需要resultmap，resultmap只做字段映射，所以查出的字段取决于存储过程。</p>
+<pre><code>void testProcedure(Map&lt;String,Object&gt; map);
+
+HashMap&lt;String, Object&gt; hashMap = new HashMap&lt;&gt;();
+hashMap.put(&quot;test&quot;, &quot;test&quot;);
+hashMap.put(&quot;v_cursor&quot;, new ArrayList&lt;Map&lt;String, Object&gt;&gt;());
+dzjDao.testProcedure(hashMap);
+System.out.println(hashMap.get(&quot;v_cursor&quot;));</code></pre><h3 id="当数据库类型时blob时的读写以及blob类型字段转换成json"><a href="#当数据库类型时blob时的读写以及blob类型字段转换成json" class="headerlink" title="当数据库类型时blob时的读写以及blob类型字段转换成json"></a>当数据库类型时blob时的读写以及blob类型字段转换成json</h3><p><strong>读取blob，读取blob时，存储过程参数不用管，输出参数是sys_refcursor类型，在mybatis的mapperxml里游标类型肯定是要配resultMap的，你可以不用设置他的属性，他会自动转换为java.sql.Blob类型</strong></p>
+<pre><code>&lt;resultMap id=&quot;zszmInfo&quot; type=&quot;hashmap&quot;&gt;
+        &lt;result column=&quot;QLR&quot; property=&quot;qlr&quot; javaType=&quot;java.lang.String&quot;/&gt;
+        &lt;result column=&quot;GYQK&quot; property=&quot;gyqk&quot; javaType=&quot;java.lang.String&quot;/&gt;
+        &lt;result column=&quot;EWM&quot; property=&quot;ewm&quot;/&gt;
+&lt;/resultMap&gt;</code></pre><p>然后你要想转为json，那么json里肯定是字符串类型。所以讲Blob转换为base64字符串放在json中。可以通过以下方式转换,改代码将blob转为字节数组，IOUtil是common-io包的类。使用alibaba fastjson的JSON可直接将byte数组转为base64.</p>
+<pre><code>if (o instanceof Blob) &#123;
+    Blob blob = (Blob) o;
+    try &#123;
+        byte[] bytes = IOUtils.toByteArray(blob.getBinaryStream());
+        item.put(key, bytes);
+    &#125; catch (IOException e) &#123;
+        e.printStackTrace();
+    &#125; catch (SQLException e) &#123;
+        e.printStackTrace();
+    &#125;
+&#125;</code></pre><p><strong>写入blob类型数据时，若只需要将数据转为byte[]字节数组，若前台传递的是base64，则通过<code>new BASE64Decoder().decodeBuffer(YSXLHP);</code>转为字节数组，然后存储过程调用的参数的jdbcType设置为Blob。不需要任何转换，mybatis有Handler可以让byte数组转为Blob类型。</strong></p>
+<pre><code>&lt;![CDATA[
+   &#123;call bdcdj.LND_PROC_UPDATECERTINFO(
+     #&#123;YWH,mode=IN,jdbcType=VARCHAR&#125;,
+     #&#123;YSXLHP,mode=IN,jdbcType=BLOB&#125;,
+     #&#123;returnval,mode=OUT,jdbcType=INTEGER&#125;
+   )&#125;
+]]&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-NodeJS/NodeJS——文件操作" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -694,173 +810,6 @@ public class SecondaryConfig &#123;
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/linux上部署tomcat7及JDK1.6项目导致的某些问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/"
-    >linux上部署tomcat7及JDK1.6项目导致的某些问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2019-03-13T07:35:11.000Z" itemprop="datePublished">2019-03-13</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="linux上部署tomcat7及JDK1-6项目导致的某些问题"><a href="#linux上部署tomcat7及JDK1-6项目导致的某些问题" class="headerlink" title="linux上部署tomcat7及JDK1.6项目导致的某些问题"></a>linux上部署tomcat7及JDK1.6项目导致的某些问题</h1><p>在linux的tomcat启动项目时，使用wsdl上报的原因，由于客户端出现并发情况，而服务端tomcat，仅有一个，且没有负载均衡。 事故的开始是，每次测试都会成功，正常返回信息，但每次测试只是一条一条的测试，每次测试间隔很大，每次测都能成功，等客户端实际调用请求了，出现并发。第一个好的，后面就客户端超时，超时。 后来看了好几次日志发现，每次的并发请求，都堆到了一个线程里exec-1，好多都等着他一个处理。默认tomcat线程池中是10个线程的，这个在java的bin下有jvisualvm.exe，可以查看jvm，比如tomcat和java进程的资源，CPU，内存，堆栈，等等。 之后发现很奇怪，windows自己电脑上的就好好地，几个请求，几个线程，若同时并发50个，则tomcat会多拿出40个线程到线程池里，这是50的请求处理线程。 <strong>这个是单次循环，非并发的。不报错，ok</strong></p>
-<pre><code>2019-03-06 19:16:58.337  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:192.168.0.98
-2019-03-06 19:16:58.799  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-08 15:52:00.625  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-08 15:52:00.995  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-10 14:45:44.918  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-10 14:45:45.273  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 11:50:27.746  INFO 873 --- [http-bio-8080-exec-2] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null</code></pre><p><strong>然后，一次的连续请求，导致出现问题</strong></p>
-<pre><code>2019-03-11 20:22:27.381  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:27.729  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:28.076  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:28.464  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:28.586  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:58.602  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url
-
-org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.executeMethod(HTTPSenderImpl.java:872) ~[axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.sendViaPost(HTTPSenderImpl.java:212) ~[axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.HTTPSender.send(HTTPSender.java:121) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.writeMessageWithCommons(CommonsHTTPTransportSender.java:403) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.invoke(CommonsHTTPTransportSender.java:234) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.engine.AxisEngine.send(AxisEngine.java:431) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.OutInAxisOperationClient.send(OutInAxisOperation.java:399) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.OutInAxisOperationClient.executeImpl(OutInAxisOperation.java:225) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.OperationClient.execute(OperationClient.java:150) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:533) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:509) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.rpc.client.RPCServiceClient.invokeBlocking(RPCServiceClient.java:101) [axis2-adb-1.7.9.jar:1.7.9]
-    at com.xxha.logservice.util.ServiceClient.dataExange(ServiceClient.java:36) [classes/:na]
-    at com.xxha.logservice.services.LogWebService.exchangeInfo(LogWebService.java:24) [classes/:na]
-    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.6.0_45]
-    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39) ~[na:1.6.0_45]
-    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25) ~[na:1.6.0_45]
-    at java.lang.reflect.Method.invoke(Method.java:597) ~[na:1.6.0_45]
-    at org.apache.axis2.rpc.receivers.RPCUtil.invokeServiceClass(RPCUtil.java:256) [axis2-adb-1.7.9.jar:1.7.9]
-    at org.apache.axis2.rpc.receivers.RPCMessageReceiver.invokeBusinessLogic(RPCMessageReceiver.java:121) [axis2-adb-1.7.9.jar:1.7.9]
-    at org.apache.axis2.receivers.AbstractInOutMessageReceiver.invokeBusinessLogic(AbstractInOutMessageReceiver.java:40) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.receivers.AbstractMessageReceiver.receive(AbstractMessageReceiver.java:106) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.engine.AxisEngine.receive(AxisEngine.java:169) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.HTTPTransportUtils.processHTTPPostRequest(HTTPTransportUtils.java:178) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.AxisServlet.doPost(AxisServlet.java:164) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at javax.servlet.http.HttpServlet.service(HttpServlet.java:650) [servlet-api.jar:na]
-    at javax.servlet.http.HttpServlet.service(HttpServlet.java:731) [servlet-api.jar:na]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:303) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:120) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter.access$000(ErrorPageFilter.java:61) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter$1.doFilterInternal(ErrorPageFilter.java:95) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:113) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:219) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:110) [catalina.jar:7.0.92]
-    at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:494) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:169) [catalina.jar:7.0.92]
-    at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:104) [catalina.jar:7.0.92]
-    at org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:1025) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:116) [catalina.jar:7.0.92]
-    at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:445) [catalina.jar:7.0.92]
-    at org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1137) [tomcat-coyote.jar:7.0.92]
-    at org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:637) [tomcat-coyote.jar:7.0.92]
-    at org.apache.tomcat.util.net.JIoEndpoint$SocketProcessor.run(JIoEndpoint.java:318) [tomcat-coyote.jar:7.0.92]
-    at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895) [na:1.6.0_45]
-    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918) [na:1.6.0_45]
-    at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) [tomcat-coyote.jar:7.0.92]
-    at java.lang.Thread.run(Thread.java:662) [na:1.6.0_45]
-
-2019-03-11 20:22:58.605  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:58.744  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:23:28.747  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url[http://10.255.5.123:8081/uaccess/services/registrationLog.dataExchange?wsdl]
-
-org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]</code></pre><p>最后，找了之后才发现,tomcat有bio，nio，apr的方式，再看看windows上的，都是nio。这才发现问题，根据博客上说的， bio是阻塞式I/O nio是非阻塞式I/O 这也是最后的问题，最后说改个地方就可以了，把tomcat中server.xml的Connector配置8080端口的哪里， 把protocol的值改成org.apache.coyote.http11.Http11NioProtocol</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a></li></ul>
 
 
     </footer>
