@@ -78,6 +78,87 @@
     
     
     
+    <article id="post-SpringBoot/有关使用SpringSecurity时跨域失效配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/07/13/SpringBoot/%E6%9C%89%E5%85%B3%E4%BD%BF%E7%94%A8SpringSecurity%E6%97%B6%E8%B7%A8%E5%9F%9F%E5%A4%B1%E6%95%88%E9%85%8D%E7%BD%AE/"
+    >有关使用Spring Security时跨域失效配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2021/07/13/SpringBoot/%E6%9C%89%E5%85%B3%E4%BD%BF%E7%94%A8SpringSecurity%E6%97%B6%E8%B7%A8%E5%9F%9F%E5%A4%B1%E6%95%88%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2021-07-13T04:00:00.000Z" itemprop="datePublished">2021-07-13</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/SpringSecurity/">SpringSecurity</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <blockquote>
+<p>参考：<a target="_blank" rel="noopener" href="http://www.jetchen.cn/spring-security-cors/">http://www.jetchen.cn/spring-security-cors/</a></p>
+</blockquote>
+<p>使用UrlBasedCorsConfigurationSource或使用CorsRegistry时跨域配置不起效。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">addCorsMappings</span><span class="params">(CorsRegistry registry)</span> </span>&#123;</span><br><span class="line">    registry.addMapping(<span class="string">&quot;/**&quot;</span>)</span><br><span class="line">        .allowCredentials(<span class="keyword">true</span>)</span><br><span class="line">        .allowedMethods(<span class="string">&quot;GET&quot;</span>, <span class="string">&quot;POST&quot;</span>, <span class="string">&quot;DELETE&quot;</span>, <span class="string">&quot;PUT&quot;</span>,<span class="string">&quot;PATCH&quot;</span>,<span class="string">&quot;OPTIONS&quot;</span>)</span><br><span class="line">        .allowedHeaders(<span class="string">&quot;*&quot;</span>)</span><br><span class="line">        .maxAge(<span class="number">3600</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CorsConfig</span> </span>&#123;</span><br><span class="line">    <span class="comment">/**扫描实例化该filter*/</span></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CorsWebFilter <span class="title">corsWebFilter</span><span class="params">()</span></span>&#123;</span><br><span class="line">        UrlBasedCorsConfigurationSource urlBasedCorsConfigurationSource = <span class="keyword">new</span> UrlBasedCorsConfigurationSource();</span><br><span class="line">        <span class="comment">/*cors跨域配置对象*/</span></span><br><span class="line">        CorsConfiguration corsConfiguration = <span class="keyword">new</span> CorsConfiguration();</span><br><span class="line">        <span class="comment">/*是否允许携带cookie*/</span></span><br><span class="line">        corsConfiguration.setAllowCredentials(<span class="keyword">true</span>);</span><br><span class="line">        <span class="comment">/*允许跨域访问的域名，可填写具体域名，*代表允许所有访问*/</span></span><br><span class="line">        corsConfiguration.addAllowedOrigin(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        <span class="comment">/*允许访问类型：get  post 等，*代表所有类型*/</span></span><br><span class="line">        corsConfiguration.addAllowedMethod(<span class="string">&quot;*&quot;</span>);</span><br><span class="line">        corsConfiguration.addAllowedHeader(<span class="string">&quot;*&quot;</span>);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*配置源对象，针对所有的请求地址生效*/</span></span><br><span class="line">        urlBasedCorsConfigurationSource.registerCorsConfiguration(<span class="string">&quot;/**&quot;</span>,corsConfiguration);</span><br><span class="line"></span><br><span class="line">        <span class="comment">/*cors 过滤器对象  注意！CorsWebFilter不要导错包*/</span></span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CorsWebFilter(urlBasedCorsConfigurationSource);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>在以上跨域配置方式不起效时，可以考虑使用过滤器加响应头,且在SpringSecurity过滤器执行链最开始时执行</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebSecurityCorsFilter</span> <span class="keyword">implements</span> <span class="title">Filter</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">init</span><span class="params">(FilterConfig filterConfig)</span> <span class="keyword">throws</span> ServletException </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">doFilter</span><span class="params">(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)</span> <span class="keyword">throws</span> IOException, ServletException </span>&#123;</span><br><span class="line">        HttpServletResponse res = (HttpServletResponse) servletResponse;</span><br><span class="line">        HttpServletRequest request = (HttpServletRequest) servletRequest;</span><br><span class="line">        res.setHeader(<span class="string">&quot;Access-Control-Allow-Origin&quot;</span>, request.getHeader(<span class="string">&quot;origin&quot;</span>));</span><br><span class="line">        res.setHeader(<span class="string">&quot;Access-Control-Allow-Methods&quot;</span>, <span class="string">&quot;POST, GET, OPTIONS, DELETE, PUT&quot;</span>);</span><br><span class="line">        res.setHeader(<span class="string">&quot;Access-Control-Max-Age&quot;</span>, <span class="string">&quot;3600&quot;</span>);</span><br><span class="line">        res.setHeader(<span class="string">&quot;Access-Control-Allow-Headers&quot;</span>, <span class="string">&quot;Authorization, Content-Type, Accept, x-requested-with, Cache-Control&quot;</span>);</span><br><span class="line">        res.setHeader(<span class="string">&quot;Access-Control-Allow-Credentials&quot;</span>,<span class="string">&quot;true&quot;</span>);</span><br><span class="line">        filterChain.doFilter(servletRequest, res);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">destroy</span><span class="params">()</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line">        <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http</span><br><span class="line">                .httpBasic().authenticationEntryPoint(<span class="keyword">new</span> LoginUrlAuthenticationEntryPoint(LOGIN_ENTRY_SEFIX))</span><br><span class="line">                .and()</span><br><span class="line">            	<span class="comment">// 此处在ChannelProcessingFilter之前增加了跨域过滤器</span></span><br><span class="line">                .addFilterBefore(<span class="keyword">new</span> WebSecurityCorsFilter(), ChannelProcessingFilter.class)</span><br><span class="line">                .addFilterAfter(<span class="keyword">new</span> OAuth2ClientContextFilter(), AbstractPreAuthenticatedProcessingFilter.class)</span><br><span class="line">                .addFilterAfter(myFilter(), OAuth2ClientContextFilter.class)</span><br><span class="line">                .authorizeRequests()</span><br><span class="line">                .antMatchers(ignoreActions).permitAll()</span><br><span class="line">                .antMatchers(HttpMethod.OPTIONS).permitAll()</span><br><span class="line">                .antMatchers(filterActions).authenticated()</span><br><span class="line">                ;</span><br><span class="line">        http.headers().frameOptions().disable();</span><br><span class="line">        http.csrf().disable();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E8%B7%A8%E5%9F%9F/" rel="tag">跨域</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-SpringSecurity/SpringSecurity集成Oauth2自动授权客户端代码" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -488,84 +569,6 @@
     <footer class="article-footer">
       
       
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Arcgis/arcgis连接postgresql所需客户端ddl" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/05/17/Arcgis/arcgis%E8%BF%9E%E6%8E%A5postgresql%E6%89%80%E9%9C%80%E5%AE%A2%E6%88%B7%E7%AB%AFddl/"
-    >arcgis连接postgresql所需客户端ddl</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/05/17/Arcgis/arcgis%E8%BF%9E%E6%8E%A5postgresql%E6%89%80%E9%9C%80%E5%AE%A2%E6%88%B7%E7%AB%AFddl/" class="article-date">
-  <time datetime="2021-05-17T04:00:00.000Z" itemprop="datePublished">2021-05-17</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/ArcGIS/">ArcGIS</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>ArcGIS通过ArcMap或ArcCatalog连接数据库</p>
-<p>使用该提供的文件适用于PostgreSQL11版本，其他版本需要自行测试</p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libeay32.dll">libeay32.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libiconv-2.dll">libiconv-2.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libintl-8.dll">libintl-8.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libpq.dll">libpq.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/ssleay32.dll">ssleay32.dll</a></p>
-<p>将文件放置到Arcgis Desktop的bin目录下即可。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ArcGIS/" rel="tag">ArcGIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PostgreSQL/" rel="tag">PostgreSQL</a></li></ul>
-
 
     </footer>
 

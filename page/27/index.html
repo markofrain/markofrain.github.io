@@ -78,6 +78,212 @@
     
     
     
+    <article id="post-Java/Java8新特性" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/03/24/Java/Java8%E6%96%B0%E7%89%B9%E6%80%A7/"
+    >Java8新特性</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/03/24/Java/Java8%E6%96%B0%E7%89%B9%E6%80%A7/" class="article-date">
+  <time datetime="2020-03-24T00:45:12.000Z" itemprop="datePublished">2020-03-24</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h1 id="Java8新特性"><a href="#Java8新特性" class="headerlink" title="Java8新特性"></a>Java8新特性</h1><ul>
+<li>速度更快</li>
+<li>代码更少(<strong>新增Lambda语法</strong>)</li>
+<li><strong>强大的Stream API</strong></li>
+<li>便于并行</li>
+<li>最大化减少空指针异常 Optional</li>
+</ul>
+<h2 id="Lambda表达式"><a href="#Lambda表达式" class="headerlink" title="Lambda表达式"></a>Lambda表达式</h2><p>Lambda表达式即函数式编程，需要<code>函数式接口</code>的支持。<br>函数式接口即:</p>
+<ul>
+<li>接口中只有1个方法</li>
+<li>接口支持泛型</li>
+<li>使用@FunctionalInterface注解修饰接口</li>
+</ul>
+<p>函数式编程只为简化代码量，简化写法，只是将new Xxxx(){public int xx(){}}这些需要实现接口方法的代码进行简化，而并非是执行这个方法。<strong>其目的依旧是实现接口方法</strong>。而<strong>变量是接口类</strong>并非方法返回。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">MyNumbercompare</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">compare</span><span class="params">(Integer n1,Integer n2)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>实现函数式接口的方式</p>
+<ul>
+<li>() -&gt; System.out.println();//无参数，无返回值</li>
+<li>(x) -&gt; System.out.println();//只有一个参数，且无返回值</li>
+<li>x -&gt; System.out.println();//只有一个参数，小括号可以不写</li>
+<li>Comparator<Integer> com = (x,y) -&gt; Integer.compare(x,y);//主体只有一条语句，return和大括号可以不写</li>
+</ul>
+<h3 id="default修饰符"><a href="#default修饰符" class="headerlink" title="default修饰符"></a>default修饰符</h3><p>可以再接口类中修饰方法，该方法是一个具体实现。<br>在接口中添加新功能特性，不影响接口的实现类。<br>不影响函数式接口。<br>关键字default，那么就无须提供该方法的实现。<br>函数式接口中，可以使用多个default修饰方法</p>
+<h3 id="四大内置核心函数式接口"><a href="#四大内置核心函数式接口" class="headerlink" title="四大内置核心函数式接口"></a>四大内置核心函数式接口</h3><ul>
+<li>Consumer<T>:消费型接口,void accept(T t);</li>
+<li>Supplier<T>:供给型接口,T get();</li>
+<li>Function<T>:函数型接口,R apply(T t);</li>
+<li>Predicate<T>: 段言型接口,boolean test(T t);<br>其他相关所有函数式接口，都在java.util.function包里</li>
+<li>BiFunction&lt;T,U,R&gt;: 参数类型为T,U,返回值为R</li>
+<li>UnaryOperator<T>: 参数类型T,返回值T；对类型为T的对象进行一元运算</li>
+<li>BinaryOperator<T>:参数T,T,返回值T;对类型为T的对象进行二元运算</li>
+<li>ToIntFunction<T>:参数T,返回int类型</li>
+<li>ToILongFunction<T>:参数T,返回long类型</li>
+<li>ToDoubleFunction<T>:参数T,返回double类型</li>
+<li>IntFunction<R>:参数int，返回类型为R</li>
+</ul>
+<h3 id="方法引用与构造器引用"><a href="#方法引用与构造器引用" class="headerlink" title="方法引用与构造器引用"></a>方法引用与构造器引用</h3><p>若Lambda体中内容有方法已经实现了，我们可以使用方法引用。<br>语法格式:</p>
+<ul>
+<li>对象::实例方法名</li>
+<li>类:静态方法名</li>
+<li>类::实例方法名</li>
+</ul>
+<p>需要保证的是，++函数式接口的方法++的参数列表与返回值类型要与++方法引用的实现方法++的参数列表与返回值类型一致。<br>例子如下:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">    Consumer&lt;String&gt; com = (x)-&gt; System.out.println(x);</span><br><span class="line"></span><br><span class="line">    Consumer&lt;String&gt; consumer = System.out::println;</span><br><span class="line"></span><br><span class="line">    consumer.accept(<span class="string">&quot;sss&quot;</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>对于上面两种，可以理解为两者都是右侧表达式，且表达式相同，只不过是显示方式不同<br>另外对方法引用还有一个理解是，上面的一句话，只需要保证其右侧表达式和函数式接口的方法是同参数列表同返回类型的，不就代表引用吗。</p>
+<p><strong>类名::实例方法名的使用说明:</strong></p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">BiPredicate&lt;String,String&gt; bp = (x,y) -&gt; x.equals(y);</span><br><span class="line"></span><br><span class="line">BiPredicate&lt;String,String&gt; bp = String::equals;</span><br></pre></td></tr></table></figure>
+<p>++即方法参数的第一个参数x为方法的调用对象，第二个参数及后面的为对象方法的参数列表.++</p>
+<p><strong>构造器引用:</strong><br>例如:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Function&lt;Integer,MyClass&gt; fun = (n) -&gt; <span class="keyword">new</span> MyClass(n);</span><br><span class="line">Function&lt;Integer,MyClass&gt; fun = MyClass::<span class="keyword">new</span>;</span><br></pre></td></tr></table></figure>
+<p>以上案例与方法引用类似，同样构造器参数列表要与接口提供的方法的参数列表一致。<br><strong>数组引用:</strong><br>例如:</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Function&lt;Integer,Integer[]&gt; fun = (n) -&gt; <span class="keyword">new</span> Integer[n];</span><br><span class="line">Function&lt;Integer,Integer[]&gt; fun = Integer[]::<span class="keyword">new</span>;</span><br></pre></td></tr></table></figure>
+
+<h2 id="Stream-API"><a href="#Stream-API" class="headerlink" title="Stream API"></a>Stream API</h2><p>流Stream是数据渠道，用于操作数据源(集合，数组)所生成的元素序列。流的来源还可以是I/O channel等s</p>
+<ul>
+<li>Stream自己不会存储元素</li>
+<li>Stream不会改变源对象。相反，它们会持有结果的新Stream</li>
+<li>Stream操作是延迟执行的。意味着它们会等到需要结果的时候才执行</li>
+</ul>
+<p>流的操作分为三个步骤:</p>
+<ul>
+<li>创建Stream，从集合或数组等数据源获取流</li>
+<li>中间操作，对数据源进行处理</li>
+<li>终止操作，执行中间操作链，产生结果</li>
+</ul>
+<h3 id="创建流"><a href="#创建流" class="headerlink" title="创建流"></a>创建流</h3><ol>
+<li>Collection接口获得流</li>
+</ol>
+<ul>
+<li>default Stream<E> stream():返回一个顺序流</li>
+<li>default Stream<E> paralleStream():返回一个并行流</li>
+</ul>
+<ol start="2">
+<li>数组创建流<br>使用Arrays的静态Stream()重载方法可以获得数据流，重载包括int,long,double,T泛型。</li>
+</ol>
+<ul>
+<li>public static IntStream stream(int[] array)</li>
+<li>public static LongStream stream(long[] array)</li>
+<li>public static DoubleStream stream(double[] array)</li>
+<li>public static <T> Stream<T> stream(T[] array)</li>
+</ul>
+<ol start="3">
+<li><p>通过Stream类创建<br>静态方法of,创建一个流，接收任意数量的参数<br>public static<T> Stream<T> of(T… values)</p>
+</li>
+<li><p>函数创建流<br>使用静态方法Stream.iterator()和Stream.generate()创建流</p>
+</li>
+</ol>
+<ul>
+<li>迭代:public static<T> Stream<T> iterate(final T seed, final UnaryOperator<T> f) </li>
+<li>生成:public static<T> Stream<T> generate(Supplier<T> s)</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Stream&lt;Integer&gt; stream = Stream.iterate(<span class="number">0</span>,(x)-&gt;x+<span class="number">2</span>);</span><br><span class="line">stream.limit(<span class="number">10</span>).forEach(System.out::println);</span><br><span class="line"></span><br><span class="line">Stream.generate(()-&gt; Math.random()).limit(<span class="number">10</span>).forEach(System.out::println);</span><br></pre></td></tr></table></figure>
+<h3 id="中间操作"><a href="#中间操作" class="headerlink" title="中间操作"></a>中间操作</h3><p>多个中间操作可以连接起来形成一个流水线，除非终止操作，即类似ForEach,println等，否则<strong>中间操作不会执行任何的处理</strong>，而在终止操作时一次性处理全部处理，称为惰性求值。</p>
+<ol>
+<li>筛选与切片</li>
+</ol>
+<ul>
+<li>filter(Predicate p):接收lambda表达式，段言型，即过滤去除。</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Stream&lt;Double&gt; stream1 = Stream.generate(()-&gt; Math.random()).limit(<span class="number">20</span>);</span><br><span class="line"></span><br><span class="line">Stream&lt;Double&gt; stream1x =  stream1.filter((x)-&gt;&#123;</span><br><span class="line">    System.out.println(<span class="string">&quot;Stream API&quot;</span>);</span><br><span class="line">    <span class="keyword">return</span> x&gt;<span class="number">0.4</span>;</span><br><span class="line">&#125;);</span><br><span class="line"></span><br><span class="line">stream1.forEach(System.out::println);</span><br></pre></td></tr></table></figure>
+<p>如上，若没有第三段的forEach，则运行到第二段后，是不会进行打印Stream API的，知道有打印的才会打印，而被过滤的数据不被计入到limit20里，所以在ForEach只有会有20个double随机数被打印出来，和不定的Stream API打印。</p>
+<ul>
+<li>limit(int number):在Stream找到所需元素固定次数后，就不在迭代过滤。</li>
+<li>skip(int n):跳过n个元素，如果流中元素不足n个，则返回空流</li>
+<li>distinct():去除重复记录,通过hashCode()和euqals()来去重</li>
+</ul>
+<ol start="2">
+<li>映射</li>
+</ol>
+<ul>
+<li>map:接受一个函数作为参数，该函数会应用到所有的元素上，并将其映射成一个新的元素。</li>
+<li>flatMap:接收一个函数作为参数，将flatMap的的函数中返回的流连接成一个流，即若flatMap的参数函数返回一个流，那么它会将返回的流连接成一个流，即从Stream&lt;Stream<String>&gt; 变成 Stream<String></li>
+</ul>
+<ol start="3">
+<li>排序</li>
+</ol>
+<ul>
+<li>sorted:自然排序</li>
+<li>stored(Comparator com):参数接受一个Comparator接口函数，用于自定义排序</li>
+</ul>
+<ol start="4">
+<li>查找与匹配</li>
+</ol>
+<ul>
+<li>allMatch(Predicate p):检查是否匹配所有元素</li>
+<li>anyMatch(Predicate p):检查是否至少匹配一个元素</li>
+<li>noneMatch(predicate p):检查是否没有匹配所有元素</li>
+<li>findFirst():返回第一个元素</li>
+<li>findAny():返回当前流中任意元素</li>
+<li>count():返回流中的元素数量</li>
+<li>max(Comparator c):返回流中最大值</li>
+<li>min(Comparator c):返回流中最小值</li>
+<li>forEach(Consumer c):内部迭代</li>
+</ul>
+<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/other/TIM%E6%88%AA%E5%9B%BE20190604115348.png" alt=""><br><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/other/TIM%E6%88%AA%E5%9B%BE20190604115508.png" alt=""><br><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/other/TIM%E6%88%AA%E5%9B%BE20190604115552.png" alt=""></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Hadoop/集群搭建相关问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -566,84 +772,6 @@
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%B8%E7%94%A8/" rel="tag">常用</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-帆软/帆软相关问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/20/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
-    >帆软相关问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/20/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2020-03-20T05:10:00.000Z" itemprop="datePublished">2020-03-20</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%B8%86%E8%BD%AF/">帆软</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="帆软相关问题"><a href="#帆软相关问题" class="headerlink" title="帆软相关问题"></a>帆软相关问题</h1><h3 id="基于8-0低版本问题"><a href="#基于8-0低版本问题" class="headerlink" title="基于8.0低版本问题"></a>基于8.0低版本问题</h3><ol>
-<li><p>为文本控件设置默认值，控件值为空设置默认值。当点击控件后，设置的默认消失了。原因是设置了控件的值长度。取消长度规则设置，若需要长度校验可在控件属性-编辑后时间中处理。</p>
-</li>
-<li><p>当你编辑控件文本框时，如果没有点击空白区域，那么控件不会认为你已经编辑结束，且输入的值，会在编辑结束后才会被控件接收到。因此当你编辑完控件值后，直接点击保存，那么得到的值是上一个编辑完成后的值。</p>
-</li>
-<li><p>报表显示高度问题。当最后一行没有单元格被占用是，报表就到结束了。如果你想获取某单元格的数据放到(动态js)另一个地方，以便其他操作的时候可以取，那么这个时候就不能把值放到报表无数据最后面。因为现实报表后，没有行占用。就没有这一样，那么你要获取的话就获取不到。</p>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%86%E8%BD%AF/" rel="tag">帆软</a></li></ul>
 
 
     </footer>

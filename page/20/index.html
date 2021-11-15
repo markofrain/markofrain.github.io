@@ -78,6 +78,85 @@
     
     
     
+    <article id="post-Docker/相关问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/10/29/Docker/%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
+    >相关问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/10/29/Docker/%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2020-10-29T04:00:00.000Z" itemprop="datePublished">2020-10-29</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="java-net-NoRouteToHostException-No-route-to-host-Host-unreachable"><a href="#java-net-NoRouteToHostException-No-route-to-host-Host-unreachable" class="headerlink" title="java.net.NoRouteToHostException: No route to host (Host unreachable)"></a>java.net.NoRouteToHostException: No route to host (Host unreachable)</h2><p>docker中程序容器调用redis时出现的问题，提示无法访问到主机。</p>
+<p>解决方法为：首先判断redis饰扣正常可用(如果不可用会报连接失败而不是这个)，开放宿主机对应的端口，程序容器和redis容器端口。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">firewall-cmd --zone=public --add-port=6379/tcp --permanent</span><br><span class="line">firewall-cmd --reload</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="docker-java服务注册到nacos后是docker内网访问"><a href="#docker-java服务注册到nacos后是docker内网访问" class="headerlink" title="docker java服务注册到nacos后是docker内网访问"></a>docker java服务注册到nacos后是docker内网访问</h2><p>解决方法: 使用当前服务宿主机的host信息。</p>
+<ol>
+<li>在docker run 命令时添加<code>--network=host</code>参数，此时-p参数将无效，容器内部的端口将直接作用到宿主机，而容器内部的host信息，网络信息都与宿主机相同。</li>
+<li>在bootstrap.yml文件中配置spring.cloud.nacos.discovery.ip可以指定为宿主机的ip，port属性可以指定为当前服务的port。此时注册到nacos上时，服务列表详情显示的某个实例的ip地址就是宿主机的ip地址。</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-常用代码/Java常用代码" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -409,98 +488,6 @@
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-other/使用ffmpeg转码m3u8并播放" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/09/06/other/%E4%BD%BF%E7%94%A8ffmpeg%E8%BD%AC%E7%A0%81m3u8%E5%B9%B6%E6%92%AD%E6%94%BE/"
-    >使用ffmpeg转码m3u8并播放</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/09/06/other/%E4%BD%BF%E7%94%A8ffmpeg%E8%BD%AC%E7%A0%81m3u8%E5%B9%B6%E6%92%AD%E6%94%BE/" class="article-date">
-  <time datetime="2020-09-06T04:00:00.000Z" itemprop="datePublished">2020-09-06</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>ffmgeg.exe可可以将多种格式相互转换。<br>使用方法可以到网上搜。<br>这里提供MP4转ts，到m3u8的方法</p>
-<p><strong>将MP4转换为ts文件</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -y -i 本地视频.mp4 -vcodec copy -acodec copy -vbsf h264_mp4toannexb 转换视频.ts</span><br></pre></td></tr></table></figure>
-
-<p><strong>将ts文件分割成多个ts文件和一个m3u8索引文件。</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -i 本地视频.ts -c copy -map 0 -f segment -segment_list 视频索引.m3u8 -segment_time 5 前缀-%03d.ts</span><br></pre></td></tr></table></figure>
-
-<p>其中segment 就是切片，-segment_time表示隔几秒进行切一个文件，上面命令是隔5s，你也可以调整成更大的参数</p>
-<p><strong>使用hls.js可以直接播放</strong></p>
-<figure class="highlight javascript"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (suf.indexOf(a)&gt;-<span class="number">1</span>) &#123;</span><br><span class="line">    layer.open(&#123;</span><br><span class="line">        type: <span class="number">1</span>,</span><br><span class="line">        area: [<span class="string">&#x27;700px&#x27;</span>, <span class="string">&#x27;500px&#x27;</span>],</span><br><span class="line">        content: <span class="string">&#x27;&lt;video id=&quot;video&quot; autobuffer autoloop loop controls height=&quot;100%&quot; width=&quot;100%&quot;&gt;&lt;/video&gt;&#x27;</span></span><br><span class="line">        <span class="comment">//content: &#x27;&lt;div id=&quot;mp4&quot; style=&quot;width:100%;height:100%&quot;&gt;&lt;/div&gt;&#x27;</span></span><br><span class="line">    &#125;);</span><br><span class="line">    <span class="keyword">if</span> (Hls.isSupported()) &#123;</span><br><span class="line">        <span class="keyword">var</span> video = <span class="built_in">document</span>.getElementById(<span class="string">&#x27;video&#x27;</span>);</span><br><span class="line">        <span class="keyword">var</span> hls = <span class="keyword">new</span> Hls();</span><br><span class="line">        hls.loadSource(<span class="string">&#x27;/video&#x27;</span> + path);</span><br><span class="line">        hls.attachMedia(video);</span><br><span class="line">        hls.on(Hls.Events.MANIFEST_PARSED, <span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                video.play();</span><br><span class="line">            &#125; <span class="keyword">catch</span> (error) &#123;</span><br><span class="line">                <span class="built_in">console</span>.log(error);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;<span class="keyword">else</span> <span class="keyword">if</span> (video.canPlayType(<span class="string">&#x27;application/vnd.apple.mpegurl&#x27;</span>)) &#123;</span><br><span class="line">        video.src = <span class="string">&#x27;/video&#x27;</span> + pa;</span><br><span class="line">        video.addEventListener(<span class="string">&#x27;loadedmetadata&#x27;</span>,<span class="function"><span class="keyword">function</span>(<span class="params"></span>) </span>&#123;</span><br><span class="line">            video.play();</span><br><span class="line">        &#125;);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    layer.open(&#123;</span><br><span class="line">        title:<span class="string">&#x27;提示&#x27;</span>,</span><br><span class="line">        content:<span class="string">&#x27;是否下载&#x27;</span>,</span><br><span class="line">        resize:<span class="literal">false</span>,</span><br><span class="line">        btn:[<span class="string">&#x27;下载&#x27;</span>,<span class="string">&#x27;取消&#x27;</span>],</span><br><span class="line">        yes:<span class="function"><span class="keyword">function</span> (<span class="params">index,layero</span>) </span>&#123;</span><br><span class="line">            <span class="keyword">var</span> at = <span class="built_in">document</span>.createElement(<span class="string">&#x27;a&#x27;</span>);</span><br><span class="line">            at.setAttribute(<span class="string">&#x27;href&#x27;</span>,<span class="string">&#x27;/video/&#x27;</span>+path);</span><br><span class="line">            at.click();</span><br><span class="line">            layer.close(index);</span><br><span class="line">        &#125;,</span><br><span class="line">        btn2:<span class="function"><span class="keyword">function</span> (<span class="params">index,layero</span>) </span>&#123;</span><br><span class="line">            layer.close(index);</span><br><span class="line">        &#125;,</span><br><span class="line">        cancel:<span class="function"><span class="keyword">function</span> (<span class="params">index,layero</span>) </span>&#123;</span><br><span class="line">            layer.close(index);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p><strong>avi转mp4</strong> 占用cpu100%不可取</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg.exe ‐i test.avi ‐c:v libx264 ‐s 1280x720 ‐pix_fmt yuv420p ‐b:a 63k ‐b:v 753k ‐r 18 .\test.mp4</span><br></pre></td></tr></table></figure>
-
-<p>-c:v 视频编码为x264 ，x264编码是H264的一种开源编码格式。</p>
-<p>-s 设置分辨率</p>
-<p>-pix_fmt yuv420p：设置像素采样方式，</p>
-<p>-b 设置码率，-b:a和-b:v分别表示音频的码率和视频的码率，-b表示音频加视频的总码率。码率对一个视频质量有很大的作用，</p>
-<p>-r：帧率，表示每秒更新图像画面的次数，通常大于24肉眼就没有连贯与停顿的感觉了。</p>
-<p><strong>avi转ts</strong></p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">ffmpeg -i input.avi -b:v 640k output.ts</span><br></pre></td></tr></table></figure>
-
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/video/" rel="tag">video</a></li></ul>
 
 
     </footer>

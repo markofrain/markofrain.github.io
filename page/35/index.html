@@ -78,6 +78,202 @@
     
     
     
+    <article id="post-Zoopeeker/Zookeeper集群服务器注册动态上下线" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/"
+    >Zookeeper集群服务器注册动态上下线</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/" class="article-date">
+  <time datetime="2018-12-30T13:32:43.000Z" itemprop="datePublished">2018-12-30</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>服务器上下线，就是服务器在集群化环境下，服务器出现的断开集群连接，或服务器宕机，关机，停止工作等问题。而服务器动态上下线感知就是客户端可以监听服务器的上线或下线，知道哪个服务器正在运行，哪个服务器停止了，若某台机器退出集群了，表示该服务器节点下线了。那么客户端就不会请求这台服务器了。并且客户端通过监听就可以知道那些机器在运行中。 首先Zookeepr能做什么，主要是作为分布式命名服务，通过调用zNode api 能够很容易的创建一个全局的path，一个path就是一个名称，且具有层级结构。当然还有其他作用。 而Zookeeper具有监听watch的功能，监听节点值和子节点。那么将服务器作为每个节点，由zookeeper统一管理，每个节点都会有stat信息，存储这相关内容及配置。那么节点又分为临时和持久，以及四个节点目录类型。只要将服务器节点设置为临时顺序节点，即可监听节点的数量。只要服务器节点断开。那个临时节点就会删除。这句话也就是说，将服务器通过Zookeeper管理，两者的关系就是，服务器就是Client，同真正的Client客户端类似。也就是说，服务器需要到Zookeeper值注册节点，那么Server服务器也就理应成了Client的角色。 <strong>简而言之:</strong></p>
+<ul>
+<li>n个服务器到Zookeeper中注册节点，注册到同一个节点下，那么他们都是同级的子节点。</li>
+<li>而客户端会通过ls path [watch]，来监听这个节点的变化，也就是路径的变化。在java操作客户端时getChildren可以使用Watcher来监听某个节点。那么被监听的这个节点就是众多服务器节点的父节点。</li>
+</ul>
+<p>需要注意的是，服务器都通过zookeeper来管理，要到Zookeeper中注册节点。而客户端专门监听Zookeeper的节点列表。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181230202802.png" alt=""> java代码的具体方式就是，先服务器注册，在客户端监听。 看一下服务器代码:</p>
+<pre><code>public class ZkServer &#123;
+
+    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
+    private int sessionTimeout=20000;
+    private ZooKeeper zkServer = null;
+
+    public static void main(String[] args) &#123;
+        ZkServer server = new ZkServer();
+        server.connect();//连接Zookeeper
+        server.register(args[0]);//注册服务器节点
+        server.message(args[0]);
+    &#125;
+
+    /**
+     * 服务器注册完毕提示
+     * @param string
+     */
+    private void message(String hostName) &#123;
+        System.out.println(hostName + &quot;启动完毕!!!&quot;);
+    &#125;
+
+    /**
+     * 服务器节点注册
+     */
+    private void register(String hostName) &#123;
+        try &#123;
+            zkServer.create(&quot;/servers/server&quot;, hostName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+        &#125; catch (KeeperException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125; catch (InterruptedException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+        System.out.println(&quot;注册服务器节点&quot; + hostName);
+        try &#123;
+            Thread.sleep(Long.MAX_VALUE);
+        &#125; catch (InterruptedException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+    &#125;
+
+    /**
+     * 服务器作为客户端连接Zookeeper
+     */
+    private void connect() &#123;
+        try &#123;
+            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
+
+                public void process(WatchedEvent event) &#123;
+
+                &#125;
+            &#125;);
+        &#125; catch (IOException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+    &#125;
+&#125;</code></pre><p>客户端代码:</p>
+<pre><code>public class ZkClient &#123;
+
+    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
+    private int sessionTimeout=20000;
+    private ZooKeeper zkServer = null;
+
+    public static void main(String[] args) &#123;
+        ZkClient client = new ZkClient();
+        client.connect();//连接Zookeeper
+
+    &#125;
+
+    /**
+     * 服务器作为客户端连接Zookeeper
+     */
+    private void connect() &#123;
+        try &#123;
+            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
+                public void process(WatchedEvent event) &#123;
+                    try &#123;
+                        List&lt;String&gt; list = zkServer.getChildren(&quot;/servers&quot;, true);
+                        System.out.println(list.toString());
+                    &#125; catch (KeeperException e) &#123;
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    &#125; catch (InterruptedException e) &#123;
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    &#125;
+                &#125;
+            &#125;);
+        &#125; catch (IOException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+        try &#123;
+            Thread.sleep(Long.MAX_VALUE);
+        &#125; catch (InterruptedException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+    &#125;
+
+&#125;</code></pre><p>其实总体来说，只有客户端代码有用，它负责监听，并把子节点打印出来。我们可以直接启动客户端代码。而对于服务器注册而言，无非是命令行创建变成了通过java代码创建。所以，只需要把客户端启动起来，在命令行上创建临时顺序节点即可。下面是命令行注册服务器，以及对应的客户端打印输出。</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 34] ls /servers
+[]
+[zk: localhost:2181(CONNECTED) 35] create -s -e /servers/server server1
+Created /servers/server0000000001
+[zk: localhost:2181(CONNECTED) 36] create -s -e /servers/server server2
+Created /servers/server0000000002
+[zk: localhost:2181(CONNECTED) 37] create -s -e /servers/server server3
+Created /servers/server0000000003
+[zk: localhost:2181(CONNECTED) 38] delete /servers/server0000000001
+
+
+[]
+[server0000000001]
+[server0000000002, server0000000001]
+[server0000000003, server0000000002, server0000000001]
+[server0000000003, server0000000002]</code></pre><p>为什么我不用java启动服务注册，因为，你需要开线程，或者打个包才能执行三次。没有命令行快速方便。然后，没了。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Zoopeeker/Zookeeper客户端java操作说明" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -592,236 +788,6 @@ Error contacting service. It is probably not running.</code></pre></li>
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
 
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/记录工作中某些表的某些字段为空的数量并按行政区形成excel表格" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/27/Java/%E8%AE%B0%E5%BD%95%E5%B7%A5%E4%BD%9C%E4%B8%AD%E6%9F%90%E4%BA%9B%E8%A1%A8%E7%9A%84%E6%9F%90%E4%BA%9B%E5%AD%97%E6%AE%B5%E4%B8%BA%E7%A9%BA%E7%9A%84%E6%95%B0%E9%87%8F%E5%B9%B6%E6%8C%89%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%BD%A2%E6%88%90excel%E8%A1%A8%E6%A0%BC/"
-    >记录工作中某些表的某些字段为空的数量并按行政区形成excel表格</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/27/Java/%E8%AE%B0%E5%BD%95%E5%B7%A5%E4%BD%9C%E4%B8%AD%E6%9F%90%E4%BA%9B%E8%A1%A8%E7%9A%84%E6%9F%90%E4%BA%9B%E5%AD%97%E6%AE%B5%E4%B8%BA%E7%A9%BA%E7%9A%84%E6%95%B0%E9%87%8F%E5%B9%B6%E6%8C%89%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%BD%A2%E6%88%90excel%E8%A1%A8%E6%A0%BC/" class="article-date">
-  <time datetime="2018-12-27T15:17:09.000Z" itemprop="datePublished">2018-12-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>该统计主要就是，得到每个表里检测空字段的数量，并且是按行政区统计数量。 简单地说就是 这几十张表里每条数据都有可能是任何一个行政区的数据，并且某些字段都有为空的情况，那么要做的统计就是某个表某个字段为空的数量。如下图这样。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181227222220.png" alt=""> 当然啊，这个上面的表名是可以换成表名称的。 其实统计是很简单的，只不过要通过POI包，将数据通过POI写到excel里，并且布置布局比较困难。查询还是很简单的。另外这个结果图还没有带excel单元格格式设置。 总体来说查询，就是单个单个的查，一个表对应一个字段，表和字段时一对多，那多个表就是多个一对多。这样一条一条的统计确实是很慢。若表比较多，要检查的字段也很多。有多少个检查字段，就要查多少次。 这个单个字段检测空的统计，就是到指定表里查询为空的数据，然后group分组一下，再右关联行政区划字段表(右表全部)。这样所有的行政区都会有，设置行政区为空的，也就是没匹配上的使用NVL化空位0. 当然这个统计需要按顺序的，不管行政区排序，还是表排序。其实这样做可以避免一些出错，或某些应用统计需要这样做。因为排好序的话，字段列多，可以使用到线程帮忙。一般而言，每个字段查询的数据越多、字段越多，那么数据量就越大。耗时越高。 总体的程序步骤是这样的:</p>
-<ol>
-<li><p>一个表对应一个字段，这样形成一张表，可以依次通过表名和字段名到统计里查，这两个值作为参数</p>
-</li>
-<li><p>因为每个字段是一列数据，所以每个字段作为一个linkedList，然后在用一个LinkedList在外面包起来。其中这数据再查询时必须要以行政区排序，纵轴行政区也是要排序的，一一对应。</p>
-</li>
-<li><p>这样这个数据就是外层list为每个列数据，内层nlist的每个值是每行的数据，这样嵌套循环时，就是<strong>list.get(j).get(i)了</strong>，表示的就是:POI先创建整行row，再创建单个cell，j为内层循环表示某个列，也就是该行的单元格，依次用j循环，就是循环所有列集合的第i个元素，也就是第i行的数据。看下代码吧。</p>
-<pre><code>for (int i = 0; i &amp;lt; rowNum; i++)&#123;
-        row = sheet.getRow(i+2);//第i行,行已经在设置行政区时创建
-
-        //创建列，一共有属性集合数量个列
-        for(int j = 0; j &amp;lt; linkedList.size(); j++)&#123;
-            cell = row.createCell(j+2);//每行有多少列，是依据列的数量的,所以是j
-            CheckNullField checkNullField = list.get(j);//获得当前的为空属性对象
-
-            //当出现行号i大于等于最大行号时，后面的设置值就会超出索引。也就是说任意一列的某一行，这个行超出了内部集合区县的数量。
-
-            //System.out.println(&amp;quot;第&amp;quot; + i + &amp;quot;行第&amp;quot; + j + &amp;quot;列的值为:&amp;quot; + linkedList.get(j).get(checkNullField.getTableName()+&amp;quot;,&amp;quot;+checkNullField.getField()).get(i).toString());
-            Long value = linkedList.get(j).get(checkNullField.getTableName()+&amp;quot;,&amp;quot;+checkNullField.getField()).get(i);
-            if(value!=0)&#123;
-                cell.setCellStyle(cellStyle);
-            &#125;
-            cell.setCellValue(value.toString());
-        &#125;
-    &#125;</code></pre></li>
-</ol>
-<ol start="4">
-<li><p>里面有多余的注释，是循环时可能出现的问题。不过被删了。暂时先不考虑，等错了再加上去。i+2和j+2表示从第三行开始也就是索引为2的开始，因为设置布局时已经被站了两行两列。这里的getRow()是为什么geRow而不是createRow，因为在布局行政区两列时已经把所有行都创建了，所以这里只有createCell。</p>
-</li>
-<li><p>当然应该先配置两行两列的布局,先配置列，行政区。这里的方法就是，循环所有区县，当他们的上级一样时就添加endRow，不一样时就合并上一个单元格。看代码比较好一点吧。</p>
-<pre><code>sheet.createRow(0);
-    sheet.createRow(1);
-    //设置&amp;quot;地州&amp;quot;合并单元格
-    CellRangeAddress cellRangeAddress = new CellRangeAddress(0,1,0,0);
-    sheet.addMergedRegion(cellRangeAddress);
-    sheet.getRow(0).createCell(0).setCellValue(&amp;quot;地州&amp;quot;);
-    //设置&amp;quot;市县&amp;quot;合并单元格
-    cellRangeAddress = new CellRangeAddress(0,1,1,1);
-    sheet.addMergedRegion(cellRangeAddress);
-    sheet.getRow(0).createCell(1).setCellValue(&amp;quot;区县&amp;quot;);
-    //合并单元格之后，此时行和列都在第2
-    //######################################以下为列循环###########################################################
-    //循环区县列表
-    int beginrow = 2;
-    int endrow = 2;
-    String twoXzqh = xzqhList.get(0).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;//二级行政区判断
-    for (int i = 0; i&amp;lt; xzqhList.size(); i++)&#123;
-
-        XSSFRow row = sheet.createRow(i+2);//创建第三行
-        if (i==104)&#123;
-            cellRangeAddress = new CellRangeAddress(beginrow,endrow,0,0);//合并第一列单元格，改行值不改列值
-            sheet.addMergedRegion(cellRangeAddress);
-            sheet.getRow(cellRangeAddress.getFirstRow()).createCell(0).setCellValue(twoMap.get(twoXzqh));
-            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
-        &#125;
-        if((xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;).equals(twoXzqh))&#123;//判断当前三级代码替换为二级后是否与判断的相同，相同则为一个地州
-            twoXzqh = xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;
-            endrow=endrow+1;
-            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
-        &#125;else&#123;//不等于,说明已经换一个地州的区县了
-            //合并单元格，设置单元格值
-            cellRangeAddress = new CellRangeAddress(beginrow,endrow-1,0,0);//合并第一列单元格，改行值不改列值
-            sheet.addMergedRegion(cellRangeAddress);
-            //修改开始结束row,将结束设置为开始
-            beginrow = endrow;
-            //在更改临时二级行政变量之前，设置值
-
-            sheet.getRow(cellRangeAddress.getFirstRow()).createCell(0).setCellValue(twoMap.get(twoXzqh));
-            //尽管变了二级行政，但依然要设置
-            twoXzqh = xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;
-            endrow=endrow+1;
-            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
-        &#125;
-    &#125;</code></pre></li>
-</ol>
-<ol start="6">
-<li><p>其中beginRow和endRow就是合并单元格时候的开始行和结束行，那么就通过这两和值，将相同的区县时，把endRow累加，不相同时，就换二级行政区了，需要合并上个单元格并设置值，然后设置当前行当前单元格的值。其中需要注意beginRow和endRow的关系，比如合并单元格时endrow-1，因为是以0为索引，所以要合并上一个单元格需要-1，这个需要通过尝试再调试，刚开始的时候不容易找到这个表达式。还有endrow=enrow+1是当前这个行，增的第一行，所以需要加1。而中间的benginrow=endrow表示合并完毕，就把结尾值为开始值，重新增长合并。</p>
-</li>
-<li><p>然后是设置两行:与设置列是一样的，对应相反，行已经创建了，只需要创建每个单元格</p>
-<pre><code>public static void createRowHeader(XSSFWorkbook workbook, XSSFSheet sheet,List list)&#123;
-    //前两行row在创建行政区时已经创建过了，直接getRow第一行第二行就好
-    XSSFRow row1 = sheet.getRow(0);
-    XSSFRow row2 = sheet.getRow(1);
-    CellRangeAddress cellRangeAddress = null;
-    int beginCell = 2;
-    int endCell = 2;
-
-    String tableName = list.get(0).getTableName() ;//第一个表名
-    for(int i =0; i &amp;lt; list.size(); i++)&#123;
-
-        row1.createCell(i+2);
-        row2.createCell(i+2);
-
-        if(i==list.size()-1)&#123;
-            cellRangeAddress = new CellRangeAddress(0, 0, beginCell, endCell);
-            sheet.addMergedRegion(cellRangeAddress);
-            row1.getCell(cellRangeAddress.getFirstColumn()).setCellValue(tableName);//设置合并单元格值
-
-            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());
-        &#125;
-
-        if(list.get(i).getTableName().equals(tableName))&#123;
-            tableName = list.get(i).getTableName();
-            endCell += 1;
-            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());
-        &#125;else&#123;
-            //###设置之前单元格合并
-            if(beginCell+1!=endCell) &#123;//不是单独单元格的进行合并
-                cellRangeAddress = new CellRangeAddress(0, 0, beginCell, endCell - 1);
-                sheet.addMergedRegion(cellRangeAddress);
-                row1.getCell(cellRangeAddress.getFirstColumn()).setCellValue(tableName);//设置合并单元格值
-            &#125;else&#123;
-                row1.getCell(i-1 +2).setCellValue(tableName);//设置上一个单元格，因为没有合并单元格，所以在新表之前设置上个单元格值
-            &#125;
-            //##设置当前第二行单元格值
-            beginCell = endCell;
-            tableName = list.get(i).getTableName();
-            endCell = endCell+1;
-            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());//添加当前新tablename的row2
-        &#125;
-    &#125;
-&#125;</code></pre></li>
-</ol>
-<ol start="8">
-<li><p>这里，在外部循环时，创建Cell，内部是要getCell，不能再创建了，否则获得不到值。而else中的那个判断表示的是当一个表只有一个字段要检查时，合并的话不能C1:C1,所以要设置这个判断条件。</p>
-</li>
-<li><p>最后结果就是，先配置行政区，后配置字段行，最后配置数据列，这个数据列要依据被占的行和列对应添加数。</p>
-</li>
-</ol>
-<p>然后说一下表名和字段名作为参数的这个查询。我在之前想和好久，又是视图又是存储过程的。用视图和存储过程的话需要创建好多结果表，然后很难表连接，连一块。而且表名和字段是特殊字，有些地方不能直接使用。最后用hql来解决，jpa的entityManager的createNativeQuery,创建一个本地查询，可以直接将拼接字符串作为hql进行查询，后面尽量加上查询结果类型Class。因为jpa尽管方便的原因是有很多规则，包括必须的持久化类，还要添加注解，标识列.</p>
-<pre><code>public HashMap&lt;String, LinkedList&lt;Long&gt;&gt; get(String table,String field,String startDate,String endDate) &#123;
-        HashMap&lt;String, LinkedList&lt;Long&gt;&gt; map = new HashMap&lt;&gt;();//map集合存储表字段名，和数量集合
-        LinkedList&lt;Long&gt; list = new LinkedList&lt;&gt;();
-        //这些表不统计,仍需要确定表和字段，然后添加到linkedList中
-        //todo 更改
-        if(noCheck.contains(table)
-                || (table.equals(&quot;QLF_FW_FDCQ_DZ_XM&quot;)&amp;&amp;field.equals(&quot;QLLX&quot;)))&#123;
-            for (int i=0 ; i&lt;105; i++)&#123;
-                list.add(0L);
-            &#125;
-            map.put(table + &quot;,&quot; + field,list);
-            return map;
-        &#125;
-        //创建sql语句
-        String sql = &quot;with\n&quot; +
-                &quot;v0 as (\n&quot; +
-                &quot;select qxdm from baowen.&quot; + table + &quot; \n&quot; +
-                &quot;where (&quot; + field + &quot; is null or rtrim(ltrim(&quot;+ field +&quot;)) = &apos;&apos;) \n&quot; +
-                &quot;and (qxdm is not null or qxdm!=&apos;&apos;) \n&quot; +
-                &quot;and bizmsgid in (select bizmsgid from baowen.bizmsg where trunc(receivedate) between to_date(&apos;&quot; + startDate + &quot;&apos;,&apos;yyyy-mm-dd&apos;) and to_date(&apos;&quot; + endDate + &quot;&apos;,&apos;yyyy-mm-dd&apos;))\n&quot; +
-                &quot;),v1 as (\n&quot; +
-                &quot;select qxdm,count(qxdm) count from v0 group by qxdm\n&quot; +
-                &quot;)select nvl(count,0) count from baowen.dict_xzqh a left join v1 on a.dm=v1.qxdm where a.dj=3 order by a.dm asc&quot;;
-        Query query = entityManager.createNativeQuery(sql);
-        //获得结果，将结果循序添加到LinkedList
-        List nlist = query.getResultList();
-        for (int i =0; i&lt;nlist.size();i++)&#123;
-            list.add(i,Long.valueOf(nlist.get(i).toString()));
-        &#125;
-        map.put(table+&quot;,&quot;+field,list);
-        return map;
-    &#125;</code></pre><p>一般简单查询的话就使用hql使用entityManager的createQuery，使用hql语法查询，若查询语句复杂的使用createNativeQuery这个本地查询。 另外我为什么使用entityManager，因为继承JpaRepository的话，使用注解，不能用表名字段当参数，可能是没找到方法吧。而你要整合entityManager的话，这俩不太可能，因为这样会实现你的自定义接口，然后就的实现JpaRepsitory方法，所以只能一个用接口，一个用Dao实现类，并且不能实现。 <a target="_blank" rel="noopener" href="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/demo.7z">源码包demo</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
 
     </footer>
 
