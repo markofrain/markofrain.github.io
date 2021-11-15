@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Java/linux上部署tomcat7及JDK1.6项目导致的某些问题" class="article article-type-post" itemscope
+    <article id="post-Spring/Axis2中不支持1.8新特性" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/"
-    >linux上部署tomcat7及JDK1.6项目导致的某些问题</a
+  <a class="article-title" href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/"
+    >Axis2中不支持1.8新特性</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2019-03-13T07:35:11.000Z" itemprop="datePublished">2019-03-13</time>
+      <a href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/" class="article-date">
+  <time datetime="2019-07-31T09:16:35.000Z" itemprop="datePublished">2019-07-31</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
+    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
   </div>
 
       
@@ -119,103 +119,24 @@
       
 
       
-      <h1 id="linux上部署tomcat7及JDK1-6项目导致的某些问题"><a href="#linux上部署tomcat7及JDK1-6项目导致的某些问题" class="headerlink" title="linux上部署tomcat7及JDK1.6项目导致的某些问题"></a>linux上部署tomcat7及JDK1.6项目导致的某些问题</h1><p>在linux的tomcat启动项目时，使用wsdl上报的原因，由于客户端出现并发情况，而服务端tomcat，仅有一个，且没有负载均衡。 事故的开始是，每次测试都会成功，正常返回信息，但每次测试只是一条一条的测试，每次测试间隔很大，每次测都能成功，等客户端实际调用请求了，出现并发。第一个好的，后面就客户端超时，超时。 后来看了好几次日志发现，每次的并发请求，都堆到了一个线程里exec-1，好多都等着他一个处理。默认tomcat线程池中是10个线程的，这个在java的bin下有jvisualvm.exe，可以查看jvm，比如tomcat和java进程的资源，CPU，内存，堆栈，等等。 之后发现很奇怪，windows自己电脑上的就好好地，几个请求，几个线程，若同时并发50个，则tomcat会多拿出40个线程到线程池里，这是50的请求处理线程。 <strong>这个是单次循环，非并发的。不报错，ok</strong></p>
-<pre><code>2019-03-06 19:16:58.337  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:192.168.0.98
-2019-03-06 19:16:58.799  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-08 15:52:00.625  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-08 15:52:00.995  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-10 14:45:44.918  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-10 14:45:45.273  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 11:50:27.746  INFO 873 --- [http-bio-8080-exec-2] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null</code></pre><p><strong>然后，一次的连续请求，导致出现问题</strong></p>
-<pre><code>2019-03-11 20:22:27.381  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:27.729  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:28.076  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:28.464  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:28.586  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:58.602  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url
-
-org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.executeMethod(HTTPSenderImpl.java:872) ~[axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.sendViaPost(HTTPSenderImpl.java:212) ~[axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.HTTPSender.send(HTTPSender.java:121) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.writeMessageWithCommons(CommonsHTTPTransportSender.java:403) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.invoke(CommonsHTTPTransportSender.java:234) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.engine.AxisEngine.send(AxisEngine.java:431) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.OutInAxisOperationClient.send(OutInAxisOperation.java:399) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.OutInAxisOperationClient.executeImpl(OutInAxisOperation.java:225) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.OperationClient.execute(OperationClient.java:150) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:533) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:509) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.rpc.client.RPCServiceClient.invokeBlocking(RPCServiceClient.java:101) [axis2-adb-1.7.9.jar:1.7.9]
-    at com.xxha.logservice.util.ServiceClient.dataExange(ServiceClient.java:36) [classes/:na]
-    at com.xxha.logservice.services.LogWebService.exchangeInfo(LogWebService.java:24) [classes/:na]
-    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.6.0_45]
-    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39) ~[na:1.6.0_45]
-    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25) ~[na:1.6.0_45]
-    at java.lang.reflect.Method.invoke(Method.java:597) ~[na:1.6.0_45]
-    at org.apache.axis2.rpc.receivers.RPCUtil.invokeServiceClass(RPCUtil.java:256) [axis2-adb-1.7.9.jar:1.7.9]
-    at org.apache.axis2.rpc.receivers.RPCMessageReceiver.invokeBusinessLogic(RPCMessageReceiver.java:121) [axis2-adb-1.7.9.jar:1.7.9]
-    at org.apache.axis2.receivers.AbstractInOutMessageReceiver.invokeBusinessLogic(AbstractInOutMessageReceiver.java:40) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.receivers.AbstractMessageReceiver.receive(AbstractMessageReceiver.java:106) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.engine.AxisEngine.receive(AxisEngine.java:169) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.HTTPTransportUtils.processHTTPPostRequest(HTTPTransportUtils.java:178) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.AxisServlet.doPost(AxisServlet.java:164) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at javax.servlet.http.HttpServlet.service(HttpServlet.java:650) [servlet-api.jar:na]
-    at javax.servlet.http.HttpServlet.service(HttpServlet.java:731) [servlet-api.jar:na]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:303) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:120) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter.access$000(ErrorPageFilter.java:61) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter$1.doFilterInternal(ErrorPageFilter.java:95) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:113) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:219) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:110) [catalina.jar:7.0.92]
-    at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:494) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:169) [catalina.jar:7.0.92]
-    at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:104) [catalina.jar:7.0.92]
-    at org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:1025) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:116) [catalina.jar:7.0.92]
-    at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:445) [catalina.jar:7.0.92]
-    at org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1137) [tomcat-coyote.jar:7.0.92]
-    at org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:637) [tomcat-coyote.jar:7.0.92]
-    at org.apache.tomcat.util.net.JIoEndpoint$SocketProcessor.run(JIoEndpoint.java:318) [tomcat-coyote.jar:7.0.92]
-    at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895) [na:1.6.0_45]
-    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918) [na:1.6.0_45]
-    at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) [tomcat-coyote.jar:7.0.92]
-    at java.lang.Thread.run(Thread.java:662) [na:1.6.0_45]
-
-2019-03-11 20:22:58.605  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:58.744  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:23:28.747  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url[http://10.255.5.123:8081/uaccess/services/registrationLog.dataExchange?wsdl]
-
-org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]</code></pre><p>最后，找了之后才发现,tomcat有bio，nio，apr的方式，再看看windows上的，都是nio。这才发现问题，根据博客上说的， bio是阻塞式I/O nio是非阻塞式I/O 这也是最后的问题，最后说改个地方就可以了，把tomcat中server.xml的Connector配置8080端口的哪里， 把protocol的值改成org.apache.coyote.http11.Http11NioProtocol</p>
+      <p>在Axis2中不能使用包括lambda表达式stream流等相关代码，否则在发布wsdl服务时会报错。</p>
+<pre><code>Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:441) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.ServiceGroupBuilder.populateServiceGroup(ServiceGroupBuilder.java:101) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 31 common frames omitted
+Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:404) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 32 common frames omitted
+Caused by: java.lang.IllegalStateException: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.description.java2wsdl.bytecode.ClassReader.readCpool(ClassReader.java:354) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:78) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:57) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ChainedParamReader.&lt;init&gt;(ChainedParamReader.java:52) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.MethodTable.&lt;init&gt;(MethodTable.java:31) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.DefaultSchemaGenerator.&lt;init&gt;(DefaultSchemaGenerator.java:177) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.util.Utils.fillAxisService(Utils.java:439) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:396) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 32 common frames omitted</code></pre><p>这是使用spring配置axis2的时候，若发布服务的类中有新特性就会出现问题，但是你可以把新特性放在其它类中，那么axis2就不会出现问题。</p>
 
       
       <!-- reward -->
@@ -228,7 +149,7 @@ org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting fo
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/axis2/" rel="tag">axis2</a></li></ul>
 
 
     </footer>
@@ -245,7 +166,7 @@ org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting fo
 
 </article>
     
-    <article id="post-SpringBoot/使用JDK1.6构建SpringBoot发布jar和war" class="article article-type-post" itemscope
+    <article id="post-MyBatis/Mybatis对存储过程的调用" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -253,8 +174,8 @@ org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting fo
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/"
-    >使用JDK1.6构建SpringBoot发布jar和war</a
+  <a class="article-title" href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/"
+    >Mybatis对存储过程的调用</a
   >
 </h2>
   
@@ -264,150 +185,8 @@ org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting fo
 
     
     <div class="article-meta">
-      <a href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/" class="article-date">
-  <time datetime="2019-02-28T16:05:10.000Z" itemprop="datePublished">2019-03-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="使用jdk1-6和springboot部署程序"><a href="#使用jdk1-6和springboot部署程序" class="headerlink" title="使用jdk1.6和springboot部署程序"></a>使用jdk1.6和springboot部署程序</h3><h4 id="jar包部署程序及没有主清单属性的问题"><a href="#jar包部署程序及没有主清单属性的问题" class="headerlink" title="jar包部署程序及没有主清单属性的问题"></a>jar包部署程序及没有主清单属性的问题</h4><ol>
-<li><p>在使用JDK1.6时，网上普遍的搭配是，JDK1.6+tomcat7.0.59+springboot1.3.5。我用的也是这个。关于springboot和JDK的版本匹配，可以到网上查看一下，搜一下是有的。一般SpringBoot建议是JDK8及以上版本，对应的应该是1.5以上的2.x以上的SpringBoot版本。</p>
-</li>
-<li><p>在·pom.xml文件中，properties标签内指定tomcat-version版本为7.0.59,java版本为1.6</p>
-<pre><code>&lt;properties&gt;
-   &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
-   &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
-   &lt;maven.compiler.source&gt;1.6&lt;/maven.compiler.source&gt;
-   &lt;maven.compiler.target&gt;1.6&lt;/maven.compiler.target&gt;
-   &lt;tomcat.version&gt;7.0.59&lt;/tomcat.version&gt;
-   &lt;java.version&gt;1.6&lt;/java.version&gt;
-   &lt;axis.version&gt;1.7.9&lt;/axis.version&gt;
-   &lt;commons-lang3.version&gt;3.2.1&lt;/commons-lang3.version&gt;
-   &lt;lombok.version&gt;1.16.18&lt;/lombok.version&gt;
-&lt;/properties&gt;</code></pre></li>
-</ol>
-<pre><code>在以上jar包版本中，所有的依赖尽量都不是最新的。因为服务器上报jdk师1.6低版本的，而如果依赖的jar包是1.8编译打包的，很可能在使用的时候出现版本不兼容问题，因为1.6和1.8的编译方式可能有些差异，所以将1.8编译的版本放在1.6上运行，在使用某些类时就会报把本不兼容错误，报错信息中的49,，50，51分别为1.6，1.7，1.8版本，所以若出现版本情况，就降低版本依赖。</code></pre><ol start="3">
-<li><p>随后是IDE的编译版本设置，以IDEA为例，需要设置Project Structure的project的选项中选择java sdk为1.6，language level为6，在settings中搜索java compiler，设置当前项目Traget bytecode version为1.6。</p>
-</li>
-<li><p>另外关于打包jar后，使用java -jar命令运行显示没有主清单属性。这种情况，都说是加spring-boot-maven-plugin，没错，就是加他，但是一定要加正确。</p>
-<pre><code>&lt;build&gt;
-   &lt;plugins&gt;
-       &lt;plugin&gt;
-           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-           &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
-       &lt;/plugin&gt;
-   &lt;/plugins&gt;
-   &lt;defaultGoal&gt;compile&lt;/defaultGoal&gt;
-&lt;/build&gt;</code></pre></li>
-</ol>
-<pre><code>这种情况下才是正确的。但有时创建项目的时候，或其他时候会在plugins外面包裹一个pluginManagement标签，这时，可要注意了。当外面有pluginManagement标签时，插件时无法加载进来的，这个可以在右侧的Maven管理器的Plugins中看到，名称为spring-boot的插件，如果没有，则说明，插件没有下载并引用依赖。 另外出现没有主清单属性的问题，不要修改MANIFEST.MF文件，正常编译通过的情况，里面有很多配置，时没办法写全的，况且也可能不准确。</code></pre><h4 id="发布war包程序"><a href="#发布war包程序" class="headerlink" title="发布war包程序"></a>发布war包程序</h4><ol>
-<li><p>修改pom.xml文件的打包方式为war</p>
-<pre><code>&lt;groupId&gt;com.xxha&lt;/groupId&gt;
-&lt;artifactId&gt;logservice&lt;/artifactId&gt;
-&lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
-&lt;packaging&gt;war&lt;/packaging&gt;</code></pre></li>
-<li><p>去除spring-boot-starter-web依赖包的tomcat依赖</p>
-<pre><code>&lt;dependency&gt;
-   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-   &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-   &lt;!-- 移除嵌入式tomcat插件 --&gt;
-   &lt;exclusions&gt;
-       &lt;exclusion&gt;
-           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-           &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
-       &lt;/exclusion&gt;
-   &lt;/exclusions&gt;
-&lt;/dependency&gt;
-&lt;!-- 若要使用servlet api则引入 --&gt;
-&lt;dependency&gt;
-   &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
-   &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
-   &lt;version&gt;3.1.0&lt;/version&gt;
-   &lt;scope&gt;provided&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre></li>
-</ol>
-<pre><code>如果，项目中需要用到tomcat中关于servlet或http相关的类，需要手动依赖servlet-api包</code></pre><ol start="3">
-<li><p>修改启动类，使用控制启动类变为Web启动类，继承SpringBootServletInitializer类，并重写configure方法</p>
-<pre><code>/**
-* 修改启动类，继承 SpringBootServletInitializer 并重写 configure 方法
-*/
-public class SpringBootStartApplication extends SpringBootServletInitializer &#123;
-
-   @Override
-   protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) &#123;
-       // 注意这里要指向原先用main方法执行的Application启动类
-       return builder.sources(Application.class);
-   &#125;
-&#125;</code></pre></li>
-<li><p>随后使用Maven命令，clean package，打成war包，直接放到tomcat webapps下就好。若要修改内容，需要先停止tomcat，然后修改对应文件，然后需要移除webapps里的war，否则重新启动tomcat会重新解压覆盖。</p>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringBoot异步任务定时任务邮件任务" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/"
-    >SpringBoot异步任务定时任务邮件任务</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/01/21/SpringBoot/SpringBoot%E5%BC%82%E6%AD%A5%E4%BB%BB%E5%8A%A1%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1%E9%82%AE%E4%BB%B6%E4%BB%BB%E5%8A%A1/" class="article-date">
-  <time datetime="2019-01-20T16:48:41.000Z" itemprop="datePublished">2019-01-21</time>
+      <a href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
+  <time datetime="2019-07-30T15:56:15.000Z" itemprop="datePublished">2019-07-30</time>
 </a>
       
   <div class="article-category">
@@ -428,254 +207,368 @@ public class SpringBootStartApplication extends SpringBootServletInitializer &#1
       
 
       
-      <h3 id="异步任务"><a href="#异步任务" class="headerlink" title="异步任务"></a>异步任务</h3><p>SpringBoot简单集成的异步，可<strong>使用@EnableAsync和@Async注解</strong>来开启和标注异步任务,<strong>将@EnableAysnc标注在启动类上</strong>，@Async标注在要执行的方法上，则该方法在被调用是不阻塞线程，以异步方式执行。 关于再2.0中，仅仅这个俩个注解是不行的,需要额外注入bean</p>
-<pre><code>@Bean(name = &quot;threadPoolTaskExecutor&quot;)
-public Executor threadPoolTaskExecutor() &#123;
-    return new ThreadPoolTaskExecutor();
-&#125;</code></pre><h3 id="定时任务"><a href="#定时任务" class="headerlink" title="定时任务"></a>定时任务</h3><p>SpringBoot也简单的继承了定时任务，可以在方法上<strong>标注@Scheduled注解</strong>，指定cron表达式，这个表达式和quartz任务调度的cron都是一样的，quartz是完整的，可继承SpringBoot并持久化到数据库，并可使用是API进行相关增改，暂停等。 而SpringBoot内置的比较简单，使用@Scheduled，并且需要在启动类上<strong>标注@EnableScheduling注解</strong>。则只要将该类注入到容器，即可默认根据cron表达式进行执行。关于quartz的可以看官网或quartz标签归档及Spring的整合quartz。</p>
-<h3 id="邮件任务"><a href="#邮件任务" class="headerlink" title="邮件任务"></a>邮件任务</h3><p>SpringBoot开发了与邮件相关的依赖。引入依赖包，再进行配置即可进行使用。之前Spring使用javax的mail的话，需要依赖mail的jar包，然后依据邮件服务商的配置等进行开发。 这里SpringBoot依赖的mail可自动配置。自动引入了javax的mail并自动配置。虽然需要邮箱服务器账号的授权码，但仍然省去了很多的麻烦。</p>
-<ol>
-<li><p>添加依赖</p>
+      <h3 id="调用存储过程，输出参数为CURSOR"><a href="#调用存储过程，输出参数为CURSOR" class="headerlink" title="调用存储过程，输出参数为CURSOR"></a>调用存储过程，输出参数为CURSOR</h3><p>使用mybatis来调用存储过程，然后输出参数为CURSOR类型，在存储过程中，输出参数为SYS_REFCURSOR类型的游标。简易存储过程如下:</p>
+<pre><code>create or replace procedure testproc(test in varchar2,RETURNVAL out sys_refcursor)
+is
+test1 VARCHAR2(50);
+begin
+open RETURNVAL for
+     select * from baowen.bizmsg where trunc(receivedate)&gt;=to_date(&apos;2019-07-12&apos;,&apos;yyyy-mm-dd&apos;);
+end;</code></pre><p>那么mybatis中调用的方式如下:</p>
+<pre><code>&lt;resultMap id=&quot;test&quot; type=&quot;hashmap&quot;&gt;
+
+&lt;/resultMap&gt;
+&lt;select id=&quot;testProcedure&quot; parameterType=&quot;map&quot; statementType=&quot;CALLABLE&quot;&gt;
+        &lt;![CDATA[
+           &#123;call baowen.TESTPROC(
+             #&#123;test,mode=IN,jdbcType=VARCHAR&#125;,
+             #&#123;v_cursor,mode=OUT,jdbcType=CURSOR,resultMap=test&#125;
+           )&#125;
+       ]]&gt;
+&lt;/select&gt;</code></pre><p>在mybatis中，dao层定义的方法是无返回值的，参数为map类型，并有test和v_cursor参数，test值设置为实际值，v_cursor值为创建一个空的ArrayList，泛型为map。注意游标接收，一定需要有resultMap指定，否则，会报错需要resultmap，resultmap只做字段映射，所以查出的字段取决于存储过程。</p>
+<pre><code>void testProcedure(Map&lt;String,Object&gt; map);
+
+HashMap&lt;String, Object&gt; hashMap = new HashMap&lt;&gt;();
+hashMap.put(&quot;test&quot;, &quot;test&quot;);
+hashMap.put(&quot;v_cursor&quot;, new ArrayList&lt;Map&lt;String, Object&gt;&gt;());
+dzjDao.testProcedure(hashMap);
+System.out.println(hashMap.get(&quot;v_cursor&quot;));</code></pre><h3 id="当数据库类型时blob时的读写以及blob类型字段转换成json"><a href="#当数据库类型时blob时的读写以及blob类型字段转换成json" class="headerlink" title="当数据库类型时blob时的读写以及blob类型字段转换成json"></a>当数据库类型时blob时的读写以及blob类型字段转换成json</h3><p><strong>读取blob，读取blob时，存储过程参数不用管，输出参数是sys_refcursor类型，在mybatis的mapperxml里游标类型肯定是要配resultMap的，你可以不用设置他的属性，他会自动转换为java.sql.Blob类型</strong></p>
+<pre><code>&lt;resultMap id=&quot;zszmInfo&quot; type=&quot;hashmap&quot;&gt;
+        &lt;result column=&quot;QLR&quot; property=&quot;qlr&quot; javaType=&quot;java.lang.String&quot;/&gt;
+        &lt;result column=&quot;GYQK&quot; property=&quot;gyqk&quot; javaType=&quot;java.lang.String&quot;/&gt;
+        &lt;result column=&quot;EWM&quot; property=&quot;ewm&quot;/&gt;
+&lt;/resultMap&gt;</code></pre><p>然后你要想转为json，那么json里肯定是字符串类型。所以讲Blob转换为base64字符串放在json中。可以通过以下方式转换,改代码将blob转为字节数组，IOUtil是common-io包的类。使用alibaba fastjson的JSON可直接将byte数组转为base64.</p>
+<pre><code>if (o instanceof Blob) &#123;
+    Blob blob = (Blob) o;
+    try &#123;
+        byte[] bytes = IOUtils.toByteArray(blob.getBinaryStream());
+        item.put(key, bytes);
+    &#125; catch (IOException e) &#123;
+        e.printStackTrace();
+    &#125; catch (SQLException e) &#123;
+        e.printStackTrace();
+    &#125;
+&#125;</code></pre><p><strong>写入blob类型数据时，若只需要将数据转为byte[]字节数组，若前台传递的是base64，则通过<code>new BASE64Decoder().decodeBuffer(YSXLHP);</code>转为字节数组，然后存储过程调用的参数的jdbcType设置为Blob。不需要任何转换，mybatis有Handler可以让byte数组转为Blob类型。</strong></p>
+<pre><code>&lt;![CDATA[
+   &#123;call bdcdj.LND_PROC_UPDATECERTINFO(
+     #&#123;YWH,mode=IN,jdbcType=VARCHAR&#125;,
+     #&#123;YSXLHP,mode=IN,jdbcType=BLOB&#125;,
+     #&#123;returnval,mode=OUT,jdbcType=INTEGER&#125;
+   )&#125;
+]]&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-NodeJS/NodeJS——文件操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/04/28/NodeJS/NodeJS%E2%80%94%E2%80%94%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/"
+    >NodeJS——文件操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/04/28/NodeJS/NodeJS%E2%80%94%E2%80%94%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2019-04-28T01:59:43.000Z" itemprop="datePublished">2019-04-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Node-JS/">Node JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="1-文件监听"><a href="#1-文件监听" class="headerlink" title="1. 文件监听"></a>1. 文件监听</h3><pre><code>//严格模式
+&apos;use strict&apos;;
+//引入fs模块
+const fs = require(&apos;fs&apos;);
+//使用模块watch函数，并使用箭头函数作为回调函数
+fs.watch(&apos;target.txt&apos;,()=&gt;console.log(&apos;File changed!&apos;));
+console.log(&apos;Now watching target.txt for changes...&apos;);</code></pre><h3 id="2-接受一个文件作为监听文件"><a href="#2-接受一个文件作为监听文件" class="headerlink" title="2. 接受一个文件作为监听文件"></a>2. 接受一个文件作为监听文件</h3><pre><code>const fs = require(&apos;fs&apos;);
+//process全局对象，argv表示参数，第一第二分别为node和当前文件的路径，第三个参数则是传递的第一个参数
+const filename = process.argv[2];
+if(!filename)&#123;
+    throw Error(&apos;A file to watch must be specified!&apos;);
+&#125;
+//输出，反引号(`)表示模板字符串，可以使用$&#123;&#125;，将变量放进去，也可使用表达式
+fs.watch(filename,()=&amp;gt;console.log(`File $&#123;filename&#125; changed!`));
+console.log(`Now watching $&#123;filename&#125; for changes...`);
+
+$ node watcher-argv.js target.txt</code></pre><h3 id="3-使用子进程打印ls"><a href="#3-使用子进程打印ls" class="headerlink" title="3. 使用子进程打印ls"></a>3. 使用子进程打印ls</h3><pre><code>const fs = require(&apos;fs&apos;);
+//拿到子模块的spawn函数
+const spawn = require(&apos;child_process&apos;).spawn;
+const filename = process.argv[2];
+if (!filename) &#123;
+    throw Error(&apos;A file to watch must be specified!&apos;);
+&#125;
+fs.watch(filename, () =&amp;gt; &#123;
+    //使用该函数，第一个参数为命令，第二个参数为命令参数，其中最后一个为文件名
+    const ls = spawn(&apos;ls&apos;, [&apos;-l&apos;, &apos;-h&apos;, filename]);
+    //stdout为Stream，作为输入输出，使用pipe方法把子进程的输出内容传送到标准输出流
+    ls.stdout.pipe(process.stdout);
+&#125;);
+console.log(`Now watching $&#123;filename&#125; for changes...`);</code></pre><h3 id="4-通过EventEmitter获得数据，即通过触发事件或响应事件的方式"><a href="#4-通过EventEmitter获得数据，即通过触发事件或响应事件的方式" class="headerlink" title="4. 通过EventEmitter获得数据，即通过触发事件或响应事件的方式"></a>4. 通过EventEmitter获得数据，即通过触发事件或响应事件的方式</h3><pre><code>//监听文件
+fs.watch(filename, () =&amp;gt; &#123;
+    //spawn函数设置命令
+    const ls = spawn(&apos;ls&apos;, [&apos;-l&apos;, &apos;-h&apos;, filename]);
+    let output = &apos;&apos;;
+    //执行绑定data事件，将结果存储output
+    ls.stdout.on(&apos;data&apos;, chuck =&amp;gt; output += chuck);
+    //监听ls的close事件
+    ls.on(&apos;close&apos;, () =&amp;gt; &#123;
+        const parts = output.split(/\s+/);
+        console.log([parts[0], parts[4], parts[8]]);
+    &#125;);
+&#125;);</code></pre><h3 id="5-异步读写文件"><a href="#5-异步读写文件" class="headerlink" title="5. 异步读写文件"></a>5. 异步读写文件</h3><pre><code>&apos;use strict&apos;;
+const fs = require(&apos;fs&apos;);
+fs.readFile(&apos;target.txt&apos;, (err, data) =&amp;gt; &#123;
+    if (err) &#123;
+        throw err;
+    &#125;
+    console.log(data.toString());
+&#125;);
+
+&apos;use strict&apos;;
+const fs = require(&apos;fs&apos;);
+fs.writeFile(&apos;target.txt&apos;, &apos;HelloWorld&apos;, (err) =&amp;gt; &#123;
+    if (err) &#123;
+        throw err;
+    &#125;
+    console.log(&apos;File saved!&apos;);
+&#125;)</code></pre><h3 id="6-创建读-写流"><a href="#6-创建读-写流" class="headerlink" title="6. 创建读/写流"></a>6. 创建读/写流</h3><pre><code>&apos;use strict&apos;;
+require(&apos;fs&apos;).createReadStream(process.argv[2])
+    .on(&apos;data&apos;, chunk =&amp;gt; process.stdout.write(chunk))
+    .on(&apos;error&apos;, err =&amp;gt; process.stderr.write(`ERROR:$&#123;err.message&#125;\n`));</code></pre><h3 id="7-可执行的js文件，将数据流传输到标准输出"><a href="#7-可执行的js文件，将数据流传输到标准输出" class="headerlink" title="7.可执行的js文件，将数据流传输到标准输出"></a>7.可执行的js文件，将数据流传输到标准输出</h3><pre><code>#!/usr/bin/env node
+&apos;use strict&apos;;
+require(&apos;fs&apos;).createReadStream(process.argv[2]).pipe(process.stdout);
+
+$ chmod +x cat.js
+$ ./cat.js target.txt</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-SpringBoot/SpringBoot Mybatis多数据源配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/"
+    >SpringBoot Mybatis多数据源配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2019-04-09T17:02:27.000Z" itemprop="datePublished">2019-04-10</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="SpringBoot-Mybatis多数据源配置"><a href="#SpringBoot-Mybatis多数据源配置" class="headerlink" title="SpringBoot Mybatis多数据源配置"></a>SpringBoot Mybatis多数据源配置</h2><ol>
+<li><p>依赖:</p>
 <dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-mail</artifactId>
+    <groupId>org.mybatis.spring.boot</groupId>
+    <artifactId>mybatis-spring-boot-starter</artifactId>
+    <version>2.0.1</version>
 </dependency>
 </li>
-<li><p>yml配置</p>
-<p>spring:<br>  mail:</p>
-<pre><code>host: stmp.163.com
-username: cgq_rain@163.com
-##此为客户端授权码
-password: xxxxxxx
-properties:
-  mail.smtp.enable: true</code></pre></li>
-<li><p>注入JavaMailSenderimpl，用户发送,并编写简单邮件和带附件的邮件</p>
-</li>
-</ol>
-<p>此为带附件的消息，不带附件的可以使用SimpleMailMessage</p>
+<li><p>再yml配置两个数据库的连接字符串</p>
+<p>spring:</p>
+<pre><code>datasource:
+    primary:  # first database
+      driver-class-name: oracle.jdbc.driver.OracleDriver
+      jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:btbdc
+      username: sjbdc
+      password: sjbdc
+    secondary:
+      driver-class-name: com.mysql.jdbc.Driver
+      jdbcUrl: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;characterEncoding=utf-8
+      username: root
+      password: root</code></pre></li>
+<li><p>配置主从数据源，分两个配置类，主要就是配置DataSource，SqlSessionFactory和SqlSessionTemplate</p>
+<p>package com.fsats.dbanalysis.config;</p>
+<p>import org.apache.ibatis.session.SqlSessionFactory;<br>import org.mybatis.spring.SqlSessionFactoryBean;<br>import org.mybatis.spring.SqlSessionTemplate;<br>import org.mybatis.spring.annotation.MapperScan;<br>import org.springframework.beans.factory.annotation.Autowired;<br>import org.springframework.beans.factory.annotation.Qualifier;<br>import org.springframework.boot.context.properties.ConfigurationProperties;<br>import org.springframework.boot.jdbc.DataSourceBuilder;<br>import org.springframework.context.annotation.Bean;<br>import org.springframework.context.annotation.Configuration;<br>import org.springframework.context.annotation.Primary;<br>import org.springframework.core.env.Environment;<br>import org.springframework.core.io.support.PathMatchingResourcePatternResolver;</p>
+<p>import javax.sql.DataSource;</p>
+<p>@Configuration<br>@MapperScan(basePackages = “com.fsats.**.oracle”,sqlSessionFactoryRef = “sqlSessionFactory”,sqlSessionTemplateRef = “sqlSessionTemplate”)<br>public class PrimaryConfig {</p>
 <pre><code>@Autowired
-private JavaMailSenderImpl javaMailSender;</code></pre><p>​<br>​    MimeMessage mailMessage = javaMailSender.createMimeMessage();<br>​    try {<br>​        MimeMessageHelper messageHelper = new MimeMessageHelper(mailMessage,true);<br>​        messageHelper.setFrom(mail.getSender());<br>​        messageHelper.setTo(mail.getAccepter());<br>​        messageHelper.setSubject(mail.getSubject());<br>​        messageHelper.setText(mail.getText(),true);<br>​        for (Object key:hashMap.keySet()) {<br>​            String o = hashMap.get(key).toString();<br>​            byte[] bytes = new BASE64Decoder().decodeBuffer(o);<br>​            messageHelper.addAttachment(key.toString(),new ByteArrayResource(bytes));<br>​        }<br>​        javaMailSender.send(mailMessage);<br>​        log.info(“发送成功”);<br>​    } catch (MessagingException e) {<br>​        e.printStackTrace();<br>​    } catch (IOException e) {<br>​        e.printStackTrace();<br>​    }</p>
+private Environment env;
 
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringBoot中遇到的的某些问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/01/19/SpringBoot/SpringBoot%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/"
-    >SpringBoot中遇到的的某些问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/01/19/SpringBoot/SpringBoot%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2019-01-19T14:28:28.000Z" itemprop="datePublished">2019-01-19</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <ol>
-<li>关于Spring Data JPA使用懒加载，no session的情况？</li>
-</ol>
-<p>很多情况都说要再被调用的方法添加@Transactional注解，可是尝试了一下没有解决。再实体类中，你的User类中的Dept是添加的懒加载注解，并关联了外键字段，yml中，默认的hibernate就是open-in-view就是true。依旧没有解决，最后找了好久，可以这样配置hibernate 配置<strong>spring.jpa.properties.hibernate.enable_lazy_load_no_trans: true</strong>,表示再不适用事务注解是也进行懒加载。但是这跟只加@Transactional注解有什么区别呢。</p>
-<ol start="2">
-<li><p>关于在整合elasticsearch之后再整合redis出现的错误?</p>
-<p>Failed to instantiate [org.elasticsearch.client.transport.TransportClient]: Factory method ‘esTransportClientInit’ threw exception; nested exception is java.lang.IllegalStateException: availableProcessors is already set to [8], rejecting [8]</p>
-</li>
-</ol>
-<p>这个错误，这个错再网上也有，说是netty尝试初始化实例处理器。因为，再控制台打印上可以看到，elasticsearch使用了Netty4Plugin，而redis可能也使用到了，所以需要在启动时配置一下</p>
-<pre><code>public static void main(String[] args) &#123;
-    System.setProperty(&quot;es.set.netty.runtime.available.processors&quot;, &quot;false&quot;);
-    SpringApplication.run(BootApplication.class, args);
-&#125;</code></pre><p>添加第一行代码就好。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/Spring Boot整合RabbitMq" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88RabbitMq/"
-    >Spring Boot整合RabbitMq</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88RabbitMq/" class="article-date">
-  <time datetime="2019-01-17T15:22:35.000Z" itemprop="datePublished">2019-01-17</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Spring-Boot整合RabbitMq"><a href="#Spring-Boot整合RabbitMq" class="headerlink" title="Spring Boot整合RabbitMq"></a>Spring Boot整合RabbitMq</h2><p>首先说明一下JMS和AMQP，</p>
-<ul>
-<li>JMS:(JAVA Message Service)java消息服务,基于JVM消息代理规范，ActiveMQ，HornetMQ是JMS的实现。</li>
-<li>AMQP:高级消息队列协议，也是一个消息代理规范，兼容JMS，RabbitMQ是其实现。</li>
-</ul>
-<p>对于一般消息队列发送由点对点和发布订阅的方式。简单地说， 点对点是消息发送消息，消息代理将其放入队列中，消息接收者从队列中获取信息，读取消息后，消息被移除队列，且消息只有唯一的发送者和接收者，但并不是只能有一个接收者，而是只有一个接收者能接收。 发布订阅表示发送者发送消息到主题，多个接收者(订阅者)监听(订阅)这个主题，那么会在消息到达时接收到消息。对应@JmsListener和@RabbitListener。 一般JMS只提供这两种模式，而AMQP提供了五种。与之多引入了一些概念。</p>
-<h3 id="RabbitMQ核心概念"><a href="#RabbitMQ核心概念" class="headerlink" title="RabbitMQ核心概念"></a>RabbitMQ核心概念</h3><ul>
-<li>Message：消息是不具名的，也就是说针对某个接收者。由消息头和消息体组成，消息头由一系列可选属性，routing-key路由键，priority优先权，delivery-mode持久性存储等。</li>
-<li>Publisher:消息生产者</li>
-<li>Consumer:消费者，从一个消息队列中取走消息的客户端程序。</li>
-<li>Exchange:交换器，用来接收生产者发送的消息，并将这些消息路由给服务器中的队列，由四种类型，Direct(默认，也就是点对点)，fanout，topic，headers，还有代码中可自定义的策略。其中后四种只是将发布订阅细分了一下。</li>
-<li>Queue:队列，用来保存消息到，发送给消费者，它是消息的容器，消息一直在这个队列里，等待消费者链接这个队列将消息取走。</li>
-<li>Binding:消息队列和交换器之间的关联。<strong>一个绑定就是基于路由键将交换器和队列链接起来的路由规则</strong>，可以将交换器理解成一个由绑定构成的路由表。</li>
-<li>Connection:连接，TCP方式连接</li>
-<li>Channel:通道，就如java中NIO的通道类似，较少资源消耗，双向通道。信道是建立在真实TCP连接内的虚拟连接。</li>
-<li>Virtual Host:虚拟主机，表示一批交换器、消息队列和关联对象。每个 vhost 本质上就是一个 mini 版的 RabbitMQ 服务器，拥有 自己的队列、交换器、绑定和权限机制。vhost 是 AMQP 概念的基础，必须在连接时指定， RabbitMQ 默认的 vhost 是 / 。</li>
-<li>Broker：消息队列服务器的实体</li>
-</ul>
-<p>其中有几张图可以更好和了解 <img src="images/%E5%9B%BE%E7%89%871.png" alt=""> <img src="images/%E5%9B%BE%E7%89%872.png" alt=""> 在AMQP中加入了Exchange和Binding的角色，生产者将消息发布到Exchange上，消息最终到达队列并被消息者接收，而Binding决定消息发送到哪个队列上。有必要了解一下Exchange、Binding、Queue，routing-key之间的关系。依据它们之间的关系了解一下这四个消息模型。 首先是Exchange，他是一个交换器，是一个枢纽，首先它可以添加一个绑定，并不是说这个对象可以创建绑定，这个绑定不仅可以绑定队列到Excahnge上，也可以是exchange，这里只讨论queue。在绑定的时候有一个routing-key路由键，这个路由键是exchange向queue分发的映射。 <img src="%5CUsers%5Ccgq_r%5CDesktop%5C20190113145158.png" alt=""> 首先，exchange有四种类型，分别是direct,fanout,topic,headers,一般headers用的不多，我们只将前三种。在创建时创建对应模式的exchange，分别表示:</p>
-<ul>
-<li>direct:点对点模式exchange</li>
-<li>fanout:发布订阅exchange，即所有的绑定队列都被分发。</li>
-<li>topic:匹配模式的exchange，可依据*和#进行匹配队列名发送消息。</li>
-</ul>
-<p>看上面图底下，绑定队列，绑定exchange就不说了。<strong>绑定队列，由队列名称，和routing-key。它是一个关键，我们可以把所有的队列都绑定到某个exchange上，但routing-key决定了是否分发到绑定的队列上。</strong> 我们举个例子:</p>
-<ol>
-<li>direct的exchange交换器绑定，首先direct是点到点，只有一个接收者能接收到，一句这个routing-key发送消息，因为当前模式只能一个接收者接收到，所以不能使用*或#。队列名和路由键是匹配对应的，消息可依据exchange和routing-key发送到某个指定的消息队列上。</li>
-<li>fanout是分发，所有exchange被绑定的queue都会被发送消息。队列和路由键的匹配，尽管发送到某个路由键上，但仍然会发送到所有的exchange绑定队列上。</li>
-<li>topic是主题分发，可以进行适配队列名的分发，若队列名为name.chen,路由键位name.#,则向name.#路由分发消息是，所有name.xxx的都会被分发消息。若队列名位name.chen，路由键位<em>.chen，则向</em>.chen路由分发消息，则所有xxx.chen被分发消息。</li>
-</ol>
-<p>只需要记住的是，一个exchange可以绑定多个队列，路由键与队列是关联的，不一定每个队列都会被分发，但匹配的路由键对应的队列会分发。direct点对点，一个路由只匹配一个队列；fanout，不管路由设置什么，只有绑定了队列，均发送消息；topic选择分发，依据路由规则进行选择性的分发到队列。 我们可以安装rabbitmq进行测试。通过docker镜像方式安装.</p>
-<ol>
-<li><p>去Docker Hub拉取<a target="_blank" rel="noopener" href="https://hub.docker.com/_/rabbitmq?tab=tags">rabbitmq镜像</a>，带管理界面management的。</p>
-<pre><code>docker pull rabbitmq:3.6.16-management-alpine</code></pre></li>
-<li><p>查看下载镜像</p>
-<pre><code>docker images</code></pre></li>
-<li><p>启动镜像</p>
-<pre><code>docker run -d -p 5672:5672 -p 15672:15672 --name myrabbitmq cad58564044c</code></pre></li>
-<li><p>查看进程</p>
-<pre><code>docker ps all</code></pre></li>
-<li><p>页面访问localhost:15672页面进入rabbitmq管理界面，用户名密码为guest。</p>
-</li>
-<li><p>在Exchange选项卡和Queue选项卡进行操作，在Exchange选项卡中点击某个exchange进行添加绑定或者发送消息；在Queue选项卡，点击某个队列，点击getmessage，获得消息。查看被绑定的exchange。</p>
-</li>
-</ol>
-<h3 id="整合Spring-Boot"><a href="#整合Spring-Boot" class="headerlink" title="整合Spring Boot"></a>整合Spring Boot</h3><ol>
-<li><p>添加依赖</p>
-<pre><code>org.springframework.boot
-spring-boot-starter-amqp</code></pre></li>
-</ol>
-<pre><code>​    </code></pre><ol start="2">
-<li><p>添加yml或properties配置，配置rabbit的主机localhost，用户名密码guest，端口号5672都是默认的，如果docker在本地的情况下，你可以什么都不配。端口号对应docker与本地的端口映射。</p>
-</li>
-<li><p>所有的配置都由springboot自动配置完成，只需要注入RabbitTemplate类，用于消息发送及处理；AmqpAdmin用于组件的管理。rabbitTemplate用于指定exchange或和routing-key进行发布消息。AmqpAdmin用于创建Exchange、Queue、Binding、删除等操作。</p>
-</li>
-<li><p>调用发布消息，消息类型是Object，可以放Map，对象等还有字符串数据。这样默认的话消息是MEMI类型为java序列化类型，是一堆序列化值。当然还可以自定义消息转换，将其序列化为json，定义配置Bean，返回MessageConverter对象类型为JackJson2JsonMessageConverter类。即可进行序列化对象，获取消息就可以反序列化。</p>
-<pre><code>@Configuration
-public class MyConfiguration &#123;
-
-   @Bean
-   public MessageConverter messageConverter()&#123;
-       return new Jackson2JsonMessageConverter();
-   &#125;
+@Primary
+@Qualifier(&quot;primaryDataSource&quot;)
+@Bean(name = &quot;primaryDataSource&quot;)
+@ConfigurationProperties(prefix = &quot;spring.datasource.primary&quot;)
+public DataSource primaryDataSource()&#123;
+    return DataSourceBuilder.create().build();
 &#125;</code></pre></li>
-<li><p>对于注解@RabbitListener和@EnableRabbit，首先需要开启注解模式，@EnableRabbit,然后在某个方法上添加注解@RabbitListener,并添加注解参数queue，方法参数为队列消息，若接收到消息则自动执行方法。该类需要注入spring容器。</p>
-</li>
 </ol>
+<pre><code>    @Primary
+    @Bean(name = &quot;sqlSessionFactory&quot;)
+    public SqlSessionFactory sqlSessionFactory(@Qualifier(&quot;primaryDataSource&quot;) DataSource datasource)
+            throws Exception &#123;
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setDataSource(datasource);
+        bean.setMapperLocations(
+                // 设置mybatis的xml所在位置
+                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
+        return bean.getObject();
+    &#125;
+
+    // 表示这个数据源是默认数据源
+    @Bean(&quot;sqlSessionTemplate&quot;)
+    @Primary
+    public SqlSessionTemplate sqlSessionTemplate(
+            @Qualifier(&quot;sqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
+        return new SqlSessionTemplate(sessionfactory);
+    &#125;
+
+&#125;
+
+
+
+package com.fsats.dbanalysis.config;
+
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.SqlSessionFactoryBean;
+import org.mybatis.spring.SqlSessionTemplate;
+import org.mybatis.spring.annotation.MapperScan;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.DataSourceBuilder;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
+
+import javax.sql.DataSource;
+
+
+@Configuration
+@MapperScan(basePackages = &quot;com.fsats.**.mysql&quot;,sqlSessionFactoryRef = &quot;mySqlSqlSessionFactory&quot;,sqlSessionTemplateRef = &quot;mySqlSqlSessionTemplate&quot;)
+public class SecondaryConfig &#123;
+
+    @Bean(name = &quot;secondaryDataSource&quot;)
+    @Qualifier(&quot;secondaryDataSource&quot;)
+    @ConfigurationProperties(prefix = &quot;spring.datasource.secondary&quot;)
+    public DataSource secondaryDataSource() &#123;
+
+        return DataSourceBuilder.create().build();
+    &#125;
+
+    @Bean(name = &quot;mySqlSqlSessionFactory&quot;)
+    public SqlSessionFactory mySqlSqlSessionFactory(@Qualifier(&quot;secondaryDataSource&quot;) DataSource datasource)
+            throws Exception &#123;
+        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
+        bean.setDataSource(datasource);
+        bean.setMapperLocations(
+                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
+        return bean.getObject();
+    &#125;
+    @Bean(&quot;mySqlSqlSessionTemplate&quot;)
+    public SqlSessionTemplate mySqlSqlSessionTemplate(
+            @Qualifier(&quot;mySqlSqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
+        return new SqlSessionTemplate(sessionfactory);
+    &#125;
+&#125;</code></pre><ol start="4">
+<li>在代码中，先看方法，两个类里，除了方法Bean的名字不一样，之外，在PrimaryConfig里每个方法多了@Primary注解，标识多数据源时默认使用的Bean。</li>
+</ol>
+<p>然后ConfigurationProperties注解的值就是application.yml配置的。 SqlSessionFactory方法里，配置MapperLocations，注意，目录要提前创建。 然后是类上的注解MapperScan，填写，当前数据源所扫描的对应的Dao包位置，以及sqlSessionFactory和sqlsessionTemplate。</p>
+<ol start="5">
+<li><p>配置显示打印sql语句</p>
+<p>logging:<br>  level:</p>
+<pre><code>com.fsats: DEBUG</code></pre></li>
+</ol>
+<p>com.fsats标识包名</p>
 
       
       <!-- reward -->
@@ -688,6 +581,98 @@ public class MyConfiguration &#123;
     <footer class="article-footer">
       
       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle数据库字符集更改" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/04/09/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%97%E7%AC%A6%E9%9B%86%E6%9B%B4%E6%94%B9/"
+    >Oracle数据库字符集更改</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/04/09/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%97%E7%AC%A6%E9%9B%86%E6%9B%B4%E6%94%B9/" class="article-date">
+  <time datetime="2019-04-09T07:42:00.000Z" itemprop="datePublished">2019-04-09</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="Oracle数据库字符集更改"><a href="#Oracle数据库字符集更改" class="headerlink" title="Oracle数据库字符集更改"></a>Oracle数据库字符集更改</h2><ol>
+<li><p>sqlplus登录，输入用户名密码</p>
+</li>
+<li><p>查看NLS参数</p>
+</li>
+</ol>
+<pre><code>select * from V$NLS_PARAMETERS</code></pre><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/04/20190409153659.png" alt=""> 我们需要改的是，将NLS_CHARACTERSET的值为AL32UTF8设置为ZHS16GBK.</p>
+<ol start="3">
+<li><p>sqlplus登录后，依次执行以下命令</p>
+<p>shutdown immediate;</p>
+<p>startup mount</p>
+<p>ALTER SYSTEM ENABLE RESTRICTEDSESSION;<br>ALTER SYSTEM SETJOB_QUEUE_PROCESSES=0;<br>ALTER SYSTEM SETAQ_TM_PROCESSES=0;</p>
+<p>alter database open;</p>
+<p>ALTER DATABASE character set INTERNAL_USE ZHS16GBK;</p>
+<p>select * from v$nls_parameters;</p>
+<p>shutdown immediate;</p>
+<p>startup</p>
+</li>
+</ol>
+<p>依次步骤即可。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
 
     </footer>
 
@@ -709,7 +694,7 @@ public class MyConfiguration &#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/31/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="page-number" href="/page/31/">31</a><span class="page-number current">32</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="space">&hellip;</span><a class="page-number" href="/page/53/">53</a><a class="extend next" rel="next" href="/page/33/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/31/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/30/">30</a><a class="page-number" href="/page/31/">31</a><span class="page-number current">32</span><a class="page-number" href="/page/33/">33</a><a class="page-number" href="/page/34/">34</a><span class="space">&hellip;</span><a class="page-number" href="/page/54/">54</a><a class="extend next" rel="next" href="/page/33/">下一页</a>
   </nav>
   
 </section>

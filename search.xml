@@ -1,6 +1,133 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title>Spring源码理解 Spring Cache</title>
+    <url>/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-Spring-Cache/</url>
+    <content><![CDATA[<p>相关类</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CacheInterceptor</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CacheAspectSupport</span><br></pre></td></tr></table></figure>]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Spring源码理解 类接口说明</title>
+    <url>/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/</url>
+    <content><![CDATA[<h2 id="spring-core"><a href="#spring-core" class="headerlink" title="spring-core"></a>spring-core</h2>]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Spring源码理解-Spring Cache CacheNames属性</title>
+    <url>/2021/11/12/Spring/Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-Spring-Cache-CacheNames%E5%B1%9E%E6%80%A7/</url>
+    <content><![CDATA[<p>因为测试了SpringCache的使用，@Cacheable属性cacheNames的值设置了hello，配置类里也配置了CacheManager，因为是简单测试，就使用了基于ConcurrentMap的缓存存储方式。</p>
+<p>对于缓存方式的实现，可以有看<code>org.springframework.cache.Cache</code>接口的实现类，都是缓存的实现类型。Spring提供的包括</p>
+<p>NoOpCache：无缓存实现，仅仅是提供方法，不进行任何存储</p>
+<p>EhCacheCache：基于EhCache的缓存实现</p>
+<p>ConcurrentMapCache：基于ConcurrentMap类的缓存实现</p>
+<p>JCacheCache：基于JCache的缓存实现</p>
+<p>CaffeineCache：基于Caffeine的缓存实现</p>
+<p>其他外置的包括RedisCache，RedissionCache等等</p>
+<p>而缓存管理器CacheManger，由AbstractCacheManager抽象类实现，大多都是直接或间接继承AbstractCacheManager类或实现CacheManger接口。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CacheManager <span class="title">cacheManager</span><span class="params">()</span></span>&#123;</span><br><span class="line">	SimpleCacheManager simpleCacheManager = <span class="keyword">new</span> SimpleCacheManager();</span><br><span class="line">	ConcurrentMapCacheFactoryBean factoryBean = <span class="keyword">new</span> ConcurrentMapCacheFactoryBean();</span><br><span class="line">	factoryBean.setName(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">	factoryBean.setStore(map);</span><br><span class="line">	factoryBean.setAllowNullValues(<span class="keyword">false</span>);</span><br><span class="line">	factoryBean.afterPropertiesSet();</span><br><span class="line">	simpleCacheManager.setCaches(Collections.singletonList(factoryBean.getObject()));</span><br><span class="line">	<span class="keyword">return</span> simpleCacheManager;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Cacheable(cacheNames = &quot;hello&quot;,key = &quot;&#x27;list&#x27;&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getHelloList</span><span class="params">()</span></span>&#123;</span><br><span class="line">	System.out.println(<span class="string">&quot;log:getHelloList&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> String.join(<span class="string">&quot;,&quot;</span>,names);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>此处在AppConfig配置类中，通过Bean方式注册了SimpleCacheManager，使用了ConcurrentMapCacheFactoryBean的方式。因为使用了@Cacheable的cacheNames属性，因此ConcurrentMapCacheFactoryBean中的name必须要有，他是一类缓存的名字。如果在缓存管理器中没有找到对应的缓存名称就会出现问题。而这仅是SimpleCacheManager才会出现的问题。也就是说它必须要手动指定name，如果有多个就创建多个ConcurrentMapCacheFactoryBean。</p>
+<p>只因为它并没有实现AbstractCacheManager的getMissingCache方法，表示当没有获取到对应名称的缓存对象的时候该如何返回一个正确的Cache对象。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> Cache <span class="title">getMissingCache</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>因为在使用RedisCache的时候，默认是实现了这个方法的，所以在使用的时候不需要手动定义缓存的名称，它是动态的，不存在就创建，然后存储起来。</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> RedisCache <span class="title">getMissingCache</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> allowInFlightCacheCreation ? createRedisCache(name, defaultCacheConfig) : <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">protected</span> RedisCache <span class="title">createRedisCache</span><span class="params">(String name, <span class="meta">@Nullable</span> RedisCacheConfiguration cacheConfig)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RedisCache(name, cacheWriter, cacheConfig != <span class="keyword">null</span> ? cacheConfig : defaultCacheConfig);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>对于缓存的获取是在抽象类AbstractCacheManager中，他有个getCache方法。获取Cache时会从map中拿，如果没有就调用getMissingCache()方法，然后获取到之后执行decorateCache()方法，进行其他需要做的事，此处是直接返回了。然后就put到集合中，再更新cacheNames集合。</p>
+<p>这里面的cacheMap属性就存储了多个名称对应Cache对象的一个map集合。cacheNames是所有缓存名称的集合</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> ConcurrentMap&lt;String, Cache&gt; cacheMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="number">16</span>);</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> Set&lt;String&gt; cacheNames = Collections.emptySet();</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Cache <span class="title">getCache</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    Cache cache = <span class="keyword">this</span>.cacheMap.get(name);</span><br><span class="line">    <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> cache;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// Fully synchronize now for missing cache creation...</span></span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>.cacheMap) &#123;</span><br><span class="line">            cache = <span class="keyword">this</span>.cacheMap.get(name);</span><br><span class="line">            <span class="keyword">if</span> (cache == <span class="keyword">null</span>) &#123;</span><br><span class="line">                cache = getMissingCache(name);</span><br><span class="line">                <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    cache = decorateCache(cache);</span><br><span class="line">                    <span class="keyword">this</span>.cacheMap.put(name, cache);</span><br><span class="line">                    updateCacheNames(name);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> cache;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而SimpleCacheManager就非常的简单，自定义一个caches，仅仅是实现了一个必须要实现的方法loadCaches，就是多个Cache对象。这个会交给父类统一管理到cacheMap中</p>
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleCacheManager</span> <span class="keyword">extends</span> <span class="title">AbstractCacheManager</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> Collection&lt;? extends Cache&gt; caches = Collections.emptySet();</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Specify the collection of Cache instances to use for this CacheManager.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@see</span> #initializeCaches()</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCaches</span><span class="params">(Collection&lt;? extends Cache&gt; caches)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.caches = caches;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">protected</span> Collection&lt;? extends Cache&gt; loadCaches() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.caches;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>深度学习应用开发-TensorFlow实践</title>
+    <url>/2021/11/03/AI/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91-TensorFlow%E5%AE%9E%E8%B7%B5/</url>
+    <content><![CDATA[<h2 id="监督式机器学习"><a href="#监督式机器学习" class="headerlink" title="监督式机器学习"></a>监督式机器学习</h2><h3 id="单变量线性回归"><a href="#单变量线性回归" class="headerlink" title="单变量线性回归"></a>单变量线性回归</h3><p>以最简单的线性回归案例来说，线性回归表达的是一个二元一次方程。</p>
+<p>y = w * x + b</p>
+]]></content>
+      <categories>
+        <category>AI</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>python及Anaconda安装</title>
+    <url>/2021/10/31/python/python%E5%8F%8AAnaconda%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<h3 id="Anaconda安装"><a href="#Anaconda安装" class="headerlink" title="Anaconda安装"></a>Anaconda安装</h3><p>进入<a href="https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/">https://mirrors.tuna.tsinghua.edu.cn/anaconda/archive/</a> 选择合适的版本，选择Anaconda3开头的是以python3为基础版本的包。2021年4月份的包是3.8版本的python，暂时没有对应稳定tensorflow版本的支持，因此可以向前找一到两个版本。</p>
+<p>下载安装时，遇到复选框就勾选，需要添加到环境变量中。</p>
+<p>当安装完成后，需要配置国内镜像源，可以选择清华的镜像源配置，在<a href="https://mirror.tuna.tsinghua.edu.cn/help/anaconda/中，找到配置文件的代码，并在用户目录下创建.condarc文件，将内容拷贝进去。如果不会创建，则先执行`conda">https://mirror.tuna.tsinghua.edu.cn/help/anaconda/中，找到配置文件的代码，并在用户目录下创建.condarc文件，将内容拷贝进去。如果不会创建，则先执行`conda</a> config –add channels <a href="https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/`自动创建文件，再进行拷贝。">https://mirrors.tuna.tsinghua.edu.cn/anaconda/pkgs/free/`自动创建文件，再进行拷贝。</a></p>
+<p>安装tensorflow的时候因为python3.8版本安装不了。name降低python版本，直接执行<code>conda install python=3.7</code>可能不好使，说找不到包。那么我们可以选择创建新的虚拟环境来解决，不使用默认的base环境。</p>
+<p>创建环境变量并直接指定python版本</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda create --name [env_name] python=3.7</span><br></pre></td></tr></table></figure>
+
+<h4 id="虚拟环境创建"><a href="#虚拟环境创建" class="headerlink" title="虚拟环境创建"></a>虚拟环境创建</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda create --name [env_name] # 创建虚拟环境</span><br><span class="line">conda activate [env_name]	# 进入该虚拟环境</span><br><span class="line">conda deactivate [env_name]	# 退出该虚拟环境</span><br><span class="line">conda env remove --name [env_name]	# 删除该虚拟环境</span><br><span class="line">conda dev list	# 展示虚拟环境列表</span><br></pre></td></tr></table></figure>
+
+<h4 id="包安装与管理"><a href="#包安装与管理" class="headerlink" title="包安装与管理"></a>包安装与管理</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda install [package_name]	# 安装包</span><br><span class="line">conda install [package_name]=x.x	# 安装包的具体版本</span><br><span class="line">conda update [package_name]	# 更新包</span><br><span class="line">conda remove [package_name]	# 删除包</span><br><span class="line">conda list		# 列出当前环境下已安装的包</span><br><span class="line">conda search [package_namme] # 列出名为package_name的包</span><br></pre></td></tr></table></figure>
+
+<h4 id="tensorflow安装"><a href="#tensorflow安装" class="headerlink" title="tensorflow安装"></a>tensorflow安装</h4><p>对于安装tensorflow版本对应可以参考<a href="https://blog.csdn.net/qq_32925031/article/details/106754200。3.7可以安装2.0.0，2.1.0，2.2.0，2.3.0。">https://blog.csdn.net/qq_32925031/article/details/106754200。3.7可以安装2.0.0，2.1.0，2.2.0，2.3.0。</a></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">conda install tensorflow=2.1.0</span><br></pre></td></tr></table></figure>
+
+<p>然后再次安装notebook，是jupyter book工具。在jupyter里，执行一下代码查看版本是否安装完成。默认虚拟环境里是有jupyter book工具的，新创建的里面是没有的，安装了之后，在开始菜单中会新增一个jupyter book，与默认安装不同的是，工具名称的后缀是虚拟环境的名称。</p>
+<figure class="highlight python"><table><tr><td class="code"><pre><span class="line"><span class="keyword">import</span> tensorflow <span class="keyword">as</span> tf</span><br><span class="line">print(tf.__version__)</span><br></pre></td></tr></table></figure>
+
+
+
+<p>如果Jupyter Notebook运行出错，提示ModuleNotFoundError：No module named ‘win32api’则执行以下命令</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pip install pypiwin32</span><br></pre></td></tr></table></figure>
+
+<h4 id="pip安装"><a href="#pip安装" class="headerlink" title="pip安装"></a>pip安装</h4><p>如果conda找不到包的话，可以使用pip命令进行安装</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pip install [package_name]	# 安装对应名称的包</span><br><span class="line">pip install [package_name]=x.x	# 安装指定版本的包</span><br><span class="line">pip install [package_name] --upgrade	# 更新包</span><br><span class="line">pip uninstall [package_name]	# 删除包</span><br><span class="line">pip list 	# 列出当前环境下已安装的所有包</span><br></pre></td></tr></table></figure>
+
+<p>如果下载慢，可以指定镜像源地址下载</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">pip install [package_name[=x.x]] -i 源地址</span><br></pre></td></tr></table></figure>
+
+]]></content>
+      <categories>
+        <category>Python</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Kubernetes 设计解读及名词解释</title>
+    <url>/2021/10/28/k8s/Kubernetes-%E8%AE%BE%E8%AE%A1%E8%A7%A3%E8%AF%BB%E5%8F%8A%E5%90%8D%E8%AF%8D%E8%A7%A3%E9%87%8A/</url>
+    <content><![CDATA[<blockquote>
+<p>参考 《Docker容器与容器云》第二版 浙江大学SEL实验室著、Kubernetes中文社区</p>
+</blockquote>
+<h2 id="pod"><a href="#pod" class="headerlink" title="pod"></a>pod</h2><p>pod是kubernetes中，能够被创建、调度和管理的最小单元，而非单个容器。</p>
+<p>一个pod是由若干个docker容器构成的容器组。(pod意为豆荚，里面容纳了很多豆子意为docker容器)</p>
+<p>pod里的容器共享network namespace,并通过volume机制共享一部分存储。</p>
+<ul>
+<li>pod是IP等网络资源的分配的基本单位</li>
+<li>pod内的所有容器也共享volume</li>
+<li>IPC namespace，即同一个pod内的应用容器能够使用System V PIC或POSIX消息队列进行通信</li>
+<li>UTS namespace，即同一个pod内的应用容器共享主机名</li>
+<li>通过kubernetes volume机制，在容器之间共享存储</li>
+<li>可以通过localhost直接访问另一个容器</li>
+</ul>
+<p>当系统运行着数量庞大的pod时，用户和系统如何有效定位与组织这个pod？解决方案是label，每个pod都有一个属性“label”构成多组键值对。</p>
+<p>在搜索时可以这么操作</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl get pods -l name=nginx</span><br></pre></td></tr></table></figure>
+
+<p>包括replication controller和service同样可以通过label对pod进行定位和组织</p>
+]]></content>
+      <categories>
+        <category>K8S</category>
+      </categories>
+  </entry>
+  <entry>
     <title>近代史纲要简答论述</title>
     <url>/2021/10/07/%E4%B8%AD%E5%9B%BD%E8%BF%91%E4%BB%A3%E5%8F%B2%E7%BA%B2%E8%A6%81/</url>
     <content><![CDATA[<h2 id="中共十一届三中全会以来改革开放和社会主义现代化建设取得了哪些成-就？这些成就的取得说明了什么？"><a href="#中共十一届三中全会以来改革开放和社会主义现代化建设取得了哪些成-就？这些成就的取得说明了什么？" class="headerlink" title="中共十一届三中全会以来改革开放和社会主义现代化建设取得了哪些成 就？这些成就的取得说明了什么？"></a>中共十一届三中全会以来改革开放和社会主义现代化建设取得了哪些成 就？这些成就的取得说明了什么？</h2><p>　答．中共十一届三中全会以来取得的十大成就：</p>
@@ -650,6 +777,15 @@
 <h3 id="获取指定模式下，某表的所有字段"><a href="#获取指定模式下，某表的所有字段" class="headerlink" title="获取指定模式下，某表的所有字段"></a>获取指定模式下，某表的所有字段</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> a.attnum, a.attname <span class="keyword">AS</span> <span class="keyword">field</span>, t.typname <span class="keyword">AS</span> <span class="keyword">type</span>, a.attlen <span class="keyword">AS</span> <span class="keyword">length</span> <span class="keyword">from</span> pg_class c ,pg_attribute a,pg_type t</span><br><span class="line"><span class="keyword">where</span> c.relname=<span class="string">&#x27;czkfbj&#x27;</span> <span class="comment">-- 指定表</span></span><br><span class="line">    <span class="keyword">AND</span> a.attnum &gt; <span class="number">0</span></span><br><span class="line">    <span class="keyword">AND</span> a.attrelid = c.oid</span><br><span class="line">    <span class="keyword">AND</span> a.atttypid = t.oid</span><br><span class="line"><span class="keyword">and</span> c.relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;temp&#x27;</span>) <span class="comment">-- 指定了此模式下</span></span><br><span class="line">;</span><br></pre></td></tr></table></figure>
 
 <p>如果不添加模式的话，如果多个模式都有同名的表，并且字段都不一样，那么取所有的字段到某个模式下查询表的话就会出现字段不存在的情况。</p>
+<h3 id="获取所有表名和注释"><a href="#获取所有表名和注释" class="headerlink" title="获取所有表名和注释"></a>获取所有表名和注释</h3><figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">    relname <span class="keyword">as</span> tabname,</span><br><span class="line">    <span class="keyword">coalesce</span>(</span><br><span class="line">                <span class="keyword">cast</span>(obj_description(relfilenode, <span class="string">&#x27;pg_class&#x27;</span>) <span class="keyword">as</span> <span class="built_in">varchar</span>),</span><br><span class="line">                (<span class="keyword">select</span> description <span class="keyword">from</span> pg_description <span class="keyword">where</span> objoid=<span class="keyword">OID</span> <span class="keyword">and</span> objsubid=<span class="number">0</span>)</span><br><span class="line">                ) <span class="keyword">as</span> <span class="keyword">comment</span></span><br><span class="line"><span class="keyword">from</span></span><br><span class="line">    pg_class c</span><br><span class="line"><span class="keyword">where</span></span><br><span class="line">    relkind = <span class="string">&#x27;r&#x27;</span></span><br><span class="line">  <span class="keyword">and</span> relname <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;pg_%&#x27;</span></span><br><span class="line">  <span class="keyword">and</span> relname <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;sql_%&#x27;</span></span><br><span class="line">  <span class="keyword">and</span> relname=<span class="string">&#x27;表名&#x27;</span></span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="获取表中所有属性、类型、注释"><a href="#获取表中所有属性、类型、注释" class="headerlink" title="获取表中所有属性、类型、注释"></a>获取表中所有属性、类型、注释</h3><p>使用内联，无注释可能查不出来对应字段数据</p>
+<figure class="highlight sql"><table><tr><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">	a.attname <span class="keyword">AS</span> columnName,</span><br><span class="line">	<span class="keyword">concat_ws</span>(<span class="string">&#x27;&#x27;</span>,t.typname,<span class="keyword">SUBSTRING</span>(format_type(a.atttypid,a.atttypmod) <span class="keyword">from</span> <span class="string">&#x27;\(.*\)&#x27;</span>)) <span class="keyword">as</span> columnType,</span><br><span class="line">	d.description <span class="keyword">AS</span> <span class="keyword">comment</span> </span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">	pg_class C,</span><br><span class="line">	pg_attribute A,</span><br><span class="line">	pg_type T,</span><br><span class="line">	pg_description d</span><br><span class="line"><span class="keyword">WHERE</span></span><br><span class="line">	C.relname = <span class="string">&#x27;kjgh_plan_result&#x27;</span></span><br><span class="line"><span class="keyword">AND</span> c.relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;business&#x27;</span>) <span class="comment">-- 指定了此模式下</span></span><br><span class="line"><span class="keyword">AND</span> A .attnum &gt; <span class="number">0</span></span><br><span class="line"><span class="keyword">AND</span> A .attrelid = C .oid</span><br><span class="line"><span class="keyword">AND</span> A .atttypid = T .oid</span><br><span class="line"><span class="keyword">AND</span> d.objoid = A .attrelid</span><br><span class="line"><span class="keyword">AND</span> d.objsubid = A .attnum</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">	C .relname <span class="keyword">DESC</span></span><br></pre></td></tr></table></figure>
+
+
+
 <h2 id="参数设置"><a href="#参数设置" class="headerlink" title="参数设置"></a>参数设置</h2><h3 id="pg-hba-conf配置说明"><a href="#pg-hba-conf配置说明" class="headerlink" title="pg_hba.conf配置说明"></a>pg_hba.conf配置说明</h3><p>配置相关访问权限，如允许某ip/网段连接，允许哪些用户访问那些数据库，并设置连接方式(oassword,MD5,trust等)</p>
 <p><a href="https://blog.csdn.net/hmxz2nn/article/details/83717663">https://blog.csdn.net/hmxz2nn/article/details/83717663</a></p>
 <h3 id="postgresql-conf配置说明"><a href="#postgresql-conf配置说明" class="headerlink" title="postgresql.conf配置说明"></a>postgresql.conf配置说明</h3><p><a href="https://www.yiibai.com/manual/postgresql/config-setting.html">https://www.yiibai.com/manual/postgresql/config-setting.html</a></p>
@@ -998,6 +1134,14 @@
 
 
 
+<h2 id="7-12-1版本"><a href="#7-12-1版本" class="headerlink" title="7.12.1版本"></a>7.12.1版本</h2><h3 id="http请求"><a href="#http请求" class="headerlink" title="http请求"></a>http请求</h3><figure class="highlight"><table><tr><td class="code"><pre><span class="line">GET _search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;: &#123;</span><br><span class="line">&quot;match_all&quot;: &#123;&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"># 查看节点信息</span><br><span class="line"></span><br><span class="line">## 健康</span><br><span class="line">GET _cat/health</span><br><span class="line">## master节点</span><br><span class="line">GET _cat/master</span><br><span class="line">## 所有节点</span><br><span class="line">GET _cat/nodes</span><br><span class="line">## 所有索引</span><br><span class="line">GET _cat/indices</span><br><span class="line"></span><br><span class="line"># 索引文档</span><br><span class="line"></span><br><span class="line">## POST也可以新增，有id或没有id都会新增，如果加了id，有数据则更新，没数据则新增</span><br><span class="line">## PUT必须要id，没有数据会新增，有数据会更新</span><br><span class="line"></span><br><span class="line">## 添加一条数据</span><br><span class="line">PUT customer/ext/1</span><br><span class="line">&#123;</span><br><span class="line">&quot;name&quot;:&quot;Jogn Doe&quot;</span><br><span class="line">&#125;</span><br><span class="line">## 获取文档</span><br><span class="line">GET customer/ext/1</span><br><span class="line"></span><br><span class="line">## 更新某个文档，必须使用doc进行包裹，与源文档对比没有更改则不会更新版本，如果有更改内容则会更新版本。但如果不存在id会404</span><br><span class="line">## POST和PUT不带_update也是可以更新的，跟上面的一样</span><br><span class="line">POST customer/ext/1/_update</span><br><span class="line">&#123;</span><br><span class="line">&quot;doc&quot;:&#123;</span><br><span class="line">&quot;name&quot;:&quot;Jogn Doe&quot;,</span><br><span class="line">&quot;age&quot;: 123</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">## 删除文档</span><br><span class="line">DELETE customer/ext/1</span><br><span class="line">## 删除索引</span><br><span class="line">DELETE customer</span><br><span class="line"></span><br><span class="line">#  批量操作</span><br><span class="line"></span><br><span class="line">## 批量新增</span><br><span class="line">POST customer/ext/_bulk</span><br><span class="line">&#123;&quot;index&quot;:&#123;&quot;_id&quot;:&quot;1&quot;&#125;&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;Jogn Doe&quot;&#125;</span><br><span class="line">&#123;&quot;index&quot;:&#123;&quot;_id&quot;:&quot;2&quot;&#125;&#125;</span><br><span class="line">&#123;&quot;name&quot;:&quot;Jane Doe&quot;&#125;</span><br><span class="line"></span><br><span class="line">GET bank/account</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">#####################################################################################</span><br><span class="line"></span><br><span class="line"># 检索</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">GET bank/_search?q=*&amp;sort=account_number:asc</span><br><span class="line"></span><br><span class="line">## query</span><br><span class="line"></span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;:&#123;</span><br><span class="line">&quot;match_all&quot;: &#123;&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;sort&quot;: [</span><br><span class="line">&#123;</span><br><span class="line">&quot;account_number&quot;: &#123;</span><br><span class="line">&quot;order&quot;: &quot;desc&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### 数字型match进行eq匹配</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;:&#123;</span><br><span class="line">&quot;match&quot;: &#123;</span><br><span class="line">&quot;balance&quot;: 6087</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;sort&quot;: [</span><br><span class="line">&#123;</span><br><span class="line">&quot;account_number&quot;: &#123;</span><br><span class="line">&quot;order&quot;: &quot;desc&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">]</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### 字符型match进行包含匹配，任意一个单词。当使用sort时，没有匹配分数_score。它默认会根据max_score进行排序</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;:&#123;</span><br><span class="line">&quot;match&quot;: &#123;</span><br><span class="line">&quot;address&quot;: &quot;mill road&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### 短语匹配，包含了完整的值的匹配</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;:&#123;</span><br><span class="line">&quot;match_phrase&quot;: &#123;</span><br><span class="line">&quot;address&quot;: &quot;mill road&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### 多字段匹配,fields中任意一个字段匹配到query,会进行分词匹配</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;:&#123;</span><br><span class="line">&quot;multi_match&quot;: &#123;</span><br><span class="line">&quot;query&quot;: &quot;mill Movico&quot;,</span><br><span class="line">&quot;fields&quot;: [&quot;address&quot;,&quot;city&quot;]</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### bool 中must中的所有条件必须满足。must_not用于必须不匹配。should用于应该满足，不匹配也无所谓，匹配则分数增加。filter也可以，但是不会增加分数</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;:&#123;</span><br><span class="line">&quot;bool&quot;: &#123;</span><br><span class="line">&quot;must&quot;: [</span><br><span class="line">&#123;</span><br><span class="line">&quot;match&quot;: &#123;</span><br><span class="line">&quot;gender&quot;: &quot;M&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&#123;&quot;match&quot;: &#123;</span><br><span class="line">&quot;address&quot;: &quot;Mill&quot;</span><br><span class="line">&#125;&#125;</span><br><span class="line">],</span><br><span class="line">&quot;must_not&quot;: [</span><br><span class="line">&#123;&quot;match&quot;: &#123;</span><br><span class="line">&quot;city&quot;: &quot;Lopezo&quot;</span><br><span class="line">&#125;&#125;</span><br><span class="line">],</span><br><span class="line">&quot;should&quot;: [</span><br><span class="line">&#123;&quot;match&quot;: &#123;</span><br><span class="line">&quot;lastname&quot;: &quot;Hines&quot;</span><br><span class="line">&#125;&#125;</span><br><span class="line">],</span><br><span class="line">&quot;filter&quot;: &#123;</span><br><span class="line">&quot;range&quot;: &#123;</span><br><span class="line">&quot;age&quot;: &#123;</span><br><span class="line">&quot;gte&quot;: 10,</span><br><span class="line">&quot;lte&quot;: 80</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### filter不会贡献分数，bool must会</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;: &#123;</span><br><span class="line">&quot;bool&quot;: &#123;</span><br><span class="line">&quot;filter&quot;: &#123;</span><br><span class="line">&quot;range&quot;: &#123;</span><br><span class="line">&quot;age&quot;: &#123;</span><br><span class="line">&quot;gte&quot;: 10,</span><br><span class="line">&quot;lte&quot;: 20</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### term 用于找精确值字段的，text类型的用match</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;: &#123;</span><br><span class="line">&quot;term&quot;: &#123;</span><br><span class="line">&quot;age&quot;: &#123;</span><br><span class="line">&quot;value&quot;: &quot;28&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### 聚合函数。可以有多个聚合，也可以在某个聚合结果的基础上再次聚合</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;query&quot;: &#123;</span><br><span class="line">&quot;range&quot;: &#123;</span><br><span class="line">&quot;age&quot;: &#123;</span><br><span class="line">&quot;gte&quot;: 20,</span><br><span class="line">&quot;lte&quot;: 30</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;aggs&quot;: &#123;</span><br><span class="line">&quot;ageAgg&quot;: &#123;</span><br><span class="line">&quot;terms&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;age&quot;,</span><br><span class="line">&quot;size&quot;: 10</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;ageAvg&quot;:&#123;</span><br><span class="line">&quot;avg&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;age&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;balanceavg&quot;:&#123;</span><br><span class="line">&quot;avg&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;balance&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;size&quot;: 0</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;size&quot;: 0,</span><br><span class="line">&quot;query&quot;: &#123;</span><br><span class="line">&quot;match_all&quot;: &#123;&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;aggs&quot;: &#123;</span><br><span class="line">&quot;ageAgg&quot;: &#123;</span><br><span class="line">&quot;terms&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;age&quot;,</span><br><span class="line">&quot;size&quot;: 10</span><br><span class="line">&#125;,</span><br><span class="line">&quot;aggs&quot;: &#123;</span><br><span class="line">&quot;age&quot;: &#123;</span><br><span class="line">&quot;avg&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;balance&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### 查出所有年龄分布，并且这些年龄中的M的平均薪资和F的平均薪资，以及这个年龄段的平均薪资</span><br><span class="line">GET bank/_search</span><br><span class="line">&#123;</span><br><span class="line">&quot;size&quot;: 0,</span><br><span class="line">&quot;query&quot;: &#123;</span><br><span class="line">&quot;match_all&quot;: &#123;&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;aggs&quot;: &#123;</span><br><span class="line">&quot;ageAgg&quot;: &#123;</span><br><span class="line">&quot;terms&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;age&quot;,</span><br><span class="line">&quot;size&quot;: 100</span><br><span class="line">&#125;,</span><br><span class="line">&quot;aggs&quot;: &#123;</span><br><span class="line">&quot;genderAgg&quot;: &#123;</span><br><span class="line">&quot;terms&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;gender.keyword&quot;,</span><br><span class="line">&quot;size&quot;: 10</span><br><span class="line">&#125;,</span><br><span class="line">&quot;aggs&quot;: &#123;</span><br><span class="line">&quot;blanceAvg&quot;: &#123;</span><br><span class="line">&quot;avg&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;balance&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;blanceAvg&quot;:&#123;</span><br><span class="line">&quot;avg&quot;: &#123;</span><br><span class="line">&quot;field&quot;: &quot;balance&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">## 映射mapping，映射类型，每个字段的类型</span><br><span class="line"></span><br><span class="line">GET bank/_mapping</span><br><span class="line"></span><br><span class="line">### 创建索引时指定映射类型</span><br><span class="line">PUT my_index</span><br><span class="line">&#123;</span><br><span class="line">&quot;mappings&quot;: &#123;</span><br><span class="line">&quot;properties&quot;: &#123;</span><br><span class="line">&quot;age&quot;:&#123;&quot;type&quot;: &quot;integer&quot;&#125;,</span><br><span class="line">&quot;email&quot;:&#123;&quot;type&quot;: &quot;keyword&quot;&#125;,</span><br><span class="line">&quot;name&quot;:&#123;&quot;type&quot;: &quot;text&quot;&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">### 新增一个索引的映射/字段。使用index:false表示不会对这个字段进行索引设置。默认都是true</span><br><span class="line">PUT my_index/_mapping</span><br><span class="line">&#123;</span><br><span class="line">&quot;properties&quot;:&#123;</span><br><span class="line">&quot;emp_id&quot;:&#123;</span><br><span class="line">&quot;type&quot;:&quot;keyword&quot;,</span><br><span class="line">&quot;index&quot;:false</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">GET bank/_mapping</span><br><span class="line"></span><br><span class="line">### 更新索引只能进行数据迁移，放置到新索引中。首先需要创建新的索引</span><br><span class="line">PUT newbank</span><br><span class="line">&#123;</span><br><span class="line">&quot;mappings&quot;: &#123;</span><br><span class="line">&quot;properties&quot; : &#123;</span><br><span class="line">&quot;account_number&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;long&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;address&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;text&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;age&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;integer&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;balance&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;long&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;city&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;keyword&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;email&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;keyword&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;employer&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;keyword&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;firstname&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;text&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;gender&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;keyword&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;lastname&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;text&quot;,</span><br><span class="line">&quot;fields&quot; : &#123;</span><br><span class="line">&quot;keyword&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;keyword&quot;,</span><br><span class="line">&quot;ignore_above&quot; : 256</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;state&quot; : &#123;</span><br><span class="line">&quot;type&quot; : &quot;keyword&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">GET newbank/_mapping</span><br><span class="line"></span><br><span class="line">### 迁移数据</span><br><span class="line">POST _reindex</span><br><span class="line">&#123;</span><br><span class="line">&quot;source&quot;: &#123;</span><br><span class="line">&quot;index&quot;: &quot;bank&quot;,</span><br><span class="line">&quot;type&quot;: &quot;account&quot;</span><br><span class="line">&#125;,</span><br><span class="line">&quot;dest&quot;: &#123;</span><br><span class="line">&quot;index&quot;: &quot;newbank&quot;</span><br><span class="line">&#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">GET newbank/_search?q=*</span><br><span class="line"></span><br><span class="line">## 分词</span><br><span class="line"></span><br><span class="line">### 默认使用标准分词器</span><br><span class="line"></span><br><span class="line">GET _analyze</span><br><span class="line">&#123;</span><br><span class="line">&quot;analyzer&quot;: &quot;standard&quot;,</span><br><span class="line">&quot;text&quot;: &quot;The 2 QUICK Brown-Foxes jumped over the lazy dog&#x27;s bone.&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### https://github.com/medcl/elasticsearch-analysis-ik/tags 下载ik中文分词器，将分词器解压，放到es的plugins目录下，然后重启容器即可</span><br><span class="line"></span><br><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">&quot;analyzer&quot;: &quot;ik_smart&quot;,</span><br><span class="line">&quot;text&quot;: &quot;我是中国人&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">&quot;analyzer&quot;: &quot;ik_max_word&quot;,</span><br><span class="line">&quot;text&quot;: &quot;我是中国人&quot;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">### 自定义拓展分词器。将ik分词器插件放到plugins中后，修改config/IKAnalysis.cfg.xml文件，配置自己的远程拓展字典。可以在nginx上放置一个txt文件，每个词语为一行。将访问地址配置进去后，重启容器即可。</span><br><span class="line"></span><br><span class="line">POST _analyze</span><br><span class="line">&#123;</span><br><span class="line">&quot;analyzer&quot;: &quot;ik_max_word&quot;,</span><br><span class="line">&quot;text&quot;: &quot;陈光奇和小小&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="java-api使用"><a href="#java-api使用" class="headerlink" title="java api使用"></a>java api使用</h3><figure class="highlight xml"><table><tr><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.data<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-data-elasticsearch<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>4.2.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">server:</span></span><br><span class="line">  <span class="attr">port:</span> <span class="number">8001</span></span><br><span class="line"><span class="attr">spring:</span></span><br><span class="line">  <span class="attr">elasticsearch:</span></span><br><span class="line">    <span class="attr">rest:</span></span><br><span class="line">      <span class="attr">uris:</span> <span class="string">http://192.168.38.140:9200</span></span><br><span class="line">      <span class="attr">connection-timeout:</span> <span class="string">5s</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@AutoConfigureMockMvc</span></span><br><span class="line"><span class="meta">@SpringBootTest</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">EsApplicationTest</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RestHighLevelClient restHighLevelClient;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">createIndexAndAddData</span><span class="params">()</span></span>&#123;</span><br><span class="line">        User user = <span class="keyword">new</span> User();</span><br><span class="line">        user.setName(<span class="string">&quot;小小&quot;</span>);</span><br><span class="line">        user.setAge(<span class="string">&quot;25&quot;</span>);</span><br><span class="line">        user.setGender(<span class="string">&quot;女&quot;</span>);</span><br><span class="line">        IndexRequest request = <span class="keyword">new</span> IndexRequest(<span class="string">&quot;user&quot;</span>);</span><br><span class="line">        request.source(BeanUtil.beanToMap(user), XContentType.JSON);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            IndexResponse response = restHighLevelClient.index(request, RequestOptions.DEFAULT);</span><br><span class="line">            System.out.println(response);</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Test</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">searchData</span><span class="params">()</span></span>&#123;</span><br><span class="line">        SearchSourceBuilder searchSourceBuilder = <span class="keyword">new</span> SearchSourceBuilder();</span><br><span class="line">        searchSourceBuilder.query(QueryBuilders.matchQuery(<span class="string">&quot;address&quot;</span>,<span class="string">&quot;mill&quot;</span>));</span><br><span class="line"></span><br><span class="line">        TermsAggregationBuilder termsAggregationBuilder = AggregationBuilders.terms(<span class="string">&quot;ageAgg&quot;</span>).field(<span class="string">&quot;age&quot;</span>).size(<span class="number">100</span>);</span><br><span class="line">        searchSourceBuilder.aggregation(termsAggregationBuilder);</span><br><span class="line">        AvgAggregationBuilder field = AggregationBuilders.avg(<span class="string">&quot;balanceAvg&quot;</span>).field(<span class="string">&quot;balance&quot;</span>);</span><br><span class="line">        searchSourceBuilder.aggregation(field);</span><br><span class="line">        System.out.println(searchSourceBuilder.toString());</span><br><span class="line"></span><br><span class="line">        SearchRequest searchRequest = <span class="keyword">new</span> SearchRequest(<span class="string">&quot;bank&quot;</span>);</span><br><span class="line">        searchRequest.source(searchSourceBuilder);</span><br><span class="line"></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            SearchResponse search = restHighLevelClient.search(searchRequest, RequestOptions.DEFAULT);</span><br><span class="line">            System.out.println(search.toString());</span><br><span class="line">        &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">User</span></span>&#123;</span><br><span class="line">        <span class="keyword">private</span> String name;</span><br><span class="line">        <span class="keyword">private</span> String age;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">private</span> String gender;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> name;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.name = name;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">getAge</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> age;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAge</span><span class="params">(String age)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.age = age;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> String <span class="title">getGender</span><span class="params">()</span> </span>&#123;</span><br><span class="line">            <span class="keyword">return</span> gender;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setGender</span><span class="params">(String gender)</span> </span>&#123;</span><br><span class="line">            <span class="keyword">this</span>.gender = gender;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
 
 
 
@@ -1027,6 +1171,18 @@
 ]]></content>
       <categories>
         <category>ElasticSearch</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>源码解析-缓存模块</title>
+    <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97/</url>
+    <content><![CDATA[<p>一级缓存是会话级别的缓存，在MyBatis中每创建一个SqlSession 对象，就表示开启一次数据库回话。</p>
+<p>在一次会话中，应用程序可能会在很短的时间内，例如执行一个事务内，反复执行完成相同的查询语句，如果不对数据进行缓存，那么每次查询都会执行一次数据库查询操作。</p>
+<p>一级缓存的生命周期与SqlSession相同，其实也就与SqlSession中封装的Executor对象的生命周期相同。当调用Executor对象的close()方法时，该Executor对象对应的一级缓存就变得不可用。</p>
+<p>在调用Executor.update()方法时，会先清空一级缓存。</p>
+]]></content>
+      <categories>
+        <category>MyBatis</category>
       </categories>
   </entry>
   <entry>
@@ -1068,18 +1224,6 @@
 
 
 
-]]></content>
-      <categories>
-        <category>MyBatis</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>源码解析-缓存模块</title>
-    <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97/</url>
-    <content><![CDATA[<p>一级缓存是会话级别的缓存，在MyBatis中每创建一个SqlSession 对象，就表示开启一次数据库回话。</p>
-<p>在一次会话中，应用程序可能会在很短的时间内，例如执行一个事务内，反复执行完成相同的查询语句，如果不对数据进行缓存，那么每次查询都会执行一次数据库查询操作。</p>
-<p>一级缓存的生命周期与SqlSession相同，其实也就与SqlSession中封装的Executor对象的生命周期相同。当调用Executor对象的close()方法时，该Executor对象对应的一级缓存就变得不可用。</p>
-<p>在调用Executor.update()方法时，会先清空一级缓存。</p>
 ]]></content>
       <categories>
         <category>MyBatis</category>
@@ -2014,6 +2158,14 @@
       </categories>
   </entry>
   <entry>
+    <title>Redis命令操作</title>
+    <url>/2021/03/22/Redis/Redis%E5%91%BD%E4%BB%A4%E6%93%8D%E4%BD%9C/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>Redis</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Redis缓存过期策略与内存淘汰策略</title>
     <url>/2021/03/22/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%AD%96%E7%95%A5%E4%B8%8E%E5%86%85%E5%AD%98%E6%B7%98%E6%B1%B0%E7%AD%96%E7%95%A5/</url>
     <content><![CDATA[<h2 id="过期策略"><a href="#过期策略" class="headerlink" title="过期策略"></a>过期策略</h2><h3 id="设置过期和移除过期"><a href="#设置过期和移除过期" class="headerlink" title="设置过期和移除过期"></a>设置过期和移除过期</h3><p>expire和persist可分别设置过期和取消过期</p>
@@ -2074,14 +2226,6 @@
 <p>LRU：长时间未被使用。LFU(Redis4.0)：一定时间内访问次数最少</p>
 <p>配置项<code>maxmemory</code>可设置最大内存数，以字节为单位，默认无限制，可以为其配置最大内存，以便服务器可以留出其他内存用于输出缓冲区，副本同步，网络问题等。</p>
 ]]></content>
-      <categories>
-        <category>Redis</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Redis命令操作</title>
-    <url>/2021/03/22/Redis/Redis%E5%91%BD%E4%BB%A4%E6%93%8D%E4%BD%9C/</url>
-    <content><![CDATA[]]></content>
       <categories>
         <category>Redis</category>
       </categories>
@@ -2393,6 +2537,22 @@
       </categories>
   </entry>
   <entry>
+    <title>Redis安装</title>
+    <url>/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/</url>
+    <content><![CDATA[<h3 id="centos-mini下安装redis"><a href="#centos-mini下安装redis" class="headerlink" title="centos mini下安装redis"></a>centos mini下安装redis</h3><p>由于mini安装缺少各种依赖，因此需要新下载依赖。</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo yum -y install gcc gcc-c++ libstdc++-devel</span><br><span class="line">sudo yum install centos-release-scl</span><br><span class="line">sudo yum install devtoolset-7-gcc*</span><br><span class="line">scl enable devtoolset-7 bash</span><br><span class="line"></span><br><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;releases&#x2F;redis-6.0.6.tar.gz</span><br><span class="line">tar xzf redis-6.0.6.tar.gz</span><br><span class="line">cd redis-6.0.6</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
+
+<p>gui安装可能全部包含，直接下载编译，出现问题可在网上搜索报错信息。</p>
+<h3 id="window安装3-0-503"><a href="#window安装3-0-503" class="headerlink" title="window安装3.0.503"></a>window安装3.0.503</h3><p>github地址:<a href="https://github.com/ServiceStack/redis-windows">https://github.com/ServiceStack/redis-windows</a></p>
+<p>下载地址:<a href="https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip">https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip</a></p>
+<p>版本太老，仅用于缓存的存储使用。其它高级功能需要更高版本的。</p>
+<h3 id="RedisDesktopMange-windows-gui界面版redis"><a href="#RedisDesktopMange-windows-gui界面版redis" class="headerlink" title="RedisDesktopMange-windows gui界面版redis"></a>RedisDesktopMange-windows gui界面版redis</h3><p>下载地址:<a href="https://github.com/lework/RedisDesktopManager-Windows/releases">https://github.com/lework/RedisDesktopManager-Windows/releases</a></p>
+]]></content>
+      <categories>
+        <category>Redis</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Java监听Redis缓存过期事件</title>
     <url>/2021/03/21/Redis/Redis%E7%BC%93%E5%AD%98%E8%BF%87%E6%9C%9F%E7%9B%91%E5%90%AC%E4%BA%8B%E4%BB%B6/</url>
     <content><![CDATA[<p><strong>使用缓存过期监听事件并不能真实意义上的TTL为0时触发过期，只是理论上的。</strong>这意味着只能将过期事件使用在，并不需要严格的业务逻辑掺杂的键上。</p>
@@ -2427,22 +2587,6 @@
 
 <h4 id="使用注解来监听"><a href="#使用注解来监听" class="headerlink" title="使用注解来监听"></a>使用注解来监听</h4><figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="meta">@EventListener(classes = RedisKeyExpiredEvent.class)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">listenerUploadFile</span><span class="params">(RedisKeyExpiredEvent event)</span> </span>&#123;</span><br><span class="line">    String id = <span class="keyword">new</span> String(event.getId());</span><br><span class="line">    String source = <span class="keyword">new</span> String(event.getSource());</span><br><span class="line">    String keyspace = event.getKeyspace();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-]]></content>
-      <categories>
-        <category>Redis</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Redis安装</title>
-    <url>/2021/03/21/Redis/Redis%E5%AE%89%E8%A3%85/</url>
-    <content><![CDATA[<h3 id="centos-mini下安装redis"><a href="#centos-mini下安装redis" class="headerlink" title="centos mini下安装redis"></a>centos mini下安装redis</h3><p>由于mini安装缺少各种依赖，因此需要新下载依赖。</p>
-<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">sudo yum -y install gcc gcc-c++ libstdc++-devel</span><br><span class="line">sudo yum install centos-release-scl</span><br><span class="line">sudo yum install devtoolset-7-gcc*</span><br><span class="line">scl enable devtoolset-7 bash</span><br><span class="line"></span><br><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;releases&#x2F;redis-6.0.6.tar.gz</span><br><span class="line">tar xzf redis-6.0.6.tar.gz</span><br><span class="line">cd redis-6.0.6</span><br><span class="line">make</span><br></pre></td></tr></table></figure>
-
-<p>gui安装可能全部包含，直接下载编译，出现问题可在网上搜索报错信息。</p>
-<h3 id="window安装3-0-503"><a href="#window安装3-0-503" class="headerlink" title="window安装3.0.503"></a>window安装3.0.503</h3><p>github地址:<a href="https://github.com/ServiceStack/redis-windows">https://github.com/ServiceStack/redis-windows</a></p>
-<p>下载地址:<a href="https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip">https://github.com/ServiceStack/redis-windows/raw/master/downloads/redis-latest.zip</a></p>
-<p>版本太老，仅用于缓存的存储使用。其它高级功能需要更高版本的。</p>
-<h3 id="RedisDesktopMange-windows-gui界面版redis"><a href="#RedisDesktopMange-windows-gui界面版redis" class="headerlink" title="RedisDesktopMange-windows gui界面版redis"></a>RedisDesktopMange-windows gui界面版redis</h3><p>下载地址:<a href="https://github.com/lework/RedisDesktopManager-Windows/releases">https://github.com/lework/RedisDesktopManager-Windows/releases</a></p>
 ]]></content>
       <categories>
         <category>Redis</category>
@@ -3425,20 +3569,7 @@
 
 ]]></content>
       <categories>
-        <category>k8s</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>ajax post请求下载文件</title>
-    <url>/2021/01/18/Javascript/ajax-post%E8%AF%B7%E6%B1%82%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/</url>
-    <content><![CDATA[<p>post请求携带字符串类型,list,map类型数据,后台使用<code>@RequestBody Map&lt;String,Object&gt;</code>进行接收</p>
-<p>html参考</p>
-<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Document<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://cdn.bootcdn.net/ajax/libs/jquery/1.9.0/jquery.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span></span><br><span class="line"><span class="javascript">        $(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="javascript">            $.ajax(&#123;</span></span><br><span class="line"><span class="javascript">                url: <span class="string">&#x27;http://localhost:8080/download&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                method: <span class="string">&#x27;POST&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                data: <span class="built_in">JSON</span>.stringify(&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;1231&quot;</span>, <span class="string">&quot;array&quot;</span>: [&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;123&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">12</span> &#125;] &#125;),</span></span><br><span class="line"><span class="javascript">                contentType: <span class="string">&quot;application/json&quot;</span>, <span class="comment">//必须有</span></span></span><br><span class="line"><span class="javascript">                responseType: <span class="string">&#x27;blob&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                processData: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                <span class="keyword">async</span>: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                success: <span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> url = <span class="built_in">window</span>.URL.createObjectURL(<span class="keyword">new</span> Blob([data]))</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> link = <span class="built_in">document</span>.createElement(<span class="string">&#x27;a&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    link.style.display = <span class="string">&#x27;none&#x27;</span></span></span><br><span class="line">                    link.href = url</span><br><span class="line"><span class="javascript">                    link.setAttribute(<span class="string">&#x27;download&#x27;</span>, <span class="string">&#x27;asdasd.md&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.appendChild(link)</span></span><br><span class="line">                    link.click()</span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.removeChild(link); <span class="comment">//下载完成移除元素</span></span></span><br><span class="line"><span class="javascript">                    <span class="built_in">window</span>.URL.revokeObjectURL(url); <span class="comment">//释放掉blob对象</span></span></span><br><span class="line">                &#125;,</span><br><span class="line"><span class="javascript">                error: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<p>用此方式是通过创建一个blob的对象来处理的，没办法得到后台设置的下载文件名，因此这块需要在前端来设置文件名。</p>
-]]></content>
-      <categories>
-        <category>Javascript</category>
+        <category>K8S</category>
       </categories>
   </entry>
   <entry>
@@ -3453,6 +3584,19 @@
       <tags>
         <tag>Redis</tag>
       </tags>
+  </entry>
+  <entry>
+    <title>ajax post请求下载文件</title>
+    <url>/2021/01/18/Javascript/ajax-post%E8%AF%B7%E6%B1%82%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/</url>
+    <content><![CDATA[<p>post请求携带字符串类型,list,map类型数据,后台使用<code>@RequestBody Map&lt;String,Object&gt;</code>进行接收</p>
+<p>html参考</p>
+<figure class="highlight html"><table><tr><td class="code"><pre><span class="line"><span class="meta">&lt;!DOCTYPE <span class="meta-keyword">html</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">html</span> <span class="attr">lang</span>=<span class="string">&quot;en&quot;</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">head</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">charset</span>=<span class="string">&quot;UTF-8&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">meta</span> <span class="attr">name</span>=<span class="string">&quot;viewport&quot;</span> <span class="attr">content</span>=<span class="string">&quot;width=device-width, initial-scale=1.0&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">title</span>&gt;</span>Document<span class="tag">&lt;/<span class="name">title</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">src</span>=<span class="string">&quot;https://cdn.bootcdn.net/ajax/libs/jquery/1.9.0/jquery.min.js&quot;</span>&gt;</span><span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">head</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;<span class="name">body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">script</span> <span class="attr">type</span>=<span class="string">&quot;text/javascript&quot;</span>&gt;</span></span><br><span class="line"><span class="javascript">        $(<span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="javascript">            $.ajax(&#123;</span></span><br><span class="line"><span class="javascript">                url: <span class="string">&#x27;http://localhost:8080/download&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                method: <span class="string">&#x27;POST&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                data: <span class="built_in">JSON</span>.stringify(&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;1231&quot;</span>, <span class="string">&quot;array&quot;</span>: [&#123; <span class="string">&quot;name&quot;</span>: <span class="string">&quot;123&quot;</span>, <span class="string">&quot;age&quot;</span>: <span class="number">12</span> &#125;] &#125;),</span></span><br><span class="line"><span class="javascript">                contentType: <span class="string">&quot;application/json&quot;</span>, <span class="comment">//必须有</span></span></span><br><span class="line"><span class="javascript">                responseType: <span class="string">&#x27;blob&#x27;</span>,</span></span><br><span class="line"><span class="javascript">                processData: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                <span class="keyword">async</span>: <span class="literal">false</span>,</span></span><br><span class="line"><span class="javascript">                success: <span class="function"><span class="keyword">function</span> (<span class="params">data</span>) </span>&#123;</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> url = <span class="built_in">window</span>.URL.createObjectURL(<span class="keyword">new</span> Blob([data]))</span></span><br><span class="line"><span class="javascript">                    <span class="keyword">let</span> link = <span class="built_in">document</span>.createElement(<span class="string">&#x27;a&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    link.style.display = <span class="string">&#x27;none&#x27;</span></span></span><br><span class="line">                    link.href = url</span><br><span class="line"><span class="javascript">                    link.setAttribute(<span class="string">&#x27;download&#x27;</span>, <span class="string">&#x27;asdasd.md&#x27;</span>)</span></span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.appendChild(link)</span></span><br><span class="line">                    link.click()</span><br><span class="line"><span class="javascript">                    <span class="built_in">document</span>.body.removeChild(link); <span class="comment">//下载完成移除元素</span></span></span><br><span class="line"><span class="javascript">                    <span class="built_in">window</span>.URL.revokeObjectURL(url); <span class="comment">//释放掉blob对象</span></span></span><br><span class="line">                &#125;,</span><br><span class="line"><span class="javascript">                error: <span class="function"><span class="keyword">function</span> (<span class="params"></span>) </span>&#123;</span></span><br><span class="line"></span><br><span class="line">                &#125;</span><br><span class="line">            &#125;);</span><br><span class="line">        &#125;)</span><br><span class="line">    <span class="tag">&lt;/<span class="name">script</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">body</span>&gt;</span></span><br><span class="line"></span><br><span class="line"><span class="tag">&lt;/<span class="name">html</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>用此方式是通过创建一个blob的对象来处理的，没办法得到后台设置的下载文件名，因此这块需要在前端来设置文件名。</p>
+]]></content>
+      <categories>
+        <category>Javascript</category>
+      </categories>
   </entry>
   <entry>
     <title>k8s helm</title>
@@ -6633,22 +6777,6 @@
       </tags>
   </entry>
   <entry>
-    <title>帆软JS API</title>
-    <url>/2020/03/20/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AFJS%20API/</url>
-    <content><![CDATA[<p><strong>在报表内，直接使用contentPane对象调取方法。如果在js中可使用content_iframe(iframe控件名称)获取contentPane子对象调取API</strong></p>
-<p>//获取控件的值(在报表内)<br>contentPane.curLGP.write.getWidgetsByName(“YYGDJ”).getValue();</p>
-<p>//获取某单元格的值，第一个参数为Sheet编号，第二个为列号(0开始)，第三个为行号(0开始)<br>contentPane.getCellValue({reportIndex:0, columnIndex: 8, rowIndex:9});//js中用法<br>contentPane.getCellValue(0, 8, 9);//帆软自定义脚本用法</p>
-<p>地址<a href="https://help.finereport.com/doc-view-619.htm">https://help.finereport.com/doc-view-619.htm</a></p>
-]]></content>
-      <categories>
-        <category>帆软</category>
-      </categories>
-      <tags>
-        <tag>Web</tag>
-        <tag>帆软</tag>
-      </tags>
-  </entry>
-  <entry>
     <title>帆软报表相关高级用法</title>
     <url>/2020/03/20/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AF%E6%8A%A5%E8%A1%A8%E7%9B%B8%E5%85%B3%E9%AB%98%E7%BA%A7%E7%94%A8%E6%B3%95/</url>
     <content><![CDATA[<h1 id="帆软报表相关高级用法"><a href="#帆软报表相关高级用法" class="headerlink" title="帆软报表相关高级用法"></a>帆软报表相关高级用法</h1><h3 id="填报报表的模板数据集"><a href="#填报报表的模板数据集" class="headerlink" title="填报报表的模板数据集"></a>填报报表的模板数据集</h3><p>通常的模板数据集直接使用sql语句编写，若有模板参数，则通过${参数名称}的方式来引用它。这是通常的做法。<br>另外可以使用携带方法的查询语句，类似如下:</p>
@@ -6676,6 +6804,22 @@
 <li>getCellValue(reportIndex,columnIndex,rowIndex):分表表示sheet编号，列号，行号，都以0开始。我们可以给这三个值指定模板上任意值来表示一个单元格。</li>
 <li><a href="https://help.finereport.com/doc-view-595.html">deleteReportRC</a>(null,number|array):删除指定行，只有填报报表可用。第二个参数可以是行号或一个单元格id数组，如下:  <figure class="highlight java"><table><tr><td class="code"><pre><span class="line"><span class="keyword">var</span> $span = $(<span class="string">&#x27;.fr-checkbox-checkon&#x27;</span>);  <span class="comment">//定义选中的复选框 </span></span><br><span class="line"><span class="keyword">var</span> darray = []; </span><br><span class="line"><span class="keyword">var</span> $tds = $(<span class="string">&quot;td&quot;</span>).has($span);   <span class="comment">//定义选中复选框的单元格 </span></span><br><span class="line"><span class="keyword">for</span> (<span class="keyword">var</span> i = <span class="number">0</span>, len = $tds.length; i &lt; len; i ++) &#123;    <span class="comment">//遍历选中的单元格</span></span><br><span class="line">     <span class="keyword">var</span> id = $($tds[i]).attr(<span class="string">&quot;id&quot;</span>);     <span class="comment">//给选中的单元格加上id的属性</span></span><br><span class="line">     <span class="keyword">if</span> (id) &#123;</span><br><span class="line">	darray.push(id);     <span class="comment">//将选中的id放入到数组中</span></span><br><span class="line">     &#125;</span><br><span class="line">&#125;</span><br><span class="line">contentPane.deleteReportRC(<span class="keyword">null</span>,darray); </span><br></pre></td></tr></table></figure></li>
 </ul>
+]]></content>
+      <categories>
+        <category>帆软</category>
+      </categories>
+      <tags>
+        <tag>Web</tag>
+        <tag>帆软</tag>
+      </tags>
+  </entry>
+  <entry>
+    <title>帆软JS API</title>
+    <url>/2020/03/20/%E5%B8%86%E8%BD%AF/%E5%B8%86%E8%BD%AFJS%20API/</url>
+    <content><![CDATA[<p><strong>在报表内，直接使用contentPane对象调取方法。如果在js中可使用content_iframe(iframe控件名称)获取contentPane子对象调取API</strong></p>
+<p>//获取控件的值(在报表内)<br>contentPane.curLGP.write.getWidgetsByName(“YYGDJ”).getValue();</p>
+<p>//获取某单元格的值，第一个参数为Sheet编号，第二个为列号(0开始)，第三个为行号(0开始)<br>contentPane.getCellValue({reportIndex:0, columnIndex: 8, rowIndex:9});//js中用法<br>contentPane.getCellValue(0, 8, 9);//帆软自定义脚本用法</p>
+<p>地址<a href="https://help.finereport.com/doc-view-619.htm">https://help.finereport.com/doc-view-619.htm</a></p>
 ]]></content>
       <categories>
         <category>帆软</category>
@@ -10641,10 +10785,10 @@ Created /servers/server0000000003
 ]]></content>
       <categories>
         <category>Zookeeper</category>
-        <category>大数据</category>
       </categories>
       <tags>
         <tag>Zookeeper</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -10746,10 +10890,10 @@ public void setData() throws KeeperException, InterruptedException &#123;
 ]]></content>
       <categories>
         <category>Zookeeper</category>
-        <category>大数据</category>
       </categories>
       <tags>
         <tag>Zookeeper</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -10773,169 +10917,89 @@ public void setData() throws KeeperException, InterruptedException &#123;
 ]]></content>
       <categories>
         <category>Zookeeper</category>
-        <category>大数据</category>
       </categories>
       <tags>
         <tag>Zookeeper</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
     <title>zookeeper客户端的使用</title>
     <url>/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/</url>
     <content><![CDATA[<p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
-<pre><code>bin/zkCli.sh</code></pre><ol>
-<li><p>查看帮助命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] help</code></pre></li>
-</ol>
-<ol start="2">
-<li><p>查看znode节点,ls命令</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 3] ls /
-[chen, zookeeper]
-[zk: localhost:2181(CONNECTED) 4] ls /chen
-[]</code></pre></li>
-</ol>
-<ol start="3">
-<li><p>查看节点详细信息ls2</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 6] ls2 /chen
-[]
-cZxid = 0x100000002
-ctime = Thu Dec 27 00:58:04 CST 2018
-mZxid = 0x100000002
-mtime = Thu Dec 27 00:58:04 CST 2018
-pZxid = 0x100000002
-cversion = 0
-dataVersion = 0
-aclVersion = 0
-ephemeralOwner = 0x0
-dataLength = 7
-numChildren = 0</code></pre></li>
-</ol>
-<pre><code>**后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。**</code></pre><ol start="4">
-<li><p>创建普通节点create</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 7] create /name &quot;this is name&quot;
-Created /name
-[zk: localhost:2181(CONNECTED) 8] ls /
-[chen, name, zookeeper]</code></pre></li>
-</ol>
-<ol start="5">
-<li><p>获得节点值get</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] get /name
-this is name
-xxxxxx</code></pre></li>
-</ol>
-<ol start="6">
-<li><p>创建暂时节点,然后推出客户端重新登陆查看</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 0] create -e /temp &quot;temp&quot;
-Created /temp
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, temp, zookeeper]</code></pre></li>
-</ol>
-<pre><code>[zk: localhost:2181(CONNECTED) 2] quit
-Quitting...
-2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002
-2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed
-ubuntu1@ubuntu1:~/zookeeper/bin$ ./zkCli.sh
-Connecting to localhost:2181
+<pre><code>bin/zkCli.sh</code></pre><h3 id="查看帮助命令"><a href="#查看帮助命令" class="headerlink" title="查看帮助命令"></a>查看帮助命令</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 2] help</span><br></pre></td></tr></table></figure>
 
-[zk: localhost:2181(CONNECTED) 1] ls /
-[chen, name, zookeeper]</code></pre><ol start="7">
-<li><p>创建带序号节点</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 9] create /app &quot;app&quot;
-Created /app
-[zk: localhost:2181(CONNECTED) 10] create -s /app/sun &quot;sun&quot;
-Created /app/sun0000000000
-[zk: localhost:2181(CONNECTED) 11] ls /app
-[sun0000000000]
+<h3 id="查看znode节点-ls命令"><a href="#查看znode节点-ls命令" class="headerlink" title="查看znode节点,ls命令"></a>查看znode节点,ls命令</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 3] ls &#x2F;</span><br><span class="line">[chen, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 4] ls &#x2F;chen</span><br><span class="line">[]</span><br></pre></td></tr></table></figure>
 
-[zk: localhost:2181(CONNECTED) 12] create -s /app/sun &quot;sun2&quot;
-Created /app/sun0000000001
-[zk: localhost:2181(CONNECTED) 13] ls /app
-[sun0000000000, sun0000000001]</code></pre></li>
-</ol>
-<pre><code>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.
-
-    [zk: localhost:2181(CONNECTED) 14] ls /
-    [chen, name, app, zookeeper]
-    [zk: localhost:2181(CONNECTED) 15] create /sum &quot;sum&quot;
-    Created /sum
-    [zk: localhost:2181(CONNECTED) 16] create /sum/test &quot;sumtest1&quot;
-    Created /sum/test
-    [zk: localhost:2181(CONNECTED) 17] create -s /sum/test &quot;sumtest1&quot;
-    Created /sum/test0000000001
-    [zk: localhost:2181(CONNECTED) 18] ls /sum
-    [test0000000001, test]
+<h3 id="查看节点详细信息ls2"><a href="#查看节点详细信息ls2" class="headerlink" title="查看节点详细信息ls2"></a>查看节点详细信息ls2</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 6] ls2 &#x2F;chen</span><br><span class="line">[]</span><br><span class="line">cZxid &#x3D; 0x100000002</span><br><span class="line">ctime &#x3D; Thu Dec 27 00:58:04 CST 2018</span><br><span class="line">mZxid &#x3D; 0x100000002</span><br><span class="line">mtime &#x3D; Thu Dec 27 00:58:04 CST 2018</span><br><span class="line">pZxid &#x3D; 0x100000002</span><br><span class="line">cversion &#x3D; 0</span><br><span class="line">dataVersion &#x3D; 0</span><br><span class="line">aclVersion &#x3D; 0</span><br><span class="line">ephemeralOwner &#x3D; 0x0</span><br><span class="line">dataLength &#x3D; 7</span><br><span class="line">numChildren &#x3D; 0</span><br></pre></td></tr></table></figure>
 
 
-尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</code></pre><ol start="8">
-<li><p>修改节点数据值set</p>
-<pre><code>[zk: localhost:2181(CONNECTED) 19] ls /
-[chen, name, app, sum, zookeeper]
-[zk: localhost:2181(CONNECTED) 20] get /chen
-guangqi
-xxxxxx
-[zk: localhost:2181(CONNECTED) 21] set /chen &quot;chenguangqi&quot;
-xxxxxx
-[zk: localhost:2181(CONNECTED) 22] get /chen
-chenguangqi
-xxxxx</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>节点值的变化监听get path watch</p>
-<pre><code>--1号机器
-[zk: localhost:2181(CONNECTED) 24] get /chen watch
-chenguangqi
-xxxx
+<p><strong>后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。</strong></p>
+<h3 id="创建普通节点create"><a href="#创建普通节点create" class="headerlink" title="创建普通节点create"></a>创建普通节点create</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 7] create &#x2F;name &quot;this is name&quot;</span><br><span class="line">Created &#x2F;name</span><br><span class="line">[zk: localhost:2181(CONNECTED) 8] ls &#x2F;</span><br><span class="line">[chen, name, zookeeper]</span><br></pre></td></tr></table></figure>
 
--- 2号机器
-[zk: localhost:2181(CONNECTED) 0] set /chen &quot;chen&quot;
-xxxx
+<h3 id="获得节点值get"><a href="#获得节点值get" class="headerlink" title="获得节点值get"></a>获得节点值get</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 9] get &#x2F;name</span><br><span class="line">this is name</span><br><span class="line">xxxxxx</span><br></pre></td></tr></table></figure>
 
-[zk: localhost:2181(CONNECTED) 25]
-WATCHER::
---1号机器
-WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></li>
-</ol>
-<pre><code>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</code></pre><ol start="10">
-<li><p>节点的子节点监听(路径变化)ls path watch</p>
-<p>   [zk: localhost:2181(CONNECTED) 25] ls / watch<br>   [chen, name, app, sum, zookeeper]</p>
-<p>   [zk: localhost:2181(CONNECTED) 1] create /test “testwatch”<br>   Created /test</p>
-<p>   [zk: localhost:2181(CONNECTED) 26]<br>   WATCHER::<br>   WatchedEvent state:SyncConnected type:NodeChildrenChanged path:/</p>
-</li>
-</ol>
-<pre><code>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</code></pre><ol start="11">
-<li><p>删除节点与递归删除节点delete/rmr</p>
-<p>   [zk: localhost:2181(CONNECTED) 26] ls /<br>   [chen, name, app, sum, zookeeper, test]<br>   [zk: localhost:2181(CONNECTED) 27] delete /test<br>   [zk: localhost:2181(CONNECTED) 29] ls /<br>   [chen, name, app, sum, zookeeper]<br>   [zk: localhost:2181(CONNECTED) 34] delete /sum<br>   Node not empty: /sum<br>   [zk: localhost:2181(CONNECTED) 35] rmr /sum<br>   [zk: localhost:2181(CONNECTED) 36] ls /<br>   [chen, name, app, zookeeper]</p>
-</li>
-</ol>
-<ol start="12">
-<li><p>查看节点状态信息stat</p>
-<p>   [zk: localhost:2181(CONNECTED) 39] stat /chen<br>   cZxid = 0x200000021<br>   ctime = Sat Dec 29 21:53:30 CST 2018<br>   mZxid = 0x200000021<br>   mtime = Sat Dec 29 21:53:30 CST 2018<br>   pZxid = 0x200000021<br>   cversion = 0<br>   dataVersion = 0<br>   aclVersion = 0<br>   ephemeralOwner = 0x0<br>   dataLength = 4<br>   numChildren = 0</p>
-</li>
-</ol>
-<pre><code>对于stat的信息分别如下:
-*   cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。
-*   ctime:节点被创建的时间
-*   mZxid:节点最后更新zxid
-*   mtime:节点最后更新的时间
-*   pZxid:最后更新的子节点zxid
-*   cversion:子节点变化号，子节点修改次数
-*   dataVersion:节点数据变化号
-*   aclVersion:节点访问控制列表的变化号
-*   ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。
-*   dataLength:节点值的长度。(重要)
-*   numChildren:子节点数目。(重要)</code></pre><ol start="13">
-<li><p>历史命令history,查看之前使用过的命令</p>
-<p>   [zk: localhost:2181(CONNECTED) 42] history<br>   32 - rmr /chen<br>   33 - ls /<br>   34 - delete /sum<br>   35 - rmr /sum<br>   36 - ls /<br>   37 - ls /<br>   38 - create /chen “chen”<br>   39 - stat /chen<br>   40 - help<br>   41 - histor<br>   42 - history</p>
-</li>
-</ol>
+<h3 id="创建暂时节点-然后推出客户端重新登陆查看"><a href="#创建暂时节点-然后推出客户端重新登陆查看" class="headerlink" title="创建暂时节点,然后推出客户端重新登陆查看"></a>创建暂时节点,然后推出客户端重新登陆查看</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 0] create -e &#x2F;temp &quot;temp&quot;</span><br><span class="line">Created &#x2F;temp</span><br><span class="line">[zk: localhost:2181(CONNECTED) 1] ls &#x2F;</span><br><span class="line">[chen, name, temp, zookeeper]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 2] quit</span><br><span class="line">Quitting...</span><br><span class="line">2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002</span><br><span class="line">2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed</span><br><span class="line">ubuntu1@ubuntu1:~&#x2F;zookeeper&#x2F;bin$ .&#x2F;zkCli.sh</span><br><span class="line">Connecting to localhost:2181</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 1] ls &#x2F;</span><br><span class="line">[chen, name, zookeeper]</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="创建带序号节点"><a href="#创建带序号节点" class="headerlink" title="创建带序号节点"></a>创建带序号节点</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 9] create &#x2F;app &quot;app&quot;</span><br><span class="line">Created &#x2F;app</span><br><span class="line">[zk: localhost:2181(CONNECTED) 10] create -s &#x2F;app&#x2F;sun &quot;sun&quot;</span><br><span class="line">Created &#x2F;app&#x2F;sun0000000000</span><br><span class="line">[zk: localhost:2181(CONNECTED) 11] ls &#x2F;app</span><br><span class="line">[sun0000000000]</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 12] create -s &#x2F;app&#x2F;sun &quot;sun2&quot;</span><br><span class="line">Created &#x2F;app&#x2F;sun0000000001</span><br><span class="line">[zk: localhost:2181(CONNECTED) 13] ls &#x2F;app</span><br><span class="line">[sun0000000000, sun0000000001]</span><br></pre></td></tr></table></figure>
+
+<p>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 14] ls &#x2F;</span><br><span class="line">[chen, name, app, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 15] create &#x2F;sum &quot;sum&quot;</span><br><span class="line">Created &#x2F;sum</span><br><span class="line">[zk: localhost:2181(CONNECTED) 16] create &#x2F;sum&#x2F;test &quot;sumtest1&quot;</span><br><span class="line">Created &#x2F;sum&#x2F;test</span><br><span class="line">[zk: localhost:2181(CONNECTED) 17] create -s &#x2F;sum&#x2F;test &quot;sumtest1&quot;</span><br><span class="line">Created &#x2F;sum&#x2F;test0000000001</span><br><span class="line">[zk: localhost:2181(CONNECTED) 18] ls &#x2F;sum</span><br><span class="line">[test0000000001, test]</span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</p>
+<h3 id="修改节点数据值set"><a href="#修改节点数据值set" class="headerlink" title="修改节点数据值set"></a>修改节点数据值set</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 19] ls &#x2F;</span><br><span class="line">[chen, name, app, sum, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 20] get &#x2F;chen</span><br><span class="line">guangqi</span><br><span class="line">xxxxxx</span><br><span class="line">[zk: localhost:2181(CONNECTED) 21] set &#x2F;chen &quot;chenguangqi&quot;</span><br><span class="line">xxxxxx</span><br><span class="line">[zk: localhost:2181(CONNECTED) 22] get &#x2F;chen</span><br><span class="line">chenguangqi</span><br><span class="line">xxxxx</span><br></pre></td></tr></table></figure>
+
+<h3 id="节点值的变化监听get-path-watch"><a href="#节点值的变化监听get-path-watch" class="headerlink" title="节点值的变化监听get path watch"></a>节点值的变化监听get path watch</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">--1号机器</span><br><span class="line">[zk: localhost:2181(CONNECTED) 24] get &#x2F;chen watch</span><br><span class="line">chenguangqi</span><br><span class="line">xxxx</span><br><span class="line"></span><br><span class="line">-- 2号机器</span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] set &#x2F;chen &quot;chen&quot;</span><br><span class="line">xxxx</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 25]</span><br><span class="line">WATCHER::</span><br><span class="line">--1号机器</span><br><span class="line">WatchedEvent state:SyncConnected type:NodeDataChanged path:&#x2F;chen</span><br></pre></td></tr></table></figure>
+
+
+<p>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</p>
+<h3 id="节点的子节点监听-路径变化-ls-path-watch"><a href="#节点的子节点监听-路径变化-ls-path-watch" class="headerlink" title="节点的子节点监听(路径变化)ls path watch"></a>节点的子节点监听(路径变化)ls path watch</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 25] ls &#x2F; watch</span><br><span class="line"> [chen, name, app, sum, zookeeper]</span><br><span class="line"> </span><br><span class="line"> [zk: localhost:2181(CONNECTED) 1] create &#x2F;test &quot;testwatch&quot;</span><br><span class="line"> Created &#x2F;test</span><br><span class="line"> </span><br><span class="line"> [zk: localhost:2181(CONNECTED) 26]</span><br><span class="line"> WATCHER::</span><br><span class="line"> WatchedEvent state:SyncConnected type:NodeChildrenChanged path:&#x2F;</span><br></pre></td></tr></table></figure>
+
+
+<p>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</p>
+<h3 id="删除节点与递归删除节点delete-rmr"><a href="#删除节点与递归删除节点delete-rmr" class="headerlink" title="删除节点与递归删除节点delete/rmr"></a>删除节点与递归删除节点delete/rmr</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 26] ls &#x2F;</span><br><span class="line">[chen, name, app, sum, zookeeper, test]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 27] delete &#x2F;test</span><br><span class="line">[zk: localhost:2181(CONNECTED) 29] ls &#x2F;</span><br><span class="line">[chen, name, app, sum, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 34] delete &#x2F;sum</span><br><span class="line">Node not empty: &#x2F;sum</span><br><span class="line">[zk: localhost:2181(CONNECTED) 35] rmr &#x2F;sum</span><br><span class="line">[zk: localhost:2181(CONNECTED) 36] ls &#x2F;</span><br><span class="line">[chen, name, app, zookeeper]</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="查看节点状态信息stat"><a href="#查看节点状态信息stat" class="headerlink" title="查看节点状态信息stat"></a>查看节点状态信息stat</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 39] stat &#x2F;chen</span><br><span class="line">cZxid &#x3D; 0x200000021</span><br><span class="line">ctime &#x3D; Sat Dec 29 21:53:30 CST 2018</span><br><span class="line">mZxid &#x3D; 0x200000021</span><br><span class="line">mtime &#x3D; Sat Dec 29 21:53:30 CST 2018</span><br><span class="line">pZxid &#x3D; 0x200000021</span><br><span class="line">cversion &#x3D; 0</span><br><span class="line">dataVersion &#x3D; 0</span><br><span class="line">aclVersion &#x3D; 0</span><br><span class="line">ephemeralOwner &#x3D; 0x0</span><br><span class="line">dataLength &#x3D; 4</span><br><span class="line">numChildren &#x3D; 0</span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>对于stat的信息分别如下:</p>
+<ul>
+<li>cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。</li>
+<li>ctime:节点被创建的时间</li>
+<li>mZxid:节点最后更新zxid</li>
+<li>mtime:节点最后更新的时间</li>
+<li>pZxid:最后更新的子节点zxid</li>
+<li>cversion:子节点变化号，子节点修改次数</li>
+<li>dataVersion:节点数据变化号</li>
+<li>aclVersion:节点访问控制列表的变化号</li>
+<li>ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。</li>
+<li>dataLength:节点值的长度。(重要)</li>
+<li>numChildren:子节点数目。(重要)</li>
+</ul>
+<h3 id="历史命令history-查看之前使用过的命令"><a href="#历史命令history-查看之前使用过的命令" class="headerlink" title="历史命令history,查看之前使用过的命令"></a>历史命令history,查看之前使用过的命令</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 42] history</span><br><span class="line">32 - rmr &#x2F;chen</span><br><span class="line">33 - ls &#x2F;</span><br><span class="line">34 - delete &#x2F;sum</span><br><span class="line">35 - rmr &#x2F;sum</span><br><span class="line">36 - ls &#x2F;</span><br><span class="line">37 - ls &#x2F;</span><br><span class="line">38 - create &#x2F;chen &quot;chen&quot;</span><br><span class="line">39 - stat &#x2F;chen</span><br><span class="line">40 - help</span><br><span class="line">41 - histor</span><br><span class="line">42 - history</span><br></pre></td></tr></table></figure>
+
+
+
+
 <p>还有其他的命令请查看Zookeeper文档。</p>
 ]]></content>
       <categories>
         <category>Zookeeper</category>
-        <category>大数据</category>
       </categories>
       <tags>
         <tag>Zookeeper</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -10948,12 +11012,8 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
 </li>
 <li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
 <pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
-</ol>
-<ol start="4">
 <li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
 <pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
-</ol>
-<ol start="5">
 <li><p>在对应zookeeper目录下创建zkData目录即可</p>
 </li>
 <li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
@@ -10961,8 +11021,6 @@ WatchedEvent state:SyncConnected type:NodeDataChanged path:/chen</code></pre></l
 jps //查看jps进程
 bin/zkServer.sh satus //状态
 bin/zkServer.sh stop //停止</code></pre></li>
-</ol>
-<ol start="7">
 <li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
 <pre><code>server.1=192.168.56.11:2888:3888
 server.2=192.168.56.11:2888:3888
@@ -10979,8 +11037,6 @@ server.3=192.168.56.11:2888:3888</code></pre></li>
 touch myid
 vim myid
 对应的机子添加1或2或3就好</code></pre></li>
-</ol>
-<ol start="9">
 <li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
 <pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
 ZooKeeper JMX enabled by default
@@ -11026,10 +11082,10 @@ Error contacting service. It is probably not running.</code></pre></li>
 ]]></content>
       <categories>
         <category>Zookeeper</category>
-        <category>大数据</category>
       </categories>
       <tags>
         <tag>Zookeeper</tag>
+        <tag>大数据</tag>
       </tags>
   </entry>
   <entry>
@@ -13563,8 +13619,8 @@ trigger = newTrigger()
         <category>Java</category>
       </categories>
       <tags>
-        <tag>任务调度</tag>
         <tag>quartz</tag>
+        <tag>任务调度</tag>
       </tags>
   </entry>
   <entry>
