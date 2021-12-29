@@ -78,6 +78,193 @@
     
     
     
+    <article id="post-Docker/Docker安装常用镜像操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/04/12/Docker/Docker%E5%AE%89%E8%A3%85%E5%B8%B8%E7%94%A8%E9%95%9C%E5%83%8F%E6%93%8D%E4%BD%9C/"
+    >Docker安装常用镜像操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/04/12/Docker/Docker%E5%AE%89%E8%A3%85%E5%B8%B8%E7%94%A8%E9%95%9C%E5%83%8F%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2020-04-12T04:30:17.000Z" itemprop="datePublished">2020-04-12</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="创建虚拟网卡"><a href="#创建虚拟网卡" class="headerlink" title="创建虚拟网卡"></a>创建虚拟网卡</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create 网卡别名 --subnet 192.168.137.0&#x2F;24</span><br></pre></td></tr></table></figure>
+
+<p>设置网卡别名，<code>--subnet</code>后为网段，例如192.168.0.0/24</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network ls</span><br></pre></td></tr></table></figure>
+
+<h2 id="安装redis"><a href="#安装redis" class="headerlink" title="安装redis"></a>安装redis</h2><ol>
+<li><p>pull最新镜像</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull redis</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>启动容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name redis --restart always -p 6379:6379 -v /home/centos/spring/redis/config:/etc/redis -v /home/centos/spring/redis/data:/data --net docker-nat --ip 192.168.0.63 redis redis-server /etc/redis/redis.conf --appendonly yes</span><br></pre></td></tr></table></figure>
+
+<ul>
+<li>–restart always 表示启动失败，总是重新尝试</li>
+<li>-p 表示映射端口</li>
+<li>-v 表示将/etc/redis映射到本机的/home/centos/spring/redis/config,以及数据data映射到本地</li>
+<li>–net docker-nat –ip 192.168.0.63 表示为容器指定网卡并赋予ip，此处可以不需要</li>
+<li>redis 表示是当前镜像名称，没有版本号</li>
+<li>redis-server /etc/redis/redis.conf 表示以指定配置文件方式启动redis-server</li>
+<li>–appendonly yes 表示开启持久化</li>
+</ul>
+</li>
+<li><p>查看日志，可能会出现没有找到redis.conf的问题</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker logs contains_id</span><br></pre></td></tr></table></figure>
+
+<p>从官网下载一个<a target="_blank" rel="noopener" href="http://download.redis.io/redis-stable/redis.conf">标准配置文件</a>,将配置文件放到指定的/home/centos/spring/redis/config下。并修改配置文件:</p>
+<ul>
+<li>修改bind为0.0.0.0</li>
+<li>修改protected-mode 为 no</li>
+<li>修改 daemonize 为 no 关闭守护进程方式启动,改为yes时以外部文件启动方式会失效</li>
+</ul>
+</li>
+<li><p>因为配置过restart always,所以配置正确好，自动重启就启动成功了。通过<code>docker inspect container_id</code>查看容器信息。</p>
+</li>
+</ol>
+<p><strong>如果出现<code>FATAL CONFIG FILE ERROR ：Bad directive or wrong number of arguments</code>的报错信息？</strong></p>
+<p>请检查当前提示的配置项是否有尾行注释。否则确认当前镜像版本与redis.conf配置文件的版本是否匹配，出现高版本新增属性或已删除属性等。</p>
+<h2 id="安装mysql"><a href="#安装mysql" class="headerlink" title="安装mysql"></a>安装mysql</h2><ol>
+<li><p>拉取镜像</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull mysql:5.7</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>启动容器</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -p 3306:3306 --name mysql \</span><br><span class="line">--net docker-nat --ip 192.168.0.33 \</span><br><span class="line">--restart always \</span><br><span class="line">-v &#x2F;home&#x2F;centos&#x2F;spring&#x2F;mysql&#x2F;conf:&#x2F;etc&#x2F;mysql \</span><br><span class="line">-v &#x2F;home&#x2F;centos&#x2F;spring&#x2F;mysql&#x2F;logs:&#x2F;var&#x2F;log&#x2F;mysql \</span><br><span class="line">-v &#x2F;home&#x2F;centos&#x2F;spring&#x2F;mysql&#x2F;data:&#x2F;var&#x2F;lib&#x2F;mysql \</span><br><span class="line">-e MYSQL_ROOT_PASSWORD&#x3D;root \</span><br><span class="line">-d mysql:5.7</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>无法访问mysql的问题，可访问此站点<a target="_blank" rel="noopener" href="https://www.cnblogs.com/sablier/p/11605606.html">查看</a></p>
+</li>
+</ol>
+<h2 id="安装postgres"><a href="#安装postgres" class="headerlink" title="安装postgres"></a>安装postgres</h2><ol>
+<li><p>拉取镜像</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull postgres:11</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>启动容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">docker run --name some-postgres \</span><br><span class="line">-v /usr/local/kjgh/postgres/data:/var/lib/postgresql/data \</span><br><span class="line">-p 5432:5432 \</span><br><span class="line">--shm-size=256MB \</span><br><span class="line">-e POSTGRES_PASSWORD=postgres -d postgres:11.8 \</span><br><span class="line">-c &#x27;max_connections=10000&#x27;</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<h2 id="安装nacos"><a href="#安装nacos" class="headerlink" title="安装nacos"></a>安装nacos</h2><ol>
+<li><p>拉取镜像</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull nacos/nacos-server</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>导入nacos-mysql.sql表文件 <code>https://github.com/alibaba/nacos/blob/master/distribution/conf/nacos-mysql.sql</code></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br><span class="line">201</span><br><span class="line">202</span><br><span class="line">203</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">use</span> nacos;</span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = config_info   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`config_info`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;id&#x27;</span>,</span><br><span class="line">  <span class="string">`data_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;data_id&#x27;</span>,</span><br><span class="line">  <span class="string">`group_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`content`</span> longtext <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;content&#x27;</span>,</span><br><span class="line">  <span class="string">`md5`</span> <span class="built_in">varchar</span>(<span class="number">32</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;md5&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_create`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  <span class="string">`src_user`</span> <span class="built_in">text</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;source user&#x27;</span>,</span><br><span class="line">  <span class="string">`src_ip`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;source ip&#x27;</span>,</span><br><span class="line">  <span class="string">`app_name`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;租户字段&#x27;</span>,</span><br><span class="line">  <span class="string">`c_desc`</span> <span class="built_in">varchar</span>(<span class="number">256</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`c_use`</span> <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`effect`</span> <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`type`</span> <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`c_schema`</span> <span class="built_in">text</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_configinfo_datagrouptenant`</span> (<span class="string">`data_id`</span>,<span class="string">`group_id`</span>,<span class="string">`tenant_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;config_info&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = config_info_aggr   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`config_info_aggr`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;id&#x27;</span>,</span><br><span class="line">  <span class="string">`data_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;data_id&#x27;</span>,</span><br><span class="line">  <span class="string">`group_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;group_id&#x27;</span>,</span><br><span class="line">  <span class="string">`datum_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;datum_id&#x27;</span>,</span><br><span class="line">  <span class="string">`content`</span> longtext <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;内容&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  <span class="string">`app_name`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;租户字段&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_configinfoaggr_datagrouptenantdatum`</span> (<span class="string">`data_id`</span>,<span class="string">`group_id`</span>,<span class="string">`tenant_id`</span>,<span class="string">`datum_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;增加租户字段&#x27;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = config_info_beta   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`config_info_beta`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;id&#x27;</span>,</span><br><span class="line">  <span class="string">`data_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;data_id&#x27;</span>,</span><br><span class="line">  <span class="string">`group_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;group_id&#x27;</span>,</span><br><span class="line">  <span class="string">`app_name`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;app_name&#x27;</span>,</span><br><span class="line">  <span class="string">`content`</span> longtext <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;content&#x27;</span>,</span><br><span class="line">  <span class="string">`beta_ips`</span> <span class="built_in">varchar</span>(<span class="number">1024</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;betaIps&#x27;</span>,</span><br><span class="line">  <span class="string">`md5`</span> <span class="built_in">varchar</span>(<span class="number">32</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;md5&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_create`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  <span class="string">`src_user`</span> <span class="built_in">text</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;source user&#x27;</span>,</span><br><span class="line">  <span class="string">`src_ip`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;source ip&#x27;</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;租户字段&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_configinfobeta_datagrouptenant`</span> (<span class="string">`data_id`</span>,<span class="string">`group_id`</span>,<span class="string">`tenant_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;config_info_beta&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = config_info_tag   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`config_info_tag`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;id&#x27;</span>,</span><br><span class="line">  <span class="string">`data_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;data_id&#x27;</span>,</span><br><span class="line">  <span class="string">`group_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;group_id&#x27;</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tenant_id&#x27;</span>,</span><br><span class="line">  <span class="string">`tag_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tag_id&#x27;</span>,</span><br><span class="line">  <span class="string">`app_name`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;app_name&#x27;</span>,</span><br><span class="line">  <span class="string">`content`</span> longtext <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;content&#x27;</span>,</span><br><span class="line">  <span class="string">`md5`</span> <span class="built_in">varchar</span>(<span class="number">32</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;md5&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_create`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  <span class="string">`src_user`</span> <span class="built_in">text</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;source user&#x27;</span>,</span><br><span class="line">  <span class="string">`src_ip`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;source ip&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_configinfotag_datagrouptenanttag`</span> (<span class="string">`data_id`</span>,<span class="string">`group_id`</span>,<span class="string">`tenant_id`</span>,<span class="string">`tag_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;config_info_tag&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = config_tags_relation   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`config_tags_relation`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;id&#x27;</span>,</span><br><span class="line">  <span class="string">`tag_name`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tag_name&#x27;</span>,</span><br><span class="line">  <span class="string">`tag_type`</span> <span class="built_in">varchar</span>(<span class="number">64</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tag_type&#x27;</span>,</span><br><span class="line">  <span class="string">`data_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;data_id&#x27;</span>,</span><br><span class="line">  <span class="string">`group_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;group_id&#x27;</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tenant_id&#x27;</span>,</span><br><span class="line">  <span class="string">`nid`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`nid`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_configtagrelation_configidtag`</span> (<span class="string">`id`</span>,<span class="string">`tag_name`</span>,<span class="string">`tag_type`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`idx_tenant_id`</span> (<span class="string">`tenant_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;config_tag_relation&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = group_capacity   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`group_capacity`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;主键ID&#x27;</span>,</span><br><span class="line">  <span class="string">`group_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;Group ID，空字符表示整个集群&#x27;</span>,</span><br><span class="line">  <span class="string">`quota`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;配额，0表示使用默认值&#x27;</span>,</span><br><span class="line">  <span class="string">`usage`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;使用量&#x27;</span>,</span><br><span class="line">  <span class="string">`max_size`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;单个配置大小上限，单位为字节，0表示使用默认值&#x27;</span>,</span><br><span class="line">  <span class="string">`max_aggr_count`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;聚合子配置最大个数，，0表示使用默认值&#x27;</span>,</span><br><span class="line">  <span class="string">`max_aggr_size`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;单个聚合数据的子配置大小上限，单位为字节，0表示使用默认值&#x27;</span>,</span><br><span class="line">  <span class="string">`max_history_count`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;最大变更历史数量&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_create`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_group_id`</span> (<span class="string">`group_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;集群、各Group容量信息表&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = his_config_info   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`his_config_info`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">64</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`nid`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT,</span><br><span class="line">  <span class="string">`data_id`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`group_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`app_name`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;app_name&#x27;</span>,</span><br><span class="line">  <span class="string">`content`</span> longtext <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`md5`</span> <span class="built_in">varchar</span>(<span class="number">32</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`gmt_create`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span>,</span><br><span class="line">  <span class="string">`src_user`</span> <span class="built_in">text</span>,</span><br><span class="line">  <span class="string">`src_ip`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`op_type`</span> <span class="built_in">char</span>(<span class="number">10</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;租户字段&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`nid`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`idx_gmt_create`</span> (<span class="string">`gmt_create`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`idx_gmt_modified`</span> (<span class="string">`gmt_modified`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`idx_did`</span> (<span class="string">`data_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;多租户改造&#x27;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="comment">/*   数据库全名 = nacos_config   */</span></span><br><span class="line"><span class="comment">/*   表名称 = tenant_capacity   */</span></span><br><span class="line"><span class="comment">/******************************************/</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`tenant_capacity`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;主键ID&#x27;</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;Tenant ID&#x27;</span>,</span><br><span class="line">  <span class="string">`quota`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;配额，0表示使用默认值&#x27;</span>,</span><br><span class="line">  <span class="string">`usage`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;使用量&#x27;</span>,</span><br><span class="line">  <span class="string">`max_size`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;单个配置大小上限，单位为字节，0表示使用默认值&#x27;</span>,</span><br><span class="line">  <span class="string">`max_aggr_count`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;聚合子配置最大个数&#x27;</span>,</span><br><span class="line">  <span class="string">`max_aggr_size`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;单个聚合数据的子配置大小上限，单位为字节，0表示使用默认值&#x27;</span>,</span><br><span class="line">  <span class="string">`max_history_count`</span> <span class="built_in">int</span>(<span class="number">10</span>) <span class="keyword">unsigned</span> <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="string">&#x27;0&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;最大变更历史数量&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_create`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> datetime <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">DEFAULT</span> <span class="keyword">CURRENT_TIMESTAMP</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_tenant_id`</span> (<span class="string">`tenant_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;租户容量信息表&#x27;</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`tenant_info`</span> (</span><br><span class="line">  <span class="string">`id`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> AUTO_INCREMENT <span class="keyword">COMMENT</span> <span class="string">&#x27;id&#x27;</span>,</span><br><span class="line">  <span class="string">`kp`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;kp&#x27;</span>,</span><br><span class="line">  <span class="string">`tenant_id`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">default</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tenant_id&#x27;</span>,</span><br><span class="line">  <span class="string">`tenant_name`</span> <span class="built_in">varchar</span>(<span class="number">128</span>) <span class="keyword">default</span> <span class="string">&#x27;&#x27;</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tenant_name&#x27;</span>,</span><br><span class="line">  <span class="string">`tenant_desc`</span> <span class="built_in">varchar</span>(<span class="number">256</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;tenant_desc&#x27;</span>,</span><br><span class="line">  <span class="string">`create_source`</span> <span class="built_in">varchar</span>(<span class="number">32</span>) <span class="keyword">DEFAULT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;create_source&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_create`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;创建时间&#x27;</span>,</span><br><span class="line">  <span class="string">`gmt_modified`</span> <span class="built_in">bigint</span>(<span class="number">20</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> <span class="keyword">COMMENT</span> <span class="string">&#x27;修改时间&#x27;</span>,</span><br><span class="line">  PRIMARY <span class="keyword">KEY</span> (<span class="string">`id`</span>),</span><br><span class="line">  <span class="keyword">UNIQUE</span> <span class="keyword">KEY</span> <span class="string">`uk_tenant_info_kptenantid`</span> (<span class="string">`kp`</span>,<span class="string">`tenant_id`</span>),</span><br><span class="line">  <span class="keyword">KEY</span> <span class="string">`idx_tenant_id`</span> (<span class="string">`tenant_id`</span>)</span><br><span class="line">) <span class="keyword">ENGINE</span>=<span class="keyword">InnoDB</span> <span class="keyword">DEFAULT</span> <span class="keyword">CHARSET</span>=utf8 <span class="keyword">COLLATE</span>=utf8_bin <span class="keyword">COMMENT</span>=<span class="string">&#x27;tenant_info&#x27;</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`users`</span> (</span><br><span class="line">	<span class="string">`username`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span> PRIMARY <span class="keyword">KEY</span>,</span><br><span class="line">	<span class="string">`password`</span> <span class="built_in">varchar</span>(<span class="number">500</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">	<span class="string">`enabled`</span> <span class="built_in">boolean</span> <span class="keyword">NOT</span> <span class="literal">NULL</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`roles`</span> (</span><br><span class="line">	<span class="string">`username`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">	<span class="string">`role`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">	<span class="keyword">UNIQUE</span> <span class="keyword">INDEX</span> <span class="string">`idx_user_role`</span> (<span class="string">`username`</span> <span class="keyword">ASC</span>, <span class="string">`role`</span> <span class="keyword">ASC</span>) <span class="keyword">USING</span> BTREE</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">TABLE</span> <span class="string">`permissions`</span> (</span><br><span class="line">    <span class="string">`role`</span> <span class="built_in">varchar</span>(<span class="number">50</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    <span class="string">`resource`</span> <span class="built_in">varchar</span>(<span class="number">255</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    <span class="string">`action`</span> <span class="built_in">varchar</span>(<span class="number">8</span>) <span class="keyword">NOT</span> <span class="literal">NULL</span>,</span><br><span class="line">    <span class="keyword">UNIQUE</span> <span class="keyword">INDEX</span> <span class="string">`uk_role_permission`</span> (<span class="string">`role`</span>,<span class="string">`resource`</span>,<span class="string">`action`</span>) <span class="keyword">USING</span> BTREE</span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">users</span> (username, <span class="keyword">password</span>, enabled) <span class="keyword">VALUES</span> (<span class="string">&#x27;nacos&#x27;</span>, <span class="string">&#x27;$2a$10$EuWPZHzz32dJN7jexM34MOeYirDdFAZm2kuWj7VEOJhhZkDrxfvUu&#x27;</span>, <span class="literal">TRUE</span>);</span><br><span class="line"></span><br><span class="line"><span class="keyword">INSERT</span> <span class="keyword">INTO</span> <span class="keyword">roles</span> (username, <span class="keyword">role</span>) <span class="keyword">VALUES</span> (<span class="string">&#x27;nacos&#x27;</span>, <span class="string">&#x27;ROLE_ADMIN&#x27;</span>);</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<ol start="3">
+<li><p>使用mysql持久化 单击部署nacos</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">docker run --name nacos \</span><br><span class="line">-e MODE=standalone \</span><br><span class="line">-e SPRING_DATASOURCE_PLATFORM=mysql \</span><br><span class="line">-e MYSQL_SERVICE_HOST=192.168.124.13 \</span><br><span class="line">-e MYSQL_SERVICE_PORT=3306 \</span><br><span class="line">-e MYSQL_SERVICE_DB_NAME=nacos \</span><br><span class="line">-e MYSQL_SERVICE_USER=root \</span><br><span class="line">-e MYSQL_SERVICE_PASSWORD=root \</span><br><span class="line">-p 8848:8848 \</span><br><span class="line">--restart=always \</span><br><span class="line">-d nacos/nacos-server:1.3.0</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ol>
+<h2 id="Gitea开源git安装"><a href="#Gitea开源git安装" class="headerlink" title="Gitea开源git安装"></a>Gitea开源git安装</h2><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --privileged&#x3D;true --restart&#x3D;always --name&#x3D;gitea -p 10022:22 -p 10080:3000 -v &#x2F;home&#x2F;chen&#x2F;docker&#x2F;data&#x2F;gitea&#x2F;data:&#x2F;data gitea&#x2F;gitea:latest</span><br></pre></td></tr></table></figure>
+
+<h2 id="activemq安装"><a href="#activemq安装" class="headerlink" title="activemq安装"></a>activemq安装</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker pull rmohr/activemq:5.15.9-alpine</span><br></pre></td></tr></table></figure>
+
+<p>将容器内的conf和data中的目录初始化到宿主机，以便更改，且容器启动后直接读取。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">docker run --user root --rm -ti \</span><br><span class="line">  -v /your/persistent/dir/conf:/mnt/conf \</span><br><span class="line">  -v /your/persistent/dir/data:/mnt/data \</span><br><span class="line">  rmohr/activemq:5.15.9-alpine /bin/sh</span><br></pre></td></tr></table></figure>
+
+<p><code>/your/persistent/dir</code>改成自己的activemq数据存储目录</p>
+<p>执行此命令后会进入容器内，执行以下命令</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">chown activemq:activemq /mnt/conf</span><br><span class="line">chown activemq:activemq /mnt/data</span><br><span class="line">cp -a /opt/activemq/conf/* /mnt/conf/</span><br><span class="line">cp -a /opt/activemq/data/* /mnt/data/</span><br><span class="line">exit</span><br></pre></td></tr></table></figure>
+
+<p>exit会退出容器。随后在指定的目录下就会有conf和data目录数据。</p>
+<p>挂载配置目录启动容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name activemq \</span><br><span class="line">--restart=always \</span><br><span class="line">-p 8161:8161 \</span><br><span class="line">-p 61616:61616 \</span><br><span class="line">-p 1093:1093 \</span><br><span class="line">-v /data/activemq/data:/opt/activemq/data \</span><br><span class="line">-v /data/activemq/conf:/opt/activemq/conf \</span><br><span class="line">rmohr/activemq:5.15.9-alpine</span><br></pre></td></tr></table></figure>
+
+<p>替换activemq.xml并构建新镜像包</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">FROM rmohr/activemq:5.15.9-alpine</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 增加JMX端口</span></span><br><span class="line">ENV ACTIVEMQ_JMX=1093</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 替换文件</span></span><br><span class="line">ADD activemq.xml /opt/activemq/conf/</span><br><span class="line"></span><br><span class="line">WORKDIR $ACTIVEMQ_HOME</span><br><span class="line">EXPOSE $ACTIVEMQ_JMX</span><br><span class="line"></span><br><span class="line">CMD [&quot;/bin/sh&quot;, &quot;-c&quot;, &quot;bin/activemq console&quot;]</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="openoffice安装"><a href="#openoffice安装" class="headerlink" title="openoffice安装"></a>openoffice安装</h2><h2 id="JDK基础镜像构建"><a href="#JDK基础镜像构建" class="headerlink" title="JDK基础镜像构建"></a>JDK基础镜像构建</h2><figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">8</span>-jdk-alpine</span><br><span class="line"><span class="comment"># 替换清华alpine源</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/main\nhttps://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/community&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"><span class="comment"># 安装tini</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tini --no-cache</span></span><br><span class="line"><span class="comment"># 安装字体库资源</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update ttf-dejavu fontconfig &amp;&amp; rm -rf /var/cache/apk/*</span></span><br><span class="line"><span class="comment"># 设置时区时间</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tzdata &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone &amp;&amp; apk del tzdata</span></span><br><span class="line"><span class="comment"># 拷贝arthas</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=hengyunabc/arthas:latest /opt/arthas /opt/arthas</span></span><br><span class="line"><span class="comment"># 添加宋体字体</span></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./SIMSUN.TTC /usr/share/fonts/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENTRYPOINT</span><span class="bash"> [<span class="string">&quot;/sbin/tini&quot;</span>, <span class="string">&quot;--&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="tomcat字体新增-时区变更"><a href="#tomcat字体新增-时区变更" class="headerlink" title="tomcat字体新增,时区变更"></a>tomcat字体新增,时区变更</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">FROM tomcat:8</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 字体数据从c:/windows/fonts中获取 微软雅黑、宋体、黑体</span></span><br><span class="line">COPY MSYH.TTC /usr/share/fonts/</span><br><span class="line">COPY SIMHEI.TTF /usr/share/fonts/</span><br><span class="line">COPY SIMSUN.TTC /usr/share/fonts/</span><br><span class="line"></span><br><span class="line"><span class="meta">#</span><span class="bash"> 变更容器内部时区，默认为Etc/UTC,查看时间date -R</span></span><br><span class="line">RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime</span><br><span class="line">RUN rm /etc/timezone &amp;&amp; touch /etc/timezone</span><br><span class="line">RUN echo &quot;Asia/Shanghai&quot; &gt; /etc/timezone</span><br><span class="line"></span><br><span class="line">CMD [&quot;/usr/local/tomcat/bin/catalina.sh&quot;,&quot;run&quot;]</span><br></pre></td></tr></table></figure>
+
+<p>其他方式：在docker run 中添加 -e变量 <code>-e TZ=&quot;Asia/Shanghai&quot;</code> 。 未测试</p>
+<h2 id="wordpress安装"><a href="#wordpress安装" class="headerlink" title="wordpress安装"></a>wordpress安装</h2><p>使用docker-compose方式</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line">version: &#x27;2&#x27;</span><br><span class="line">services:</span><br><span class="line">  wordpress:</span><br><span class="line">    image: wordpress</span><br><span class="line">    restart: always</span><br><span class="line">    ports:</span><br><span class="line">      - 8080:80</span><br><span class="line">    environment:</span><br><span class="line">      WORDPRESS_DB_HOST: db</span><br><span class="line">      WORDPRESS_DB_USER: root</span><br><span class="line">      WORDPRESS_DB_PASSWORD: root</span><br><span class="line">      WORDPRESS_DB_NAME: wordpress</span><br><span class="line">    volumes:</span><br><span class="line">      - /home/mini/wordpress/data:/var/www/html</span><br><span class="line">  db:</span><br><span class="line">    image: mysql:5.7</span><br><span class="line">    restart: always</span><br><span class="line">    environment:</span><br><span class="line">      MYSQL_DATABASE: wordpress</span><br><span class="line">      MYSQL_ROOT_PASSWORD: root</span><br><span class="line">    volumes:</span><br><span class="line">      - /home/mini/mysql:/var/lib/mysql</span><br></pre></td></tr></table></figure>
+
+<h2 id="showdoc开源安装"><a href="#showdoc开源安装" class="headerlink" title="showdoc开源安装"></a>showdoc开源安装</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name showdoc --user=root --privileged=true -p 4999:80 -v /home/mini/showdoc:/var/www/html/ star7th/showdoc</span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="防火墙开放端口"><a href="#防火墙开放端口" class="headerlink" title="防火墙开放端口"></a>防火墙开放端口</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#</span><span class="bash">centos7</span></span><br><span class="line">firewall-cmd --zone=public --add-port=5432/tcp --permanent</span><br></pre></td></tr></table></figure>
+
+
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Docker/" rel="tag">Docker</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-SpringCloud/谷粒商城项目基础部分说明" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -767,188 +954,6 @@
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/mongodb/" rel="tag">mongodb</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E6%95%B0%E6%8D%AE%E5%BA%93/" rel="tag">数据库</a></li></ul>
 
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/JVM虚拟机原理" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/03/24/Java/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8E%9F%E7%90%86/"
-    >JVM虚拟机原理</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/03/24/Java/JVM%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%8E%9F%E7%90%86/" class="article-date">
-  <time datetime="2020-03-24T00:46:12.000Z" itemprop="datePublished">2020-03-24</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="JVM-Java虚拟机原理"><a href="#JVM-Java虚拟机原理" class="headerlink" title="JVM Java虚拟机原理"></a>JVM Java虚拟机原理</h1><h2 id="类加载器"><a href="#类加载器" class="headerlink" title="类加载器"></a>类加载器</h2><p>类加载器子系统负责从文件系统或网络中加载Class文件，class文件在文件开头有特定的文件标识。</p>
-<p>ClassLoader只负责加载，是否可以运行由Execution Engine决定。</p>
-<p>加载类信息存放在方法区的内存空间。除了类信息，还有运行时常量信息，字符串字面量和数字常量(这部分常量是Class文件中的常量池信息部分的内存映射)。</p>
-<p><strong>环节</strong></p>
-<p>Loading加载—&gt;链接(Verification验证—&gt;Preparation准备—&gt;Resolution解析)—&gt;Initialzation初始化</p>
-<p><strong>加载.class文件的方式。</strong></p>
-<ul>
-<li>本地直接加载</li>
-<li>通过网络获取:Web Applet</li>
-<li>从zip，jar，war中获取</li>
-<li>动态代理</li>
-<li>其他文件生成,JSP</li>
-<li>加密文件中获取，防Class文件被反编译措施</li>
-</ul>
-<p><strong>验证</strong></p>
-<p>确保Class文件字节流中包含信息符合当前虚拟机要求，保证被加载类的正确性。包括验证，文件格式验证、元数据、字节码、符号引用。</p>
-<p><strong>准备</strong></p>
-<p>为变量分配内存并设置该类变量的默认初始值，即零值。</p>
-<ul>
-<li>不包含final修饰的static变量，final在编译的时候就分配了，准备阶段会显示初始化。</li>
-<li><u>不会为实例变量分配初始值</u>，类变量会分配在方法区中，而实例变量会随着对象一起分配到Java堆中。</li>
-</ul>
-<p><strong>解析</strong></p>
-<p>将常量池内的符号引用转换为直接引用的过程。</p>
-<p>符号引用就是一组符号来描述所引用的目标。</p>
-<p>直接引用就是直接指向目标的指针、相对偏移量或一个间接定位到目标的句柄。</p>
-<p>解析动作主要针对类或接口、字段、方法、类方法、接口方法、方法类型等。</p>
-<p><strong>初始化</strong></p>
-<p>初始化阶段就是执行类构造器方法&lt;clinit&gt;()的过程。</p>
-<ul>
-<li><p>此方法不需要定义，是javac编译器自动收集类中的所有类变量的赋值动作和静态代码块中的语句合并而来。</p>
-</li>
-<li><p>构造器方法中指令按语句在源文件中出现的顺序执行。</p>
-</li>
-<li><p>&lt;clinit&gt;()不同于类的构造器(&lt;init&gt;–&gt;bytecode viewer工具可以看到)</p>
-</li>
-<li><p>若该类具有父类,JVM会保证子类的clinit执行前执行父类的clinit</p>
-</li>
-<li><p>虚拟机必须保证一个类的&lt;clinit&gt;()方法在多线程下被同步加锁。</p>
-</li>
-</ul>
-<h3 id="类加载器分类"><a href="#类加载器分类" class="headerlink" title="类加载器分类"></a>类加载器分类</h3><p>分为引导类加载器(BootStrap ClassLoader)和自定义加载器(所有派生于ClassLoader的加载器都是自定义加载器)。</p>
-<p>拓展类加载器(ExtClassLoader)、系统类加载器间接的继承了ClassLoader。</p>
-<h3 id="引导类加载器"><a href="#引导类加载器" class="headerlink" title="引导类加载器"></a>引导类加载器</h3><ul>
-<li>这个类加载使用C/C++语言实现，嵌套在JVM内部。</li>
-<li>用来加载核心库rt.jar，resources.jar，sun.boot.class.path路径下的内容，用于提供JVM自身需要的类。</li>
-<li>并不继承自java.lang.ClassLoader，没有父加载器</li>
-<li>加载拓展类和应用程序类加载器，并指定为他们的父类加载器</li>
-<li>出于安全考虑，BootStrap启动类加载器只加载包含包名为java、javax、sun开头的类</li>
-</ul>
-<h3 id="应用程序类加载器"><a href="#应用程序类加载器" class="headerlink" title="应用程序类加载器"></a>应用程序类加载器</h3><ul>
-<li><p>有sum.misc.launcher$AppClassLoader实现，派生于ClassLoader类，父加载器为拓展类加载器。</p>
-</li>
-<li><p>负责加载环境变量classpath或系统属性java.class.path指定路径下的类库。</p>
-</li>
-<li><p>是程序的默认类加载器，一般来说，Java应用的类都是由它完成的。</p>
-</li>
-<li><p>通过ClassLoader#getSystemClassLoader方法获取到该类加载器。</p>
-</li>
-</ul>
-<h3 id="拓展类加载器"><a href="#拓展类加载器" class="headerlink" title="拓展类加载器"></a>拓展类加载器</h3><p>Java语言编写，有sum.misc.Launcher$ExtClassLoader实现，派生于ClassLoader类，父加载器为启动类加载器。</p>
-<p>从java.ext.dirs系统属性所指定的目录中加载类库，或从jdk目录的rt/lib/ext/子目录下加载类库。如果用户创建的jar放在此目录，也由它加载。</p>
-<h3 id="用户自定义加载类"><a href="#用户自定义加载类" class="headerlink" title="用户自定义加载类"></a>用户自定义加载类</h3><p>为什么要自定义加载类？</p>
-<ul>
-<li>隔离加载类。当引用中间件时，确保框架jar使用的加载和中间件jar加载的分开，自定义加载类隔离</li>
-<li>修改类的加载方式</li>
-<li>拓展加载源</li>
-<li>防止源码泄露</li>
-</ul>
-<p><strong>步骤</strong></p>
-<ul>
-<li><p>用户通过集成java.lang.ClassLoader类的方式，实现自己的类加载器，以满足特殊需求。</p>
-</li>
-<li><p>建议把自定义逻辑卸载findClass方法中</p>
-</li>
-</ul>
-<h3 id="双亲委派机制"><a href="#双亲委派机制" class="headerlink" title="双亲委派机制"></a>双亲委派机制</h3><p>Java虚拟机对class文件采用的时按需加载的方式，也就是说当需要使用该类时才会将他的class文件加载到内存生成class对象。而且加载某个类的class文件时，java虚拟机采用的时双亲委派机制，<strong>即把请求交由父类处理，它是一种任务委派模式</strong>。</p>
-<p><strong>工作原理</strong></p>
-<ol>
-<li>如果一个类加载器收到了类加载请求,它并不会自己先去加载,而是把这个请求委托给父类的加载器去执行;</li>
-<li>如果父类加载器还存在其父类加载器,则进一步向上委托,依次递归,请求最终将到达顶层的启动类加载器;</li>
-<li>如果父类加载器可以完成类加载任务,就成功返回,倘若父类加载器无法完成此加载任务,子加载器才会尝试自己去加载,这就是双亲委派模式。</li>
-</ol>
-<p><img src="https://chen-sys.oss-cn-beijing.aliyuncs.com/picture/TIM%E6%88%AA%E5%9B%BE20200315214250.png" alt=""></p>
-<p>例子：假如有一个自定义完全相同的完全限定名的String类，那么，该类会从appClassLoader向上委托，然后引导类会加载java.lang.String,也就是他自己能扫描到类库下的jdk 的String类。加载的是核心类库的String类。</p>
-<p>而如果自定义的String类执行main方法，则报错，在类java.lang.String中找不到main方法。此时类加载器一直委托到引导类加载器，会加载核心API的String，但它没有main方法，因此会报错。</p>
-<blockquote>
-<p> <strong>沙箱安全机制</strong></p>
-</blockquote>
-<p><strong>优势</strong></p>
-<ul>
-<li><p>防止新API被篡改</p>
-</li>
-<li><p>避免类重复加载</p>
-</li>
-</ul>
-<h3 id="类的主动使用和被动使用"><a href="#类的主动使用和被动使用" class="headerlink" title="类的主动使用和被动使用"></a>类的主动使用和被动使用</h3><p>在JVM中表示两个class对象是否为同一对象存在的另两个必要条件:</p>
-<ul>
-<li>类的完整类名完全相同，包括包名</li>
-<li>加载这个类的ClassLoader(指ClassLoader实例对象)必须相同</li>
-</ul>
-<p>只要加载他们的类加载器不一样，两个类的对象也不一样。</p>
-<p>如果一个类型由用户类加载器加载，那么JVM会将这个类加载器的一个引用作为类型信息的一部分保存在方法区中。</p>
-<p>当解析一个类型到另一个类型的引用的时候，JVM需要保证这两个类型的类加载器是相同的。</p>
-<p><strong>Java程序对类的使用方式分为:主动使用和被动使用</strong><br>主动使用,又分为七种情况:<br>创建类的实例</p>
-<ul>
-<li>访问某个类或接口的静态变量,或者对该静态变量赋值</li>
-<li>调用类的静态方法</li>
-<li>反射(比如: Class. forName(“com. atguigu.test”))</li>
-<li>初始化一个类的子类</li>
-<li>Java虚拟机启动时被标明为启动类的类</li>
-<li>JDK7开始提供的动态语言支持:<br>java.lang. invoke. MethodHandle实例的解析结果<br> REF getStatic、 REF putStatic REF invokeStatic句柄对<br>应的类没有初始化,则初始化</li>
-</ul>
-<p>除了以上七种情况,其他使用Java类的方式都被看作是对类的被动使用,<br>都不会导致类的初始化。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
 
     </footer>
 

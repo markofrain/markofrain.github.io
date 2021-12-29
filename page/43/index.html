@@ -78,6 +78,249 @@
     
     
     
+    <article id="post-Linux/Ubuntu18.04虚拟机互通之后该做的配置" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/"
+    >Ubuntu18.04虚拟机互通之后该做的配置</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/22/Linux/Ubuntu18.04%E8%99%9A%E6%8B%9F%E6%9C%BA%E4%BA%92%E9%80%9A%E4%B9%8B%E5%90%8E%E8%AF%A5%E5%81%9A%E7%9A%84%E9%85%8D%E7%BD%AE/" class="article-date">
+  <time datetime="2018-09-22T15:21:47.000Z" itemprop="datePublished">2018-09-22</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Hadoop/">Hadoop</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="安装ssh-openssh-server-vsftpd"><a href="#安装ssh-openssh-server-vsftpd" class="headerlink" title="安装ssh,openssh-server,vsftpd"></a>安装ssh,openssh-server,vsftpd</h2><ol>
+<li><p>设置root密码</p>
+<p>sudo passwd root<br>提示输入当前主机密码<br>输入root新密码<br>再次输入root新密码</p>
+</li>
+</ol>
+<p>一共输入3次密码。</p>
+<ol start="2">
+<li>关于apt锁怎么怎么，无法获得锁，无法对状态列表目录加锁 问题?</li>
+</ol>
+<p>首先看是否说让root用户执行，然后如果行不通，则使用命令把锁删掉</p>
+<pre><code>如/var/lib/dpkg/lock     //这个lock就是一个锁文件
+
+rm -r /var/lib/dpkg/lock        //把它删了
+
+如果还有类似 /var/cache/apt/archive/lock  //同样把lock文件删了</code></pre><ol start="3">
+<li><p>安装ssh</p>
+<p>sudo apt install ssh</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>安装openssh-server</p>
+<p>sudo apt install openssh-server</p>
+</li>
+</ol>
+<p>如果安装之后连接xshell时，总是说密码不对,则设置</p>
+<pre><code>sudo vi /etc/ssh/sshd_config
+
+找到第32行左右的PermitRootLogin ，把它后面的字符串删了，改成yes，然后去掉前面的#符号
+
+/etc/init.d/ssh restart //重启服务</code></pre><ol start="5">
+<li><p>安装vsftpd</p>
+<p>sudo apt install vsftpd</p>
+</li>
+</ol>
+<p>修改配置文件</p>
+<pre><code>sudo vi /etc/vsftpd.conf
+
+把write_enable=YES前的#符号去掉</code></pre><p>修改ftpusers文件</p>
+<pre><code>sudo vi /etc/ftpusers
+
+再root前添加#//注释root
+
+service vsftpd restart  //最后修改完成过后重启服务</code></pre><h2 id="修改hosts文件"><a href="#修改hosts文件" class="headerlink" title="修改hosts文件"></a>修改hosts文件</h2><pre><code>sudo vi /etc/hosts
+
+在ip     主机名对应行下添加当前主机的静态ip和主机名，以及从主机slave的静态ip和主机名
+
+192.168.135.100     master
+192.168.135.101     slave1</code></pre><p>尝试master中ping slave1,slave1中ping master</p>
+<h2 id="实现ssh免密登陆"><a href="#实现ssh免密登陆" class="headerlink" title="实现ssh免密登陆"></a>实现ssh免密登陆</h2><ol>
+<li><p>master安装ssh</p>
+<p>apt install ssh</p>
+</li>
+</ol>
+<p>2.实现免密命令</p>
+<pre><code>root@master:/home/master# **ssh-keygen -t rsa**
+Generating public/private rsa key pair.
+Enter file in which to save the key (/root/.ssh/id_rsa):    //enter
+Created directory &apos;/root/.ssh&apos;.
+Enter passphrase (empty for no passphrase):                 //enter
+Enter same passphrase again:                                //enter
+Your identification has been saved in /root/.ssh/id_rsa.
+Your public key has been saved in /root/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:7SXnZWtdsmdD5bze0HGjuN80zBV8jw0mvKosdqEphWU root@master
+The key&apos;s randomart image is:
++---[RSA 2048]----+
+|                 |
+|           .  .  |
+|            o ooo|
+|      E  .   + *=|
+|     +  S o + =+O|
+|    . . .. *.o=*B|
+|     . o .o...=B=|
+|    . =...  ..+++|
+|     o oo  ... o.|
++----[SHA256]-----+</code></pre><p>输入3次回车。随后.ssh文件夹中生成两个文件id_rsa id_rsa.pub</p>
+<ol start="3">
+<li><p>拷贝公钥</p>
+<p>cat id_rsa.pub &gt;&gt; authorized_keys   //拷贝文件<br>chmod 600 authorized_keys    —-修改文件权限可读写,必需要设置</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>slave中ssh localhost测试，如果成功会在home下出现.ssh文件夹</p>
+</li>
+<li><p>将master的公钥传输到所有的slave上，实现无密码登录</p>
+</li>
+</ol>
+<pre><code>scp authorized_keys root@slave1:~/.ssh/</code></pre><p>完成后master尝试连接slave，ssh slave直接登录。</p>
+<h2 id="jdk和hadoop环境安装"><a href="#jdk和hadoop环境安装" class="headerlink" title="jdk和hadoop环境安装"></a>jdk和hadoop环境安装</h2><ol>
+<li><p>jdk安装</p>
+<p>tar -zxf jdkxxxxxxxxx.tar.gz    //解压包</p>
+<p>vim etc/profile     /编辑配置环境变量</p>
+<p>export JAVA_HOME=你的jdk路径<br>export PATH=$JAVA_HOME/bin:$PATH</p>
+<p>source /etc/profile     //编辑完成后，执行命令，刷新文件环境变量<br>java -version   //jdk安装测试</p>
+</li>
+</ol>
+<ol start="2">
+<li><p>hadoop安装</p>
+<p>tar -zxf hadoop包        //解压包</p>
+<p>cd hadoop/etc/hadoop        //进入hadoop配置目录</p>
+<p>vi hadoop-env.sh            //编辑文件</p>
+<p>export JAVA_HOME=/root/app/jdk      //设置你的jdk目录</p>
+<p>export HADOOP_CONF_DIR=/root/app/hadoop/etc/hadoop  //设置你的hadoop的配置文件目录，就在hadoop安装目录的etc下的hadoop下</p>
+</li>
+</ol>
+<p>环境变量</p>
+<pre><code>vi /etc/profile
+
+export HADOOP_HOME=/root/app/hadoop
+export PATH=$HADOOP_HOME/bin:$PATH
+
+source /etc/profile</code></pre><h2 id="伪分布式搭建"><a href="#伪分布式搭建" class="headerlink" title="伪分布式搭建"></a>伪分布式搭建</h2><ol>
+<li><p>配置etc/hadoop下的core-site.xml</p>
+<property>
+    <name>fs.defaultFS</name>
+    <value>hdfs://master:9000</value>   //hdfs必须配置的
+</property>
+<property>
+    <name>hadoop.tmp.dir</name>
+    <value>/root/app/hadoop/tmp</value>     //临时文件存储目录，默认在/tmp/hadoop-${user.name}
+</property>
+
+
+</li>
+</ol>
+<p>注意路径不要写错</p>
+<ol start="2">
+<li><p>hdfs-site.xml</p>
+<property>
+    <name>dfs.replication</name>
+    <value>1</value>    //设置副本的个数，该案例为为分布式只有一台机器
+</property>
+
+
+</li>
+</ol>
+<ol start="3">
+<li>启动hdfs</li>
+</ol>
+<p>hdfs命令，前提是你已经在环境变量配置了hadoop/bin，可能你还需要配置一下sbin</p>
+<pre><code>hdfs namenode -format   //首次启动格式化，仅第一次，将会格式化hdfs
+
+sbin/start-dfs.sh       //启动NameNode守护程序和DataNode守护程序
+或
+sbin/hadoop-daemon.sh start namenode    //启动namenode守护进程,非集群方式
+sbin/hadoop-daemon.sh start datanode    //启动datanode守护进程，非集群方式
+
+
+jsp     //查看守护进程</code></pre><p>hadoop守护程序日志输出将写入$ HADOOP_LOG_DIR目录（默认为$ HADOOP_HOME / logs）。 不报错后，访问http://{hostname|静态ip}:<strong>50070</strong>/ ,此处localhost改成自己的ip或hostname 如果启动后访问不成功，或出现信息，stop什么之类的，则擦好看logs下的日志${hadoop_home}/logs/hadoop-{username}-namenode-master.log</p>
+<ol start="3">
+<li><p>常用的日志查看</p>
+<p>hadoop-{username}-datanode-{hostname}.log<br>hadoop-{username}-datanode-{hostname}.out<br>hadoop-{username}-namenode-{hostname}.log<br>hadoop-{username}-namenode-{hostname}.out</p>
+</li>
+</ol>
+<ol start="4">
+<li><p>hdfs操作</p>
+<p>hdfs dfs -mkdir /input      //创建一个文件夹，在/目录下名称为input,多级目录加-p参数</p>
+<p>hdfs dfs -put ~/testhello.txt /input    //上传一个testhello.txt到input文件夹下,前提是有这个文件,并且此文件有数据，用于计算每个单词的数量</p>
+<p>hdfs dfs -ls /input //查看目录</p>
+<p>hdfs dfs -cat /input/testhello.txt  //查看文件</p>
+</li>
+</ol>
+<ol start="5">
+<li><p>运行mapreduce的wordcount</p>
+<p>hadoop jar share/hadoop/mapreduce/hadoop-mapreduce-examples-2.9.1.jar wordcount /input /output<br>//  /input为输入的目录，下面有一个testhello.txt,/output为输出目录，为执行结果，此文件不能先创建。随后/output下生成两个文件，一个是_SUCCESS和part-r-00000</p>
+<p>dhfs dfs -cat /output/part-r-00000  //查看结果，可能每个生成的part都不一样</p>
+</li>
+</ol>
+<ol start="6">
+<li><p>常用命令</p>
+<p>-mkdir  hdfs dfs -mkdir /input<br>-put    hdfs dfs -put ~/testhello.txt /input<br>-ls     hdfs dfs -ls /output                    //  -lsr表示递归<br>-cat    hdfs dfs -cat /output/part-r-00000<br>-get    hdfs dfs -get /output/part-r-00000 ./       //将dfs中的文件下载到本地文件夹下<br>-rm     hdfs dfs -rm /input/testhello.txt       //  -rmr表示递归删除</p>
+</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/hadoop/" rel="tag">hadoop</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0项目结构与模块" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -716,164 +959,6 @@ cnpm install    //安装依赖，虽然已经初始化项目了，但是依赖�
       
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/js/" rel="tag">js</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/闪回技术-闪回表,闪回删表,闪回查询" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/09/20/Oracle/%E9%97%AA%E5%9B%9E%E6%8A%80%E6%9C%AF-%E9%97%AA%E5%9B%9E%E8%A1%A8,%E9%97%AA%E5%9B%9E%E5%88%A0%E8%A1%A8,%E9%97%AA%E5%9B%9E%E6%9F%A5%E8%AF%A2/"
-    >闪回技术:闪回表,闪回删表,闪回查询</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/09/20/Oracle/%E9%97%AA%E5%9B%9E%E6%8A%80%E6%9C%AF-%E9%97%AA%E5%9B%9E%E8%A1%A8,%E9%97%AA%E5%9B%9E%E5%88%A0%E8%A1%A8,%E9%97%AA%E5%9B%9E%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-09-20T08:43:42.000Z" itemprop="datePublished">2018-09-20</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="闪回技术"><a href="#闪回技术" class="headerlink" title="闪回技术"></a>闪回技术</h1><h2 id="闪回表-Flashback-Table"><a href="#闪回表-Flashback-Table" class="headerlink" title="闪回表(Flashback Table)"></a>闪回表(Flashback Table)</h2><p>闪回表是利用UNDO表空间的撤销数据，所以能把表闪回到多久之前 受到<strong>undo_retention</strong>，<strong>UNDO表空间的数据文件是否启动自动增长功能</strong>，<strong>是否设置guarantee</strong>等三种因素的影响。 被闪回的表必须启动行移动功能，且该表必须存在</p>
-<pre><code>alter table dept enable row movement;</code></pre><p><strong>1. 闪回到具体时间</strong></p>
-<pre><code>flashback table scott.emp to timestamp to_timestamp(&apos;2018-09-10 09:00:00&apos;,&apos;yyyy-mm-dd hh24:mi:ss&apos;)</code></pre><ol start="2">
-<li><p>闪回到10分钟之前</p>
-<p>flashback table scott.emp to timestamp(systimestamp-interval ‘10’ minute)</p>
-</li>
-</ol>
-<ol start="3">
-<li><p>将scott.emp闪回到SCN为10086000的时候</p>
-<p>flashback table scott.emp to scn 1086000;</p>
-<p>select dbms_flashback.get_system_change_number scn from dual;—查看当前SCN值</p>
-</li>
-</ol>
-<p><strong>使用闪回表注意事项:</strong></p>
-<ul>
-<li>被闪回的表必须启动行移动功能,alter table dept enable row movement;</li>
-<li>“FLASHBACK TABLE”命令的执行者必须有“FLASHBACK ANY TABLE”系统权限或者在被闪回的表上具有“FLASHBACK”对象权限。</li>
-<li>“FLASHBACK TABLE”属于DDL命令，隐式提交。</li>
-<li>SYS用户的任何表无法使用此功能。</li>
-</ul>
-<h2 id="闪回删表-Flashback-Drop"><a href="#闪回删表-Flashback-Drop" class="headerlink" title="闪回删表(Flashback Drop)"></a>闪回删表(Flashback Drop)</h2><p>闪回删表指的是撤销“DROP TABLE”的效果。 <strong>1. 闪回被删掉的表scott.emp</strong></p>
-<pre><code>flashback table scott.emp to before drop;</code></pre><p>当表被删掉后，由新建了一个同名表，如果视图使用上面的闪回原表，则会报ORA-38312: original name is used by an existing object错误，可重新命名。 <strong>2. 闪回是可指被恢复的回收站对象</strong></p>
-<pre><code>flashback table &quot;BIN$AyId7ZbBjWngUKjADQIIuA==$0&quot; to before drop;</code></pre><p><strong>闪回删表的工作原理</strong>是:当“DROP TABLE”命令执行时，表和索引并没有真正意义的删除，其所占空间只是分配给了<strong>回收站对象</strong> 注意：表空间在自动增长的压力下会按照先入先出的规则将回收站对象的空间分配给需要空间的段，在将回收站对象耗尽之前数据文件是不会自动增长的。 <strong>3. 禁用回收站功能</strong></p>
-<pre><code>alter system set recyclebin=&apos;OFF&apos; scope=spfile;</code></pre><p><strong>4. 删除当前用户回收站的所有对象</strong></p>
-<pre><code>pruge recyclebin;</code></pre><h2 id="闪回查询"><a href="#闪回查询" class="headerlink" title="闪回查询"></a>闪回查询</h2><p>以表为单位查询过去的数据称为闪回查询，主要有两种方式：</p>
-<ul>
-<li>闪回时间点查询:利用select 命令的“as of”子句PL/SQL包dbms_flashback在过去的时间点上的查询。</li>
-<li>闪回版本查询:利用select命令的“version between”子句在过去的一段时间范围内的查询。</li>
-</ul>
-<h3 id="闪回时间点查询"><a href="#闪回时间点查询" class="headerlink" title="闪回时间点查询"></a>闪回时间点查询</h3><p><strong>利用as of语句</strong></p>
-<ol>
-<li><p>查询7900号员工在具体时间的工资</p>
-<p>select sal from emp as of timestamp to_timestamp(‘2018-09-13 10:02:30’,’yyyy-mm-dd,hh24:mi:ss’) where empno=7900;</p>
-</li>
-</ol>
-<ol start="2">
-<li><p>查询7900号员工在5分钟之前的工资</p>
-<p>select sal from emp as  of timestamp(systimestamp-interval ‘5’ minute) where empno=7900;</p>
-</li>
-</ol>
-<p><strong>利用dbms_flashback包</strong> 利用dbms_flashback包的<strong>enable_at_time或enable_at_scn</strong>存储过程锁定一个会话级别的闪回时间目标，即进入闪回模式，随后的查询命令可以省略“as of”，直到调用dbms_flashback_disable存储过程将其关闭为止。 比如：将闪回模式回话定格在15分钟之前:</p>
-<pre><code>exec dbms_flashback.enable_at_time(systimestamp - interval &apos;15&apos; minute);</code></pre><p>现在进行查询，注意，此时查询的是15分钟之前的表。</p>
-<pre><code>select sal from emp where empno=7900;   --忽略了“as of”子句</code></pre><p>此时若访问SYSDATE、SYSTIMESTAMP等日期函数，它们的返回值仍是当前值，而不是15分钟之前的值。 处于闪回会话模式时，执行dml和ddl将报错</p>
-<pre><code>SQL&gt; update emp set sal=2000 where empno=7900;
-update emp set sal=2000 where empno=7900
-       *
-第 1 行出现错误:
-ORA-08182: 在闪回模式下操作不受支持</code></pre><p>如果查询完毕，可调用disable存储过程关闭闪回会话模式。</p>
-<pre><code>exec dbms_flashback.disable;</code></pre><p><strong>闪回版本查询</strong> 闪回版本查询可以贯穿一定长度的时间窗口，通过只使用一条查询命令就能<strong>返回该时间窗口内不同时间点上的数据。</strong> 比如，首先通过3个事务将7900号员工的工资进行修改。</p>
-<pre><code>SQL&gt; update emp set sal=3000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。
-SQL&gt; update emp set sal=4000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。
-SQL&gt; update emp set sal=5000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。
-SQL&gt; update emp set sal=6000 where empno=7900;
-已更新 1 行。
-SQL&gt; commit;
-提交完成。</code></pre><p><strong>执行闪回版本查询</strong></p>
-<pre><code>SQL&gt; select empno,sal from emp versions between timestamp(systimestamp -interval &apos;15&apos; minute) and maxvalue where empno=7900;
-
-     EMPNO        SAL
----------- ----------
-      7900       6000
-      7900       5000
-      7900       4000
-      7900       3000
-      7900        950</code></pre><p>通过“versions between”，我们可以看到在15分钟之内，7900号员工的工资用5个值，说明共有4个事务对其进行过修改。 为了能看清这些事务的先后顺序，可以在查询列表中使用伪字段。</p>
-<pre><code>SQL&gt; select versions_xid,versions_startscn,versions_endscn,empno,sal from emp versions between timestamp(systimestamp - interval &apos;15&apos; minute) and maxvalue where empno=7900 order by 2 nulls first;
-
-VERSIONS_XID     VERSIONS_STARTSCN VERSIONS_ENDSCN      EMPNO        SAL
----------------- ----------------- --------------- ---------- ----------
-                                           5482877       7900        950
-0E00180005020000           5482877         5482880       7900       3000
-17000D00E7010000           5482880         5482882       7900       4000
-0F00140002020000           5482882         5482885       7900       5000
-16000700C2020000           5482885                       7900       6000</code></pre><ul>
-<li>versions_xid为事物号</li>
-<li>versions_startscn是事物开始时的SCN</li>
-<li>version_endscn时修改该行的下一个事物开始时的SCN</li>
-</ul>
-<p>首尾衔接这两个字段的SCN号很容易得出真实的修改顺序。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%97%AA%E5%9B%9E/" rel="tag">闪回</a></li></ul>
 
 
     </footer>

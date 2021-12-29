@@ -78,6 +78,91 @@
     
     
     
+    <article id="post-Java/Java使用Javacv库操作摄像头" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/12/30/Java/Java%E4%BD%BF%E7%94%A8Javacv%E5%BA%93%E6%93%8D%E4%BD%9C%E6%91%84%E5%83%8F%E5%A4%B4/"
+    >Java使用Javacv库操作摄像头</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/12/30/Java/Java%E4%BD%BF%E7%94%A8Javacv%E5%BA%93%E6%93%8D%E4%BD%9C%E6%91%84%E5%83%8F%E5%A4%B4/" class="article-date">
+  <time datetime="2020-12-30T04:00:00.000Z" itemprop="datePublished">2020-12-30</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="依赖添加"><a href="#依赖添加" class="headerlink" title="依赖添加"></a>依赖添加</h2><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.bytedeco<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javacpp-platform<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.bytedeco<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>javacv-platform<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>1.5.3<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+
+<p>该依赖直接使用aliyun仓库下载即可。不然会下载很慢。而且下载的东西很多，包括linux，mac,window各种平台的版本，他会讲一些ddl或其他附加文件以jar的方式打包处理，不需要再拷贝各种依赖文件到服务器的某些位置。</p>
+<h2 id="调用摄像头在关闭的最后一帧保存图片"><a href="#调用摄像头在关闭的最后一帧保存图片" class="headerlink" title="调用摄像头在关闭的最后一帧保存图片"></a>调用摄像头在关闭的最后一帧保存图片</h2><p>doExecuteFrame方法用于抓取图片，如果放在循环里，则会循环抓取。我们可以在适当的时间进行处理。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.cgq.opencv;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.apache.commons.codec.binary.Base64;</span><br><span class="line"><span class="keyword">import</span> org.apache.commons.io.IOUtils;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.CanvasFrame;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.Frame;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.Java2DFrameConverter;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.OpenCVFrameGrabber;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.imageio.ImageIO;</span><br><span class="line"><span class="keyword">import</span> javax.swing.*;</span><br><span class="line"><span class="keyword">import</span> java.awt.image.BufferedImage;</span><br><span class="line"><span class="keyword">import</span> java.io.File;</span><br><span class="line"><span class="keyword">import</span> java.io.FileInputStream;</span><br><span class="line"><span class="keyword">import</span> java.io.IOException;</span><br><span class="line"></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test3</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        OpenCVFrameGrabber grabber = <span class="keyword">new</span> OpenCVFrameGrabber(<span class="number">0</span>);<span class="comment">//0表示本机摄像头  当然这里也可以换成网络摄像头地址</span></span><br><span class="line">        grabber.start();   <span class="comment">//开始获取摄像头数据</span></span><br><span class="line">        CanvasFrame canvas = <span class="keyword">new</span> CanvasFrame(<span class="string">&quot;摄像头&quot;</span>);<span class="comment">//新建一个窗口</span></span><br><span class="line">        canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);<span class="comment">//窗口关闭时程序运行结束</span></span><br><span class="line">        canvas.setSize(<span class="number">300</span>,<span class="number">300</span>);</span><br><span class="line">        canvas.setAlwaysOnTop(<span class="keyword">true</span>);</span><br><span class="line">        <span class="keyword">int</span> i=<span class="number">0</span>;</span><br><span class="line">        Runtime.getRuntime().addShutdownHook(<span class="keyword">new</span> Thread(()-&gt;&#123;</span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                doExecuteFrame(grabber.grabFrame(),<span class="string">&quot;D:/new/&quot;</span>+<span class="number">1</span>+<span class="string">&quot;.jpg&quot;</span>);</span><br><span class="line">                String s = Base64.encodeBase64String(IOUtils.toByteArray(<span class="keyword">new</span> FileInputStream(<span class="string">&quot;D:/new/1.jpg&quot;</span>)));</span><br><span class="line">                HttpClientUtil.test(<span class="string">&quot;http://localhost:8002/test/test&quot;</span>,s);</span><br><span class="line">            &#125; <span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">                e.printStackTrace();</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;));</span><br><span class="line">        <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</span><br><span class="line">            <span class="keyword">if</span>(!canvas.isDisplayable())&#123;<span class="comment">//窗口是否关闭</span></span><br><span class="line">                System.out.println(<span class="string">&quot;已关闭&quot;</span>);</span><br><span class="line">                grabber.stop();<span class="comment">//停止抓取</span></span><br><span class="line">                System.exit(<span class="number">2</span>);<span class="comment">//退出</span></span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            canvas.showImage(grabber.grab());<span class="comment">//获取摄像头图像并放到窗口上显示， 这里的Frame frame=grabber.grab(); frame表示一帧视频图像</span></span><br><span class="line">            <span class="comment">//调用doExecuteFrame()方法，将截取的图片保存在本地</span></span><br><span class="line">            <span class="comment">//doExecuteFrame(grabber.grabFrame(),&quot;D:/new/&quot;+1+&quot;.jpg&quot;);</span></span><br><span class="line">            Thread.sleep(<span class="number">50</span>);<span class="comment">//50毫秒刷新一次图像</span></span><br><span class="line">            i++;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> f 表示帧</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> targetFileName 存储路径</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">doExecuteFrame</span><span class="params">(Frame f, String targetFileName)</span> <span class="keyword">throws</span> IOException </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">null</span> ==f ||<span class="keyword">null</span> ==f.image) &#123;</span><br><span class="line">            <span class="keyword">return</span>;</span><br><span class="line">        &#125;</span><br><span class="line">        Java2DFrameConverter converter =<span class="keyword">new</span> Java2DFrameConverter();</span><br><span class="line">        BufferedImage bi =converter.getBufferedImage(f);</span><br><span class="line">        File output =<span class="keyword">new</span> File(targetFileName);</span><br><span class="line">        <span class="keyword">if</span> (!output.exists())&#123;</span><br><span class="line">            output.createNewFile();</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            ImageIO.write(bi,<span class="string">&quot;jpg&quot;</span>,output);</span><br><span class="line">        &#125;<span class="keyword">catch</span> (IOException e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+
+
+<h2 id="调用摄像头进行拍摄视频并保存本地mp4"><a href="#调用摄像头进行拍摄视频并保存本地mp4" class="headerlink" title="调用摄像头进行拍摄视频并保存本地mp4"></a>调用摄像头进行拍摄视频并保存本地mp4</h2><p>从启动程序，调用摄像头开始到关闭程序，在关闭时将其转换为mp4存储到本地</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.cgq.opencv;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.CanvasFrame;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.Frame;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.FrameGrabber;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.FrameRecorder;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.OpenCVFrameConverter;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.ffmpeg.global.*;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.opencv.opencv_core.*;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.swing.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 调用视频录制</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> chen</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2020/12/26</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test2</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> Exception, InterruptedException, org.bytedeco.javacv.FrameRecorder.Exception </span>&#123;</span><br><span class="line">        recordCamera(<span class="string">&quot;output.mp4&quot;</span>,<span class="number">25</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * 按帧录制本机摄像头视频（边预览边录制，停止预览即停止录制）</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@author</span> eguid</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> outputFile -录制的文件路径，也可以是rtsp或者rtmp等流媒体服务器发布地址</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> frameRate - 视频帧率</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> InterruptedException</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> org.bytedeco.javacv.FrameRecorder.Exception</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">recordCamera</span><span class="params">(String outputFile, <span class="keyword">double</span> frameRate)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        <span class="comment">//另一种方式获取摄像头，opencv抓取器方式获取摄像头请参考第一章，FrameGrabber会自己去找可以打开的摄像头的抓取器。</span></span><br><span class="line">        FrameGrabber grabber = FrameGrabber.createDefault(<span class="number">0</span>);<span class="comment">//本机摄像头默认0</span></span><br><span class="line">        grabber.start();<span class="comment">//开启抓取器</span></span><br><span class="line"></span><br><span class="line">        OpenCVFrameConverter.ToIplImage converter = <span class="keyword">new</span> OpenCVFrameConverter.ToIplImage();<span class="comment">//转换器</span></span><br><span class="line">        IplImage grabbedImage = converter.convert(grabber.grab());<span class="comment">//抓取一帧视频并将其转换为图像，至于用这个图像用来做什么？加水印，人脸识别等等自行添加</span></span><br><span class="line">        <span class="keyword">int</span> width = grabbedImage.width();</span><br><span class="line">        <span class="keyword">int</span> height = grabbedImage.height();</span><br><span class="line"></span><br><span class="line">        FrameRecorder recorder = FrameRecorder.createDefault(outputFile, width, height);</span><br><span class="line">        recorder.setVideoCodec(avcodec.AV_CODEC_ID_H264); <span class="comment">// avcodec.AV_CODEC_ID_H264，编码</span></span><br><span class="line">        recorder.setFormat(<span class="string">&quot;flv&quot;</span>);<span class="comment">//封装格式，如果是推送到rtmp就必须是flv封装格式</span></span><br><span class="line">        recorder.setFrameRate(frameRate);</span><br><span class="line"></span><br><span class="line">        recorder.start();<span class="comment">//开启录制器</span></span><br><span class="line">        <span class="keyword">long</span> startTime=<span class="number">0</span>;</span><br><span class="line">        <span class="keyword">long</span> videoTS=<span class="number">0</span>;</span><br><span class="line">        CanvasFrame frame = <span class="keyword">new</span> CanvasFrame(<span class="string">&quot;camera&quot;</span>, CanvasFrame.getDefaultGamma() / grabber.getGamma());</span><br><span class="line">        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);</span><br><span class="line">        frame.setAlwaysOnTop(<span class="keyword">true</span>);</span><br><span class="line">        Frame rotatedFrame=converter.convert(grabbedImage);<span class="comment">//不知道为什么这里不做转换就不能推到rtmp</span></span><br><span class="line">        <span class="keyword">while</span> (frame.isVisible() &amp;&amp; (grabbedImage = converter.convert(grabber.grab())) != <span class="keyword">null</span>) &#123;</span><br><span class="line"></span><br><span class="line">            rotatedFrame = converter.convert(grabbedImage);</span><br><span class="line">            frame.showImage(rotatedFrame);</span><br><span class="line">            <span class="keyword">if</span> (startTime == <span class="number">0</span>) &#123;</span><br><span class="line">                startTime = System.currentTimeMillis();</span><br><span class="line">            &#125;</span><br><span class="line">            videoTS = <span class="number">1000</span> * (System.currentTimeMillis() - startTime);</span><br><span class="line">            recorder.setTimestamp(videoTS);</span><br><span class="line">            recorder.record(rotatedFrame);</span><br><span class="line">            Thread.sleep(<span class="number">40</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        frame.dispose();<span class="comment">//关闭窗口</span></span><br><span class="line">        recorder.close();<span class="comment">//关闭推流录制器，close包含release和stop操作</span></span><br><span class="line">        grabber.close();<span class="comment">//关闭抓取器</span></span><br><span class="line"></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="直接调起摄像头不拍照"><a href="#直接调起摄像头不拍照" class="headerlink" title="直接调起摄像头不拍照"></a>直接调起摄像头不拍照</h2><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">package</span> com.cgq.opencv;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.CanvasFrame;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.FrameGrabber;</span><br><span class="line"><span class="keyword">import</span> org.bytedeco.javacv.OpenCVFrameGrabber;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> javax.swing.*;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment">* 调用摄像头展示</span></span><br><span class="line"><span class="comment">* <span class="doctag">@author</span> chen</span></span><br><span class="line"><span class="comment">* <span class="doctag">@date</span> 2020/12/26</span></span><br><span class="line"><span class="comment">*/</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Test</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> <span class="keyword">throws</span> FrameGrabber.Exception, InterruptedException </span>&#123;</span><br><span class="line">        OpenCVFrameGrabber grabber = <span class="keyword">new</span> OpenCVFrameGrabber(<span class="number">0</span>);</span><br><span class="line">        grabber.start();</span><br><span class="line">        CanvasFrame canvas = <span class="keyword">new</span> CanvasFrame(<span class="string">&quot;摄像头&quot;</span>);<span class="comment">//新建一个窗口</span></span><br><span class="line">        canvas.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);<span class="comment">//窗口关闭时程序运行结束</span></span><br><span class="line">        canvas.setAlwaysOnTop(<span class="keyword">true</span>);</span><br><span class="line">        <span class="keyword">while</span>(<span class="keyword">true</span>)&#123;</span><br><span class="line">            <span class="keyword">if</span>(!canvas.isDisplayable())&#123;<span class="comment">//窗口是否关闭</span></span><br><span class="line">                System.out.println(<span class="string">&quot;已关闭&quot;</span>);</span><br><span class="line">                grabber.stop();<span class="comment">//停止抓取</span></span><br><span class="line">                System.exit(<span class="number">2</span>);<span class="comment">//退出</span></span><br><span class="line">            &#125;</span><br><span class="line">            canvas.showImage(grabber.grab());<span class="comment">//获取摄像头图像并放到窗口上显示， 这里的Frame         frame=grabber.grab(); frame是一帧视频图像</span></span><br><span class="line">            Thread.sleep(<span class="number">50</span>);<span class="comment">//50毫秒刷新一次图像</span></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-常用代码/Hutool工具包代码" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -638,78 +723,6 @@
 
 
 
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/Java深入问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/11/18/Java/Java%E6%B7%B1%E5%85%A5%E9%97%AE%E9%A2%98/"
-    >Java深入问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/11/18/Java/Java%E6%B7%B1%E5%85%A5%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2020-11-18T04:00:00.000Z" itemprop="datePublished">2020-11-18</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>不可变性,不可变对象</p>
-<p>对象共享问题</p>
-<p>ThreadLocal不是用来解决对象共享访问问题的，而主要是提供了保持对象的方法和避免参数传递的方便的对象访问方式</p>
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/gufuguang/article/details/11920487?utm_source=blogxgwz5">https://blog.csdn.net/gufuguang/article/details/11920487?utm_source=blogxgwz5</a></p>
 
       
       <!-- reward -->

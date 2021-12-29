@@ -78,6 +78,111 @@
     
     
     
+    <article id="post-Java/JDK8-函数式接口说明解析" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2020/09/17/Java/JDK8-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E%E8%A7%A3%E6%9E%90/"
+    >JDK8 函数式接口说明解析及使用案例</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2020/09/17/Java/JDK8-%E5%87%BD%E6%95%B0%E5%BC%8F%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E%E8%A7%A3%E6%9E%90/" class="article-date">
+  <time datetime="2020-09-17T04:00:00.000Z" itemprop="datePublished">2020-09-17</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="说明"><a href="#说明" class="headerlink" title="说明"></a>说明</h3><p>函数式接口都存在java.util.function包下。</p>
+<p>函数时接口的声明：</p>
+<p>标注@FunctionInterface注解的接口，且该接口只有一个抽象方法，默认方法和已实现的静态方法不算。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@FunctionalInterface</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">Function</span>&lt;<span class="title">T</span>, <span class="title">R</span>&gt; </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Applies this function to the given argument.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> t the function argument</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> the function result</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="function">R <span class="title">apply</span><span class="params">(T t)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns a composed function that first applies the &#123;<span class="doctag">@code</span> before&#125;</span></span><br><span class="line"><span class="comment">     * function to its input, and then applies this function to the result.</span></span><br><span class="line"><span class="comment">     * If evaluation of either function throws an exception, it is relayed to</span></span><br><span class="line"><span class="comment">     * the caller of the composed function.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &lt;V&gt; the type of input to the &#123;<span class="doctag">@code</span> before&#125; function, and to the</span></span><br><span class="line"><span class="comment">     *           composed function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> before the function to apply before this function is applied</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> a composed function that first applies the &#123;<span class="doctag">@code</span> before&#125;</span></span><br><span class="line"><span class="comment">     * function and then applies this function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> NullPointerException if before is null</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@see</span> #andThen(Function)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">default</span> &lt;V&gt; <span class="function">Function&lt;V, R&gt; <span class="title">compose</span><span class="params">(Function&lt;? <span class="keyword">super</span> V, ? extends T&gt; before)</span> </span>&#123;</span><br><span class="line">        Objects.requireNonNull(before);</span><br><span class="line">        <span class="keyword">return</span> (V v) -&gt; apply(before.apply(v));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns a composed function that first applies this function to</span></span><br><span class="line"><span class="comment">     * its input, and then applies the &#123;<span class="doctag">@code</span> after&#125; function to the result.</span></span><br><span class="line"><span class="comment">     * If evaluation of either function throws an exception, it is relayed to</span></span><br><span class="line"><span class="comment">     * the caller of the composed function.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &lt;V&gt; the type of output of the &#123;<span class="doctag">@code</span> after&#125; function, and of the</span></span><br><span class="line"><span class="comment">     *           composed function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> after the function to apply after this function is applied</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> a composed function that first applies this function and then</span></span><br><span class="line"><span class="comment">     * applies the &#123;<span class="doctag">@code</span> after&#125; function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@throws</span> NullPointerException if after is null</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@see</span> #compose(Function)</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">default</span> &lt;V&gt; <span class="function">Function&lt;T, V&gt; <span class="title">andThen</span><span class="params">(Function&lt;? <span class="keyword">super</span> R, ? extends V&gt; after)</span> </span>&#123;</span><br><span class="line">        Objects.requireNonNull(after);</span><br><span class="line">        <span class="keyword">return</span> (T t) -&gt; after.apply(apply(t));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="comment">/**</span></span><br><span class="line"><span class="comment">     * Returns a function that always returns its input argument.</span></span><br><span class="line"><span class="comment">     *</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@param</span> &lt;T&gt; the type of the input and output objects to the function</span></span><br><span class="line"><span class="comment">     * <span class="doctag">@return</span> a function that always returns its input argument</span></span><br><span class="line"><span class="comment">     */</span></span><br><span class="line">    <span class="keyword">static</span> &lt;T&gt; <span class="function">Function&lt;T, T&gt; <span class="title">identity</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> t -&gt; t;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>我们看到Function&lt;T, R&gt;接口的<code>R apply(T t);</code>抽象方法，可以知道，该类定义的是传入一个T参数并返回一个R类型，一个传入一个传出的接口方法。</p>
+<p>在学习函数时编程的写法时，类似<code>s-&gt;&#123;&#125;,(a,b)-&gt;&#123;&#125;</code>的方式。</p>
+<p>一般某些方法的参数需要是一个函数式接口类型，如下</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">final</span> &lt;R&gt; <span class="function">Mono&lt;R&gt; <span class="title">flatMap</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ? extends Mono&lt;? extends R&gt;&gt;</span></span></span><br><span class="line"><span class="function"><span class="params">                                 transformer)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> onAssembly(<span class="keyword">new</span> MonoFlatMap&lt;&gt;(<span class="keyword">this</span>, transformer));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>而我们调用时是这样</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">studentMono.flatMap((person)-&gt;ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fromValue(person)))</span><br></pre></td></tr></table></figure>
+
+<p>才学没多久的肯定会忘记是为什么这么写。</p>
+<p>首先书写方式就是上面的尖括号大括号的方式。然后看一下简单的实例化这个Function接口</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">Function&lt;String , Integer&gt; getLength = s -&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> s.length();</span><br><span class="line">&#125;;</span><br><span class="line">Function&lt;String , Integer&gt; getLength = (s) -&gt; &#123;</span><br><span class="line">    <span class="keyword">return</span> s.length();</span><br><span class="line">&#125;;</span><br><span class="line">Integer apply = getLength.apply(<span class="string">&quot;123&quot;</span>);</span><br><span class="line">System.out.println(apply);</span><br></pre></td></tr></table></figure>
+
+<p>上面的一个是加括号，一个不加。</p>
+<p>首先要知道s在这个方括号里的参数，这个参数变量叫s,a,b,c都无所谓，但是顺序是一定有的。可以认为它是一个实参。</p>
+<p>而括号里的是具体实现，会返回一个数值，这也是Function接口特定要求的，而且已经声明了Integer所以要返回一个Integer类型。</p>
+<p>然后再调用Function的方法apply，可见传递个参数123相当于s这个变量参数，然后返回值就是return的返回值。</p>
+<p>而箭头函数最终其实就是一个匿名类</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Function&lt;String , Integer&gt; getLength2 = <span class="keyword">new</span> Function&lt;String, Integer&gt;() &#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Integer <span class="title">apply</span><span class="params">(String s)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> s.length();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;;</span><br></pre></td></tr></table></figure>
+
+
+
+<p>再看上面的flatMap方法需要一个Function接口，那么其<code>(person)-&gt;ServerResponse.ok().contentType(MediaType.APPLICATION_JSON).body(fromValue(person))</code>就相当于<code>(s) -&gt;&#123;    return s.length();&#125;;</code>。<strong>因此flatMap方法的Function接口的T入参是什么类型person就是什么类型，R返回值是什么类型，则大括号里点到最后的body方法的返回值就一定是R类型或R类型的子类。</strong></p>
+<h3 id="java-LinkedHashMap-map有序分组"><a href="#java-LinkedHashMap-map有序分组" class="headerlink" title="java LinkedHashMap map有序分组"></a>java LinkedHashMap map有序分组</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">LinkedHashMap&lt;String, List&lt;CityCheckQuotaInit&gt;&gt; collect = list.stream().collect(Collectors.groupingBy(CityCheckQuotaInit::getOneName, LinkedHashMap::<span class="keyword">new</span>,Collectors.toList()));</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="原生的distinct-不支持按照列表里的对象某个属性去重-对某个字段过滤重复数据：使用HashMap"><a href="#原生的distinct-不支持按照列表里的对象某个属性去重-对某个字段过滤重复数据：使用HashMap" class="headerlink" title="原生的distinct()不支持按照列表里的对象某个属性去重,对某个字段过滤重复数据：使用HashMap"></a>原生的distinct()不支持按照列表里的对象某个属性去重,对某个字段过滤重复数据：使用HashMap</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">static</span> &lt;T&gt; <span class="function">Predicate&lt;T&gt; <span class="title">distinctByKey</span><span class="params">(Function&lt;? <span class="keyword">super</span> T, ?&gt; keyExtractor)</span> </span>&#123;</span><br><span class="line">    Map&lt;Object, Boolean&gt; seen = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;();</span><br><span class="line">    <span class="keyword">return</span> t -&gt; seen.putIfAbsent(keyExtractor.apply(t), Boolean.TRUE) == <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">list.stream().filter(distinctByKey(User::getId)).collect(Collectors.toList());</span><br></pre></td></tr></table></figure>
+
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-other/使用ffmpeg转码m3u8并播放" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -423,98 +528,6 @@
       
   <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/HTTPS/" rel="tag">HTTPS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SSL/" rel="tag">SSL</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringCloud/" rel="tag">SpringCloud</a></li></ul>
 
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/window下apache的安装配置操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2020/08/14/Javascript/window%E4%B8%8Bapache%E7%9A%84%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE%E6%93%8D%E4%BD%9C/"
-    >window下apache的安装配置操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2020/08/14/Javascript/window%E4%B8%8Bapache%E7%9A%84%E5%AE%89%E8%A3%85%E9%85%8D%E7%BD%AE%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2020-08-14T08:46:00.000Z" itemprop="datePublished">2020-08-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h2><p>去提供window支持的官网下载apache包<a target="_blank" rel="noopener" href="https://www.apachehaus.com/cgi-bin/download.plx">Apache Haus网站</a>     <a target="_blank" rel="noopener" href="https://www.apachehaus.com/cgi-bin/download.plx?dli=XRlWWd1UNVjT6p0KWNjTwBlVOpkVFVFdOhkWDJVQ">64位下载地址</a></p>
-<p>解压后，进入conf修改httpd.conf，修改这几处</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Listen 80 &#x2F;&#x2F;端口修改</span><br><span class="line">ServerName localhost:8080 &#x2F;&#x2F;ip:端口修改</span><br><span class="line">Define SRVROOT &quot;window apache安装目录&quot; &#x2F;&#x2F;到Apache24即可</span><br><span class="line">LoadModule rewrite_module modules&#x2F;mod_rewrite.so &#x2F;&#x2F;vue hisotry路径重写需要打开</span><br></pre></td></tr></table></figure>
-
-<p>安装Apache24到window services中</p>
-<p>cmd管理员，到bin目录下执行</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">httpd.exe -k install -n &quot;Apache24&quot;</span><br></pre></td></tr></table></figure>
-
-<p>如果提示 <strong>无法启动此程序因为计算机中丢失vcruntime140</strong>。则需要下载安装<a target="_blank" rel="noopener" href="https://www.microsoft.com/zh-cn/download/details.aspx?id=48145">VC2015</a></p>
-<p>如果提示什么套接字，可能不是安装失败问题。可以先看一下services安装上没，如果有了那就是安装上了，因为端口占用的原因出的这个错。如果没安装上，根据报错信息找一下httpd.conf是不是有属性配置错了。</p>
-<h2 id="Vue部署时history模式部署-单页面路径404"><a href="#Vue部署时history模式部署-单页面路径404" class="headerlink" title="Vue部署时history模式部署,单页面路径404"></a>Vue部署时history模式部署,单页面路径404</h2><p>以前端项目作为htdocs根应用。</p>
-<p>单页面，只有一个根路径，任何路径都会跳到/，这个许多history问题的博客都有解释。</p>
-<h4 id="1-修改httpd-conf，将-lt-Directory-“-SRVROOT-htdocs”-gt-下的AllowOverride-None修改为AllowOverride-All-大约在278行左右"><a href="#1-修改httpd-conf，将-lt-Directory-“-SRVROOT-htdocs”-gt-下的AllowOverride-None修改为AllowOverride-All-大约在278行左右" class="headerlink" title="1. 修改httpd.conf，将&lt;Directory “${SRVROOT}/htdocs”&gt;下的AllowOverride None修改为AllowOverride All,大约在278行左右"></a>1. 修改httpd.conf，将&lt;Directory “${SRVROOT}/htdocs”&gt;下的<code>AllowOverride None</code>修改为<code>AllowOverride All</code>,大约在278行左右</h4><h4 id="2-在htdocs根路径下，添加-htaccess文件"><a href="#2-在htdocs根路径下，添加-htaccess文件" class="headerlink" title="2.在htdocs根路径下，添加.htaccess文件"></a>2.在htdocs根路径下，添加<code>.htaccess</code>文件</h4><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&lt;IfModule mod_rewrite.c&gt;</span><br><span class="line">  RewriteEngine On</span><br><span class="line">  RewriteRule ^index\.html$ - [L]</span><br><span class="line">  RewriteCond %&#123;REQUEST_FILENAME&#125; !-f</span><br><span class="line">  RewriteCond %&#123;REQUEST_FILENAME&#125; !-d</span><br><span class="line">  RewriteRule . &#x2F;index.html [L]</span><br><span class="line">&lt;&#x2F;IfModule&gt;</span><br></pre></td></tr></table></figure>
-
-<p>并在httpd.conf中开启<code>LoadModule rewrite_module modules/mod_rewrite.so</code>模块</p>
-<p> 前端项目的router不设置base属性，则默认是/，即部署容器的根路径。</p>
-<h4 id="3-如果重写完成后刷新页面出现空白，看console出现-static-js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index-html。因此js文件变成了首页的index-html内容，所以会出现-lt-解析失败的报错。"><a href="#3-如果重写完成后刷新页面出现空白，看console出现-static-js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index-html。因此js文件变成了首页的index-html内容，所以会出现-lt-解析失败的报错。" class="headerlink" title="3. 如果重写完成后刷新页面出现空白，看console出现,static/js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index.html。因此js文件变成了首页的index.html内容，所以会出现&lt;解析失败的报错。"></a>3. 如果重写完成后刷新页面出现空白，看console出现,static/js下的三个js文件解析失败的，可以看到，没有找到这三个文件，导致重写到index.html。因此js文件变成了首页的index.html内容，所以会出现<code>&lt;</code>解析失败的报错。</h4><p>查看index.html，发现script引入的js是以<code>./static</code>开头的，需要改成<code>/static</code>才行。因此更改conf/index.js处</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;*</span><br><span class="line">* 将.&#x2F;更改为&#x2F;</span><br><span class="line">*&#x2F;</span><br><span class="line">assetsPublicPath: &#39;&#x2F;&#39;, </span><br></pre></td></tr></table></figure>
-
-<h4 id="4-Avoided-redundant-navigation-to-current-location-“-layout-task”。"><a href="#4-Avoided-redundant-navigation-to-current-location-“-layout-task”。" class="headerlink" title="4. Avoided redundant navigation to current location: “/layout/task”。"></a>4. Avoided redundant navigation to current location: “/layout/task”。</h4><p>在router的index.js中<code>Vue.use(Router)</code>以上增加如下代码，保证不会出现菜单重复问题。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">&#x2F;&#x2F; 检查结果子界面</span><br><span class="line">const originalPush &#x3D; Router.prototype.push</span><br><span class="line">Router.prototype.push &#x3D; function push(location) &#123;</span><br><span class="line">  return originalPush.call(this, location).catch(err &#x3D;&gt; err)</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>参考<a target="_blank" rel="noopener" href="https://www.cnblogs.com/litings/p/10802972.html">https://www.cnblogs.com/litings/p/10802972.html</a></p>
-<p>Vue-Router官网对history描述和参考<a href="[https://router.vuejs.org/zh/guide/essentials/history-mode.html#%E5%90%8E%E7%AB%AF%E9%85%8D%E7%BD%AE%E4%BE%8B%E5%AD%90](https://router.vuejs.org/zh/guide/essentials/history-mode.html#后端配置例子)">配置</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
 
     </footer>
 

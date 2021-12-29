@@ -78,6 +78,133 @@
     
     
     
+    <article id="post-Vue/Vue2.0{{}}模板与自定义过滤器" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/"
+    >Vue2.0{{}}模板与自定义过滤器</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/05/28/Vue/Vue2.0%7B%7B%7D%7D%E6%A8%A1%E6%9D%BF%E4%B8%8E%E8%87%AA%E5%AE%9A%E4%B9%89%E8%BF%87%E6%BB%A4%E5%99%A8/" class="article-date">
+  <time datetime="2018-05-28T13:59:06.000Z" itemprop="datePublished">2018-05-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Vue2-0/">Vue2.0</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="模板语法"><a href="#模板语法" class="headerlink" title="模板语法"></a>模板语法</h3><p>让我们回到最开始</p>
+<pre><code>    &lt;div id=&quot;app&quot;&gt;
+        &lt;h1&gt;&#123; &#123;message&#125;&#125;&lt;/h1&gt;
+    &lt;/div&gt;
+&lt;script&gt;
+    var vm = new Vue(&#123;
+        el:&apos;#app&apos;,
+        data:&#123;
+            message:&apos;HelloWorld&apos;
+        &#125;
+    &#125;)
+&lt;/script&gt;</code></pre><p>这是一个HelloWorld，简单的通过模板输出。我们称之为数据绑定，而最常见的就是“Mustache”语法 (双大括号) 。 <strong>v-once</strong>指令，前面介绍过，一次性绑定，数据改变时，绑定的值是不会改变的。</p>
+<pre><code>&lt;span v-once&gt;这个将不会改变&#123; &#123;message&#125;&lt;/span&gt;</code></pre><h4 id="原始HTML"><a href="#原始HTML" class="headerlink" title="原始HTML"></a>原始HTML</h4><p>使用{ {}}语法，输出时普通文本，而如果要输出带有HTML的，则要使用<strong>v-html</strong>指令</p>
+<pre><code>data:&#123;
+    message:&apos;HelloWorld&apos;,
+    htmlText:&apos;&lt;h2&gt;这是一个标题,h2的标题&lt;/h2&gt;&apos;
+&#125;
+
+&#123; &#123;htmlText&#125;&#125;&lt;br/&gt;
+&lt;span v-html=&quot;htmlText&quot;&gt;&lt;/span&gt;</code></pre><p>这个 span 的内容将会被替换成为属性值 htmlText</p>
+<h4 id="不编译模板"><a href="#不编译模板" class="headerlink" title="不编译模板"></a>不编译模板</h4><p><strong>v-pre</strong>指令，可以跳过该元素和它子元素的编译过程，来显示原始的Mustache标签</p>
+<pre><code>&lt;span v-pre&gt;&#123; &#123;message&#125;&#125;&lt;/span&gt;</code></pre><p>输出的结果是{ {message}}，不对其进行编译。</p>
+<h4 id="延缓显示"><a href="#延缓显示" class="headerlink" title="延缓显示"></a>延缓显示</h4><p><strong>v-cloak</strong>指令保持在元素上直到关联实例结束编译。 CSS 规则如 [v-cloak] { display: none } 一起用时，这个指令可以隐藏未编译的 Mustache 标签直到实例准备完毕。</p>
+<pre><code> &lt;div v-cloak&gt;
+    &#123; &#123;message&#125;&#125;
+&lt;/div&gt;
+
+
+    [v-cloak]&#123;
+        display:none;
+    &#125;</code></pre><p>当DOM运行到此处时，该模板还未编译，所以将其隐藏，等实例准备完毕后，显示。</p>
+<h3 id="自定义过滤器"><a href="#自定义过滤器" class="headerlink" title="自定义过滤器"></a>自定义过滤器</h3><p>在Vue2.0中已经除去了1.0的过滤器，但是可以自定义。分为局部的和全局的。 过滤器可以用在两个地方，双花括号插值和v-bind表达式。 语法为:</p>
+<pre><code>&lt;!-- 在双花括号中 --&gt;
+&#123; &#123; message | capitalize &#125;&#125;
+&lt;!-- 在 `v-bind` 中 --&gt;
+&lt;div v-bind:id=&quot;rawId | formatId&quot;&gt;&lt;/div&gt;</code></pre><p>“|”符号 左侧为需要过滤的数据，右侧为过滤器名称。 <strong>另外注意,使用过滤器后，需要返回值，才能正常显示。</strong></p>
+<h4 id="局部过滤器定义"><a href="#局部过滤器定义" class="headerlink" title="局部过滤器定义"></a>局部过滤器定义</h4><p>局部过滤器定义在实例中的filters选项中。 示例:过滤数字，四舍五入。</p>
+<pre><code>filters:&#123;    //局部过滤器，仅当前Vue实例可用
+    number:(data,n) =&gt; &#123;
+        return data.toFixed(n);  //四舍五入,参数为保留的位数
+    &#125;
+&#125;
+
+&#123; &#123;12.356 | number(2)&#125;&#125;</code></pre><p>过滤器方法声明，第一个参数始终未为传递来的数据，后面的参数一次为方法传递的参数。</p>
+<h4 id="全局过滤器"><a href="#全局过滤器" class="headerlink" title="全局过滤器"></a>全局过滤器</h4><p>语法：Vue.filter( id, [definition] )</p>
+<pre><code>// 注册
+Vue.filter(&apos;my-filter&apos;, function (value) &#123;
+  // 返回处理后的值
+&#125;)
+
+// getter，返回已注册的过滤器
+var myFilter = Vue.filter(&apos;my-filter&apos;)</code></pre><p>示例:</p>
+<pre><code>Vue.filter(&apos;formatDate&apos;,function(val)&#123;
+        var d = new Date(val);
+        return d.getFullYear() + &apos;-&apos; + (d.getMonth()+1) + &apos;-&apos; + d.getDate() + &apos; &apos; + d.getHours() + &apos;:&apos; + d.getMinutes();
+    &#125;);
+
+&lt;h3&gt;时间:&lt;span&gt;&#123; &#123;currentDate | formatDate&#125;&#125;&lt;/span&gt;&lt;/h3&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Vue/" rel="tag">Vue</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Web/" rel="tag">Web</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Vue/Vue2.0属性绑定和Class与Style绑定" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 

@@ -78,6 +78,111 @@
     
     
     
+    <article id="post-帆软/Java使用独立部署的FineReport进行填报的增改操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/07/31/%E5%B8%86%E8%BD%AF/Java%E4%BD%BF%E7%94%A8%E7%8B%AC%E7%AB%8B%E9%83%A8%E7%BD%B2%E7%9A%84FineReport%E8%BF%9B%E8%A1%8C%E5%A1%AB%E6%8A%A5%E7%9A%84%E5%A2%9E%E6%94%B9%E6%93%8D%E4%BD%9C/"
+    >Java使用独立部署的FineReport进行填报的增改操作</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/07/31/%E5%B8%86%E8%BD%AF/Java%E4%BD%BF%E7%94%A8%E7%8B%AC%E7%AB%8B%E9%83%A8%E7%BD%B2%E7%9A%84FineReport%E8%BF%9B%E8%A1%8C%E5%A1%AB%E6%8A%A5%E7%9A%84%E5%A2%9E%E6%94%B9%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2018-07-31T03:46:52.000Z" itemprop="datePublished">2018-07-31</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="帆软设计器生成报表"><a href="#帆软设计器生成报表" class="headerlink" title="帆软设计器生成报表"></a>帆软设计器生成报表</h3><p>帮助文档查看:<a target="_blank" rel="noopener" href="http://help.finereport.com/finereport8.0/">http://help.finereport.com/finereport8.0/</a> 论坛社区查看:<a target="_blank" rel="noopener" href="http://bbs.fanruan.com/">http://bbs.fanruan.com/</a> 官网查看:<a target="_blank" rel="noopener" href="http://www.fanruan.com/finereport/">http://www.fanruan.com/finereport/</a> 对于报表的基础就不多说，直接开始吧。 步骤:</p>
+<pre><code>+ 独立部署FineReport到tomcat
++ 设计填报报表
++ java后端引入报表链接</code></pre><p>事实上真正的增改操作都在填报模板上。</p>
+<h3 id="独立部署FineReport到tomcat上"><a href="#独立部署FineReport到tomcat上" class="headerlink" title="独立部署FineReport到tomcat上"></a>独立部署FineReport到tomcat上</h3><p>首先，你需要安装一个帆软的客户端，设置必须的，它带有一个设计器，用于设计模板，且根目录下的WebReport就是独立项目，我们可以把整个文件夹直接拷贝到tomcat的webapps目录下。关于文件夹内的各文件及文件夹不再说明，都在帮助文档的集成部署选项中。 而设计的模板都放在了/WebReport/WEB-INF/reportlets下，其下可以放文件和文件夹。 到时候我们再设计器中做的模板，再其目录下拷贝，直接拷贝到tomcat下WebReport项目的reportlets目录下。就是与之对应呗。</p>
+<h3 id="设计填报报表"><a href="#设计填报报表" class="headerlink" title="设计填报报表"></a>设计填报报表</h3><p>在设计填报报表前，需要了解基础教程的填报入门，以及参数入门。 连接你需要操作数据表的对应数据库，点击菜单栏 服务器，服务器定义，定义你的数据库服务器。</p>
+<h4 id="新增用途的填报模板"><a href="#新增用途的填报模板" class="headerlink" title="新增用途的填报模板"></a>新增用途的填报模板</h4><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180731110339.jpg" alt="新增模板"></p>
+<ol>
+<li><p>如图所示，我们需要设计一个自由报表，好不好看就看自己动手能力了。</p>
+</li>
+<li><p>随后，<strong>为单元格添加控件</strong>，右击，控件设置，根据情况对其进行设置，控件类型，是否为空，错误提示，校验规则等。</p>
+</li>
+<li><p>当全都完备后，需要设置 报表填报设置，点击菜单栏 模板，<strong>报表填报属性</strong>，新建一个内置SQL，选择<strong>提交类型</strong>，此为新增，选入插入提交即可，你可可以选择智能提交(根据是否含有主键判断，是否插入还是更新)。选择<strong>表</strong>,模式在oracle中就是用户名的意思。选择<strong>智能添加字段</strong>，选择你需要的字段，最好与报表中的属性一一对应。然后设置勾选主键。选择<strong>智能添加单元格</strong>，这样就可以字段绑定单元格了。</p>
+</li>
+<li><p>绑定完毕后，看报表填报属性框中的值，每个字段都会与单元格对应了，接下来就是设置主键了，主键的值通过UUID公式设置，双击值框，选择公式，设置公式为uuid(),确定，保存。当然，你可以设置其他的值，关于主键自增问题，我只知道可以使用uuid，和显示手动赋值的方式。其他方法自行尝试把。</p>
+</li>
+</ol>
+<p>新增的填报报表就完成了。主要就是单元格和字段的绑定以及主键，才使得成功。 另外，新增，是不需要设置数据集的，只要表字段与其单元格数据绑定就好。</p>
+<h4 id="修改用途的填报报表"><a href="#修改用途的填报报表" class="headerlink" title="修改用途的填报报表"></a>修改用途的填报报表</h4><p>对于修改而言，一定要有的就是主键id了。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180731112656.jpg" alt=""> 如图上所示， 不光要<strong>设置控件，以及数据表字段绑定单元格</strong>，还需要的就是数据库查询了。</p>
+<ol>
+<li>左下角，新增 <strong>数据库查询</strong>，语句为where的id条件，根据自己的id字段名称修改 SELECT * FROM JEESITE.”JINRONG” where FINANCEORGAN_ID=’${id}’</li>
+</ol>
+<p>加上单引号表示是字符串，我的id就是字符串，${xxx}表示这是个参数，参数名为xxx。</p>
+<ol start="2">
+<li><p>然后就是把<strong>模板数据集中的字段，拖到对应的单元格</strong>了，这样才能完成引用数据的显示(此处与表字段绑定单元格不是一个概念)。</p>
+</li>
+<li><p>接下来需要设置一个模板参数，选择模板，模板参数，设置名称为id。之后第四步，选择是，才有id参数的选项。</p>
+</li>
+<li><p>设置主键的属性值，打开 模板，填报报表属性，<strong>设置主键的值为参数</strong>，参数就设置为刚才的参数名(这里是id)。这样这个模板就有了动态参数，依据参数进行更新了。</p>
+</li>
+</ol>
+<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/07/20180731113415.jpg" alt=""> 这下，就完毕了，依据后台传入的参数id，然后模板得到id后，就通过数据库查询的查询语句，查到一条数据，并通过单元格对模板数据集的引用，把值显示在模板上了。提交的话，因为有id，所以就进行提交。</p>
+<h3 id="移动模板文件和数据源文件"><a href="#移动模板文件和数据源文件" class="headerlink" title="移动模板文件和数据源文件"></a>移动模板文件和数据源文件</h3><p>设计完毕后，就找到对应文件，移动或拷贝到tomcat的WebReport项目下的WEB-INF/reportlets目录下 然后，找到你的帆软安装路径下的WebReport，WEB-INF/resources目录下的datasource.xml文件，此文件记录了数据库连接信息，以及多个数据库连接信息(因为帆软是支持多数据库设计模板的)。将他拷贝到webapps下的，同样是对应目录下的文件，替换原来的文件。</p>
+<h3 id="Java引入报表"><a href="#Java引入报表" class="headerlink" title="Java引入报表"></a>Java引入报表</h3><p>java后台只需要做一件事，就是设置超链接a标签，引入到该模板地址。 a标签href属性值如下</p>
+<pre><code>/WebReport/ReportServer?reportlet=insertBankForm.cpt&amp;amp;op=write</code></pre><p>注意填报模板后需要跟参数op=write，否则它就成了分页模板。 你需要修改的就是reportlet= 后面的内容，可以是reportlet=/doc/Parameter/SelectReport.cpt&amp;op=write，doc就是reportlet下的文件夹。 另外，传递参数id，可直接拼接参数，&amp;id=${xxx.id}。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%B8%86%E8%BD%AF/" rel="tag">帆软</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
     <article id="post-Oracle/使用Delete命令误删记录的恢复问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
@@ -549,130 +654,6 @@ $(function()&#123;
     var tel = /^((13[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0,5-9]))\d&#123;8&#125;$/;
     return this.optional(element) || (tel.test(value));
 &#125;, &quot;请正确填写您的手机号&quot;);</code></pre><p>校验的话，只需要在rules对应属性中设置，checkPhone:true。或者标签中class=”checkPhone”,或标签属性,checkPhone=”true”。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Java/" rel="tag">Java</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-开源/Jeesite开源项目SSM基础搭建——系统管理释义" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E9%87%8A%E4%B9%89/"
-    >Jeesite开源项目SSM基础搭建——系统管理释义</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/07/26/%E5%BC%80%E6%BA%90/Jeesite%E5%BC%80%E6%BA%90%E9%A1%B9%E7%9B%AESSM%E5%9F%BA%E7%A1%80%E6%90%AD%E5%BB%BA%E2%80%94%E2%80%94%E7%B3%BB%E7%BB%9F%E7%AE%A1%E7%90%86%E9%87%8A%E4%B9%89/" class="article-date">
-  <time datetime="2018-07-26T14:40:39.000Z" itemprop="datePublished">2018-07-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>dbunit技术 maven dbunit导入导出数据库 oracle数据库i 1.jeesite。properties文件需要改配置为oracle 2.pom文件需要改，使用dbunit技术。更改pom的依赖，不同数据库版本，使用不同的jar包； 更改maven-antrun-plugin插件中，target中的配置，property标签 注释mysql，解除oracle注释 dbunit标签，注释mysql的，解除oracle 只要数据导入到数据库中就先启动项目 3项目启动No matching authentication protocol错误异常问题， 解决：在Oracle用户（不是grid用户）下，将$ORACLE_HOME/network/admin/sqlnet.ora文件原来的SQLNET.ALLOWED_LOGON_VERSION=8注释掉（如果没有sqlnet.ora文件，那么就创建一个），修改为如下的行</p>
-<pre><code>SQLNET.ALLOWED_LOGON_VERSION_SERVER=8
-
-SQLNET.ALLOWED_LOGON_VERSION_CLIENT=8</code></pre><p>spring jsp自定义标签 tag文件和tld文件 tag文件：自定义控件标签，直接就是自定义的控件标签 tld文件：自定义方法标签通过,${名称:方法名(参数)}的方式调用 Mustache库，render回调函数，模板引擎 模板中变量使用{ {name}}的方式显示值 treeTable 树形网格 jquery validate校验框架 jQuery pagination插件 SpringContextHolder类，静态持有SpringContext引用 package com.thinkgem.jeesite.common.utils;</p>
-<pre><code>private static UserDao userDao = SpringContextHolder.getBean(UserDao.class);</code></pre><p>WdatePicker日期插件||jeDate日期控件 跨站脚本XSS又叫CSS (Cross Site Script)。它指的是恶意攻击者往Web页面里插入恶意html代码 将所有传递进来的String进行HTML编码，防止XSS攻击 StringEscapeUtils类，HTML转解码，XML转解码 com.thinkgem.jeesite.common.utils.Encodes类,fns.tld引用 BaseController下的initBinder类 NamedThreadLocal类，多线程模式 jquery jbox通知插件</p>
-<h2 id="系统管理"><a href="#系统管理" class="headerlink" title="系统管理"></a>系统管理</h2><h3 id="区域管理-一般模块"><a href="#区域管理-一般模块" class="headerlink" title="区域管理(一般模块)"></a>区域管理(一般模块)</h3><p>List: 列表页进入，默认显示列表，list方法的请求路径为list和””，那么点击区域管理可直接执行此方法显示列表 列表通过table表显示，使用jQuery treetable树形表格显示，每个tr使用Mustache模板库，来解析，将所有解析的值带入到模板中并追加到tbody中。 将list数据解析为前台js可操纵的json格式，以便可循环设置模板属性值。 通过迭代循环，if判断当前节点id的parentid是否为上次调用传来pid，是则表示为上下级。</p>
-<pre><code>addRow(&quot;#treeTableList&quot;, tpl, data, rootId, true);
-
-//list:tbody标签id，tpl为js中解析的模板,data为将areaList解析的json字符串，pid为父id，root表示根节点值
-function addRow(list, tpl, data, pid, root)&#123;
-    for (var i=0; i&lt;data.length; i++)&#123;
-        var row = data[i];
-        if (($&#123;fns:jsGetVal(&apos;row.parentId&apos;)&#125;) == pid)&#123;
-            //使用js Mustache模板库，render回调设置模板参数和值
-            $(list).append(Mustache.render(tpl, &#123;
-                dict: &#123;
-                    type: getDictLabel($&#123;fns:toJson(fns:getDictList(&apos;sys_area_type&apos;))&#125;, row.type)
-                &#125;, 
-                pid: (root?0:pid),
-                row: row
-            &#125;));
-            addRow(list, tpl, data, row.id);
-        &#125;
-    &#125;
-&#125;</code></pre><p>Form: 可通过区域操作添加下级区域的超链接，也可以通过添加按钮添加新的区域。 为保证进入Form页时，上级区域有默认值，所以需要有parent.id属性值，这样在进入页面时才能显示。对于点击按钮和超链接都是创建一个空实例，超链接带parent.id属性，所以直接设置parent属性为上级area对象；而对于按钮点击的空实例对象，parent属性就设置为当前用户所在机构的区域对象。 save: 上级区域使用自定义sys标签，选择树treeSelect,默认值value为area实例的parent.id属性值，数据树通过url请求方法返回list 保存前表单通过jquery validate校验 保存消息提示，通过基类BaseController的addMessage方法设置通用Flash消息,并重定向至列表请求。 页面上通过sys的message标签，通过其标签设置显示信息。 delete 删除提示，执行删除，并通过sys:message标签显示消息信息。</p>
-<h3 id="字典管理"><a href="#字典管理" class="headerlink" title="字典管理"></a>字典管理</h3><p>List: 列表页进入，默认显示列表，list方法的请求路径为list和””，那么点击字典管理可直接执行此方法显示列表 搜索方法，设置类型和描述，以及可能的page对象,提交到list请求，页面显示。list请求方法，会传递typeList和page对象，页面list通过page.list属性显示，分页使用jQuery pagination插件 form: 依旧是两种，按钮和超链接添加 该添加主要用于新的字典类型添加，按钮将携带sort=10参数 超链接主要是为当前字典类型添加新键值，携带类型，描述和sort参数，sort参数的值为当前sort值+10(这样做可能会导致排序重复，但对于插入操作并无影响) insert: 根据Dict对象显示信息，提交前进行校验,之后方法里，还需要服务端校验，之后返回list请求方法，并携带type参数可只在list显示该类型的字典值 delete： 删除提示，执行删除，返回消息,显示该类型的字典列表</p>
-<h3 id="日志查询"><a href="#日志查询" class="headerlink" title="日志查询"></a>日志查询</h3><p>List: 查询日志，设置参数，title，createBy.id，requesturi，begindate，enddate，查询，业务层使用Page对象封装，到list页面显示 list显示通过page.list，判断exception属性是否有值，为空则不显示该列，不为空则显示该异常信息</p>
-<pre><code>$&#123;fn:replace(fn:replace(fns:escapeHtml(log.exception), strEnter, &apos;&lt;br /&gt;&apos;), strTab, &apos;&amp;nbsp; &amp;nbsp; &apos;)&#125;</code></pre><p>div.pagination 显示分页div导航 Insert: 使用 com.thinkgem.jeesite.modules.sys.interceptor.LogInterceptor拦截器类 preHandle和postHandle方法用户与计时显示，afterCompletion方法在渲染后执行，可以进行日志记录。 日志记录通过LogUtils类的saveLog方法执行，具体日志保存，通过内部线程类，异步保存日志。title属性值的设置，通过获得@RequiresPermissions注解的value属性值，并通过getMenuNamePath方法解析。</p>
-<h3 id="菜单管理"><a href="#菜单管理" class="headerlink" title="菜单管理"></a>菜单管理</h3><p>List: 查询所有菜单，并创建一个新List</p>
-<p>通过Menu类的静态sort方法惊醒排序，将sourcelist排好序放在新创建的list中</p>
-<pre><code>Menu.sortList(list, sourcelist, Menu.getRootId(), true);
-
-public static void sortList(List&lt;Menu&gt; list, List&lt;Menu&gt; sourcelist, String parentId, boolean cascade)&#123;
-    for (int i=0; i&lt;sourcelist.size(); i++)&#123;
-        Menu e = sourcelist.get(i);
-        if (e.getParent()!=null &amp;&amp; e.getParent().getId()!=null
-                &amp;&amp; e.getParent().getId().equals(parentId))&#123;
-            list.add(e);
-            if (cascade)&#123;
-                // 判断是否还有子节点, 有则继续获取子节点
-                for (int j=0; j&lt;sourcelist.size(); j++)&#123;
-                    Menu child = sourcelist.get(j);
-                    if (child.getParent()!=null &amp;&amp; child.getParent().getId()!=null
-                            &amp;&amp; child.getParent().getId().equals(e.getId()))&#123;
-                        sortList(list, sourcelist, e.getId(), true);
-                        break;
-                    &#125;
-                &#125;
-            &#125;
-        &#125;
-    &#125;
-&#125;</code></pre><p>该方法简而言之，从sourcelist中一次获得对象，判断该菜单的父id是否为参数的parentId，则说明是其子类，并添加到list，随后判断该节点是否有子节点，再次循环sourcelise，如果某个菜单id的父id等于刚才被添加到list中的菜单，那么是父子关系则add到list，因为多级菜单，所以用到迭代方法，，只不过第一次调用此方法是，传递parentid是根root。 该代码与区域管理都是tree table，排序的方式也是一样的。不过区域排序是在前台js写的。 form: 还是和区域管理一样，一个按钮，一个超链接创建下级，创建实例时，一个parent为root，一个为当前id。 为传入form页面的新menu对象设置sort值，方式：排序，值通过最大值+30 Save: 上级菜单选项，使用tree select树形选择框，请求路径/sys/menu/treeData。显示树形选择 保存时,验证是否为管理员权限，之后进行服务端参数有效性校验 Delete: 删除,逻辑删除，更新del_flag字段为1 menuTree页面是最左侧导航 menuTreeSelect</p>
-<h3 id="用户管理"><a href="#用户管理" class="headerlink" title="用户管理"></a>用户管理</h3><p>List: 分页显示列表 搜索查询，归属公司，归属部门使用treeselect显示， 用户信息导入导出，请求后台导出信息，file upload导入上传用户信息 form: 根据对象的id值，判断form页如何显示表单 save: jquery validate校验 保存 info: 信息修改保存，基本信息修改 modifyPwd： 密码修改，密码修改前校验</p>
-<h3 id="角色管理"><a href="#角色管理" class="headerlink" title="角色管理"></a>角色管理</h3><p>List: 显示list角色信息 edit/insert: 角色授权，树结构，${role.menuIds]与${role.officeIds}如何而来,以及保存方式 Assign角色分配： 为用户分配当前角色 selectUserToRole页面显示 用户 用户与机构 用户与角色 角色 角色与机构 角色与菜单 区域 机构 机构与区域 机构与机构的上下级关系 parent_id,grade 菜单 父子级菜单 字典 按type和key，value。与parentId无关</p>
 
       
       <!-- reward -->
