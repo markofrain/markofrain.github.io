@@ -78,18 +78,33 @@
     
     
     
-    <article id="post-Java/JVM启动参数" class="article article-type-post" itemscope
+    <article id="post-Spark/计算函数算子" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
     
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2022/04/23/Spark/%E8%AE%A1%E7%AE%97%E5%87%BD%E6%95%B0%E7%AE%97%E5%AD%90/"
+    >计算函数算子</a
+  >
+</h2>
+  
+
+    </header>
+    
 
     
     <div class="article-meta">
-      <a href="/2021/12/06/Java/JVM%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0/" class="article-date">
-  <time datetime="2021-12-06T09:09:42.003Z" itemprop="datePublished">2021-12-06</time>
+      <a href="/2022/04/23/Spark/%E8%AE%A1%E7%AE%97%E5%87%BD%E6%95%B0%E7%AE%97%E5%AD%90/" class="article-date">
+  <time datetime="2022-04-22T16:00:00.000Z" itemprop="datePublished">2022-04-23</time>
 </a>
       
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spark/">Spark</a>
+  </div>
+
       
       
       
@@ -104,143 +119,394 @@
       
 
       
-      <h3 id="JVM-参数"><a href="#JVM-参数" class="headerlink" title="JVM 参数"></a>JVM 参数</h3><table>
+      <p>分区分配算法，分区减小，增大算法</p>
+<h1 id="转换算子"><a href="#转换算子" class="headerlink" title="转换算子"></a>转换算子</h1><h3 id="Map"><a href="#Map" class="headerlink" title="Map"></a>Map</h3><h5 id="函数签名"><a href="#函数签名" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">map</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](f: <span class="type">T</span> =&gt; <span class="type">U</span>): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明"><a href="#函数说明" class="headerlink" title="函数说明"></a>函数说明</h5><p>将处理的数据逐条进行映射转换。对集合的<strong>每一个项</strong>进行单独处理，可以返回任意格式。与Java中的Stream的map一样。</p>
+<h5 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 组装成list形式,每一项类型为List</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>))</span><br><span class="line"><span class="keyword">val</span> value1 = value.map(<span class="type">List</span>(_))</span><br><span class="line">value1.collect().foreach(println)</span><br><span class="line"><span class="comment">// 格式为原格式，仍为Integer类型</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>))</span><br><span class="line"><span class="keyword">val</span> value1 = value.map(_*<span class="number">2</span>)</span><br><span class="line">value1.collect().foreach(println)</span><br><span class="line"><span class="comment">// 从文件中构建RDD，对每一行数据(每一条数据)进行分割取索引为6的数据</span></span><br><span class="line"><span class="keyword">val</span> value = sc.textFile(<span class="string">&quot;datas/apache.log&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.map(i =&gt; i.split(<span class="string">&quot; &quot;</span>)(<span class="number">6</span>))</span><br><span class="line">value1.collect().foreach(println)</span><br></pre></td></tr></table></figure>
+
+<h4 id="并行计算说明"><a href="#并行计算说明" class="headerlink" title="并行计算说明"></a>并行计算说明</h4><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>), <span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.map(i =&gt; &#123;</span><br><span class="line">    println(<span class="string">&quot;&gt;&gt;&gt;&gt;&gt;&gt;&quot;</span> + i)</span><br><span class="line">    i</span><br><span class="line">&#125;)</span><br><span class="line"><span class="keyword">val</span> value2 = value1.map(i =&gt; &#123;</span><br><span class="line">    println(<span class="string">&quot;#####&quot;</span> + i)</span><br><span class="line">    i</span><br><span class="line">&#125;)</span><br><span class="line">value2.collect()</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">&gt;&gt;&gt;&gt;&gt;&gt;<span class="number">1</span></span><br><span class="line">#####<span class="number">1</span></span><br><span class="line">&gt;&gt;&gt;&gt;&gt;&gt;<span class="number">2</span></span><br><span class="line">#####<span class="number">2</span></span><br><span class="line">&gt;&gt;&gt;&gt;&gt;&gt;<span class="number">3</span></span><br><span class="line">#####<span class="number">3</span></span><br><span class="line">&gt;&gt;&gt;&gt;&gt;&gt;<span class="number">4</span></span><br><span class="line">#####<span class="number">4</span></span><br><span class="line">&gt;&gt;&gt;&gt;&gt;&gt;<span class="number">5</span></span><br><span class="line">#####<span class="number">5</span></span><br></pre></td></tr></table></figure>
+
+<p>在rdd的计算中，一个分区内，只有前面的该项数据计算逻辑执行完成后才能执行执行后面的逻辑，但不需要一个分区内所有数据全部执行完才执行后面的逻辑。并且分区之间是独立的。</p>
+<p>而mapPartitions函数是以分区为单位而不是以某个分区内元素为单位。是类似分区一批次一批次的处理。</p>
+<h3 id="mapPartitions"><a href="#mapPartitions" class="headerlink" title="mapPartitions"></a>mapPartitions</h3><h5 id="函数签名-1"><a href="#函数签名-1" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mapPartitions</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](</span><br><span class="line">      f: <span class="type">Iterator</span>[<span class="type">T</span>] =&gt; <span class="type">Iterator</span>[<span class="type">U</span>],</span><br><span class="line">      preservesPartitioning: <span class="type">Boolean</span> = <span class="literal">false</span></span><br><span class="line">): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-1"><a href="#函数说明-1" class="headerlink" title="函数说明"></a>函数说明</h5><p>将待处理的数据<strong>以分区为单位</strong>发送到计算节点进行处理。要处理的数据是一个分区的数据，也就是这个迭代器数据，可以对其做任何操作，只需要返回的数据仍然是迭代器类型。</p>
+<p>它将一次性获取分区的全部数据。因此处理数据较快，但是占用内存会更大且时间会更久。</p>
+<h5 id="示例-1"><a href="#示例-1" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 指定分区数量2，则该函数只会处理两次</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>),<span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.mapPartitions(i =&gt; &#123;</span><br><span class="line">    println(<span class="string">&quot;#######&quot;</span>)</span><br><span class="line">    i</span><br><span class="line">&#125;)</span><br><span class="line">value1.collect()</span><br><span class="line"><span class="comment">// 对每个分区的数据进行过滤除偶数数据</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.mapPartitions(i =&gt; &#123;</span><br><span class="line">    i.filter(_%<span class="number">2</span>==<span class="number">0</span>)</span><br><span class="line">&#125;)</span><br><span class="line">value1.collect().foreach(println)</span><br></pre></td></tr></table></figure>
+
+<p>以分区进行处理的，但最后收集的结果foreach之后依然是每一项元素，而不是每一个分区数据</p>
+<h4 id="疑问？"><a href="#疑问？" class="headerlink" title="疑问？"></a>疑问？</h4><p>在mapPartitions函数中操作时，只要对操作数据进行了处理，最终返回的结果就是第一次处理迭代数据之后的结果，最终的返回无效。例如在println中打印每个分区的最大值，然后返回原来的分区数据，但最终收集的只有两个分区的最大值。</p>
+<p>感觉数据已经被处理后就不会被下一步逻辑处理了。</p>
+<h4 id="map和mapPartitions的区别"><a href="#map和mapPartitions的区别" class="headerlink" title="map和mapPartitions的区别"></a>map和mapPartitions的区别</h4><table>
 <thead>
 <tr>
-<th>参数</th>
-<th>说明</th>
+<th></th>
+<th>map</th>
+<th>mapPartitions</th>
 </tr>
 </thead>
 <tbody><tr>
-<td>-Xmx / -XX:MaxHeapSize</td>
-<td>堆内存最大大小</td>
+<td>数据处理角度</td>
+<td>分区内一个数据一个数据的执行</td>
+<td>以分区为单位进行执行</td>
 </tr>
 <tr>
-<td>-Xms / -XX:InitialHeapSize</td>
-<td>堆内存初始大小</td>
+<td>功能角度</td>
+<td>将数据源中的数据进行转换和改变。但是不会减少或增多数据</td>
+<td>要传递一个迭代器，返回一个迭代器，没有要求的元素的个数保持不变，所以可以增加或减少数据</td>
 </tr>
 <tr>
-<td>-Xmn</td>
-<td>新生代大小</td>
-</tr>
-<tr>
-<td>-XX:+HeapDumpOnOutOfMemoryError</td>
-<td>当出现内存溢出时Dump出当前内存堆转储快照文件</td>
-</tr>
-<tr>
-<td>-Xss</td>
-<td>栈大小</td>
-</tr>
-<tr>
-<td>-XX:MetaspaceSize=</td>
-<td>元空间初始大小，以字节为单位</td>
-</tr>
-<tr>
-<td>-XX:MaxMetaspaceSize=</td>
-<td>元空间最大值，默认是-1，只受限于本地内存大小</td>
-</tr>
-<tr>
-<td>-XX:MinMetaspaceFreeRatio=</td>
-<td>在垃圾收集后控制最小的元空间 剩余容量的百分比</td>
-</tr>
-<tr>
-<td>-XX:MaxMetaspaceFreeRatio=</td>
-<td>控制最大的元空间 剩余容量的百分比</td>
-</tr>
-<tr>
-<td>-XX:MaxDirectMemorySize=10M</td>
-<td>最大直接内存大小</td>
-</tr>
-<tr>
-<td>-Xloggc:gc.log</td>
-<td>输出gc日志到文件，目录需提前存在</td>
-</tr>
-<tr>
-<td>-XX:+PrintGC</td>
-<td>控制台打印GC日志，配置了输出文件，则不会控制台打印</td>
-</tr>
-<tr>
-<td>-XX:PretenureSizeThreshold=3145728</td>
-<td>指定大于该值的对象直接在老年代分配。只对Serial和ParNew两款新生代收集器有效</td>
-</tr>
-<tr>
-<td>-XX:+PrintGCDetails</td>
-<td>打印GC收集器日志</td>
-</tr>
-<tr>
-<td>-XX:SurvivorRatio=8</td>
-<td>决定了新生代中Eden区与一 个Survivor区的空间比例是8∶1</td>
-</tr>
-<tr>
-<td>-XX:MaxTenuringThreshold=1</td>
-<td>对象晋升老年代的年龄阈值</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
+<td>性能角度</td>
+<td>为类似于串行操作，所以性能比较低</td>
+<td>类似于批处理，所以性能较高。但是 mapPartitions 算子会长时间占用内存</td>
 </tr>
 </tbody></table>
-<h3 id="关键术语"><a href="#关键术语" class="headerlink" title="关键术语"></a>关键术语</h3><p>JNI</p>
-<p>JMX</p>
-<p>JIT</p>
-<p>AOT</p>
-<p>Minor GC/Young GC：新生代收集</p>
-<p>Partial GC：部分收集</p>
-<p>Major GC/Old GC：老年代收集</p>
-<p>Mixed GC：混合收集</p>
-<p>Full GC：整堆收集</p>
+<h3 id="mapPartitionsWithIndex"><a href="#mapPartitionsWithIndex" class="headerlink" title="mapPartitionsWithIndex"></a>mapPartitionsWithIndex</h3><h5 id="函数签名-2"><a href="#函数签名-2" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">mapPartitionsWithIndex</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](</span><br><span class="line">      f: (<span class="type">Int</span>, <span class="type">Iterator</span>[<span class="type">T</span>]) =&gt; <span class="type">Iterator</span>[<span class="type">U</span>],</span><br><span class="line">      preservesPartitioning: <span class="type">Boolean</span> = <span class="literal">false</span></span><br><span class="line">): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-2"><a href="#函数说明-2" class="headerlink" title="函数说明"></a>函数说明</h5><p>将待处理的数据以分区为单位发送到计算节点进行处理，这里的处理是指可以进行任意的处理，哪怕是过滤数据，在处理时同时可以获取当前分区索引。</p>
+<h5 id="示例-2"><a href="#示例-2" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 对每一个分区进行处理，对此分区的集合执行map操作，改变其类型</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.mapPartitionsWithIndex((index, i) =&gt; &#123;</span><br><span class="line">    i.map(m =&gt; (index, m))</span><br><span class="line">&#125;)</span><br><span class="line">value1.collect().foreach(println)</span><br><span class="line"><span class="comment">//out</span></span><br><span class="line">(<span class="number">0</span>,<span class="number">1</span>)</span><br><span class="line">(<span class="number">0</span>,<span class="number">2</span>)</span><br><span class="line">(<span class="number">0</span>,<span class="number">3</span>)</span><br><span class="line">(<span class="number">1</span>,<span class="number">4</span>)</span><br><span class="line">(<span class="number">1</span>,<span class="number">5</span>)</span><br><span class="line">(<span class="number">1</span>,<span class="number">6</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="flatMap"><a href="#flatMap" class="headerlink" title="flatMap"></a>flatMap</h3><h5 id="函数签名-3"><a href="#函数签名-3" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">flatMap</span></span>[<span class="type">U</span>: <span class="type">ClassTag</span>](f: <span class="type">T</span> =&gt; <span class="type">TraversableOnce</span>[<span class="type">U</span>]): <span class="type">RDD</span>[<span class="type">U</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-3"><a href="#函数说明-3" class="headerlink" title="函数说明"></a>函数说明</h5><p>将处理的数据进行扁平化后再进行映射处理，所以算子也称之为扁平映射。其内部使用的是Iterator的flatMap函数。函数中参数t表示的是每一个元素。函数最终应该返回一个集合类型或者是一个可以迭代的类型。</p>
+<h5 id="示例-3"><a href="#示例-3" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 将List[Int] 类型的RDD进行分解</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>),<span class="type">List</span>(<span class="number">3</span>,<span class="number">4</span>)), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.flatMap(i =&gt; i)</span><br><span class="line">value1.collect().foreach(println)</span><br><span class="line"><span class="comment">// 将每个元素以空格分开</span></span><br><span class="line"><span class="keyword">val</span> value2 = sc.makeRDD(<span class="type">List</span>(<span class="string">&quot;Hello Scala&quot;</span>, <span class="string">&quot;Hello Spark&quot;</span>),<span class="number">1</span>)</span><br><span class="line"><span class="keyword">val</span> value3 = value2.flatMap(i =&gt; &#123;</span><br><span class="line">    i.split(<span class="string">&quot; &quot;</span>)</span><br><span class="line">&#125;)</span><br><span class="line">value3.collect().foreach(println)</span><br></pre></td></tr></table></figure>
+
+<h3 id="glom"><a href="#glom" class="headerlink" title="glom"></a>glom</h3><h5 id="函数签名-4"><a href="#函数签名-4" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">glom</span></span>(): <span class="type">RDD</span>[<span class="type">Array</span>[<span class="type">T</span>]]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-4"><a href="#函数说明-4" class="headerlink" title="函数说明"></a>函数说明</h5><p>将同一个分区的数据直接转换为相同类型的的数组进行处理，分区不变。</p>
+<h5 id="示例-4"><a href="#示例-4" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> glom = value.glom()</span><br><span class="line">glom.collect().foreach(d =&gt; println(d.mkString(<span class="string">&quot;,&quot;</span>)))</span><br><span class="line"><span class="comment">//out</span></span><br><span class="line"><span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span></span><br><span class="line"><span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//计算所有分区最大值求和（分区内取最大值，分区间最大值求和）</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>), <span class="number">2</span>)</span><br><span class="line"><span class="comment">// 使用glom函数处理，将每个分区的数据形成Array[Int]类型的数据</span></span><br><span class="line"><span class="keyword">val</span> glom: <span class="type">RDD</span>[<span class="type">Array</span>[<span class="type">Int</span>]] = value.glom()</span><br><span class="line"><span class="comment">// 通过map的方式重新组装成每个Array的最大值的数据</span></span><br><span class="line"><span class="keyword">val</span> value1 = glom.map(a =&gt; a.max)</span><br><span class="line"><span class="comment">// 收集后使用sum函数求和即可</span></span><br><span class="line">println(value1.collect().sum)</span><br></pre></td></tr></table></figure>
+
+<h3 id="groupBy"><a href="#groupBy" class="headerlink" title="groupBy"></a>groupBy</h3><h5 id="函数签名-5"><a href="#函数签名-5" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">groupBy[<span class="type">K</span>](f: <span class="type">T</span> =&gt; <span class="type">K</span>)(<span class="keyword">implicit</span> kt: <span class="type">ClassTag</span>[<span class="type">K</span>]): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">T</span>])]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-5"><a href="#函数说明-5" class="headerlink" title="函数说明"></a>函数说明</h5><p>根据数据指定的规则进行分组，分区默认不变，但是数据会被<strong>打乱重组</strong>，我们将这样的操作称之为<strong>shuffle</strong>。极限情况下，数据可能被分在同一个分区中</p>
+<p><strong>一个组中的数据在一个分区中，但并不是说一个分区中只有一个组</strong></p>
+<p>分组的使用方式与Java Stream类似</p>
+<h5 id="示例-5"><a href="#示例-5" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.groupBy(i =&gt; i % <span class="number">2</span>==<span class="number">0</span>)</span><br><span class="line">value1.collect().foreach(println(_))</span><br><span class="line"><span class="comment">//out</span></span><br><span class="line">(<span class="literal">false</span>,<span class="type">CompactBuffer</span>(<span class="number">1</span>, <span class="number">3</span>, <span class="number">5</span>))</span><br><span class="line">(<span class="literal">true</span>,<span class="type">CompactBuffer</span>(<span class="number">2</span>, <span class="number">4</span>, <span class="number">6</span>))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 按照首字母进行分组</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="string">&quot;Hello&quot;</span>,<span class="string">&quot;hive&quot;</span>,<span class="string">&quot;hbash&quot;</span>,<span class="string">&quot;Hadoop&quot;</span>))</span><br><span class="line"><span class="keyword">val</span> value1 = value.groupBy(a =&gt; a.charAt(<span class="number">0</span>))</span><br><span class="line">value1.collect().foreach(println(_))</span><br><span class="line"><span class="comment">//out</span></span><br><span class="line">(h,<span class="type">CompactBuffer</span>(hive, hbash))</span><br><span class="line">(<span class="type">H</span>,<span class="type">CompactBuffer</span>(<span class="type">Hello</span>, <span class="type">Hadoop</span>))</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 从服务器日志数据 apache.log 中获取每个时间段访问量</span></span><br><span class="line"><span class="keyword">val</span> value = sc.textFile(<span class="string">&quot;datas/apache.log&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.map(d =&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> time = d.split(<span class="string">&quot; &quot;</span>)(<span class="number">3</span>).split(<span class="string">&quot;:&quot;</span>)(<span class="number">1</span>)</span><br><span class="line">    (time, <span class="number">1</span>)</span><br><span class="line">&#125;).groupBy(d =&gt; d._1).map(s=&gt;(s._1,s._2.size)).sortByKey()</span><br><span class="line">value1.collect().foreach(println(_))</span><br><span class="line"><span class="comment">// map方法同时可以使用map case的方式</span></span><br><span class="line"><span class="keyword">val</span> value = sc.textFile(<span class="string">&quot;datas/apache.log&quot;</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.map(d =&gt; &#123;</span><br><span class="line">    <span class="keyword">val</span> time = d.split(<span class="string">&quot; &quot;</span>)(<span class="number">3</span>).split(<span class="string">&quot;:&quot;</span>)(<span class="number">1</span>)</span><br><span class="line">    (time, <span class="number">1</span>)</span><br><span class="line">&#125;).groupBy(d =&gt; d._1).map &#123;</span><br><span class="line">    <span class="keyword">case</span> (h,i)=&gt;(h,i.size)</span><br><span class="line">&#125;.sortByKey()</span><br><span class="line">value1.collect().foreach(println(_))</span><br></pre></td></tr></table></figure>
+
+<h3 id="filter"><a href="#filter" class="headerlink" title="filter"></a>filter</h3><h5 id="函数签名-6"><a href="#函数签名-6" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">filter(f: <span class="type">T</span> =&gt; <span class="type">Boolean</span>): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-6"><a href="#函数说明-6" class="headerlink" title="函数说明"></a>函数说明</h5><p>将数据根据指定的规则进行筛选过滤，符合规则的数据保留，不符合规则的数据丢弃。</p>
+<p>当数据进行筛选过滤后分区不变，但是分区内的数据可能不均衡，生产环境下，可能会出现<strong>数据倾斜</strong></p>
+<h5 id="示例-6"><a href="#示例-6" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>), <span class="number">2</span>)</span><br><span class="line">value.filter(i =&gt; i % <span class="number">2</span> == <span class="number">0</span>).collect().foreach(println)</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line"><span class="number">2</span></span><br><span class="line"><span class="number">4</span></span><br><span class="line"><span class="number">6</span></span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//从服务器日志数据 apache.log 中获取 2015 年 5 月 17 日的请求路径</span></span><br><span class="line"><span class="keyword">val</span> value = sc.textFile(<span class="string">&quot;datas/apache.log&quot;</span>)</span><br><span class="line">value.filter(i =&gt; i.split(<span class="string">&quot; &quot;</span>)(<span class="number">3</span>).startsWith(<span class="string">&quot;17/05/2015&quot;</span>)).collect().foreach(println)</span><br></pre></td></tr></table></figure>
+
+<h3 id="sample"><a href="#sample" class="headerlink" title="sample"></a>sample</h3><h5 id="函数签名-7"><a href="#函数签名-7" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">sample(</span><br><span class="line">      withReplacement: <span class="type">Boolean</span>,</span><br><span class="line">      fraction: <span class="type">Double</span>,</span><br><span class="line">      seed: <span class="type">Long</span> = <span class="type">Utils</span>.random.nextLong): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-7"><a href="#函数说明-7" class="headerlink" title="函数说明"></a>函数说明</h5><p>根据指定的规则从数据集中抽取数据.</p>
+<p>withReplacement：元素是否可多次采样。true表示可多次采样，数据放回，false表示数据不放回</p>
+<ol>
+<li><p>当抽取数据不放回（伯努利算法） false</p>
+<p>伯努利算法：又叫 0、1 分布。例如扔硬币，要么正面，要么反面</p>
+<p>具体实现：根据种子和随机算法算出一个数和第二个参数设置几率比较，小于第二个参数要，大于不</p>
+<p>要</p>
+<p>第二个参数：<strong>抽取的几率</strong>，范围在[0, 1]之间。0全不取，1全取</p>
+<p>第三个参数：随机数种子</p>
+</li>
+<li><p>当抽取数据放回（泊松算法） true</p>
+<p>第二个参数：<strong>重复数据的几率</strong>，范围大于等于0，表示每个元素期望抽取到的次数</p>
+<p>第三个参数：随机数种子</p>
+</li>
+</ol>
+<h5 id="示例-7"><a href="#示例-7" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>, <span class="number">7</span>, <span class="number">8</span>), <span class="number">2</span>)</span><br><span class="line"><span class="comment">//当数据不放回时，抽取几率为1</span></span><br><span class="line"><span class="keyword">val</span> value1 = value.sample(<span class="literal">false</span>, <span class="number">1</span>) <span class="comment">// 51678234</span></span><br><span class="line"><span class="comment">//当数据不放回时，抽取几率为0</span></span><br><span class="line"><span class="keyword">val</span> value1 = value.sample(<span class="literal">false</span>, <span class="number">0</span>) <span class="comment">// 没有数据</span></span><br><span class="line"><span class="comment">// 当数据不放回时，抽取几率为大于零小于1</span></span><br><span class="line"><span class="keyword">val</span> value1 = value.sample(<span class="literal">false</span>, <span class="number">0.4</span>) <span class="comment">// 任意数量的不重复数</span></span><br><span class="line"></span><br><span class="line"><span class="comment">// 当数据放回时，抽取几率为1</span></span><br><span class="line"><span class="keyword">val</span> value1 = value.sample(<span class="literal">true</span>, <span class="number">1</span>) <span class="comment">// 任意数量可重复的数据</span></span><br><span class="line"><span class="comment">// 当数据放回时，抽取几率为0</span></span><br><span class="line"><span class="keyword">val</span> value1 = value.sample(<span class="literal">true</span>, <span class="number">1</span>) <span class="comment">// 没有数据</span></span><br><span class="line"><span class="comment">// 当数据放回时，抽取几率为大于零小于1</span></span><br><span class="line"><span class="keyword">val</span> value1 = value.sample(<span class="literal">true</span>, <span class="number">0.4</span>) <span class="comment">// 任意数量的重复数</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="distinct"><a href="#distinct" class="headerlink" title="distinct"></a>distinct</h3><h5 id="函数签名-8"><a href="#函数签名-8" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">distinct(): <span class="type">RDD</span>[<span class="type">T</span>]</span><br><span class="line">distinct(numPartitions: <span class="type">Int</span>)(<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>] = <span class="literal">null</span>): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-8"><a href="#函数说明-8" class="headerlink" title="函数说明"></a>函数说明</h5><p>将数据集中重复的数据去重</p>
+<h5 id="示例-8"><a href="#示例-8" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">3</span>, <span class="number">2</span>, <span class="number">7</span>, <span class="number">8</span>), <span class="number">2</span>)</span><br><span class="line">value.distinct().foreach(print)</span><br></pre></td></tr></table></figure>
+
+<h3 id="coalesce"><a href="#coalesce" class="headerlink" title="coalesce"></a>coalesce</h3><h5 id="函数签名-9"><a href="#函数签名-9" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">coalesce(numPartitions: <span class="type">Int</span>, shuffle: <span class="type">Boolean</span> = <span class="literal">false</span>,</span><br><span class="line">               partitionCoalescer: <span class="type">Option</span>[<span class="type">PartitionCoalescer</span>] = <span class="type">Option</span>.empty)</span><br><span class="line">              (<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>] = <span class="literal">null</span>)</span><br><span class="line">      : <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-9"><a href="#函数说明-9" class="headerlink" title="函数说明"></a>函数说明</h5><p>根据数据量<strong>缩减分区</strong>，用于大数据集过滤后，提高小数据集的执行效率</p>
+<p>当 spark 程序中，存在过多的小任务的时候，可以通过 coalesce 方法，收缩合并分区，减少分区的个数，减小任务调度成本。</p>
+<p>在没有设置shuffle，缩减分区时。例如，如果你从1000个分区到100个分区，不会有一个转移，而是每100个新分区将占用10个当前分区。（此时会出现示例2的情况）</p>
+<p>该函数在不设置shuffle为true的情况下，增大分区不会改变结果。因为数据不会shuffle处理，不会重新对数据进行分区。扩大分区需要设置shuffle为true，使用repartition函数</p>
+<h5 id="示例-9"><a href="#示例-9" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 此时将会缩减为2个分区</span></span><br><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>,<span class="number">24</span>,<span class="number">5</span>), <span class="number">7</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.coalesce(<span class="number">2</span>)</span><br><span class="line">value1.saveAsTextFile(<span class="string">&quot;output&quot;</span>) </span><br></pre></td></tr></table></figure>
+
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>), <span class="number">3</span>)</span><br><span class="line">value.saveAsTextFile(<span class="string">&quot;output&quot;</span>) <span class="comment">// 123,456,78910</span></span><br><span class="line"><span class="keyword">val</span> value1 = value.coalesce(<span class="number">2</span>)</span><br><span class="line">value1.saveAsTextFile(<span class="string">&quot;output1&quot;</span>) <span class="comment">// 123,45678910</span></span><br><span class="line"><span class="comment">//该情况就是说明中的每100个新分区将占用10个当前分区为例。</span></span><br><span class="line"><span class="comment">// 数据不会shuffle，便不会被打乱重组，因此以类似就近原则，多个分区就近占用当前的少量分区。</span></span><br><span class="line"><span class="comment">// 例如，原来6个，现在2个，则前三个占用第一个分区，后三个占用第二个分区</span></span><br><span class="line"><span class="comment">// 例如，原来7个，现在3个，则每两个一个分区，最后三个占用最后一个分区</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<h3 id="repartition"><a href="#repartition" class="headerlink" title="repartition"></a>repartition</h3><h5 id="函数签名-10"><a href="#函数签名-10" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">repartition(numPartitions: <span class="type">Int</span>)(<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">T</span>] = <span class="literal">null</span>): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-10"><a href="#函数说明-10" class="headerlink" title="函数说明"></a>函数说明</h5><p>该操作内部其实执行的是 coalesce 操作，参数 shuffle 的默认值为 true。变大或缩小分区数都会经过shuffle操作。</p>
+<h5 id="示例-10"><a href="#示例-10" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>,<span class="number">2</span>,<span class="number">3</span>,<span class="number">4</span>,<span class="number">5</span>,<span class="number">6</span>,<span class="number">7</span>,<span class="number">8</span>,<span class="number">9</span>,<span class="number">10</span>,<span class="number">11</span>,<span class="number">12</span>,<span class="number">14</span>,<span class="number">15</span>,<span class="number">16</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.repartition(<span class="number">6</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="sortBy"><a href="#sortBy" class="headerlink" title="sortBy"></a>sortBy</h3><h5 id="函数签名-11"><a href="#函数签名-11" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">sortBy[<span class="type">K</span>](</span><br><span class="line">      f: (<span class="type">T</span>) =&gt; <span class="type">K</span>,</span><br><span class="line">      ascending: <span class="type">Boolean</span> = <span class="literal">true</span>,</span><br><span class="line">      numPartitions: <span class="type">Int</span> = <span class="keyword">this</span>.partitions.length)</span><br><span class="line">      (<span class="keyword">implicit</span> ord: <span class="type">Ordering</span>[<span class="type">K</span>], ctag: <span class="type">ClassTag</span>[<span class="type">K</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-11"><a href="#函数说明-11" class="headerlink" title="函数说明"></a>函数说明</h5><p>第二个参数为asc升序</p>
+<p>第三个参数为分区数</p>
+<p>该操作用于排序数据。在排序之前，可以将数据通过 f 函数进行处理，之后按照 f 函数处理的结果进行排序，默认为升序排列。默认情况下，排序后新产生的 RDD 的分区数与原 RDD 的分区数一致。中间存在 shuffle 的过程</p>
+<h5 id="示例-11"><a href="#示例-11" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">10</span>, <span class="number">324</span>, <span class="number">4</span>, <span class="number">5462</span>, <span class="number">42</span>, <span class="number">74</span>, <span class="number">43</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.sortBy(i =&gt; i)</span><br><span class="line">println(value1.collect().mkString(<span class="string">&quot;,&quot;</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="intersection、union、subtract"><a href="#intersection、union、subtract" class="headerlink" title="intersection、union、subtract"></a>intersection、union、subtract</h3><h5 id="函数签名-12"><a href="#函数签名-12" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">intersection(other: <span class="type">RDD</span>[<span class="type">T</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br><span class="line">union(other: <span class="type">RDD</span>[<span class="type">T</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br><span class="line">subtract(other: <span class="type">RDD</span>[<span class="type">T</span>]): <span class="type">RDD</span>[<span class="type">T</span>]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-12"><a href="#函数说明-12" class="headerlink" title="函数说明"></a>函数说明</h5><p>对源RDD和参数RDD分别求交集、并集、差集后返回一个新的RDD。</p>
+<p>两个RDD进行计算，需要保证两个RDD的数据类型是一样的。</p>
+<h5 id="示例-12"><a href="#示例-12" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = sc.makeRDD(<span class="type">List</span>(<span class="number">7</span>, <span class="number">2</span>, <span class="number">9</span>, <span class="number">6</span>, <span class="number">11</span>, <span class="number">12</span>), <span class="number">2</span>)</span><br><span class="line"></span><br><span class="line"><span class="keyword">val</span> value2 = value.intersection(value1) <span class="comment">// 6,2</span></span><br><span class="line">println(value2.collect().mkString(<span class="string">&quot;,&quot;</span>))</span><br><span class="line"><span class="keyword">val</span> value2 = value.union(value1) <span class="comment">// 1,2,3,4,5,6,7,2,9,6,11,12</span></span><br><span class="line"><span class="keyword">val</span> value2 = value.subtract(value1) <span class="comment">// 4,1,3,5</span></span><br><span class="line"><span class="keyword">val</span> value2 = value1.subtract(value) <span class="comment">// 12,7,9,11</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="zip"><a href="#zip" class="headerlink" title="zip"></a>zip</h3><h5 id="函数签名-13"><a href="#函数签名-13" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">zip[<span class="type">U</span>: <span class="type">ClassTag</span>](other: <span class="type">RDD</span>[<span class="type">U</span>]): <span class="type">RDD</span>[(<span class="type">T</span>, <span class="type">U</span>)]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-13"><a href="#函数说明-13" class="headerlink" title="函数说明"></a>函数说明</h5><p>将两个 RDD 中的元素，以键值对的形式进行合并。其中，键值对中的 Key 为第 1 个 RDD中的元素，Value 为第 2 个 RDD 中的相同位置的元素。</p>
+<p>需要保证两个RDD的数据类型一致，分区数量一致，分区数据数据量一致。</p>
+<h5 id="示例-13"><a href="#示例-13" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>(<span class="number">1</span>, <span class="number">2</span>, <span class="number">3</span>, <span class="number">4</span>, <span class="number">5</span>, <span class="number">6</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = sc.makeRDD(<span class="type">List</span>(<span class="number">7</span>, <span class="number">2</span>, <span class="number">9</span>, <span class="number">6</span>, <span class="number">11</span>, <span class="number">12</span>), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value2 = value.zip(value1)</span><br><span class="line">println(value2.collect().mkString(<span class="string">&quot;,&quot;</span>))</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">(<span class="number">1</span>,<span class="number">7</span>),(<span class="number">2</span>,<span class="number">2</span>),(<span class="number">3</span>,<span class="number">9</span>),(<span class="number">4</span>,<span class="number">6</span>),(<span class="number">5</span>,<span class="number">11</span>),(<span class="number">6</span>,<span class="number">12</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="partitionBy"><a href="#partitionBy" class="headerlink" title="partitionBy"></a>partitionBy</h3><h5 id="函数签名-14"><a href="#函数签名-14" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">partitionBy(partitioner: Partitioner): RDD[(K, V)]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-14"><a href="#函数说明-14" class="headerlink" title="函数说明"></a>函数说明</h5><p>将数据按照指定 Partitioner 重新进行分区。Spark 默认的分区器是 HashPartitioner</p>
+<p>需要满足数据类型是key-value类型的。</p>
+<p>如果使用的分区器与默认分区器相同，且分区数量也相同则直接返回调用者，不进行处理。</p>
+<h5 id="示例-14"><a href="#示例-14" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="number">1</span>, <span class="string">&quot;aaa&quot;</span>), (<span class="number">2</span>, <span class="string">&quot;bbb&quot;</span>), (<span class="number">3</span>, <span class="string">&quot;ccc&quot;</span>)),<span class="number">3</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.partitionBy(<span class="keyword">new</span> <span class="type">HashPartitioner</span>(<span class="number">2</span>)).saveAsTextFile(<span class="string">&quot;output&quot;</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="reduceByKey"><a href="#reduceByKey" class="headerlink" title="reduceByKey"></a>reduceByKey</h3><h5 id="函数签名-15"><a href="#函数签名-15" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">reduceByKey(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br><span class="line">reduceByKey(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>, numPartitions: <span class="type">Int</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br><span class="line">reduceByKey(partitioner: <span class="type">Partitioner</span>, func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-15"><a href="#函数说明-15" class="headerlink" title="函数说明"></a>函数说明</h5><p>可以将数据按照相同的 Key 对 Value 进行聚合。</p>
+<p>类似MapReduce中的“combiner”</p>
+<h5 id="示例-15"><a href="#示例-15" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;c&quot;</span>, <span class="number">1</span>)), <span class="number">3</span>)</span><br><span class="line">value.reduceByKey((i, j) =&gt; i + j).collect().foreach(println)</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">(c,<span class="number">1</span>)</span><br><span class="line">(a,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<h3 id="groupByKey"><a href="#groupByKey" class="headerlink" title="groupByKey"></a>groupByKey</h3><h5 id="函数签名-16"><a href="#函数签名-16" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">groupByKey(): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">V</span>])]</span><br><span class="line">groupByKey(numPartitions: <span class="type">Int</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">V</span>])]</span><br><span class="line">groupByKey(partitioner: <span class="type">Partitioner</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">Iterable</span>[<span class="type">V</span>])]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-16"><a href="#函数说明-16" class="headerlink" title="函数说明"></a>函数说明</h5><p>将数据源的数据根据 key 对 value 进行分组。分组后v值是Iterable类型</p>
+<h5 id="示例-16"><a href="#示例-16" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;c&quot;</span>, <span class="number">1</span>)), <span class="number">3</span>)</span><br><span class="line">value.groupByKey().map(s=&gt;(s._1,s._2.size)).collect().foreach(println)</span><br></pre></td></tr></table></figure>
+
+<h4 id="groupByKey和reduceByKey的区别"><a href="#groupByKey和reduceByKey的区别" class="headerlink" title="groupByKey和reduceByKey的区别"></a>groupByKey和reduceByKey的区别</h4><h5 id="从shuffle的角度"><a href="#从shuffle的角度" class="headerlink" title="从shuffle的角度"></a>从shuffle的角度</h5><p>reduceByKey 和 groupByKey 都存在 shuffle 的操作，但是 reduceByKey可以在 shuffle 前对分区内相同 key 的数据进行预聚合（combine）功能，这样会减少落盘的数据量，而 groupByKey 只是进行分组，不存在数据量减少的问题，reduceByKey 性能比较高</p>
+<h5 id="从功能的角度"><a href="#从功能的角度" class="headerlink" title="从功能的角度"></a>从功能的角度</h5><p>reduceByKey 其实包含分组和聚合的功能。GroupByKey 只能分组，不能聚合，所以在分组聚合的场合下，推荐使用 reduceByKey，如果仅仅是分组而不需要聚合。那么还是只能使用 groupByKey</p>
+<table>
+<thead>
+<tr>
+<th></th>
+<th>groupByKey</th>
+<th>reduceByKey</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>shuffle角度</td>
+<td>不会在shuffle前预聚合,只进行分组</td>
+<td>会在shuffle前预聚合，减少落盘数据量</td>
+</tr>
+<tr>
+<td>功能角度</td>
+<td>只能分组不能聚合</td>
+<td>包含分组和聚合功能</td>
+</tr>
+</tbody></table>
+<h3 id="aggregateByKey"><a href="#aggregateByKey" class="headerlink" title="aggregateByKey"></a>aggregateByKey</h3><h5 id="函数签名-17"><a href="#函数签名-17" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">aggregateByKey[<span class="type">U</span>: <span class="type">ClassTag</span>](zeroValue: <span class="type">U</span>)(seqOp: (<span class="type">U</span>, <span class="type">V</span>) =&gt; <span class="type">U</span>,</span><br><span class="line">      combOp: (<span class="type">U</span>, <span class="type">U</span>) =&gt; <span class="type">U</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">U</span>)]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-17"><a href="#函数说明-17" class="headerlink" title="函数说明"></a>函数说明</h5><p>将数据根据不同的规则进行分区内计算和分区间计算。</p>
+<p>这个函数可以返回不同的结果类型U，而不是RDD中值的类型V。我们需要一个操作来合并一个V到U，一个操作来合并两个U。<strong>前一种操作用于合并分区内的值，后一种操作用于合并分区之间的值</strong>。为了避免内存分配，这两个函数都允许修改并返回它们的第一个参数，而不是创建一个新的U。</p>
+<p>该函数使用柯里化的方式。</p>
+<ul>
+<li>第一个参数列表中的参数表示初始值。该值用于在分区间比较时，第一个key值与该值计算。</li>
+<li>第二个参数列表中含有两个参数。第一个参数表示分区内的计算规则，第二个参数标识分区间的计算规则</li>
+</ul>
+<p>可以看到函数签名中结果类型U。第一个参数列表需要该类型、第二个参数列表的第一个参数和第二个参数都有，包括返回值都是该结果类型。</p>
+<h5 id="示例-17"><a href="#示例-17" class="headerlink" title="示例"></a>示例</h5><h6 id="计算每个key在分区间的最大值的和。"><a href="#计算每个key在分区间的最大值的和。" class="headerlink" title="计算每个key在分区间的最大值的和。"></a>计算每个key在分区间的最大值的和。</h6><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">3</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">4</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">5</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">6</span>)),<span class="number">2</span>)</span><br><span class="line">value.aggregateByKey(<span class="number">0</span>)((x, y) =&gt; <span class="type">Math</span>.max(x, y), (x, y) =&gt; x + y).collect().foreach(println)</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">(a,<span class="number">9</span>)</span><br><span class="line">(b,<span class="number">12</span>)</span><br></pre></td></tr></table></figure>
+
+<p>该伪代码中，设置了结果类型U为Int类型，因此最终返回的格式为Int类型。<br>初始值为0，分区内的计算时求最大值，分区间的计算是相加。最终求得不同key的分区间最大值的和。</p>
+<h6 id="计算每个key的平均值"><a href="#计算每个key的平均值" class="headerlink" title="计算每个key的平均值"></a>计算每个key的平均值</h6><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value1 = value.aggregateByKey((<span class="number">0</span>, <span class="number">0</span>))(</span><br><span class="line">    (u, v) =&gt; (u._1 + v, u._2 + <span class="number">1</span>),</span><br><span class="line">    (u1, u2) =&gt; (u1._1 + u2._1, u1._2 + u2._2)</span><br><span class="line">)</span><br><span class="line">value1.mapValues(i =&gt; i._1 / i._2).collect().foreach(println)</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">(b,<span class="number">4</span>)</span><br><span class="line">(a,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<p>该伪代码中，将一个含两个元素的元组作为结果类型U，第一个元素为每个key的值的总数，第二个为值的个数。</p>
+<p>在分区内处理的逻辑是，为第一个元素累加值，第二个元素加1。</p>
+<p>分区间的处理是将这些值进行合并，总值和总值相加，总个数和总个数相加。最终aggregateByKey返回的结果是</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">(b,(<span class="number">12</span>,<span class="number">3</span>))</span><br><span class="line">(a,(<span class="number">9</span>,<span class="number">3</span>))</span><br></pre></td></tr></table></figure>
+
+<p>将结果使用mapValues函数处理，该函数只处理value，不处理key。因此将value的类型从元组转为Int即计算平均值。</p>
+<h6 id="设置初始值"><a href="#设置初始值" class="headerlink" title="设置初始值"></a>设置初始值</h6><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">3</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">4</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">5</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">6</span>)), <span class="number">2</span>)</span><br><span class="line">value.aggregateByKey(<span class="number">10</span>)((x, y) =&gt; <span class="type">Math</span>.max(x, y), (x, y) =&gt; x + y).collect().foreach(println)</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">(b,<span class="number">20</span>)</span><br><span class="line">(a,<span class="number">20</span>)</span><br></pre></td></tr></table></figure>
+
+<p>该初始值用于和第一个key元素进行逻辑计算。即当从第一个元素开始时我该与谁计算，这个zeroValue就是跟第一个计算的。当此时零值为10的时候，分区内进行最大值比较，最终的值就是10，一共两个分区，分区间进行处理相加就是20。</p>
+<h3 id="foldByKey"><a href="#foldByKey" class="headerlink" title="foldByKey"></a>foldByKey</h3><h5 id="函数签名-18"><a href="#函数签名-18" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">foldByKey(zeroValue: <span class="type">V</span>)(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">V</span>)]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-18"><a href="#函数说明-18" class="headerlink" title="函数说明"></a>函数说明</h5><p>当分区内计算规则和分区间计算规则相同时，aggregateByKey 就可以简化为 foldByKey</p>
+<h5 id="示例-18"><a href="#示例-18" class="headerlink" title="示例"></a>示例</h5><h3 id="combineByKey"><a href="#combineByKey" class="headerlink" title="combineByKey"></a>combineByKey</h3><h5 id="函数签名-19"><a href="#函数签名-19" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">combineByKey[<span class="type">C</span>](</span><br><span class="line">      createCombiner: <span class="type">V</span> =&gt; <span class="type">C</span>,</span><br><span class="line">      mergeValue: (<span class="type">C</span>, <span class="type">V</span>) =&gt; <span class="type">C</span>,</span><br><span class="line">      mergeCombiners: (<span class="type">C</span>, <span class="type">C</span>) =&gt; <span class="type">C</span>): <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">C</span>)]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-19"><a href="#函数说明-19" class="headerlink" title="函数说明"></a>函数说明</h5><p>使用一组自定义聚合函数组合每个键的元素。对于“组合类型”C，将RDD[(K, V)]转换为类型RDD[(K, C)]的结果。</p>
+<ul>
+<li>createCombiner：它将V转换为C，例如，创建一个单元素列表，或一个自定义的元组数据(V, 1)</li>
+<li>mergeValue：将一个V合并成一个C(例如，将它添加到列表的末尾)</li>
+<li>mergeCombiners：将两个C合并成一个C</li>
+</ul>
+<p>与aggregateByKey的区别在于，它可以自定义组合类型，并返回这个类型，允许许用户返回值的类型与输入不一致</p>
+<h5 id="示例-19"><a href="#示例-19" class="headerlink" title="示例"></a>示例</h5><h5 id="求每个key的平均值"><a href="#求每个key的平均值" class="headerlink" title="求每个key的平均值"></a>求每个key的平均值</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">3</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">4</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">5</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">6</span>)), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = value.combineByKey(</span><br><span class="line">    v=&gt;(v,<span class="number">1</span>),</span><br><span class="line">    (u:(<span class="type">Int</span>,<span class="type">Int</span>), v) =&gt; (u._1 + v, u._2 + <span class="number">1</span>),</span><br><span class="line">    (u1:(<span class="type">Int</span>,<span class="type">Int</span>), u2:(<span class="type">Int</span>,<span class="type">Int</span>)) =&gt; (u1._1 + u2._1, u1._2 + u2._2)</span><br><span class="line">)</span><br><span class="line">value1.mapValues(i =&gt; i._1 / i._2).collect().foreach(println)</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">(b,<span class="number">4</span>)</span><br><span class="line">(a,<span class="number">3</span>)</span><br></pre></td></tr></table></figure>
+
+<p>该函数是动态编译，因此需要显示指定参数类型。</p>
+<p>此处RDD的值类型是Int类型，在createCombiner第一个参数中，将值转为元素类型。最终返回的结果也是RDD[(K, C)]类型，K为String，C为Tuple</p>
+<h3 id="reduceByKey、foldByKey、aggregateByKey、combineByKey-的区别"><a href="#reduceByKey、foldByKey、aggregateByKey、combineByKey-的区别" class="headerlink" title="reduceByKey、foldByKey、aggregateByKey、combineByKey 的区别"></a>reduceByKey、foldByKey、aggregateByKey、combineByKey 的区别</h3><ul>
+<li><p>reduceByKey：相同 key 的第一个数据不进行任何计算，分区内和分区间计算规则相同</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>) 分区内与分区间计算相同</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>foldByKey：相同 key 的第一个数据和初始值进行分区内计算，分区内和分区间计算规则相同</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">(zeroValue: <span class="type">V</span>)(func: (<span class="type">V</span>, <span class="type">V</span>) =&gt; <span class="type">V</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>aggregateByKey：相同 key 的第一个数据和初始值进行分区内计算，分区内和分区间计算规则可以不相同</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[<span class="type">U</span>: <span class="type">ClassTag</span>](zeroValue: <span class="type">U</span>)(seqOp: (<span class="type">U</span>, <span class="type">V</span>) =&gt; <span class="type">U</span>, combOp: (<span class="type">U</span>, <span class="type">U</span>) =&gt; <span class="type">U</span>)</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>combineByKey ：当计算时，发现数据结构不满足要求时，可以让第一个数据转换结构。分区内和分区间计算规则不相同。</p>
+<figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">combineByKey[<span class="type">C</span>](</span><br><span class="line">      createCombiner: <span class="type">V</span> =&gt; <span class="type">C</span>,</span><br><span class="line">      mergeValue: (<span class="type">C</span>, <span class="type">V</span>) =&gt; <span class="type">C</span>,</span><br><span class="line">      mergeCombiners: (<span class="type">C</span>, <span class="type">C</span>) =&gt; <span class="type">C</span>)</span><br></pre></td></tr></table></figure>
+
+
+
+</li>
+</ul>
+<p>以上函数的最终的调用都是combineByKeyWithClassTag函数</p>
+<h3 id="join"><a href="#join" class="headerlink" title="join"></a>join</h3><h5 id="函数签名-20"><a href="#函数签名-20" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">join[<span class="type">W</span>](other: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">W</span>)], partitioner: <span class="type">Partitioner</span>): <span class="type">RDD</span>[(<span class="type">K</span>, (<span class="type">V</span>, <span class="type">W</span>))]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-20"><a href="#函数说明-20" class="headerlink" title="函数说明"></a>函数说明</h5><p>返回一个包含this和other中键匹配的所有元素对的RDD。每对元素将<strong>以(k， (v1, v2))元组的形式返回</strong>，其中(k, v1)在这个元组中，(k, v2)在另一个元组中。使用给定的Partitioner对输出RDD进行分区。</p>
+<p>类似sql中的inner join</p>
+<h5 id="示例-20"><a href="#示例-20" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">3</span>)), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;b&quot;</span>, <span class="number">4</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">5</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">6</span>),(<span class="string">&quot;d&quot;</span>,(<span class="string">&quot;d&quot;</span>,<span class="number">2</span>))), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value2 = value.join(value1).collect().foreach(println)</span><br><span class="line"><span class="comment">// out</span></span><br><span class="line">(b,(<span class="number">2</span>,<span class="number">4</span>))</span><br><span class="line">(b,(<span class="number">2</span>,<span class="number">6</span>))</span><br><span class="line">(a,(<span class="number">1</span>,<span class="number">5</span>))</span><br><span class="line">(a,(<span class="number">3</span>,<span class="number">5</span>))</span><br></pre></td></tr></table></figure>
+
+<h3 id="leftOuterJoin、rightOuterJoin"><a href="#leftOuterJoin、rightOuterJoin" class="headerlink" title="leftOuterJoin、rightOuterJoin"></a>leftOuterJoin、rightOuterJoin</h3><h5 id="函数签名-21"><a href="#函数签名-21" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">leftOuterJoin[<span class="type">W</span>](other: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">W</span>)]): <span class="type">RDD</span>[(<span class="type">K</span>, (<span class="type">V</span>, <span class="type">Option</span>[<span class="type">W</span>]))]</span><br><span class="line">rightOuterJoin[<span class="type">W</span>](other: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">W</span>)]): <span class="type">RDD</span>[(<span class="type">K</span>, (<span class="type">Option</span>[<span class="type">V</span>], <span class="type">W</span>))]</span><br></pre></td></tr></table></figure>
+
+<h5 id="函数说明-21"><a href="#函数说明-21" class="headerlink" title="函数说明"></a>函数说明</h5><p>执行this和other的左外连接。对于this中的每个元素(k, v)，产生的RDD<strong>要么包含other中的w的所有对(k， (v, Some(w))</strong>，要么<strong>包含other中没有键值为k的元素的对(k， (v, None))</strong></p>
+<p>类似sql的左外连接和右外连接</p>
+<h5 id="示例-21"><a href="#示例-21" class="headerlink" title="示例"></a>示例</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">val</span> value = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;a&quot;</span>, <span class="number">1</span>), (<span class="string">&quot;b&quot;</span>, <span class="number">2</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">3</span>)), <span class="number">2</span>)</span><br><span class="line"><span class="keyword">val</span> value1 = sc.makeRDD(<span class="type">List</span>((<span class="string">&quot;b&quot;</span>, <span class="number">4</span>), (<span class="string">&quot;a&quot;</span>, <span class="number">5</span>),(<span class="string">&quot;a&quot;</span>, <span class="number">6</span>), (<span class="string">&quot;b&quot;</span>, (<span class="number">6</span>,<span class="number">6</span>)),(<span class="string">&quot;d&quot;</span>,(<span class="string">&quot;d&quot;</span>,<span class="number">2</span>))), <span class="number">2</span>)</span><br><span class="line">value.leftOuterJoin(value1).collect().foreach(println)</span><br><span class="line"><span class="comment">// out 左外连接，没有other中d键的存在 (Some中只会存在一个元素)</span></span><br><span class="line">(b,(<span class="number">2</span>,<span class="type">Some</span>(<span class="number">4</span>)))</span><br><span class="line">(b,(<span class="number">2</span>,<span class="type">Some</span>((<span class="number">6</span>,<span class="number">6</span>))))</span><br><span class="line">(f,(<span class="number">9</span>,<span class="type">None</span>)) <span class="comment">// 包含other中没有键值为k的元素对</span></span><br><span class="line">(a,(<span class="number">1</span>,<span class="type">Some</span>(<span class="number">5</span>)))</span><br><span class="line">(a,(<span class="number">1</span>,<span class="type">Some</span>(<span class="number">6</span>)))</span><br><span class="line">(a,(<span class="number">3</span>,<span class="type">Some</span>(<span class="number">5</span>)))</span><br><span class="line">(a,(<span class="number">3</span>,<span class="type">Some</span>(<span class="number">6</span>)))</span><br></pre></td></tr></table></figure>
+
+<h3 id="cogroup"><a href="#cogroup" class="headerlink" title="cogroup"></a>cogroup</h3><h5 id="函数签名-22"><a href="#函数签名-22" class="headerlink" title="函数签名"></a>函数签名</h5><figure class="highlight scala"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cogroup[<span class="type">W</span>](other: <span class="type">RDD</span>[(<span class="type">K</span>, <span class="type">W</span>)], partitioner: <span class="type">Partitioner</span>): <span class="type">RDD</span>[(<span class="type">K</span>, (<span class="type">Iterable</span>[<span class="type">V</span>], <span class="type">Iterable</span>[<span class="type">W</span>]))]</span><br></pre></td></tr></table></figure>
+
+
+
+<h5 id="函数说明-22"><a href="#函数说明-22" class="headerlink" title="函数说明"></a>函数说明</h5><h5 id="示例-22"><a href="#示例-22" class="headerlink" title="示例"></a>示例</h5><h1 id="行动算子"><a href="#行动算子" class="headerlink" title="行动算子"></a>行动算子</h1><h5 id="函数签名-23"><a href="#函数签名-23" class="headerlink" title="函数签名"></a>函数签名</h5><h5 id="函数说明-23"><a href="#函数说明-23" class="headerlink" title="函数说明"></a>函数说明</h5><h5 id="示例-23"><a href="#示例-23" class="headerlink" title="示例"></a>示例</h5>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-WebGIS/GIS基础" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2022/04/17/WebGIS/GIS%E5%9F%BA%E7%A1%80/"
+    >GIS基础</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/04/17/WebGIS/GIS%E5%9F%BA%E7%A1%80/" class="article-date">
+  <time datetime="2022-04-16T16:00:00.000Z" itemprop="datePublished">2022-04-17</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/WebGIS/">WebGIS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="GIS坐标系基础"><a href="#GIS坐标系基础" class="headerlink" title="GIS坐标系基础"></a>GIS坐标系基础</h2><h3 id="坐标系"><a href="#坐标系" class="headerlink" title="坐标系"></a>坐标系</h3><p>坐标系统分为<strong>地理坐标系</strong>和<strong>投影坐标系</strong></p>
+<table>
+<thead>
+<tr>
+<th>坐标系</th>
+<th>坐标系统</th>
+<th>表示方法</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>地理坐标系</td>
+<td>地球椭球体</td>
+<td>经纬度</td>
+</tr>
+<tr>
+<td>投影坐标系</td>
+<td>平面</td>
+<td>米</td>
+</tr>
+</tbody></table>
+<p>常见坐标系统</p>
+<table>
+<thead>
+<tr>
+<th>坐标系</th>
+<th>椭球体</th>
+<th>坐标原点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>1954北京坐标系</td>
+<td>克拉索夫斯基椭球体</td>
+<td>椭球体中心</td>
+</tr>
+<tr>
+<td>1980西安坐标系</td>
+<td>1975国际椭球</td>
+<td>椭球体中心</td>
+</tr>
+<tr>
+<td>WGS1984</td>
+<td>WGS1984椭球体</td>
+<td>椭球体地心</td>
+</tr>
+<tr>
+<td>CGCS2000</td>
+<td>与我们国家地形逼近的椭球</td>
+<td>椭球体地心</td>
+</tr>
+</tbody></table>
+<p>地理坐标系是建立在椭球体基础上的，然而我们拿到手上的通常是一个平面的地图，所以需要把椭球按照一定的法则展开到平面上，这就是投影坐标系</p>
+<h3 id="投影转换"><a href="#投影转换" class="headerlink" title="投影转换"></a>投影转换</h3><p>​        地球球体是曲面的，而地图通常要绘制在平面图纸上，因此需要把曲面展开成平面，需要以特殊的方法将曲面展开，使其成为没有破裂和褶皱的平面，于是就出现了地理投影论。</p>
+<p>​        其基本原理就是∶因为球面上一点的位置决定于它的经纬度，所以实际投影时是先将一些经纬线的交点展绘在平面上，再将相同的经纬度的点连成经线，相同的纬度的点连成纬线，构成经纬网。有了经纬网以后，就可以将球面上的点，按其经纬度绘在平面上相应的位置处。</p>
+<p>​        地图投影的种类很多，一般按照两种标准进行分类∶一是按投影的变形性质分类，二是按照投影的构成方式分类。 </p>
+<p>​        <strong>按投影变形性质分类∶</strong> </p>
+<p>​        （1）等角投影。能保持无限小图形的相似。同一点上长度比处处相同，不同点变形圆的半径不同，大范围看，投影图形与地面实际形状并不完全相似。由于这种投影无角度变形，便于图上量测方向/角度，所以常用于对真实角度和方向要求高的地图，如航海、洋流和风向图等。由于此类投影面积变形很大，故不能量算面积。 </p>
+<p>​        （2）等面积投影。等积投影是等面积投影，便于面积的比较和量算。常用于对面积精度要求较高的自然和经济地图，如地质、土壤、土地利用、行政区划等地图。 </p>
+<p>​        （3）任意投影。既不等角又不等积，各方面变形都存在，但都适中。在任意投影中，有一类比较特殊的投影叫做等距投影，满足正轴投影中经线长度比为 1，在斜轴或横轴投影中垂直圈长度比为1。 </p>
+<p>​        按<strong>投影构成方式分类∶</strong></p>
+<p>​         （1）几何投影。几何投影是把椭球体面上的经纬网直接或附加某种条件投影到几何承影面上，然后将几何面展开为平面而得到的一类投影，包括方位投影、圆锥投影和圆柱投影。根据投影面与球面的位置关系的不同又可将其划分为正轴投影、横轴投影、斜轴投影。</p>
+<p>​         （2）解析投影。解析投影是不借助于辅助几何面，直接用解析法得到经纬网的一种投影，主要包括伪方位投影、伪圆锥投影、伪圆柱投影、多圆锥投影。 目前常用的投影有莫卡托投影（正轴等角圆柱投影）、高斯-克吕格投影（等角横切圆柱投影）、UTM投影（等角横轴割圆柱投影）、Lambert 投影（等角正割圆锥投影）等。 </p>
+<h2 id="GIS数据与应用"><a href="#GIS数据与应用" class="headerlink" title="GIS数据与应用"></a>GIS数据与应用</h2><p>​        空间数据树GIS的心脏。根据数据来源的不同，地理数据包括地图数据、遥感影像数据、地形数据，以及其他的统计数据、文字报告等。针对空间数据，GIS有两大基本存储模型，一种是<strong>矢量数据模型</strong>，另一种是<strong>栅格数据模型</strong>。</p>
+<p>​        矢量数据模型以离散的点坐标表示地理要素，通过点、线、面以及注记来抽象表达空间实体以及实体间的关系;        栅格数据模型则以一系列栅格值来表示，基于网格结构使用不同颜色和灰度的像元来表达</p>
+<p>​        一般来说，具有明确对象的空间数据，一般使用矢量数据模型存储，如地籍数据、行政边界、街道等;具有连续空间变化的空间数据，则使用栅格数据模型存储。 </p>
+<h3 id="矢量地图与瓦片地图"><a href="#矢量地图与瓦片地图" class="headerlink" title="矢量地图与瓦片地图"></a>矢量地图与瓦片地图</h3><p>​        在WebGIS应用中，WebGIS的二维地图主要分为<strong>矢量地图</strong>和<strong>瓦片地图</strong>两种格式。</p>
+<h4 id="矢量地图"><a href="#矢量地图" class="headerlink" title="矢量地图"></a>矢量地图</h4><p>​        矢量地图通常指采用矢量数据模型存储的矢量数据组织的地图。<u>矢量地图加载是根据客户端请求的地图范围实时从服务器的地图数据库取图，实时生成请求范围对应的地图，返回给客户端一张地图图片</u>。其中，遥感影像与矢量地图采用同样的出图机制和方法。</p>
+<h4 id="瓦片"><a href="#瓦片" class="headerlink" title="瓦片"></a>瓦片</h4><p>​        瓦片即网格中有多个类似瓦片的图片集。瓦片数据是将矢量或影像数据进行预处理，采用高效的缓存机制（如金字塔）形成的缓存图片集，采用”级、行、列”方式进行组织，可在网页中快速加载。因此，瓦片地图加载是根据客户端请求的地图范围和级别，通过计算行列号获取对应级别下网格的瓦片（即服务器预裁剪的图片），由这些瓦片集在客户端形成一张地图。</p>
+<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/blog/image-20220417185518893.png" alt="image-20220417185518893"></p>
 
       
       <!-- reward -->
@@ -268,7 +534,7 @@
 
 </article>
     
-    <article id="post-Spring/2021-11-12-Spring源码理解-Spring-Cache" class="article article-type-post" itemscope
+    <article id="post-WebGIS/OpenLayers开发基础" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -276,8 +542,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-Spring-Cache/"
-    >Spring源码理解 Spring Cache</a
+  <a class="article-title" href="/2022/04/17/WebGIS/OpenLayers%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/"
+    >OpenLayers开发基础</a
   >
 </h2>
   
@@ -287,12 +553,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-Spring-Cache/" class="article-date">
-  <time datetime="2021-11-12T04:00:00.000Z" itemprop="datePublished">2021-11-12</time>
+      <a href="/2022/04/17/WebGIS/OpenLayers%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/" class="article-date">
+  <time datetime="2022-04-16T16:00:00.000Z" itemprop="datePublished">2022-04-17</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>
+    <a class="article-category-link" href="/categories/WebGIS/">WebGIS</a>
   </div>
 
       
@@ -309,175 +575,110 @@
       
 
       
-      <blockquote>
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/feibiao4790/article/details/108381658">https://blog.csdn.net/feibiao4790/article/details/108381658</a></p>
+      <h2 id="OpenLayers-API"><a href="#OpenLayers-API" class="headerlink" title="OpenLayers API"></a>OpenLayers API</h2><p>核心类和组件如下:</p>
+<ol>
+<li>Map(ol.Map)：地图容器，核心部分，可加载各类地图与功能控件，用于渲染显示动态地图。</li>
+<li>View(ol.View)：地图视图，控制地图缩放等基本交互、地图投影坐标系、地图中心点、分辨率、旋转角度等。</li>
+<li>Layers(ol.Layer.Base)：图层，包含多个调用数据的子类，由其子类实例加载地图数据，必须结合数据源(Source)匹配使用。</li>
+<li>Sources（ol.source.Source）∶图层数据源，与图层子类对应，由数据源的实例来加载各种类型的地图数据。</li>
+<li>Format（ol.format.Feature）∶数据解析类，此类用于读/写各种格式的数据，创建了多种格式的子类，即数据解析器。目前支持多种数据格式，如 GeoJSON、GML、XML、WKT、WFS等。 </li>
+<li>Geometry（ol.geom.Geometry）∶地理空间对象的几何实体，由其子类（如 Point、LineString、Polygon）的实例构成了我们所看到的矢量地图。 </li>
+<li>Feature（ol.Feature）;地图要素，可看成矢量地图的组成单元，是地图中的主要部分，点、线、面等几何实体均可组织为地图要素，配合要素的样式渲染到客户端的地图上。 </li>
+<li>Overlay（ol.Overlay）∶叠加层，即叠加到地图上显示的要素，关联自定义的一个HTML 元素，由一个单一的地图坐标点确定叠加位置。与控件（Control）类似，但不同的是叠加元素不是在一个固定的屏幕位置上，而是通过关联一个地图逻辑坐标点跟随地图移动，如标注点、popup 等。 </li>
+<li>Controls（ol.control.Control）∶即通常所说的控件类，提供各种各样的地图功能控件，如地图缩放控件（Zoom）、鼠标位置控件（MousePosition）、鹰眼（OverViewMap）、比例尺（ScaleLine）等。 </li>
+<li>Interaction（ol.interaction.Interaction）∶地图交互控件类。地图交互一般用鼠标与键 盘操作去操控，因此 Interaction 子类为基于鼠标与键盘操控的地图交互功能控件，如选择要素控件（Select）、键盘缩放地图控件（KeyboardZoom）、鼠标控件基类（Pointer）下的绘制控件（Draw））、修改控件（Modify）、拖放平移地图控件（DragPan）等。 </li>
+<li>Style（ol.style.Style）∶样式类，通过其子类实例来渲染矢量要素的样式，包括填充样式（Fill）、边界样式（Stroke）、图标样式（Image 与Icon）、文字样式（Text）等。 </li>
+<li>Projections（ol.pro.Projection）∶地图投影定义类，包括EPSG∶4326（ol.proj.EPSG4326）与EPSG∶3857（ol.proj.EPSG3857）的定义，在地图视图（View）中可以设置地图的投影坐标系，也可以通过ol.proj提供的方法进行投影变换。 </li>
+<li>Renderer（ol.renderer.Renderer）∶渲染器。在 OpenLayers 3中，渲染功能作为 Map 的一个属性存在，支持 Canvas、DOM、WebGL三种渲染方式。可通过设置 Map 的 renderer 属性设定地图渲染方式。 </li>
+</ol>
+<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/blog/image-20220417193600979.png" alt="image-20220417193600979"></p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Redis/Redis故障相关问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2022/04/01/Redis/Redis%E6%95%85%E9%9A%9C%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
+    >Redis故障相关问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2022/04/01/Redis/Redis%E6%95%85%E9%9A%9C%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2022-03-31T16:00:00.000Z" itemprop="datePublished">2022-04-01</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Redis/">Redis</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="MISCONF-Redis-is-configured-to-save-RDB-snapshots-but-it-is-currently-not-able-to-persist-on-disk-Commands-that-may-modify-the-data-set-are-disabled-because-this-instance-is-configured-to-report-errors-during-writes-if-RDB-snapshotting-fails-stop-writes-on-bgsave-error-option-Please-check-the-Redis-logs-for-details-about-the-RDB-error"><a href="#MISCONF-Redis-is-configured-to-save-RDB-snapshots-but-it-is-currently-not-able-to-persist-on-disk-Commands-that-may-modify-the-data-set-are-disabled-because-this-instance-is-configured-to-report-errors-during-writes-if-RDB-snapshotting-fails-stop-writes-on-bgsave-error-option-Please-check-the-Redis-logs-for-details-about-the-RDB-error" class="headerlink" title="MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data set are disabled, because this instance is configured to report errors during writes if RDB snapshotting fails (stop-writes-on-bgsave-error option). Please check the Redis logs for details about the RDB error"></a>MISCONF Redis is configured to save RDB snapshots, but it is currently not able to persist on disk. Commands that may modify the data set are disabled, because this instance is configured to report errors during writes if RDB snapshotting fails (stop-writes-on-bgsave-error option). Please check the Redis logs for details about the RDB error</h3><p>MISCONF Redis被配置为保存RDB快照，但它目前不能在磁盘上持久化。可能修改数据集的命令被禁用，因为这个实例被配置为如果RDB快照失败，在写过程中报告错误(stop-write -on-bgsave-error选项)。关于RDB错误的详细信息，请查看Redis日志</p>
+<p>参考博客描述 <a target="_blank" rel="noopener" href="https://blog.csdn.net/u014071875/article/details/103715183">https://blog.csdn.net/u014071875/article/details/103715183</a></p>
+<p><strong>错误原因：</strong></p>
+<p>主要原因是保存RDB失败，执行bgsave命令时出现了问题。</p>
+<p>查看日志，在window上的redis日志是Redis安装目录下的server_log.txt，可以看到相关的信息</p>
+<blockquote>
+<p>The Windows version of Redis reserves heap memory from the system paging file<br>for sharing with the forked process used for persistence operations. At this time there is insufficient contiguous free space available in the<br>system paging file. You may increase the size of the system paging file.<br>Sometimes a reboot will defragment the system paging file sufficiently for<br>this operation to complete successfully. </p>
 </blockquote>
-<p>相关类</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CacheInterceptor</span><br></pre></td></tr></table></figure>
-
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">CacheAspectSupport</span><br></pre></td></tr></table></figure>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/2021-11-12-Spring源码理解-类接口说明" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/"
-    >Spring源码理解 类接口说明</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/" class="article-date">
-  <time datetime="2021-11-12T04:00:00.000Z" itemprop="datePublished">2021-11-12</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="spring-core"><a href="#spring-core" class="headerlink" title="spring-core"></a>spring-core</h2>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/Spring源码理解-Spring-Cache-CacheNames属性" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/11/12/Spring/Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-Spring-Cache-CacheNames%E5%B1%9E%E6%80%A7/"
-    >Spring源码理解-Spring Cache CacheNames属性</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/11/12/Spring/Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-Spring-Cache-CacheNames%E5%B1%9E%E6%80%A7/" class="article-date">
-  <time datetime="2021-11-12T04:00:00.000Z" itemprop="datePublished">2021-11-12</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>因为测试了SpringCache的使用，@Cacheable属性cacheNames的值设置了hello，配置类里也配置了CacheManager，因为是简单测试，就使用了基于ConcurrentMap的缓存存储方式。</p>
-<p>对于缓存方式的实现，可以有看<code>org.springframework.cache.Cache</code>接口的实现类，都是缓存的实现类型。Spring提供的包括</p>
-<p>NoOpCache：无缓存实现，仅仅是提供方法，不进行任何存储</p>
-<p>EhCacheCache：基于EhCache的缓存实现</p>
-<p>ConcurrentMapCache：基于ConcurrentMap类的缓存实现</p>
-<p>JCacheCache：基于JCache的缓存实现</p>
-<p>CaffeineCache：基于Caffeine的缓存实现</p>
-<p>其他外置的包括RedisCache，RedissionCache等等</p>
-<p>而缓存管理器CacheManger，由AbstractCacheManager抽象类实现，大多都是直接或间接继承AbstractCacheManager类或实现CacheManger接口。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> CacheManager <span class="title">cacheManager</span><span class="params">()</span></span>&#123;</span><br><span class="line">	SimpleCacheManager simpleCacheManager = <span class="keyword">new</span> SimpleCacheManager();</span><br><span class="line">	ConcurrentMapCacheFactoryBean factoryBean = <span class="keyword">new</span> ConcurrentMapCacheFactoryBean();</span><br><span class="line">	factoryBean.setName(<span class="string">&quot;hello&quot;</span>);</span><br><span class="line">	factoryBean.setStore(map);</span><br><span class="line">	factoryBean.setAllowNullValues(<span class="keyword">false</span>);</span><br><span class="line">	factoryBean.afterPropertiesSet();</span><br><span class="line">	simpleCacheManager.setCaches(Collections.singletonList(factoryBean.getObject()));</span><br><span class="line">	<span class="keyword">return</span> simpleCacheManager;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Cacheable(cacheNames = &quot;hello&quot;,key = &quot;&#x27;list&#x27;&quot;)</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">getHelloList</span><span class="params">()</span></span>&#123;</span><br><span class="line">	System.out.println(<span class="string">&quot;log:getHelloList&quot;</span>);</span><br><span class="line">	<span class="keyword">return</span> String.join(<span class="string">&quot;,&quot;</span>,names);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>此处在AppConfig配置类中，通过Bean方式注册了SimpleCacheManager，使用了ConcurrentMapCacheFactoryBean的方式。因为使用了@Cacheable的cacheNames属性，因此ConcurrentMapCacheFactoryBean中的name必须要有，他是一类缓存的名字。如果在缓存管理器中没有找到对应的缓存名称就会出现问题。而这仅是SimpleCacheManager才会出现的问题。也就是说它必须要手动指定name，如果有多个就创建多个ConcurrentMapCacheFactoryBean。</p>
-<p>只因为它并没有实现AbstractCacheManager的getMissingCache方法，表示当没有获取到对应名称的缓存对象的时候该如何返回一个正确的Cache对象。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> Cache <span class="title">getMissingCache</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>因为在使用RedisCache的时候，默认是实现了这个方法的，所以在使用的时候不需要手动定义缓存的名称，它是动态的，不存在就创建，然后存储起来。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> RedisCache <span class="title">getMissingCache</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> allowInFlightCacheCreation ? createRedisCache(name, defaultCacheConfig) : <span class="keyword">null</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">protected</span> RedisCache <span class="title">createRedisCache</span><span class="params">(String name, <span class="meta">@Nullable</span> RedisCacheConfiguration cacheConfig)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> RedisCache(name, cacheWriter, cacheConfig != <span class="keyword">null</span> ? cacheConfig : defaultCacheConfig);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>对于缓存的获取是在抽象类AbstractCacheManager中，他有个getCache方法。获取Cache时会从map中拿，如果没有就调用getMissingCache()方法，然后获取到之后执行decorateCache()方法，进行其他需要做的事，此处是直接返回了。然后就put到集合中，再更新cacheNames集合。</p>
-<p>这里面的cacheMap属性就存储了多个名称对应Cache对象的一个map集合。cacheNames是所有缓存名称的集合</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">private</span> <span class="keyword">final</span> ConcurrentMap&lt;String, Cache&gt; cacheMap = <span class="keyword">new</span> ConcurrentHashMap&lt;&gt;(<span class="number">16</span>);</span><br><span class="line"><span class="keyword">private</span> <span class="keyword">volatile</span> Set&lt;String&gt; cacheNames = Collections.emptySet();</span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Nullable</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> Cache <span class="title">getCache</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">    Cache cache = <span class="keyword">this</span>.cacheMap.get(name);</span><br><span class="line">    <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> cache;</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="comment">// Fully synchronize now for missing cache creation...</span></span><br><span class="line">        <span class="keyword">synchronized</span> (<span class="keyword">this</span>.cacheMap) &#123;</span><br><span class="line">            cache = <span class="keyword">this</span>.cacheMap.get(name);</span><br><span class="line">            <span class="keyword">if</span> (cache == <span class="keyword">null</span>) &#123;</span><br><span class="line">                cache = getMissingCache(name);</span><br><span class="line">                <span class="keyword">if</span> (cache != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    cache = decorateCache(cache);</span><br><span class="line">                    <span class="keyword">this</span>.cacheMap.put(name, cache);</span><br><span class="line">                    updateCacheNames(name);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            <span class="keyword">return</span> cache;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>而SimpleCacheManager就非常的简单，自定义一个caches，仅仅是实现了一个必须要实现的方法loadCaches，就是多个Cache对象。这个会交给父类统一管理到cacheMap中</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SimpleCacheManager</span> <span class="keyword">extends</span> <span class="title">AbstractCacheManager</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> Collection&lt;? extends Cache&gt; caches = Collections.emptySet();</span><br><span class="line"></span><br><span class="line">	<span class="comment">/**</span></span><br><span class="line"><span class="comment">	 * Specify the collection of Cache instances to use for this CacheManager.</span></span><br><span class="line"><span class="comment">	 * <span class="doctag">@see</span> #initializeCaches()</span></span><br><span class="line"><span class="comment">	 */</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setCaches</span><span class="params">(Collection&lt;? extends Cache&gt; caches)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.caches = caches;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Override</span></span><br><span class="line">	<span class="keyword">protected</span> Collection&lt;? extends Cache&gt; loadCaches() &#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">this</span>.caches;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
+<blockquote>
+<p>Windows版本的Redis从系统分页文件中保留堆内存</p>
+<p>用于共享用于持久化操作的分叉进程。中没有足够的连续可用空间</p>
+<p>系统的分页文件。您可以增加系统分页文件的大小。</p>
+<p>有时，重新启动将对系统分页文件进行足够的碎片整理</p>
+<p>该操作才能成功完成。</p>
+</blockquote>
+<p><strong>解决方案</strong></p>
+<p>windows上参考 <a target="_blank" rel="noopener" href="https://blog.csdn.net/xhh_1817/article/details/110948531">https://blog.csdn.net/xhh_1817/article/details/110948531</a></p>
+<p>计算机-&gt;高级系统设置-&gt;高级-&gt;性能设置-&gt;高级-&gt;虚拟内存更改-&gt;选择Redis所在的盘自定义大小设置，完了重启Redis服务就好了。</p>
+<p>同时为系统盘和Redis所在数据盘留出足够的的空间</p>
 
       
       <!-- reward -->
@@ -505,7 +706,7 @@
 
 </article>
     
-    <article id="post-AI/深度学习应用开发-TensorFlow实践" class="article article-type-post" itemscope
+    <article id="post-Docker/docker离线安装" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -513,8 +714,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/11/03/AI/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91-TensorFlow%E5%AE%9E%E8%B7%B5/"
-    >深度学习应用开发-TensorFlow实践</a
+  <a class="article-title" href="/2021/12/31/Docker/docker%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/"
+    >docker离线安装</a
   >
 </h2>
   
@@ -524,12 +725,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/11/03/AI/%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E5%BA%94%E7%94%A8%E5%BC%80%E5%8F%91-TensorFlow%E5%AE%9E%E8%B7%B5/" class="article-date">
-  <time datetime="2021-11-03T04:00:00.000Z" itemprop="datePublished">2021-11-03</time>
+      <a href="/2021/12/31/Docker/docker%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/" class="article-date">
+  <time datetime="2021-12-31T04:00:00.000Z" itemprop="datePublished">2021-12-31</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/AI/">AI</a>
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
   </div>
 
       
@@ -546,8 +747,21 @@
       
 
       
-      <h2 id="监督式机器学习"><a href="#监督式机器学习" class="headerlink" title="监督式机器学习"></a>监督式机器学习</h2><h3 id="单变量线性回归"><a href="#单变量线性回归" class="headerlink" title="单变量线性回归"></a>单变量线性回归</h3><p>以最简单的线性回归案例来说，线性回归表达的是一个二元一次方程。</p>
-<p>y = w * x + b</p>
+      <p>到 <a target="_blank" rel="noopener" href="https://download.docker.com/linux/static/stable/x86_64/">https://download.docker.com/linux/static/stable/x86_64/</a> 地址找到对应的docker.tgz包。里面是docker的可执行二进制文件。</p>
+<p>官方文档在 <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/install/binaries/#install-static-binaries">https://docs.docker.com/engine/install/binaries/#install-static-binaries</a> 中。</p>
+<p>很多人没有看到这块，只看到了yum安装和rpm安装。这些都是需要网的。提供的rpm的docker仓库里的几个rpm，虽然说是docker必须的，但是其中有许多的依赖包并没有提供。因此还是需要网自动下载依赖。因此要想离线安装必须使用静态二进制的安装方式。</p>
+<p>docker二进制文件可以直接启动。但是需要把他做成服务，便于管理。因此需要做成systemd service。</p>
+<p>注意：网上的18.x.x版本比较老。会有些bug。比如docker-compose内，部分容器无法访问其他容器映射到宿主机的端口，无法ping同宿主机。</p>
+<p>解压，并将二进制文件放到在存在环境变量的目录中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tar  -xvf  docker-20.10.9.tgz</span><br><span class="line">cp  docker/*    /usr/bin/</span><br></pre></td></tr></table></figure>
+
+<p>注册docker 服务</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/systemd/system/docker.service</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">[Unit]</span><br><span class="line">Description=Docker Application Container Engine</span><br><span class="line">Documentation=https://docs.docker.com</span><br><span class="line">After=network-online.target firewalld.service</span><br><span class="line">Wants=network-online.target</span><br><span class="line">[Service]</span><br><span class="line">Type=notify</span><br><span class="line"><span class="meta">#</span><span class="bash"> the default is not to use systemd <span class="keyword">for</span> cgroups because the delegate issues still</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> exists and systemd currently does not support the cgroup feature <span class="built_in">set</span> required</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">for</span> containers run by docker</span></span><br><span class="line">ExecStart=/usr/bin/dockerd</span><br><span class="line">ExecReload=/bin/kill -s HUP $MAINPID</span><br><span class="line"><span class="meta">#</span><span class="bash"> Having non-zero Limit*s causes performance problems due to accounting overhead</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">in</span> the kernel. We recommend using cgroups to <span class="keyword">do</span> container-local accounting.</span></span><br><span class="line">LimitNOFILE=infinity</span><br><span class="line">LimitNPROC=infinity</span><br><span class="line">LimitCORE=infinity</span><br><span class="line"><span class="meta">#</span><span class="bash"> Uncomment TasksMax <span class="keyword">if</span> your systemd version supports it.</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Only systemd 226 and above support this version.</span></span><br><span class="line"><span class="meta">#</span><span class="bash">TasksMax=infinity</span></span><br><span class="line">TimeoutStartSec=0</span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="built_in">set</span> delegate yes so that systemd does not reset the cgroups of docker containers</span></span><br><span class="line">Delegate=yes</span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="built_in">kill</span> only the docker process, not all processes <span class="keyword">in</span> the cgroup</span></span><br><span class="line">KillMode=process</span><br><span class="line"><span class="meta">#</span><span class="bash"> restart the docker process <span class="keyword">if</span> it exits prematurely</span></span><br><span class="line">Restart=on-failure</span><br><span class="line">StartLimitBurst=3</span><br><span class="line">StartLimitInterval=60s</span><br><span class="line"> </span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">chmod +x /etc/systemd/system/docker.service</span><br><span class="line">systemctl  daemon-reload</span><br><span class="line">systemctl  start docker</span><br><span class="line">systemctl  enable  docker.service</span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
+
 
       
       <!-- reward -->
@@ -581,7 +795,7 @@
   
   <nav class="page-nav">
     
-    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/54/">54</a><a class="extend next" rel="next" href="/page/2/">下一页</a>
+    <span class="page-number current">1</span><a class="page-number" href="/page/2/">2</a><a class="page-number" href="/page/3/">3</a><span class="space">&hellip;</span><a class="page-number" href="/page/55/">55</a><a class="extend next" rel="next" href="/page/2/">下一页</a>
   </nav>
   
 </section>
@@ -592,7 +806,7 @@
     <ul class="list-inline">
       <li>
         &copy;
-        2020-2021
+        2020-2022
         陈光奇
       </li>
       <li>

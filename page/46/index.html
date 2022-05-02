@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-Oracle/Oracle数据库expdp,impdp命令数据库导入导出" class="article article-type-post" itemscope
+    <article id="post-Oracle/Oracle非正常关闭数据库" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/08/18/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93expdp,impdp%E5%91%BD%E4%BB%A4%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/"
-    >Oracle数据库expdp,impdp命令数据库导入导出</a
+  <a class="article-title" href="/2018/09/12/Oracle/Oracle%E9%9D%9E%E6%AD%A3%E5%B8%B8%E5%85%B3%E9%97%AD%E6%95%B0%E6%8D%AE%E5%BA%93/"
+    >Oracle非正常关闭数据库，ORA-01034:ORACLE not available,Oracle-27101:shared memory realm does not exists</a
   >
 </h2>
   
@@ -97,8 +97,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/08/18/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93expdp,impdp%E5%91%BD%E4%BB%A4%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AF%BC%E5%85%A5%E5%AF%BC%E5%87%BA/" class="article-date">
-  <time datetime="2018-08-18T07:23:55.000Z" itemprop="datePublished">2018-08-18</time>
+      <a href="/2018/09/12/Oracle/Oracle%E9%9D%9E%E6%AD%A3%E5%B8%B8%E5%85%B3%E9%97%AD%E6%95%B0%E6%8D%AE%E5%BA%93/" class="article-date">
+  <time datetime="2018-09-12T10:23:05.000Z" itemprop="datePublished">2018-09-12</time>
 </a>
       
   <div class="article-category">
@@ -119,30 +119,20 @@
       
 
       
-      <h3 id="导入导出示例"><a href="#导入导出示例" class="headerlink" title="导入导出示例"></a>导入导出示例</h3><ol>
-<li><p>查看管理理员目录（同时查看操作系统是否存在，因为Oracle并不关心该目录是否存在，如果不存在，则出错）</p>
-<p>select * from dba_directories;</p>
-</li>
-<li><p>给你需要导入的用户赋予指定目录的操作权限</p>
-<p>grant read,write on directory DATA_PUMP_DIR to 用户名;</p>
-</li>
-</ol>
-<p>DATA_PUMP_DIR目录名默认值为当前oracle安装目录/orcl/dpdump/,DIRECTORY参数表示dmp文件放置的位置。导入导出的dmp文件都放在此目录下。</p>
+      <h2 id="当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle"><a href="#当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle" class="headerlink" title="当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle"></a>当数据库在执行命令操作时，非正常关闭oracle服务，导致无法启动oracle</h2><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180912180430.png" alt=""> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180912180543.png" alt=""> 网上的处理方法: 登陆时，谈给你错误的 ORA-01034:ORACLE not available,Oracle-27101:shared memory realm does not exists 后面由进程ID，回话ID，序列号。 去D:\app\cgq_r\diag\rdbms\orcl\orcl\trace位置找到你进程id对应的文件,orcl_ora_1460.trc 这个时错误日志，发现 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/09/20180912180948.png" alt=""> ORA-19815: 警告: db_recovery_file_dest_size 字节 (共 4102029312 字节) 已使用 100.00%, 尚有 0 字节可用。 ORA-19809: 超出了恢复文件数的限制 ORA-19804: 无法回收 42810368 字节磁盘空间 (从 4102029312 限制中) ORA-16038: 日志 1 sequence# 316 无法归档 <strong>db_recovery_file_dest_size也叫归档日志空间不足导致的。</strong> 解决途径:</p>
 <ol>
-<li><p>导出用户数据(包含表结构，数据等)</p>
-<p>expdp 用户名/密码@数据库实例名称 schemas=用户名 dumpfile=要导出的dmp文件名.dmp DIRECTORY=目录名称;<br>expdp scott/tiger@orcl schemas=scott dumpfile=scott.dmp DIRECTORY=DATA_PUMP_DIR;</p>
-</li>
-<li><p>导入用户</p>
-<p>impdp 用户名/密码@orcl  DUMPFILE=dmp名称.dmp SCHEMAS=要导入库的用户名，逗号隔开 DIRECTORY=目录名称</p>
+<li><p>删除归档日志</p>
+<p>在服务中启动oracle服务，或startup mount</p>
+<p>rman target sys/orcl<br>delete archivelog until time ‘sysdate’; –删除所有日志<br>delete expired archivelog all;–删除过期日志</p>
 </li>
 </ol>
-<p>导入前，dmp文件放置在directory目录路径下。impdp和expdp命令后面的用户名密码为连接数据库的用户名密码，可以不和schemas用户名一样，但一定具有读写目录的权限。 数据导出可以设置只导出的数据，可以是表结构，或表空间 CONTENT=METADATA_ONLY 参数表示，导出时只导出所有指定用户下的表结构及其他视图，包，存储过程等对象，但不包括数据内容。 expdp -help和impdp-help可以查看参数。</p>
-<ol start="3">
-<li>只导出表</li>
+<p>重新关闭数据库服务，再开启</p>
+<ol start="2">
+<li><p>设置归档日志大小</p>
+<p>select * from v$recovery_file_dest; —查询归档日志<br>db_recovery_file_dest_size=10737418240; –设置归档日志空间为10G</p>
+</li>
 </ol>
-<p>如果要导出表，就是用tables属性，tables=(T1:P1)，T1指表名，P1指表的分区；多个表使用逗号分割。如果使用tables属性就能不使用schemas属性 对于导入的话，只需要库中存在这些表，不需要指定tables属性</p>
-<h3 id="创建表空间用户示例"><a href="#创建表空间用户示例" class="headerlink" title="创建表空间用户示例"></a>创建表空间用户示例</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br><span class="line">136</span><br><span class="line">137</span><br><span class="line">138</span><br><span class="line">139</span><br><span class="line">140</span><br><span class="line">141</span><br><span class="line">142</span><br><span class="line">143</span><br><span class="line">144</span><br><span class="line">145</span><br><span class="line">146</span><br><span class="line">147</span><br><span class="line">148</span><br><span class="line">149</span><br><span class="line">150</span><br><span class="line">151</span><br><span class="line">152</span><br><span class="line">153</span><br><span class="line">154</span><br><span class="line">155</span><br><span class="line">156</span><br><span class="line">157</span><br><span class="line">158</span><br><span class="line">159</span><br><span class="line">160</span><br><span class="line">161</span><br><span class="line">162</span><br><span class="line">163</span><br><span class="line">164</span><br><span class="line">165</span><br><span class="line">166</span><br><span class="line">167</span><br><span class="line">168</span><br><span class="line">169</span><br><span class="line">170</span><br><span class="line">171</span><br><span class="line">172</span><br><span class="line">173</span><br><span class="line">174</span><br><span class="line">175</span><br><span class="line">176</span><br><span class="line">177</span><br><span class="line">178</span><br><span class="line">179</span><br><span class="line">180</span><br><span class="line">181</span><br><span class="line">182</span><br><span class="line">183</span><br><span class="line">184</span><br><span class="line">185</span><br><span class="line">186</span><br><span class="line">187</span><br><span class="line">188</span><br><span class="line">189</span><br><span class="line">190</span><br><span class="line">191</span><br><span class="line">192</span><br><span class="line">193</span><br><span class="line">194</span><br><span class="line">195</span><br><span class="line">196</span><br><span class="line">197</span><br><span class="line">198</span><br><span class="line">199</span><br><span class="line">200</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line"><span class="comment">--登录sqlplus</span></span><br><span class="line">sqlplus sys/sys@smbdc as sysdba</span><br><span class="line"></span><br><span class="line"><span class="comment">--创建表空间</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcsde  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\sm\bdcsde.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> xxch  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\xxch.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> archives   </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\archives.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> sde  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\sde.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcbiz  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcbiz.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcqj  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcqj.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">tablespace</span> bdcgx  </span><br><span class="line"><span class="keyword">logging</span>  </span><br><span class="line"><span class="keyword">datafile</span> <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcgx.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>; </span><br><span class="line"></span><br><span class="line"><span class="comment">--创建临时表空间</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcsde_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcsde_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> xxch_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\xxch_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> sde_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\sde_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcbiz_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcbiz_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> bdcqj_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\bdcqj_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">temporary</span> <span class="keyword">tablespace</span> newarchives_temp_temp  </span><br><span class="line">tempfile <span class="string">&#x27;D:\app\Administrator\oradata\smbdc\newarchives_temp.dbf&#x27;</span> </span><br><span class="line"><span class="keyword">size</span> <span class="number">50</span>m  </span><br><span class="line"><span class="keyword">autoextend</span> <span class="keyword">on</span>  </span><br><span class="line"><span class="keyword">next</span> <span class="number">50</span>m <span class="keyword">maxsize</span> <span class="number">20480</span>m  </span><br><span class="line"><span class="keyword">extent</span> <span class="keyword">management</span> <span class="keyword">local</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--创建用户并指定表空间（在新建的tb及 tmp-tb上建库）：</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcsde PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCSDE&quot;</span>  <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span> ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> xxch PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;XXCH&quot;</span> <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> archives PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;NEWARCHIVES&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcbiz PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCBIZ&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcqj PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCQJ&quot;</span>   <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span>  ;</span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> bdcgx PROFILE <span class="string">&quot;DEFAULT&quot;</span> <span class="keyword">IDENTIFIED</span> <span class="keyword">BY</span> <span class="string">&quot;123456&quot;</span> <span class="keyword">DEFAULT</span> <span class="keyword">TABLESPACE</span> <span class="string">&quot;BDCGX&quot;</span>  <span class="keyword">ACCOUNT</span> <span class="keyword">UNLOCK</span> ;</span><br><span class="line"></span><br><span class="line"><span class="comment">--给新建的用户授权</span></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcsde;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcsde;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> xxch;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> xxch;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> archives;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> archives;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcbiz;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcqj;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcqj;</span><br><span class="line"></span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CREATE</span> <span class="keyword">ANY</span> <span class="keyword">VIEW</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">SELECT</span> <span class="keyword">ANY</span> <span class="keyword">TABLE</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> <span class="keyword">CONNECT</span> <span class="keyword">TO</span> bdcgx;</span><br><span class="line"><span class="keyword">GRANT</span> DBA <span class="keyword">TO</span> bdcgx;</span><br><span class="line"></span><br><span class="line"><span class="comment">--CMD直接导入数据库dmp文件</span></span><br><span class="line">imp bdcsde/123456@localhost/orcl file=&quot;C:\db\1126按用户执行备份\1126按用户备份\exp_backup\bdcsde_bf.dmp&quot; full=y ignore=y; </span><br><span class="line">imp xxch/123456@localhost/orcl file=&quot;C:\db\1126按用户执行备份\1126按用户备份\exp_backup\xxch_bf.dmp&quot; full=y ignore=y;</span><br><span class="line"></span><br><span class="line"><span class="comment">--数据泵导入</span></span><br><span class="line"><span class="keyword">create</span> <span class="keyword">directory</span> dpdata1 <span class="keyword">as</span> <span class="string">&#x27;D:\db\jz\dump_dir&#x27;</span>;（数据库放置目录如:D:\DBback\sanheDB\dump_dir）(ok)</span><br><span class="line"><span class="keyword">Grant</span> <span class="keyword">read</span>,write <span class="keyword">on</span> <span class="keyword">directory</span> dpdata1 <span class="keyword">to</span> <span class="keyword">system</span>;(ok)</span><br><span class="line">impdp system/123456@smbdc DIRECTORY=dpdata1 DUMPFILE=20190329_FULLDP.DMP FULL=y log=impdpsmbdc.log;(ap不是数据泵导出的，所以不能用,三和可以)</span><br><span class="line">impdp system/system@smbdc DIRECTORY=dpdata1 DUMPFILE=QLFULLDB.DMP FULL=y log=qldb.log ignore=y;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--删除用户及级联关系也删除掉</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> xxch <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> bdcsde <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> archives <span class="keyword">cascade</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">user</span> bdcbiz <span class="keyword">cascade</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">--删除表空间及物理文件（需要先删除用户）</span></span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> XXCH <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> BDCSDE <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> ARCHIVES <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"><span class="keyword">drop</span> <span class="keyword">tablespace</span> BDCBIZ <span class="keyword">including</span> <span class="keyword">contents</span> <span class="keyword">and</span> <span class="keyword">datafiles</span> <span class="keyword">cascade</span> <span class="keyword">constraint</span>;</span><br><span class="line"></span><br><span class="line"><span class="comment">--修改用户名密码</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> bdcsde <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> xxch <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> archives <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> bdcbiz <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> sde <span class="keyword">identified</span> <span class="keyword">by</span> <span class="number">123456</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment">--无法分发客户机session或process数量不够用</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> v$process; <span class="comment">--取得数据库目前的进程数。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">from</span> v$parameter <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">&#x27;processes&#x27;</span>;     <span class="comment">--取得进程数的上限。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">count</span>(*) <span class="keyword">from</span> v$<span class="keyword">session</span>; <span class="comment">--取得数据库目前的会话数。 </span></span><br><span class="line"></span><br><span class="line"><span class="keyword">select</span> <span class="keyword">value</span> <span class="keyword">from</span> v$parameter <span class="keyword">where</span> <span class="keyword">name</span> = <span class="string">&#x27;sessions&#x27;</span>; <span class="comment">--取得会话数的上限。</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">set</span> processes=<span class="number">1000</span> <span class="keyword">scope</span>=<span class="keyword">spfile</span>;   <span class="comment">--将process值改为1000</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">system</span> <span class="keyword">set</span> sessions=<span class="number">1105</span> <span class="keyword">scope</span>=<span class="keyword">spfile</span>;    <span class="comment">--将sessions值改为1105</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">create</span> pfile <span class="keyword">from</span> <span class="keyword">spfile</span>;   <span class="comment">--从spfile（运行时配置）创建pfile（系统配置）</span></span><br><span class="line"></span><br><span class="line"><span class="comment">--重启oracle</span></span><br><span class="line"></span><br></pre></td></tr></table></figure>
-
+<p>参考： <a target="_blank" rel="noopener" href="https://blog.csdn.net/zwk626542417/article/details/39667999">https://blog.csdn.net/zwk626542417/article/details/39667999</a> <a target="_blank" rel="noopener" href="http://www.cnblogs.com/xwdreamer/p/3804509.html">http://www.cnblogs.com/xwdreamer/p/3804509.html</a></p>
 
       
       <!-- reward -->
@@ -172,7 +162,7 @@
 
 </article>
     
-    <article id="post-Oracle/关于Oracle在未删除用户时手动直接删除DBF文件引起的错误" class="article article-type-post" itemscope
+    <article id="post-XML/XML定义Schema，定义xsd文件并使用xml文件引用它" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -180,8 +170,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/08/18/Oracle/%E5%85%B3%E4%BA%8EOracle%E5%9C%A8%E6%9C%AA%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7%E6%97%B6%E6%89%8B%E5%8A%A8%E7%9B%B4%E6%8E%A5%E5%88%A0%E9%99%A4DBF%E6%96%87%E4%BB%B6%E5%BC%95%E8%B5%B7%E7%9A%84%E9%94%99%E8%AF%AF/"
-    >关于Oracle在未删除用户时手动直接删除DBF文件引起的错误</a
+  <a class="article-title" href="/2018/09/11/XML/XML%E5%AE%9A%E4%B9%89Schema%EF%BC%8C%E5%AE%9A%E4%B9%89xsd%E6%96%87%E4%BB%B6%E5%B9%B6%E4%BD%BF%E7%94%A8xml%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8%E5%AE%83/"
+    >XML定义Schema，定义xsd文件并使用xml文件引用它</a
   >
 </h2>
   
@@ -191,8 +181,143 @@
 
     
     <div class="article-meta">
-      <a href="/2018/08/18/Oracle/%E5%85%B3%E4%BA%8EOracle%E5%9C%A8%E6%9C%AA%E5%88%A0%E9%99%A4%E7%94%A8%E6%88%B7%E6%97%B6%E6%89%8B%E5%8A%A8%E7%9B%B4%E6%8E%A5%E5%88%A0%E9%99%A4DBF%E6%96%87%E4%BB%B6%E5%BC%95%E8%B5%B7%E7%9A%84%E9%94%99%E8%AF%AF/" class="article-date">
-  <time datetime="2018-08-18T06:28:03.000Z" itemprop="datePublished">2018-08-18</time>
+      <a href="/2018/09/11/XML/XML%E5%AE%9A%E4%B9%89Schema%EF%BC%8C%E5%AE%9A%E4%B9%89xsd%E6%96%87%E4%BB%B6%E5%B9%B6%E4%BD%BF%E7%94%A8xml%E6%96%87%E4%BB%B6%E5%BC%95%E7%94%A8%E5%AE%83/" class="article-date">
+  <time datetime="2018-09-11T10:41:46.000Z" itemprop="datePublished">2018-09-11</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/XML/">XML</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="本地引用"><a href="#本地引用" class="headerlink" title="本地引用"></a>本地引用</h2><p>xsd和xml文件都在本地同目录下 则引用为如下示例</p>
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;&gt;
+    &lt;xs:element name=&quot;person&quot;&gt;
+        &lt;xs:complexType&gt;
+            &lt;xs:sequence&gt;
+                &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
+                &lt;xs:element name=&quot;age&quot; type=&quot;xs:int&quot;/&gt;
+                &lt;xs:element name=&quot;sex&quot;&gt;
+                    &lt;xs:simpleType&gt;
+                        &lt;xs:restriction&gt;
+                            &lt;xs:enumeration value=&quot;男&quot;/&gt;
+                            &lt;xs:enumeration value=&quot;女&quot;/&gt;
+                        &lt;/xs:restriction&gt;
+                    &lt;/xs:simpleType&gt;
+                &lt;/xs:element&gt;
+                &lt;xs:element name=&quot;height&quot; type=&quot;xs:int&quot;/&gt;
+            &lt;/xs:sequence&gt;
+        &lt;/xs:complexType&gt;
+    &lt;/xs:element&gt;
+&lt;/xs:schema&gt;
+
+
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;person xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+      xsi:noNamespaceSchemaLocation=&quot;test.xsd&quot;&gt;
+    &lt;name&gt;s&lt;/name&gt;
+    &lt;age&gt;1&lt;/age&gt;
+    &lt;sex&gt;&lt;/sex&gt;
+    &lt;height&gt;2&lt;/height&gt;
+&lt;/person&gt;</code></pre><p>本地情况下xsd文件仅定义xmlns:xs=”<a target="_blank" rel="noopener" href="http://www.w3.org/2001/XMLSchema&quot;即可">http://www.w3.org/2001/XMLSchema&quot;即可</a> xml文件 根元素，引用xmlns:xsi=”<a target="_blank" rel="noopener" href="http://www.w3.org/2001/XMLSchema-instance&quot;">http://www.w3.org/2001/XMLSchema-instance&quot;</a> xsi:noNamespaceSchemaLocation=”test.xsd”,表示没有命名空间，引用地址为该xsd文件的相对路径。且仅可使用相对路径。</p>
+<h2 id="如果你将xsd文件放在远程服务器上"><a href="#如果你将xsd文件放在远程服务器上" class="headerlink" title="如果你将xsd文件放在远程服务器上"></a>如果你将xsd文件放在远程服务器上</h2><pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;xs:schema xmlns:xs=&quot;http://www.w3.org/2001/XMLSchema&quot;
+           targetNamespace=&quot;http://qxu1591340090.my3w.com&quot;
+           xmlns=&quot;http://qxu1591340090.my3w.com&quot;
+           elementFormDefault=&quot;qualified&quot;&gt;
+    &lt;xs:element name=&quot;person&quot;&gt;
+        &lt;xs:complexType&gt;
+            &lt;xs:sequence&gt;
+                &lt;xs:element name=&quot;name&quot; type=&quot;xs:string&quot;/&gt;
+                &lt;xs:element name=&quot;age&quot; type=&quot;xs:int&quot;/&gt;
+                &lt;xs:element name=&quot;sex&quot;&gt;
+                    &lt;xs:simpleType&gt;
+                        &lt;xs:restriction&gt;
+                            &lt;xs:enumeration value=&quot;男&quot;/&gt;
+                            &lt;xs:enumeration value=&quot;女&quot;/&gt;
+                        &lt;/xs:restriction&gt;
+                    &lt;/xs:simpleType&gt;
+                &lt;/xs:element&gt;
+                &lt;xs:element name=&quot;height&quot; type=&quot;xs:int&quot;/&gt;
+            &lt;/xs:sequence&gt;
+        &lt;/xs:complexType&gt;
+    &lt;/xs:element&gt;
+&lt;/xs:schema&gt;
+
+
+&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
+&lt;person xmlns=&quot;http://qxu1591340090.my3w.com&quot;
+        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
+        xsi:schemaLocation=&quot;http://qxu1591340090.my3w.com http://qxu1591340090.my3w.com/test2.xsd&quot;&gt;
+    &lt;name&gt;s&lt;/name&gt;
+    &lt;age&gt;1&lt;/age&gt;
+    &lt;sex&gt;男&lt;/sex&gt;
+    &lt;height&gt;2&lt;/height&gt;
+&lt;/person&gt;</code></pre><p>需要为xsd文件添加targetNamespace=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com&quot;和xmlns=&quot;http://qxu1591340090.my3w.com&quot;，值都指向你的服务器地址。">http://qxu1591340090.my3w.com&quot;和xmlns=&quot;http://qxu1591340090.my3w.com&quot;，值都指向你的服务器地址。</a> xml文件中添加xmlns=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com&quot;以及">http://qxu1591340090.my3w.com&quot;以及</a> xsi:schemaLocation=”<a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com">http://qxu1591340090.my3w.com</a> <a target="_blank" rel="noopener" href="http://qxu1591340090.my3w.com/test2.xsd&quot;">http://qxu1591340090.my3w.com/test2.xsd&quot;</a> 第一个值为你的命名空间就是你的服务器地址，第二个值是你的xsd文件路径，如果你的xsd文件在本地，依然可以使用相对路径，这与命名空间似乎无关，如果文件在远程服务器，那么将地址改为你的远程服务器文件的路径即可。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/xml/" rel="tag">xml</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/cannot backup or copy active file in NOARCHIVELOG mode" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/"
+    >数据库ORA-19602 cannot backup or copy active file in NOARCHIVELOG mode</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/09/07/Oracle/cannot%20backup%20or%20copy%20active%20file%20in%20NOARCHIVELOG%20mode/" class="article-date">
+  <time datetime="2018-09-07T01:17:37.000Z" itemprop="datePublished">2018-09-07</time>
 </a>
       
   <div class="article-category">
@@ -213,7 +338,35 @@
       
 
       
-      <p>Oracle已经启动，可以登录，但是操作时说Oracle为打开 监听错误或者未初始化服务句柄，ORA-24324: 未初始化服务句柄， ORA-01041: 内部错误, hostdef 扩展名不存在 sqlplus命令 shutdown normal 数据库已经关闭。 已经卸载数据库。 ORACLE 例程已经关闭。 SQL&gt; startup mount ORA-12514: TNS: 监听程序当前无法识别连接描述符中请求的服务 SQL&gt; startup mount ORA-24324: 未初始化服务句柄 ORA-01041: 内部错误, hostdef 扩展名不存在 alter database open； ORA-01157: 无法标识/锁定数据文件 18 - 请参阅 DBWR 跟踪文件 ORA-01110: 数据文件 18: ‘D:\ORACLE\ORADATA\FLOW\GGSC\SYSCOM.ORA’ 此时说明，dbf数据文件已经被删除，无法启动数据库 alter database datafile ‘D:\ORACLE\ORADATA\FLOW\GGSC\SYSCOM.ORA’ offline drop 通过此解决,datafile后的路径改为上面报错的路径，然后尝试alter database open;命令，如果还有其他缺少文件错误，依然这样操作。最后就能开启。</p>
+      <p>此错误的起源再，使用了RMAN的backup database命令</p>
+<pre><code>RMAN&gt; backup database;
+
+Starting backup at 07-SEP-18
+using channel ORA_DISK_1
+channel ORA_DISK_1: starting full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
+ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode
+continuing other job steps, job failed will not be re-run
+channel ORA_DISK_1: starting full datafile backup set
+channel ORA_DISK_1: specifying datafile(s) in backup set
+including current control file in backup set
+including current SPFILE in backup set
+channel ORA_DISK_1: starting piece 1 at 07-SEP-18
+channel ORA_DISK_1: finished piece 1 at 07-SEP-18
+piece handle=/data/oracle/flash_recovery_area/ORCL/backupset/2018_09_07/o1_mf_ncsnf_TAG20180907T090021_fs3mf6o4_.bkp tag=TAG20180907T090021 comment=NONE
+channel ORA_DISK_1: backup set complete, elapsed time: 00:00:01
+RMAN-00571: ===========================================================
+RMAN-00569: =============== ERROR MESSAGE STACK FOLLOWS ===============
+RMAN-00571: ===========================================================
+
+RMAN-03009: failure of backup command on ORA_DISK_1 channel at 09/07/2018 09:00:21
+ORA-19602: cannot backup or copy active file in NOARCHIVELOG mode</code></pre><p>​    </p>
+<p>原因是该数据库运行再非归档模式。 我们知道Oracle中 重做日志文件被分为若干组，当一组重做日志被写满，ORACLE就开始写下一组，这叫做日志切换。切换是以循环的方式进行的，即当最后一组写满后又从第一 组开始写。所以如果只有重做日志，即oracle运行在非归档模式下，当遇到数据文件丢失或损坏时，oracle很难保证能够完全恢复数据库，因为可能所 需的重做记录因为因重做日志循环被覆盖掉了。但在归档方式下，归档日志进程会把切换后的重做日志文件复制到归档日志文件，我们可以把归档日志文件看成是重 做日志文件的备份，但归档日志文件是脱机的，即除了在进行复制时，ORACLE数据库在正常运行时是不会关注归档日志文件的。 所以我们应该把数据库改为归档模式。 需要将数据库运行在归档模式</p>
+<pre><code>shutdown immediate;-- 关闭数据库
+startup mount;-- 启动数据库到mount状态
+alter database archivelog;-- 修改数据库为归档模式
+alter database open;-- 打开数据库</code></pre><p>之后便可以备份了</p>
 
       
       <!-- reward -->
@@ -243,7 +396,7 @@
 
 </article>
     
-    <article id="post-Linux/CentOS7使用yum安装MySQL5.7命令" class="article article-type-post" itemscope
+    <article id="post-Javascript/关于使用BootStrap Table出现的一些问题" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -251,8 +404,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/08/08/Linux/CentOS7%E4%BD%BF%E7%94%A8yum%E5%AE%89%E8%A3%85MySQL5.7%E5%91%BD%E4%BB%A4/"
-    >CentOS7使用yum安装MySQL5.7命令</a
+  <a class="article-title" href="/2018/08/28/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8BootStrap%20Table%E5%87%BA%E7%8E%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/"
+    >关于使用BootStrap Table出现的一些问题</a
   >
 </h2>
   
@@ -262,252 +415,8 @@
 
     
     <div class="article-meta">
-      <a href="/2018/08/08/Linux/CentOS7%E4%BD%BF%E7%94%A8yum%E5%AE%89%E8%A3%85MySQL5.7%E5%91%BD%E4%BB%A4/" class="article-date">
-  <time datetime="2018-08-08T06:10:17.000Z" itemprop="datePublished">2018-08-08</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <ol>
-<li><p>下载repo源</p>
-<p>//下载repo源<br>wget <a target="_blank" rel="noopener" href="http://repo.mysql.com/mysql57-community-release-el7-8.noarch.rpm">http://repo.mysql.com/mysql57-community-release-el7-8.noarch.rpm</a><br>//安装源<br>rpm -ivh mysql57-community-release-el7-8.noarch.rpm</p>
-</li>
-<li><p>安装mysql-server</p>
-<p>//安装mysql-server<br>yum install mysql-server</p>
-</li>
-</ol>
-<p>可能报错</p>
-<pre><code>Error: Package: 2:postfix-2.10.1-6.el7.x86_64 (@anaconda)
-           Requires: libmysqlclient.so.18()(64bit)
-           Removing: 1:mariadb-libs-5.5.44-2.el7.centos.x86_64 (@anaconda)
-               libmysqlclient.so.18()(64bit)
-           Obsoleted By: mysql-community-libs-5.7.16-1.el6.x86_64 (mysql57-community)
-              ~libmysqlclient.so.20()(64bit)
-           Updated By: 1:mariadb-libs-5.5.50-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18()(64bit)
-           Available: 1:mariadb-libs-5.5.47-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18()(64bit)
-Error: Package: 2:postfix-2.10.1-6.el7.x86_64 (@anaconda)
-           Requires: libmysqlclient.so.18(libmysqlclient_18)(64bit)
-           Removing: 1:mariadb-libs-5.5.44-2.el7.centos.x86_64 (@anaconda)
-               libmysqlclient.so.18(libmysqlclient_18)(64bit)
-           Obsoleted By: mysql-community-libs-5.7.16-1.el6.x86_64 (mysql57-community)
-               Not found
-           Updated By: 1:mariadb-libs-5.5.50-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18(libmysqlclient_18)(64bit)
-           Available: 1:mariadb-libs-5.5.47-1.el7_2.x86_64 (updates)
-               libmysqlclient.so.18(libmysqlclient_18)(64bit)
- You could try using --skip-broken to work around the problem
- You could try running: rpm -Va --nofiles --nodigest</code></pre><p>解决办法</p>
-<pre><code>//删除包依赖
-yum remove mysql-libs</code></pre><p>然后再次安装</p>
-<pre><code>yum install mysql-server</code></pre><p>报错:</p>
-<pre><code>错误显示：
-
-软件包：mysql-community-server-5.7.20-1.el6.x86_64 (mysql57-community)
-
-需要：libsasl2.so.2()(64bit)
-
-您可以尝试添加 --skip-broken 选项来解决该问题
-
-您可以尝试执行：rpm -Va --nofiles --nodigest</code></pre><p>解决办法: 修改vim /etc/yum.repos.d/mysql-community.repo 源文件 [mysql57-community] name=MySQL 5.7 Community Server</p>
-<h2 id="baseurl-http-repo-mysql-com-yum-mysql-5-7-community-el-6-basearch"><a href="#baseurl-http-repo-mysql-com-yum-mysql-5-7-community-el-6-basearch" class="headerlink" title="baseurl=http://repo.mysql.com/yum/mysql-5.7-community/el/6/$basearch/"></a>baseurl=<a target="_blank" rel="noopener" href="http://repo.mysql.com/yum/mysql-5.7-community/el/6/$basearch/">http://repo.mysql.com/yum/mysql-5.7-community/el/6/$basearch/</a></h2><p><strong>baseurl=<a target="_blank" rel="noopener" href="http://repo.mysql.com/yum/mysql-5.7-community/el/7/$basearch/">http://repo.mysql.com/yum/mysql-5.7-community/el/7/$basearch/</a></strong> enabled=1 <strong>gpgcheck=0</strong> gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-mysql 最后在重新安装</p>
-<pre><code>yum install mysql-server</code></pre><p>有y/n提示则写y</p>
-<pre><code>yum install mysql-devel</code></pre><p>默认配置文件路径： 配置文件：/etc/my.cnf 日志文件：/var/log/var/log/mysqld.log 服务启动脚本：/usr/lib/systemd/system/mysqld.service socket文件：/var/run/mysqld/mysqld.pid 配置mysql文件:</p>
-<pre><code>cd /etc/my.cnf 
-# 加入配置参数
-&gt; character-set-server=utf8 </code></pre><p>启动服务</p>
-<pre><code>service mysqld restart</code></pre><p>重置密码</p>
-<pre><code>//获得随机密码
-[root@localhost ~]# grep &quot;password&quot; /var/log/mysqld.log
-
-mysql -u root -p //进入
-
-//修改密码,包含字母数字特殊字符，至少有一个大写字母
-alter user &apos;root&apos;@&apos;localhost&apos; identified by &apos;你的密码&apos;;
-
-//刷新权限
-flush privileges</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Linux/" rel="tag">Linux</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MySQL/" rel="tag">MySQL</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-常用代码/项目开发中遇到的问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/"
-    >项目开发中遇到的问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/08/%E5%B8%B8%E7%94%A8%E4%BB%A3%E7%A0%81/%E9%A1%B9%E7%9B%AE%E5%BC%80%E5%8F%91%E4%B8%AD%E9%81%87%E5%88%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2018-08-08T01:19:18.000Z" itemprop="datePublished">2018-08-08</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <ol>
-<li><p>idea连接oracle数据库 首先不要忘了开启服务和监听程序，另外jdbc配置信息，driver不要写错，oracle.jdbc.driver.OracleDriver不要写成oracle.jdbc.OracleDriver</p>
-</li>
-<li><p>pl/sql工具，idea database，sqlplus都能连接成功，账号密码也是对的，配置也没问题，但是就是没法连接上数据库</p>
-<p>Cannot create PoolableConnectionFactory (ORA-01017: invalid username/password; logon denied 这个问题的最终结果以前也遇到过，没往这边想 首先就是一一核对配置信息和用户名密码。可能没有问题 然后就你的数据库配置文件了，在spring 中配置database bean，其中什么问题，${username}可能无法的到配置文件的值，所以你还是手写吧，或者jdbc.username=xxx解决</p>
-</li>
-<li><p>关于Bean装配的问题，Dao接口始终无法装配，不管是@Autowired还是Resource，都无法解决。</p>
-<p>但是有说接口不能装配，但是事实上可以装配，具体什么情况不太知道。然后查了applicationContext.xml配置，包括SqlSessionFactoryBean的配置和MapperScannerConfigurer的配置。 于是，当你认真发现时，MapperScannerConfigurer的basePackage属性的配置有些异样，因为你的包结构的问题，如果你不清楚basePackage设置什么，那么很可能将他设置成了mapper.xml所在的包。应该是dao的包。 所以basePackage配置有误，value设置到dao包</p>
-</li>
-<li><p>当有出现，无法找到mapper的方法时，例如:not find xxx.xxx.xxx.UserMapper.getUser()方法。</p>
-<p>查看是否配置了SqlSessionFactoryBean的mapperLocations参数,如果配置完成了，若再发现，找不到某某类，那么你的Mapper.xml文件里要注意实体类的名称，是别名还是完全限定名，可能着这个地方出现了问题。</p>
-</li>
-<li><p>java.sql.SQLSyntaxErrorException: ORA-00933: SQL 命令未正确结束</p>
-<p>初次使用mybatis时，可能犯的错误就是，sql语句后面的分号问题，在学数据库时一定要加分号，而在myabtis mapper中语句后加了分号就导致出现此问题。所以去掉分号就好了。</p>
-</li>
-<li><p>springmvc 引入静态资源文件，比如进入jquery.js，有时出现200，有时出现304，但无论如何不能通过$(function(){});函数中获得任何内容</p>
-<p>大部分网上都没有出现这种情况，都只是静态文件位置放错了，然后说三种进入静态文件的方法。 一个在web.xml，一个是mvc:resources，一个是mvc:deault-servlet-handler，这三种方法都对，配置任意一个都是正确的。 这时，<strong>你要检查引入js文件的script标签，它必须有一个开始标签和闭合标签，不能是自闭标签。否则，一定是无法使用的。这是新手不注意的错误。</strong></p>
-</li>
-<li><p>关于jstl库c标签的问题，c:if中test不能使用表达式，或c:xx标签怎么怎么不可用</p>
-<p>这个情况，你就要检查taglib标签是否引入错了，uri，一个是<a target="_blank" rel="noopener" href="http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误">http://java.sun.com/jsp/jstl/core，一个是http://java.sun.com/jstl/core,一个有jsp一个没有jsp，我们需要引用的是有jsp的uri，对于不经常写这个标签很有可能发生这种错误</a></p>
-</li>
-<li><p>mybatis接口方法的重载问题</p>
-<p>在mybatis中，dao接口是不可以有重载方法的</p>
-</li>
-<li><p>在$(function(){});中定义js方法，外部或onclick，onfocus等标签中属性无法调用，因为它相当于匿名函数，不可调用里面的方法，而你又需要jquery选择器操作，所以你只能通过window.function_name=function(){}的方式定义，外部才能访问到。</p>
-</li>
-<li><p>防止表单重复提交</p>
-</li>
-</ol>
-<pre><code>网上大部分都是注解+拦截器。所有的几乎都是一个模板，但是设置完成后，重复提交的话只是会跳到空白页，没办法正常显示数据，我们想要的是，第一次正常请求提交，第二次之后再点击只是在请求前被拦截器拦截到，检查重复了，我们不管它。就相当于第二次点一下就跟没反应一样。但是网上还是没找到的。 除此之外，就是使用禁用按钮了，click事件后form submit()提交，时候就禁用按钮，也就提交了一次了。</code></pre><ol start="11">
-<li><p>Neither BindingResult nor plain target object for bean name ‘user’ available as request attribute</p>
-<p>此问题是spring form表单的问题，因为form标签的modelAttrubute属性在绑定之前必须有一个实例才能够绑定，所以进login之前需要把一个空实例传过去。 于是网上大部分处理这些问题的解决方案是：在进入登录页面的方法，参数加上对象User user，或者处理登录时，对象User添加@ModelAttribute注解，而且参数名和form表单的ModelAttribute值一致。但是经过这样的测试之后还是不行的。 最终谷歌了一下，发现不能直接放在参数上不管，而是手动把空对象放到model对象中传递到页面</p>
-</li>
-<li><p>数据校验，validator数据校验，对象前添加@Valid注解，这是必须的，但是其后紧跟的就是BindingResult对象，这个不能丢</p>
-<p>通过Errors对象的hasErrors判断是否有错误，有错误直接返回到页面去。 数据校验，spring-servlet.xml配置时，bean ReloadableResourceBundleMessageSource的baseName属性为classpath:ValidationMessages，classpath:要加上，后面的文件后缀去掉,如果你这样做的话IDEA会报错，不用管不妨碍项目启动</p>
-</li>
-<li><p>aop切面，环绕通知，环绕通知相当于前置通知、返回通知、异常通知的合体。但是在我的一个简单的项目中出现了问题</p>
-<p>说不能使用POST什么的，而其他的三个完全没问题，只有环绕，项目运行登录时调用了一个方法，就出现一行异常，该网页无法正常运作 如果问题仍然存在，请与网站所有者联系。 HTTP ERROR 405，然后请求地址是正确的登录请求地址。 问题的原因可能某处出现了错误，但是错误没有抛出,因为切面比较特殊，不想其他地方错误了直接抛出错误，所以需要在业务层，把操作try-catch起来 (废弃)问题位置在，环绕通知的返回值，它的joinPoint.proceed();方法是继续目标执行。你必须返回它的值，也就是说该方法必须有返回值的。所以，因为之前是无返回值void，才出现了问题。</p>
-</li>
-<li><p>postgresql时区问题，本次测试和服务器测试总会导致两者时间不一致情况，使用@JsonFormat注解，导致要不多8小时要不少8小时</p>
-<p>需要确保timestamp字段是含时区的，也就是with time zone，字段类型 timestamptz，显示为timestamp with time zone，没有时区的就是without time zone。</p>
-<p>同时需要确定数据库的timezone是什么。并且每个不同的ide数据库连接工具可能会有不同的timezone设置，因此例如datagrip和navcat可能查询出的时间不一样，一个带时区查询，一个不带时区查询。最后返回的结果会根据@JsonFormat是否加时区进行转换。时区使用Asia/Shanghai，UTC可能不一定好使。</p>
-<p>需要进行@JsonFormat测试</p>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%BC%80%E5%8F%91%E9%97%AE%E9%A2%98/" rel="tag">开发问题</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E9%A1%B9%E7%9B%AE%E9%97%AE%E9%A2%98/" rel="tag">项目问题</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/前端js插件技术整合" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/08/01/Javascript/%E5%89%8D%E7%AB%AFjs%E6%8F%92%E4%BB%B6%E6%8A%80%E6%9C%AF%E6%95%B4%E5%90%88/"
-    >前端js插件技术整合</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/08/01/Javascript/%E5%89%8D%E7%AB%AFjs%E6%8F%92%E4%BB%B6%E6%8A%80%E6%9C%AF%E6%95%B4%E5%90%88/" class="article-date">
-  <time datetime="2018-08-01T09:38:04.000Z" itemprop="datePublished">2018-08-01</time>
+      <a href="/2018/08/28/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8BootStrap%20Table%E5%87%BA%E7%8E%B0%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-08-28T02:59:08.000Z" itemprop="datePublished">2018-08-28</time>
 </a>
       
   <div class="article-category">
@@ -528,384 +437,55 @@ flush privileges</code></pre>
       
 
       
-      <h1 id="项目技术综合学习文档"><a href="#项目技术综合学习文档" class="headerlink" title="项目技术综合学习文档"></a>项目技术综合学习文档</h1><p><a target="_blank" rel="noopener" href="https://github.com/markofrain/synthesis">GitHub地址</a> <strong>重点重点:主要看README!!!!</strong> <strong>重点重点:主要看README!!!!</strong> <strong>重点重点:主要看README!!!!</strong> 包含前端技术: jsp自定义标签 Mustache模板库 treeTable树形表 jquery validate校验 pagination 分页 WdatePicker日期插件 jquery jbox通知插件 zTree js 具体以目录为准!!! <strong>目录</strong> <a href="#a1">JS自定义标签</a><br>    <a href="#a2">自定义tld文件</a><br>    <a href="#a3">自定义tag文件</a><br><a href="#b1">Js Mustache模板引擎</a><br><a href="#c1">jQuery treeTable js</a><br><a href="#d1">jquery DateTimer jeDate时间控件</a><br><a href="#e1">jQuery validate校验框架</a><br>    <a href="#e2">默认标签校验规则</a><br>    <a href="#e3">js设置校验规则</a><br>    <a href="#e4">其他方法级问题</a><br><a href="#f1">zTree js框架</a><br>    <a href="#f2">基本json使用，一次性加载完毕</a><br>    <a href="#f3">异步加载</a><br><a href="#g1">Mybatis分页插件PageHelper</a><br><a href="#h1">stephanwagner jbox弹框插件</a><br>    <a href="#h2">基本提示框(全屏)</a><br>    <a href="#h3">移动弹框</a><br>    <a href="#h4">弹框内容由ajax发起请求并显示</a><br>    <a href="#h5">鼠标悬停显示信息</a>  </p>
-<h2 id="JSP自定义标签"><a href="#JSP自定义标签" class="headerlink" title="JSP自定义标签"></a>JSP自定义标签</h2><p>jsp自定义标签可以通过定义tld文件和tag文件来完成 tld是自定义方法标签，可以调用类的静态方法 tag是自定义控件标签，可自定义标签，定义标签属性添加</p>
-<h3 id="自定义tld文件"><a href="#自定义tld文件" class="headerlink" title="自定义tld文件"></a>自定义tld文件</h3><p>主要用于对java方法的静态都调用 引用示例: 对于自定义tld标签需要使用的依赖</p>
-<pre><code>&lt;dependency&gt;
-  &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
-  &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
-  &lt;version&gt;4.0.1&lt;/version&gt;
-  &lt;scope&gt;provided&lt;/scope&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-  &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
-  &lt;artifactId&gt;jstl&lt;/artifactId&gt;
-  &lt;version&gt;1.2&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>tld文件内，主要是方法function，通过java类静态方法的定义和引用，在jsp中通过${}方式输出 例如: 则可以${stu:method(params)}的方式输出 tld文件的定义</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; ?&gt;
-
-&lt;taglib xmlns=&quot;http://java.sun.com/xml/ns/j2ee&quot;
-        xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;
-        xsi:schemaLocation=&quot;http://java.sun.com/xml/ns/j2ee http://java.sun.com/xml/ns/j2ee/web-jsptaglibrary_2_0.xsd&quot;
-        version=&quot;2.0&quot;&gt;
-
-    &lt;description&gt;JSTL 1.1 Global library&lt;/description&gt;
-    &lt;display-name&gt;JSTL Global&lt;/display-name&gt;
-    &lt;tlib-version&gt;1.1&lt;/tlib-version&gt;
-    &lt;short-name&gt;gbl&lt;/short-name&gt;
-    &lt;uri&gt;http://java.sun.com/jsp/jstl/stu&lt;/uri&gt;
-
-    &lt;function&gt;
-        &lt;description&gt;获得学生名称&lt;/description&gt;
-        &lt;name&gt;getStudentName&lt;/name&gt;
-        &lt;function-class&gt;com.fsats.synthesis.customizetag.util.GlobalUtil&lt;/function-class&gt;
-        &lt;function-signature&gt;java.lang.String getStudentName(int)&lt;/function-signature&gt;
-        &lt;example&gt;$&#123;stu:getStudentName(index)&#125;&lt;/example&gt;
-    &lt;/function&gt;
-&lt;/taglib&gt;</code></pre><p>文件根标签头部是必须的，其次定义描述，显示名称，标签版本，短名称，uri。对于uri可以按示例格式定义，修改后面一个路径就好 然后是function标签，定义方法，依次是描述，名称，方法全类名，方法签名，示例。对于name就是${stu:name},需要正确定义，参数除基本数据类型外，均写完全限定名。可多参数传递。 可以为参数设置为对象类型，对象值可以通过model携带属性传递到jsp的，例如，项目中传递的student属性就是一个student对象，并直接作为参数，不必要再写${}了。 当然参数还可以是自定义的function，例如:${stu:getStudent(stu:getXxx(param))}。</p>
-<h3 id="自定义tag文件"><a href="#自定义tag文件" class="headerlink" title="自定义tag文件"></a>自定义tag文件</h3><p>tag自定义文件主要用于对重复jsp代码的自定义，也可以进行其他操作 引用示例: 自定义标签需要使用tagdir属性，路径到tag文件的目录，通过 <strong>前缀:文件名</strong>的方式使用自定义标签 示例是通过id获得对应的Student对象,通过ajax请求返回数据并设置到页面，返回的json数据可进行处理，只是转json的时候中文出现乱码问题没有解决。 在tag文件中，可使用jsp指令，tag，attribute，taglib，include等，不可使用page。也可以添加标签元素和js代码，完全可以当作jsp页面。 另外，只要引用了tld文件，依然是可以用静态方法调用的。</p>
-<blockquote>
-<p>实例在customizetag包</p>
-</blockquote>
-<h2 id="Js-Mustache模板引擎"><a href="#Js-Mustache模板引擎" class="headerlink" title="Js Mustache模板引擎"></a>Js Mustache模板引擎</h2><p>Mustache模板引擎需要引入mustache.min.js的js文件，它的官网在<a target="_blank" rel="noopener" href="https://github.com/janl/mustache.js">Mustache</a> 官网简单示例:</p>
-<pre><code>&lt;!DOCTYPE HTML&gt;
-&lt;html&gt;
-&lt;body onload=&quot;loadUser()&quot;&gt;
-&lt;div id=&quot;target&quot;&gt;Loading...&lt;/div&gt;
-&lt;script id=&quot;template&quot; type=&quot;x-tmpl-mustache&quot;&gt;
-Hello &#123; &#123; name &#125;&#125;!
-&lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;
-
-function loadUser() &#123;
-  var template = $(&apos;#template&apos;).html();
-  var rendered = Mustache.render(template, &#123;name: &quot;Luke&quot;&#125;);
-  $(&apos;#target&apos;).html(rendered);
-&#125;</code></pre><p>定义script标签，为模板类型，通过{ {}}设置属性,如{ {name}},{ {emp.name}},与${}一个道理。 js代码，先获取模板html，然后如果想要显示列表，那么可以拼接字符串，通过json循环，追加html模板字符串。</p>
-<pre><code>Mustache.render(template, &#123;name: &quot;Luke&quot;&#125;);</code></pre><p>该方法可以将模板转换，属性设置，在第二个参数，json格式，key为模板属性名称，值为模板属性值。第一个参数为模板转换的字符串。 翻看view下的mustache文件下的jsp文件以及mustache包下的controller。</p>
-<h2 id="jQuery-TreeTable-js"><a href="#jQuery-TreeTable-js" class="headerlink" title="jQuery TreeTable js"></a>jQuery TreeTable js</h2><p>js文件包,statics文件夹下的treeTable文件夹，整个文件夹都是，少了文件可能就导致小三角显示不出来，不能打开关闭树。 默认表格样式不好看，所以添加了bootstrap的表格样式。 先得到list的json字符串，随后通过模板进行append，但要注意的是，模板的tr标签一定要有id和pid属性，一个是该实例id，一个是该实例的父级id。 另外需要通过addRow迭代方法按照顺序append显示，否则它不会自动排序</p>
-<pre><code>function addRow(list,tpl,data,pid) &#123;
-    for (var i=0;i&lt;data.length;i++)&#123;
-        var row = data[i];//获得某一个实例
-        //判断该实例的父级id是否是传递来的pid，是则是其子级元素，将追加到后面
-        if(row.parentId==pid)&#123;
-            $(list).append(Mustache.render(tpl,&#123;area:row,areatype:row.type,pid:pid&#125;));
-            addRow(list,tpl,data,row.id);
-        &#125;
-
-    &#125;
-&#125;</code></pre><p>该排序，简而言之就是，首先循环，判断该父级id是否是传递的父级id，是则是父子级关系，会追加到其父的后面，然后再循环。 按着这个格式写就好。所有完毕后，通过$(“#treeTable”).treeTable({ expandable: true ,expandLevel : 5});显示，expandLevel表示拓展几级。 后台手动创建area list，用gson转为json字符串传递到后台可直接循环。 java类在jquerytreetable包中，jsp在bst/bstable.jsp，最重要的就是statics中包文件的的齐全。</p>
-<blockquote>
-<p>如果console出现$(‘’).treetabl不是一个函数的话，注意js引入是否正确，以及statics包是否完全导入项目。<br>另外row.type为数值，使用tld静态类时，无法使用，完全被转化为空。</p>
-</blockquote>
-<h2 id="jquery-DateTimer-jeDate时间控件"><a href="#jquery-DateTimer-jeDate时间控件" class="headerlink" title="jquery DateTimer jeDate时间控件"></a>jquery DateTimer jeDate时间控件</h2><p>添加jeDate插件,添加包到静态文件夹，jsp引入js和css，以及一个test.js文件。test.js文件主要就是定义文本框中日期字符串格式的。自己定义，如果不定义则js中会弹框。并且test.js必须放在body中的随后位置，以保证得到日期文本框的id</p>
-<pre><code>&lt;form:form id=&quot;deptForm&quot; action=&quot;$&#123;pageContext.request.contextPath&#125;/dept/save&quot; method=&quot;post&quot; modelAttribute=&quot;dept&quot;&gt;
-    &lt;form:label path=&quot;name&quot;&gt;部门名称&lt;/form:label&gt;&lt;form:input path=&quot;name&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
-    &lt;form:label path=&quot;area&quot;&gt;部门面积&lt;/form:label&gt;&lt;form:input path=&quot;area&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
-    &lt;form:label path=&quot;address&quot;&gt;部门地址&lt;/form:label&gt;&lt;form:input path=&quot;address&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
-    &lt;form:label path=&quot;phone&quot;&gt;部门电话&lt;/form:label&gt;&lt;form:input path=&quot;phone&quot;&gt;&lt;/form:input&gt;&lt;br/&gt;
-    &lt;form:label path=&quot;establishDate&quot;&gt;成立日期&lt;/form:label&gt;
-    &lt;input type=&quot;text&quot; name=&quot;establishDate&quot; value=&quot;&lt;fmt:formatDate value=&quot;$&#123;dept.establishDate&#125;&quot;/&gt;&quot; class=&quot;jeinput&quot; id=&quot;enYMD&quot; placeholder=&quot;YYYY-MM-DD&quot;/&gt;&lt;br/&gt;
-
-    &lt;input type=&quot;submit&quot; value=&quot;提交&quot;&gt;
-&lt;/form:form&gt;</code></pre><p>对于日期控件，简单的日期，添加倒数第三行那一行就好，但是不能使用form:input控件当作日期文本框，因为这样会导致标签变成字符串。 此日期插件有更多的显示方式，如：面板主题颜色，区域范围，自定义格式，双击弹出，有效无效日期限制，直接显示日历等。 具体可查看jeDate包，也可以看官网<a target="_blank" rel="noopener" href="http://www.jemui.com/index.html">JEUI</a>里的jeDate控件。 另外如果你发现引入后导致400 bad request，那么可以详细看看form及其属性标签定义的对不对，如果没问题，<strong>就看你是否有Date，String转换器，这是导致错误的最大可能。</strong>如果是其他报错则查看jsp也main与controller是否编写错误。 StringToDate转换器配置如下:</p>
-<pre><code>&lt;mvc:annotation-driven conversion-service=&quot;myConversionService&quot;/&gt;
-
-&lt;bean id=&quot;myConversionService&quot; class=&quot;org.springframework.context.support.ConversionServiceFactoryBean&quot;&gt;
-    &lt;property name=&quot;converters&quot;&gt;
-        &lt;set&gt;
-            &lt;!-- 引入自己配置的自定义转换器，将String类型转换为Date日期 --&gt;
-            &lt;bean class=&quot;com.fsats.synthesis.jqueryvalidate.converter.MyConversionDateToString&quot;&gt;
-                &lt;constructor-arg name=&quot;patten&quot; value=&quot;yyyy-MM-dd&quot;/&gt;
-            &lt;/bean&gt;
-        &lt;/set&gt;
-    &lt;/property&gt;
-&lt;/bean&gt;</code></pre><blockquote>
-<p>java文件在jqueryvalidate包，jsp在jvalidate文件夹下</p>
-</blockquote>
-<h2 id="jQuery-validate校验框架"><a href="#jQuery-validate校验框架" class="headerlink" title="jQuery validate校验框架"></a>jQuery validate校验框架</h2><p>引入js文件jquery.validate.min.js和messages_zh.js用于中文输出信息,还有必要的jquery.js文件 <a target="_blank" rel="noopener" href="http://www.runoob.com/jquery/jquery-plugin-validate.html">jquery validate菜鸟教程</a> <a target="_blank" rel="noopener" href="https://jqueryvalidation.org/">jquery validate官网</a>及<a target="_blank" rel="noopener" href="https://jqueryvalidation.org/files/demo/">官网演示案例</a></p>
-<h3 id="默认标签校验规则"><a href="#默认标签校验规则" class="headerlink" title="默认标签校验规则"></a>默认标签校验规则</h3><p>校验规则众多，许多规则名称，HTML5 Input标签都有。 像是取值为true的，如required、email、url、digits等，都可以直接写在class属性中，也可以单独写成一个属性。maxlength，range带值的这种，如果标签本来就有的就写上去，没有的也可以作为属性并赋值。 完成后，就可以进行校验,如:</p>
-<pre><code>$.validator.setDefaults(&#123;
-    //使用其他方式代替默认的submit
-    submitHandler: function(form) &#123;
-        alert(&quot;提交事件!&quot;);
-        form.submit();
-    &#125;
-&#125;);
-$(function()&#123;
-    $(&quot;#deptForm&quot;).validate();
-&#125;)</code></pre><p>测试后，如果不符合条件就会出现默认错误信息。</p>
-<h3 id="js设置校验规则"><a href="#js设置校验规则" class="headerlink" title="js设置校验规则"></a>js设置校验规则</h3><p>刚才校验规则都是写在标签里的，可以使用js代码写 rules属性可以设置规则</p>
-<pre><code>$(function()&#123;
-    $(&quot;#deptForm&quot;).validate(&#123;
-        submitHandler: function(form) &#123;
-            alert(&quot;提交事件!&quot;);
-        &#125;,
-        rules:&#123;
-            name:&quot;required&quot;,
-            address:&quot;required&quot;,
-            phone:&#123;
-                required:true,
-                maxlength:11
-            &#125;,
-            area:&#123;
-                required:true,
-                digits:true
-            &#125;,
-            establishDate:&quot;required&quot;
-        &#125;
-    &#125;);
-&#125;)</code></pre><h3 id="其他方法级问题"><a href="#其他方法级问题" class="headerlink" title="其他方法级问题"></a>其他方法级问题</h3><ol>
-<li>使用其他方式代替type=submit提交</li>
+      <h3 id="页面无法分页，传入多少就显示多少"><a href="#页面无法分页，传入多少就显示多少" class="headerlink" title="页面无法分页，传入多少就显示多少"></a><strong>页面无法分页，传入多少就显示多少</strong></h3><p>通常你会按照网上或官网的实例，map转json，返回rows和total，可是，前台始终无法得到这两个数据来显示。那么请检查你的</p>
+<pre><code>sidePagination: &apos;server&apos;</code></pre><p>是否配置正确，且注意名称是否正确 如果设置了此方式，则每次点击，排序啊，等等将是通过server来实现，将params参数传递到后台服务器进行排序，而不是客户端(不请求)排序</p>
+<h3 id="关于queryParams参数始终无法向后台传递参数"><a href="#关于queryParams参数始终无法向后台传递参数" class="headerlink" title="关于queryParams参数始终无法向后台传递参数"></a>关于queryParams参数始终无法向后台传递参数</h3><p>需要配置如下参数:</p>
+<pre><code>contentType: &quot;application/x-www-form-urlencoded&quot;,//请求数据内容格式 默认是 application/json</code></pre><p>但是有些项目不写，依然能传递参数，这我就不知道为什么了，可能后台配置了什么吧</p>
+<h3 id="queryParamType值为空字符串和limit的问题"><a href="#queryParamType值为空字符串和limit的问题" class="headerlink" title="queryParamType值为空字符串和limit的问题"></a>queryParamType值为空字符串和limit的问题</h3><ol>
+<li>当设置为limit时,返回参数为limit, offset, search, sort, order</li>
 </ol>
-<p>上面的示例代码是一种，注意:对于$.validator.setDefaults方法，只是设置默认和其他js校验代码，必须设置$(“#deptForm”).validate();才能校验，否则直接提交。 或者:</p>
-<pre><code>$().ready(function() &#123;
- $(&quot;#signupForm&quot;).validate(&#123;
-        submitHandler:function(form)&#123;
-            alert(&quot;提交事件!&quot;);   
-            form.submit();
-        &#125;    
-    &#125;);
-&#125;);</code></pre><ol start="2">
-<li><p>debug，只验证不提交表单</p>
-<p>$(“#signupForm”).validate({</p>
-<pre><code>debug:true</code></pre><p>});</p>
+<p>其中: sort值在column属性中的列中设置，sortable:true,那么请求时sort值就是该字段的名称，如果超过1个设置了sortable，那么sort为undefined search表示当你在属性设置中设置了search:true时，显示搜索框，输入完毕后自动请求，而值就给了search参数。 order表示在设置了sortOrder:’asc’或值为desc时，将值传递导order参数中 limit表示请求数量，属性中设置的pageSize: 5，那么limit就是5，如果设置了pageList，那么选择多少页数，就将数传递到limit并立刻发起请求 offset表示偏移量的意思，就是当前页之前的数据量，包含当前页</p>
+<ol start="2">
+<li>当值设置为空字符串””时,返回参数为pageSize, pageNumber, searchText, sortName, sortOrder</li>
+</ol>
+<p>其中pageSize和pageNumber，以及searchText分别都是对应属性值，searchText与search一样，都是搜索框里的值。 sortName表示，属性设置sortName:’对象名’,设置什么，返回什么,设置值为name，则返回name sortOrder与值为limit时的order一样，属性设置sortOrder值为asc或desc时返回的值</p>
+<h3 id="如果每个属性你设置了，并且功能不出来"><a href="#如果每个属性你设置了，并且功能不出来" class="headerlink" title="如果每个属性你设置了，并且功能不出来"></a>如果每个属性你设置了，并且功能不出来</h3><p>那么首先要看的就是属性名是否错误，在<a target="_blank" rel="noopener" href="http://bootstrap-table.wenzhixin.net.cn/zh-cn/documentation/?tdsourcetag=s_pctim_aiomsg">Bootstrap Table文档中</a>，搜索一下(Ctrl+F)，没有这个这属性。 其次就是js文件的引入问题，可能是少了，可能是js的script标签少了结束标签，这中情况很小 还有一种就是某个关键属性错误，比如sidePagination:’server’设置错误，导致无法分页。以及网上搜索可能会遇到的问题。</p>
+<h3 id="为表格添加增删改操作"><a href="#为表格添加增删改操作" class="headerlink" title="为表格添加增删改操作"></a>为表格添加增删改操作</h3><p>在table标签上定义toolbar</p>
+<pre><code>&lt;div id=&quot;toolbar&quot;&gt;
+    &lt;a id=&quot;add&quot; class=&quot;btn btn-primary&quot; onclick=&quot;add()&quot;&gt;&lt;i class=&quot;glyphicon glyphicon-plus&quot;&gt;&lt;/i&gt; 新建&lt;/a&gt;
+    &lt;button id=&quot;edit&quot; class=&quot;btn btn-success&quot; disabled&gt;
+        &lt;i class=&quot;glyphicon glyphicon-edit&quot;&gt;&lt;/i&gt; 修改
+    &lt;/button&gt;
+    &lt;button id=&quot;remove&quot; class=&quot;btn btn-danger&quot; disabled&gt;
+        &lt;i class=&quot;glyphicon glyphicon-remove&quot;&gt;&lt;/i&gt; 删除
+    &lt;/button&gt;
+&lt;/div&gt;</code></pre><p>并在bootStrapTable中设置toolbar属性值为toolbar的id。在column属性中，最前面添加一列(也就是{})，定义属性checkbox:true，表示为复选框。 对修改删除的操作是依据数据选中的数目判定，</p>
+<ul>
+<li><p>无选择则修改删除为禁用</p>
 </li>
-<li><p>errorContainer，错误容器</p>
+<li><p>当有且只有1个选中时修改按钮可用</p>
 </li>
-</ol>
-<p>显示或者隐藏验证信息，可以自动实现有错误信息出现时把容器属性变为显示，无错误时隐藏，用处不大。 errorContainer: “#messageBox1, #messageBox2” 没有太大用处</p>
-<ol start="4">
-<li>errorPlacement,更改错误信息显示的位置</li>
-</ol>
-<p>默认放在元素后面</p>
-<pre><code>errorPlacement: function(error, element) &#123;  
-    error.appendTo(element.parent());  
-&#125;</code></pre><p>你可以修改，函数内的代码段</p>
-<ol start="5">
-<li><p>定义错误样式,定义类名为error的css即可</p>
+<li><p>当选中一个或一个以上时删除可用</p>
 </li>
-<li><p>异步验证</p>
+<li><p>当任何不选时，修改和删除又都被禁用。</p>
+<p>//表示设置禁用/启用按钮<br>$(“#basic”).on(‘check.bs.table uncheck.bs.table ‘ +</p>
+<pre><code>&apos;check-all.bs.table uncheck-all.bs.table&apos;, function () &#123;
+$(&quot;#remove&quot;).prop(&apos;disabled&apos;, !$(&quot;#basic&quot;).bootstrapTable(&apos;getSelections&apos;).length);
+$(&apos;#edit&apos;).prop(&apos;disabled&apos;, $(&apos;#basic&apos;).bootstrapTable(&apos;getSelections&apos;).length!=1);//false为可用</code></pre><p>});<br>//获得id选项行<br>function getIdSelections() {</p>
+<pre><code>return $.map($(&quot;#basic&quot;).bootstrapTable(&apos;getSelections&apos;), function (row) &#123;
+    return row.id//返回改行数据的id
+&#125;);</code></pre><p>}</p>
 </li>
-</ol>
-<p>remote属性 示例:</p>
-<pre><code>remote: &#123;
-    url: &quot;dept/remote&quot;,     //后台处理程序
-    type: &quot;post&quot;,               //数据发送方式
-    dataType: &quot;json&quot;,           //接受数据格式   
-    data: &#123;                     //要传递的数据
-        name: function() &#123;
-            return $(&quot;input[name=name]&quot;).val();
-        &#125;
-    &#125;
-&#125;</code></pre><ol start="7">
-<li>自定义验证 addMethod(name, method, message);</li>
-</ol>
-<p>示例:</p>
-<pre><code>jQuery.validator.addMethod(&quot;checkPhone&quot;, function(value, element) &#123;
-    var tel = /^((13[0-9])|(14[5|7])|(15([0-3]|[5-9]))|(18[0,5-9]))\d&#123;8&#125;$/;
-    return this.optional(element) || (tel.test(value));
-&#125;, &quot;请正确填写您的手机号&quot;);</code></pre><p>校验的话，只需要在rules对应属性中设置，checkPhone:true。或者标签中class=”checkPhone”,或标签属性,checkPhone=”true”。</p>
-<h2 id="zTree-js框架"><a href="#zTree-js框架" class="headerlink" title="zTree js框架"></a>zTree js框架</h2><p>js包下载：<a target="_blank" rel="noopener" href="https://github.com/zTree/zTree_v3.git">github地址</a> 包大小约3-3MB，可整个导入项目静态文件夹下</p>
-<h3 id="基本json使用，一次性加载完毕"><a href="#基本json使用，一次性加载完毕" class="headerlink" title="基本json使用，一次性加载完毕"></a>基本json使用，一次性加载完毕</h3><p>必须要用到的初始化方法，用于初始化Tree</p>
-<pre><code>$.fn.zTree.init($(&quot;#treedata&quot;),setting,zNodes);</code></pre><p>该方法第一个参数为要展示的对象，setting为Tree设置，zNodes就是要展示的数据。 而展示对象object，必须是一个ul标签，且具有id和class=”ztree”属性。 完整代码:</p>
-<pre><code>&lt;script type=&quot;text/javascript&quot;&gt;
-    var zNodes=$&#123;data&#125;;
-    var setting=&#123;
-        data:&#123;
-            simpleData:&#123;
-                enable:true,
-                idKey:&quot;id&quot;,
-                pIdKey:&quot;pid&quot;,
-                rootPId:&quot;&quot;
-            &#125;
-        &#125;
-    &#125;
-    $(function()&#123;
-        $.fn.zTree.init($(&quot;#treedata&quot;),setting,zNodes);
-    &#125;);
-&lt;/script&gt;
-
-&lt;div&gt;
-    &lt;ul id=&quot;treedata&quot; class=&quot;ztree&quot;&gt;&lt;/ul&gt;
-&lt;/div&gt;</code></pre><h3 id="异步加载"><a href="#异步加载" class="headerlink" title="异步加载"></a>异步加载</h3><p>对于异步加载来说，可以说很简单，但是新手的话，别人的博客如果没有提出重点，而你的类属性和他的类属性设置的还不一样，那么你就可能会像我一样出错。 然而找了一上午，终于看了官方的demo和response数据，才发现问题。 那么，如果你的问题是:首次加载一级节点,之后再点击就没任何反应，并且图标是文件。那么你的问题就和我一样了。 出现问题的原因:就是少了isParent属性。无法确定是否是父节点，只能认为是子节点。而这个isParent属性可以是类属性，也可以是treeNode的属性。 所以依据正常情况，你需要<strong>为类设置一个isParent属性</strong>，这个转json时有这个属性。而这个属性会让ztree判断为是否为父级，为true则显示为文件夹，false显示为文件。而你的数据无法显示，可能就少了这个属性。 现在根据isParent情况，分为两类，一个是有此属性，一个是没有此属性。 <strong>1. 有isParent属性,那么只需要设置异步加载的选项(非常建议，省去很多不必要麻烦)</strong></p>
-<pre><code>var setting = &#123;
-    data: &#123;
-        key: &#123;
-            name: &quot;name&quot;,
-        &#125;,
-        simpleData: &#123;
-            enable: true,
-            idKey: &quot;id&quot;,
-            pIdKey: &quot;pid&quot;,
-            rootPId: 0
-        &#125;
-    &#125;,
-    async:&#123;
-        enable:true,
-        autoParam:[&quot;id&quot;],
-        type:&quot;post&quot;,
-        url:&quot;$&#123;pageContext.request.contextPath&#125;/treedata/get&quot;
-    &#125;
-&#125;;
-
-$(function()&#123;
-    $.fn.zTree.init($(&quot;#treedata&quot;),setting);
-&#125;)</code></pre><p>另外注意的时，初始化树，需要将init放在$(function(){})中，否则将报错</p>
-<pre><code>Cannot read property &apos;style&apos; of null</code></pre><p>ztree会依据你的isParent属性为true还是false，来判断图标如何显示。 <strong>2. 数据库已经建好，且类属性不便更改(无法完整解决，图标都是文件夹)</strong> 如果你的数据库或属性有level字段，并且你的层级结构一致，并不存在有的一级节点下显示文件，有的二级节点下显示文件的情况。 那么你可以通过异步选项的dataFilter属性方法来解决，该方法用于过滤传来的数据</p>
-<pre><code>dataFilter:function (treeId,parentNode,childNodes) &#123;
-    for (var i=0, l=childNodes.length; i&lt;l; i++) &#123;
-        if()
-        childNodes[i].isParent = true;
-    &#125;
-    return childNodes;
-&#125;</code></pre><p>参数分别为树容器的id值，父节点的treeNode对象，异步加载获得数据转换成树节点的集合。 treeNode对象的isParent属性表示是否为父级，与类中的isParent一样，是文件还是文件夹。 但是这样做出现的问题是，你的每一层每一项图标都是文件夹。</p>
-<blockquote>
-<p>本项目是由于isParent属性情况导致，所以新建TestArea类和TestAreaDao接口，重新解决的。</p>
-</blockquote>
-<h2 id="Mybatis分页插件PageHelper"><a href="#Mybatis分页插件PageHelper" class="headerlink" title="Mybatis分页插件PageHelper"></a>Mybatis分页插件PageHelper</h2><p><a target="_blank" rel="noopener" href="https://github.com/pagehelper/Mybatis-PageHelper">GitHub地址</a> 一下示例为最基本示例，详细内容看github中文档，及其他博客。 此示例，href属性跳转后台获得数据，并非ajax异步，导航只有首页，尾页，上一页，下一页。分页导航请在其他地方查找。 添加pom依赖</p>
-<pre><code>&lt;dependency&gt;
-  &lt;groupId&gt;com.github.pagehelper&lt;/groupId&gt;
-  &lt;artifactId&gt;pagehelper&lt;/artifactId&gt;
-  &lt;version&gt;5.1.4&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><p>service层设置</p>
-<pre><code>/**
- * 使用pageHelper分页
- * @param pageNum 第几页
- * @param pageSize 每页显示条数
- * @return
- */
-public PageInfo&lt;AreaTree&gt; pageList(Integer pageNum,Integer pageSize)&#123;
-    PageHelper.startPage(pageNum, pageSize);
-    List&lt;AreaTree&gt; areaTreeList = areaTreeDao.findAll();
-    PageInfo&lt;AreaTree&gt; pageInfo = new PageInfo&lt;AreaTree&gt;(areaTreeList);
-    return pageInfo;
-&#125;</code></pre><p>controller设置</p>
-<pre><code>@RequestMapping(&quot;list&quot;)
-public String list(Model model, @RequestParam(defaultValue = &quot;1&quot;) Integer pageNum)&#123;
-    //model.addAttribute(&quot;data&quot;, areaTreeService.findAll());
-    PageInfo&lt;AreaTree&gt; pageInfo = areaTreeService.pageList(pageNum, 15);
-    model.addAttribute(&quot;pageInfo&quot;, pageInfo);
-    return &quot;pagination/page&quot;;
-&#125;</code></pre><p>jsp设置</p>
-<pre><code>&lt;body&gt;
-    &lt;table&gt;
-        &lt;c:forEach var=&quot;area&quot; items=&quot;$&#123;pageInfo.list&#125;&quot;&gt;
-            &lt;tr&gt;
-                &lt;td&gt;$&#123;area.id&#125;&lt;/td&gt;
-                &lt;td&gt;$&#123;area.name&#125;&lt;/td&gt;
-                &lt;td&gt;$&#123;area.pid&#125;&lt;/td&gt;
-            &lt;/tr&gt;
-        &lt;/c:forEach&gt;
-    &lt;/table&gt;
-&lt;ul&gt;
-    &lt;a href=&quot;/pagination/list?pageNum=1&quot;&gt;首页&lt;/a&gt;
-    &lt;a href=&quot;/pagination/list?pageNum=$&#123;pageInfo.prePage&lt;1?1:pageInfo.prePage&#125;&quot;&gt;上一页&lt;/a&gt;
-    &lt;span&gt;$&#123;pageInfo.pageNum&#125;&lt;/span&gt;
-    &lt;a href=&quot;/pagination/list?pageNum=$&#123;pageInfo.nextPage&gt;pageInfo.pages?pageInfo.pages:pageInfo.nextPage&#125;&quot;&gt;下一页&lt;/a&gt;
-    &lt;a href=&quot;/pagination/list?pageNum=$&#123;pageInfo.pages&#125;&quot;&gt;尾页&lt;/a&gt;
-&lt;/ul&gt;</code></pre><h2 id="stephanwagner-jbox弹框插件"><a href="#stephanwagner-jbox弹框插件" class="headerlink" title="stephanwagner jbox弹框插件"></a>stephanwagner jbox弹框插件</h2><p>stephanwagner jbox弹框插件可以说是很优美的弹框，与jquery jbox相比显得更有有活力一些。 <a target="_blank" rel="noopener" href="https://github.com/StephanWagner/jBox">GitHub地址</a> <a target="_blank" rel="noopener" href="https://stephanwagner.me/jBox/">Demo演示地址</a> 由于该弹框插件在github上star将近1k，但使用的还是很少，博客出来的更少,而对于某些文章博客讲述的并不完整。具体参数也不详细。少了一个参数就出不来正常效果。 所以下载源码包后，Demo下的示例，找到你需要的某个案例，进行拷贝。对应拷贝，包括html和demo.js里的实例化jbox对象。</p>
-<blockquote>
-<p>实例化jBox都应放在$(function(){})中</p>
-</blockquote>
-<h3 id="基本提示框-全屏"><a href="#基本提示框-全屏" class="headerlink" title="基本提示框(全屏)"></a>基本提示框(全屏)</h3><pre><code>//基本提示框
-new jBox(&apos;Modal&apos;, &#123;
-    attach: &apos;#baseShow&apos;,
-    height: 200,
-    overlay:false,//是否覆盖页面(界面只有弹框，背景为灰色)
-    title: &apos;打开一个提示框&apos;,
-    content: &apos;这是一个提示框，你可以按键Esc或点击关闭按钮关闭&apos;
-&#125;);
-
-&lt;%--基本提示弹框--%&gt;
-&lt;div id=&quot;baseShow&quot; class=&quot;target-click&quot;&gt;Click me&lt;/div&gt;</code></pre><h3 id="移动弹框"><a href="#移动弹框" class="headerlink" title="移动弹框"></a>移动弹框</h3><p>依据示例拷贝，该移动弹框，toggle效果，点击一次出现，再点击消失，并且框内数据可以保留。</p>
-<pre><code>&lt;script type=&quot;text/javascript&quot;&gt;
-    $(function()&#123;
-        //移动弹框设置
-        new jBox(&apos;Modal&apos;, &#123;
-            attach: &apos;#show&apos;,
-            width: 350,
-            height: 200,
-            blockScroll: false,
-            animation: &apos;zoomIn&apos;,
-            draggable: &apos;title&apos;,
-            closeButton: true,
-            content: $(&quot;#showBox&quot;),
-            title: &apos;移动弹框&apos;,
-            overlay: false,
-            reposition: false,
-            repositionOnOpen: false
-        &#125;);
-    &#125;);
-&lt;/script&gt;
-
-//移动弹框设置
-&lt;div id=&quot;show&quot; class=&quot;target-click&quot;&gt;Click me&lt;/div&gt;
-&lt;div id=&quot;showBox&quot; style=&quot;display: none&quot;&gt;
-    &lt;form action=&quot;/jbox/save&quot; type=&quot;post&quot;&gt;
-        &lt;input type=&quot;text&quot; name=&quot;id&quot; value=&quot;&quot;/&gt;
-        &lt;input type=&quot;text&quot; name=&quot;name&quot; value=&quot;&quot;/&gt;
-        &lt;input type=&quot;submit&quot; value=&quot;提交&quot;/&gt;
-    &lt;/form&gt;
-&lt;/div&gt;</code></pre><ul>
-<li>title属性为标题，</li>
-<li>content属性是内容，可以引用容器，将某个div等引入。</li>
-<li>attach属性是触发弹框的id或class选择器</li>
 </ul>
-<h3 id="弹框内容由ajax发起请求并显示"><a href="#弹框内容由ajax发起请求并显示" class="headerlink" title="弹框内容由ajax发起请求并显示"></a>弹框内容由ajax发起请求并显示</h3><p>点击后，通过ajax属性操作，完美移植了$.ajax的回掉函数。 弹框的文本和内容均可以在回掉函数中重新再次设置。</p>
-<pre><code>//ajax弹框效果
-new jBox(&apos;Modal&apos;, &#123;
-    attach: &apos;#showAjax&apos;,
-    width: 450,
-    height: 250,
-    closeButton: &apos;title&apos;,
-    animation: false,
-    title: &apos;Ajax请求弹框&apos;,
-    ajax: &#123;
-        url: &apos;get&apos;,
-        data: &#123;
-            id: &apos;1982&apos;,
-        &#125;,
-        reload: &apos;strict&apos;,
-        setContent: false,
-        beforeSend: function() &#123;
-            this.setContent(&apos;&apos;);
-            this.setTitle(&apos;&lt;div class=&quot;ajax-sending&quot;&gt;Ajax请求发送中...&lt;/div&gt;&apos;);
-        &#125;,
-        complete: function(response) &#123;
-            this.setTitle(&apos;&lt;div class=&quot;ajax-complete&quot;&gt;AJAX请求完成&lt;/div&gt;&apos;);
-        &#125;,
-        success: function(response) &#123;
-            this.setContent(&apos;&lt;div class=&quot;ajax-success&quot;&gt; 编号:&apos;+ response.id + &apos;&lt;br/&gt;城市:&apos; + response.name  + &apos;&lt;/tt&gt;&lt;/div&gt;&apos;);
-        &#125;,
-        error: function() &#123;
-            this.setContent(&apos;&lt;div class=&quot;ajax-error&quot;&gt;抱歉，请求出现错误&lt;/div&gt;&apos;);
-        &#125;
-    &#125;
+<p>每选中一个个复选框，都会执行在后台存储这条数据，而$(‘#basic’).bootstrapTable(‘getSelections’)可以获得所有选中的数据，那么就可以根据数量来判定是否禁用按钮，prop方法表示删除或返回一个属性，那么值为false表示删除该属性，true则使用该属性。 对新增自行定义方法 修改，删除，只需要自己定义click方法，然后在方法体里添加</p>
+<pre><code>var ids = getIdSelections();</code></pre><p>获得所有数据对象，注意不是id数组，而是一个包含所有字段的object类型数组，你需要提取id。 另外还可以通过这个两个方法更新表格和按钮</p>
+<pre><code>$(&quot;#basic&quot;).bootstrapTable(&apos;remove&apos;, &#123;//前台删除该数据
+    field: &apos;id&apos;,
+    values: ids
 &#125;);
-
-&lt;%--ajax弹框--%&gt;
-&lt;div id=&quot;showAjax&quot; class=&quot;target-click&quot;&gt;Click me&lt;/div&gt;</code></pre><p>对于前台，可以使用线程睡眠，此时弹框中内容出现圆圈旋转，处于等待中。</p>
-<h3 id="鼠标悬停显示信息"><a href="#鼠标悬停显示信息" class="headerlink" title="鼠标悬停显示信息"></a>鼠标悬停显示信息</h3><pre><code>&lt;%--鼠标悬停显示内容--%&gt;
-&lt;span id=&quot;hover&quot; class=&quot;target&quot;&gt; hover me&lt;/span&gt;
-
-//鼠标悬停显示内容
-new jBox(&apos;Tooltip&apos;, &#123;
-    attach: &apos;#hover&apos;,
-    width: 300,
-    pointer: &apos;right:80&apos;,
-    animation: &apos;move&apos;,
-    delayOpen: 0,
-    delayClose: 100,
-    content: &apos;此框触碰即可打开，移出鼠标后关闭&apos;,
-    onOpen: function() &#123;
-        this.source.removeClass(&apos;active&apos;).html(&apos;Open&apos;);
-    &#125;,
-    onClose: function() &#123;
-        this.source.removeClass(&apos;active&apos;).html(&apos;Hover me&apos;);
-    &#125;
-&#125;);</code></pre><p>可设置宽度，高度依据内容自动增高，delayOpen表示打开所需要的时间，delayClose表示关闭所需要的时间。 pointer表示弹框的位置，块级元素和行级元素可能出书位置不一样，需要通过此属性进行调整，right和left，单位为像素。 onOpen回调函数表示当弹框显示的时候做的事情，可以更改内容等其他操作，onClose回调函数与之相反。 其他样式查看源码的Demo。</p>
+$(&quot;#remove&quot;).prop(&apos;disabled&apos;, true);//禁用按钮</code></pre><p>当然，前台删除可能不太保险，那么就再查一遍</p>
+<pre><code>//刷新表格，将重新请求
+$(&apos;#table&apos;).bootstrapTable(&apos;refresh&apos;);</code></pre><h3 id="对于字段值转换的情况可以使用formatter"><a href="#对于字段值转换的情况可以使用formatter" class="headerlink" title="对于字段值转换的情况可以使用formatter"></a>对于字段值转换的情况可以使用formatter</h3><p>对于日期如果有好的方法，可以直接前台json到后台Date类型，但如果前台没有好的方法解析，那么后台直接传到前台已经解析好的字符串，这种方式可以直接在查询数据库时转换为string类型，或通过其他定义的转换方法转换。 如果有图片的显示，如头像，可以使用此属性函数，其可用参数有value，row，index。通过img即可转成图片。</p>
 
       
       <!-- reward -->
@@ -918,8 +498,94 @@ new jBox(&apos;Tooltip&apos;, &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/BootStrap-Table/" rel="tag">BootStrap Table</a></li></ul>
 
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Arcgis/关于在Windows Server 2008中安装arcgis server的小问题" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/08/27/Arcgis/%E5%85%B3%E4%BA%8E%E5%9C%A8Windows%20Server%202008%E4%B8%AD%E5%AE%89%E8%A3%85arcgis%20server%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/"
+    >关于在Windows Server 2008中安装arcgis server的小问题</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/08/27/Arcgis/%E5%85%B3%E4%BA%8E%E5%9C%A8Windows%20Server%202008%E4%B8%AD%E5%AE%89%E8%A3%85arcgis%20server%E7%9A%84%E5%B0%8F%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2018-08-27T09:09:06.000Z" itemprop="datePublished">2018-08-27</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/ArcGIS/">ArcGIS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="分配的是一个全新的虚拟机windows-server-2008"><a href="#分配的是一个全新的虚拟机windows-server-2008" class="headerlink" title="分配的是一个全新的虚拟机windows server 2008"></a>分配的是一个全新的虚拟机windows server 2008</h3><ol>
+<li>外部无法ping通问题</li>
+</ol>
+<p>计算机右击【管理】，左侧栏找到【高级安全Windows防火墙】，【入站规则】，【文件和打印机共享(回显请求ICMPv4-In)】，右击【属性】，勾选【启用】</p>
+<ol start="2">
+<li>进行tomcat访问8080时，出现的问题</li>
+</ol>
+<p>首先，1.可能是端口未开放，2.可能是路径有问题 先说路径这个问题：路径有问题不是说ip有问题，而是外部浏览器无法监测到这个ip，解决：找到系统的hosts文件，添加对应信息,文件路径C:\Windows\System32\drivers\etc\hosts,添加如下，局域网ip改为你自己的</p>
+<pre><code>127.0.0.1       localhost
+192.168.0.65    localhost</code></pre><p>其次，如果第二中还没解决的话参考这个。可能是外部无法访问服务器端口，你需要在防火墙开启端口，打开【防火墙】，【入站规则】，右边【新建规则】，选择【端口】，【允许连接】，填写规则名称，如port8080。另外把出站规则也开开吧，尝试一下。为了安全起见你可以先尝试，需要哪个规则使用哪个规则，不需要就删了规则。</p>
+<ol start="3">
+<li>安装arcgis server时，出现需要安装.NET Framework 3.5</li>
+</ol>
+<p>这个在官网下载后，放到服务器里安装的话，是无法安装的，需要直接在服务器里操作，不用去官网下包 【计算机】右击，【管理】，【功能】，右侧【添加功能】，选择.NET Framework 3.5.1勾选，下一步，安装。无需重启服务器</p>
+<ol start="4">
+<li>安装arcgis server时，设置arcgis账号密码时，密码校验复杂度，总导致密码不符合复杂度，不让下一步</li>
+</ol>
+<p>win徽标+R，打开运行窗口，输入secpol.msc，进入【本地安全策略】，选择【账户策略】，【密码策略】，右侧【密码必须符合复杂性要求】，右击禁用</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
 
     </footer>
 
@@ -941,7 +607,7 @@ new jBox(&apos;Tooltip&apos;, &#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/45/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/44/">44</a><a class="page-number" href="/page/45/">45</a><span class="page-number current">46</span><a class="page-number" href="/page/47/">47</a><a class="page-number" href="/page/48/">48</a><span class="space">&hellip;</span><a class="page-number" href="/page/54/">54</a><a class="extend next" rel="next" href="/page/47/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/45/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/44/">44</a><a class="page-number" href="/page/45/">45</a><span class="page-number current">46</span><a class="page-number" href="/page/47/">47</a><a class="page-number" href="/page/48/">48</a><span class="space">&hellip;</span><a class="page-number" href="/page/55/">55</a><a class="extend next" rel="next" href="/page/47/">下一页</a>
   </nav>
   
 </section>
@@ -952,7 +618,7 @@ new jBox(&apos;Tooltip&apos;, &#123;
     <ul class="list-inline">
       <li>
         &copy;
-        2020-2021
+        2020-2022
         陈光奇
       </li>
       <li>

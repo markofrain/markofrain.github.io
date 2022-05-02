@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-SpringBoot/SpringBoot Mybatis多数据源配置" class="article article-type-post" itemscope
+    <article id="post-Javascript/bootstrap table列行都有滚动条造成查看不便" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/"
-    >SpringBoot Mybatis多数据源配置</a
+  <a class="article-title" href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/"
+    >bootstrap table列行都有滚动条造成查看不便</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2019/04/10/SpringBoot/SpringBoot%20Mybatis%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2019-04-09T17:02:27.000Z" itemprop="datePublished">2019-04-10</time>
+      <a href="/2019/08/05/Javascript/bootstrap%20table%E5%88%97%E8%A1%8C%E9%83%BD%E6%9C%89%E6%BB%9A%E5%8A%A8%E6%9D%A1%E9%80%A0%E6%88%90%E6%9F%A5%E7%9C%8B%E4%B8%8D%E4%BE%BF/" class="article-date">
+  <time datetime="2019-08-05T01:00:08.000Z" itemprop="datePublished">2019-08-05</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+    <a class="article-category-link" href="/categories/%E5%89%8D%E7%AB%AF/">前端</a>
   </div>
 
       
@@ -119,119 +119,21 @@
       
 
       
-      <h2 id="SpringBoot-Mybatis多数据源配置"><a href="#SpringBoot-Mybatis多数据源配置" class="headerlink" title="SpringBoot Mybatis多数据源配置"></a>SpringBoot Mybatis多数据源配置</h2><ol>
-<li><p>依赖:</p>
-<dependency>
-    <groupId>org.mybatis.spring.boot</groupId>
-    <artifactId>mybatis-spring-boot-starter</artifactId>
-    <version>2.0.1</version>
-</dependency>
-</li>
-<li><p>再yml配置两个数据库的连接字符串</p>
-<p>spring:</p>
-<pre><code>datasource:
-    primary:  # first database
-      driver-class-name: oracle.jdbc.driver.OracleDriver
-      jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:btbdc
-      username: sjbdc
-      password: sjbdc
-    secondary:
-      driver-class-name: com.mysql.jdbc.Driver
-      jdbcUrl: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;characterEncoding=utf-8
-      username: root
-      password: root</code></pre></li>
-<li><p>配置主从数据源，分两个配置类，主要就是配置DataSource，SqlSessionFactory和SqlSessionTemplate</p>
-<p>package com.fsats.dbanalysis.config;</p>
-<p>import org.apache.ibatis.session.SqlSessionFactory;<br>import org.mybatis.spring.SqlSessionFactoryBean;<br>import org.mybatis.spring.SqlSessionTemplate;<br>import org.mybatis.spring.annotation.MapperScan;<br>import org.springframework.beans.factory.annotation.Autowired;<br>import org.springframework.beans.factory.annotation.Qualifier;<br>import org.springframework.boot.context.properties.ConfigurationProperties;<br>import org.springframework.boot.jdbc.DataSourceBuilder;<br>import org.springframework.context.annotation.Bean;<br>import org.springframework.context.annotation.Configuration;<br>import org.springframework.context.annotation.Primary;<br>import org.springframework.core.env.Environment;<br>import org.springframework.core.io.support.PathMatchingResourcePatternResolver;</p>
-<p>import javax.sql.DataSource;</p>
-<p>@Configuration<br>@MapperScan(basePackages = “com.fsats.**.oracle”,sqlSessionFactoryRef = “sqlSessionFactory”,sqlSessionTemplateRef = “sqlSessionTemplate”)<br>public class PrimaryConfig {</p>
-<pre><code>@Autowired
-private Environment env;
-
-@Primary
-@Qualifier(&quot;primaryDataSource&quot;)
-@Bean(name = &quot;primaryDataSource&quot;)
-@ConfigurationProperties(prefix = &quot;spring.datasource.primary&quot;)
-public DataSource primaryDataSource()&#123;
-    return DataSourceBuilder.create().build();
-&#125;</code></pre></li>
-</ol>
-<pre><code>    @Primary
-    @Bean(name = &quot;sqlSessionFactory&quot;)
-    public SqlSessionFactory sqlSessionFactory(@Qualifier(&quot;primaryDataSource&quot;) DataSource datasource)
-            throws Exception &#123;
-        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
-        bean.setDataSource(datasource);
-        bean.setMapperLocations(
-                // 设置mybatis的xml所在位置
-                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
-        return bean.getObject();
-    &#125;
-
-    // 表示这个数据源是默认数据源
-    @Bean(&quot;sqlSessionTemplate&quot;)
-    @Primary
-    public SqlSessionTemplate sqlSessionTemplate(
-            @Qualifier(&quot;sqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
-        return new SqlSessionTemplate(sessionfactory);
-    &#125;
-
+      <p>bootstrap table在显示数据的时候，由于列过多导致出现的横向滚动条。而页面高度又很低，所以分页时，纵向也有一个滚动条，必须滚到最下面才能拉动横向滚动条。否则只能按左右键查看数据。</p>
+<p>因此有需求取消纵向滚动条，将bootstrap table整体高度缩小到页面剩余高度，让分页框也显示在页面上。</p>
+<pre><code>$(window).resize(function () &#123;
+    //重置表格
+    $(&quot;#fwdyDetailTable&quot;).bootstrapTable(&apos;resetView&apos;);
+    initBootstrapTableHeight();
+&#125;);
+//初始化表格高度
+function initBootstrapTableHeight()&#123;
+    var total = $(window).height();//窗口高度
+    var page = $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).parent(&apos;.fixed-table-container&apos;).parent(&apos;.bootstrap-table&apos;).next(&apos;.clearfix&apos;).height();
+    $(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,(total-page-100)+&quot;px&quot;);//100为固定的弹框的上标题和底部按钮高度之和。
 &#125;
-
-
-
-package com.fsats.dbanalysis.config;
-
-import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.SqlSessionFactoryBean;
-import org.mybatis.spring.SqlSessionTemplate;
-import org.mybatis.spring.annotation.MapperScan;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.boot.jdbc.DataSourceBuilder;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
-
-import javax.sql.DataSource;
-
-
-@Configuration
-@MapperScan(basePackages = &quot;com.fsats.**.mysql&quot;,sqlSessionFactoryRef = &quot;mySqlSqlSessionFactory&quot;,sqlSessionTemplateRef = &quot;mySqlSqlSessionTemplate&quot;)
-public class SecondaryConfig &#123;
-
-    @Bean(name = &quot;secondaryDataSource&quot;)
-    @Qualifier(&quot;secondaryDataSource&quot;)
-    @ConfigurationProperties(prefix = &quot;spring.datasource.secondary&quot;)
-    public DataSource secondaryDataSource() &#123;
-
-        return DataSourceBuilder.create().build();
-    &#125;
-
-    @Bean(name = &quot;mySqlSqlSessionFactory&quot;)
-    public SqlSessionFactory mySqlSqlSessionFactory(@Qualifier(&quot;secondaryDataSource&quot;) DataSource datasource)
-            throws Exception &#123;
-        SqlSessionFactoryBean bean = new SqlSessionFactoryBean();
-        bean.setDataSource(datasource);
-        bean.setMapperLocations(
-                new PathMatchingResourcePatternResolver().getResources(&quot;classpath*:mybatis/mapper/**/*.xml&quot;));
-        return bean.getObject();
-    &#125;
-    @Bean(&quot;mySqlSqlSessionTemplate&quot;)
-    public SqlSessionTemplate mySqlSqlSessionTemplate(
-            @Qualifier(&quot;mySqlSqlSessionFactory&quot;) SqlSessionFactory sessionfactory) &#123;
-        return new SqlSessionTemplate(sessionfactory);
-    &#125;
-&#125;</code></pre><ol start="4">
-<li>在代码中，先看方法，两个类里，除了方法Bean的名字不一样，之外，在PrimaryConfig里每个方法多了@Primary注解，标识多数据源时默认使用的Bean。</li>
-</ol>
-<p>然后ConfigurationProperties注解的值就是application.yml配置的。 SqlSessionFactory方法里，配置MapperLocations，注意，目录要提前创建。 然后是类上的注解MapperScan，填写，当前数据源所扫描的对应的Dao包位置，以及sqlSessionFactory和sqlsessionTemplate。</p>
-<ol start="5">
-<li><p>配置显示打印sql语句</p>
-<p>logging:<br>  level:</p>
-<pre><code>com.fsats: DEBUG</code></pre></li>
-</ol>
-<p>com.fsats标识包名</p>
+$(&quot;#fwdyDetailTable&quot;).parent(&apos;.fixed-table-body&apos;).css(&quot;height&quot;,($(window).height()-125)+&quot;px&quot;);</code></pre><p>我们设置其高度，只能设置class为fixed-table-body的div高度才有效。只需要给它一个合适的高度。在这里，我用的是弹框显示，所以窗口较小。需要用总高度减去分页高度和弹框标题高度和弹框底部高度。</p>
+<p>在弹出框放大缩小时，监听window.resize。刷新bootstrap table视图。并重新设置表格高度</p>
 
       
       <!-- reward -->
@@ -244,8 +146,6 @@ public class SecondaryConfig &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/MyBatis/" rel="tag">MyBatis</a></li></ul>
-
 
     </footer>
 
@@ -261,7 +161,7 @@ public class SecondaryConfig &#123;
 
 </article>
     
-    <article id="post-Oracle/Oracle数据库字符集更改" class="article article-type-post" itemscope
+    <article id="post-SpringBoot/Springboot文件上传过大无法被全局异常捕获" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -269,8 +169,8 @@ public class SecondaryConfig &#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2019/04/09/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%97%E7%AC%A6%E9%9B%86%E6%9B%B4%E6%94%B9/"
-    >Oracle数据库字符集更改</a
+  <a class="article-title" href="/2019/08/03/SpringBoot/Springboot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E8%BF%87%E5%A4%A7%E6%97%A0%E6%B3%95%E8%A2%AB%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/"
+    >Springboot文件上传过大无法被全局异常捕获</a
   >
 </h2>
   
@@ -280,98 +180,8 @@ public class SecondaryConfig &#123;
 
     
     <div class="article-meta">
-      <a href="/2019/04/09/Oracle/Oracle%E6%95%B0%E6%8D%AE%E5%BA%93%E5%AD%97%E7%AC%A6%E9%9B%86%E6%9B%B4%E6%94%B9/" class="article-date">
-  <time datetime="2019-04-09T07:42:00.000Z" itemprop="datePublished">2019-04-09</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Oracle数据库字符集更改"><a href="#Oracle数据库字符集更改" class="headerlink" title="Oracle数据库字符集更改"></a>Oracle数据库字符集更改</h2><ol>
-<li><p>sqlplus登录，输入用户名密码</p>
-</li>
-<li><p>查看NLS参数</p>
-</li>
-</ol>
-<pre><code>select * from V$NLS_PARAMETERS</code></pre><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2019/04/20190409153659.png" alt=""> 我们需要改的是，将NLS_CHARACTERSET的值为AL32UTF8设置为ZHS16GBK.</p>
-<ol start="3">
-<li><p>sqlplus登录后，依次执行以下命令</p>
-<p>shutdown immediate;</p>
-<p>startup mount</p>
-<p>ALTER SYSTEM ENABLE RESTRICTEDSESSION;<br>ALTER SYSTEM SETJOB_QUEUE_PROCESSES=0;<br>ALTER SYSTEM SETAQ_TM_PROCESSES=0;</p>
-<p>alter database open;</p>
-<p>ALTER DATABASE character set INTERNAL_USE ZHS16GBK;</p>
-<p>select * from v$nls_parameters;</p>
-<p>shutdown immediate;</p>
-<p>startup</p>
-</li>
-</ol>
-<p>依次步骤即可。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringBoot多模块无法扫描到问题及Spring Data JPA多数据源配置" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/04/07/SpringBoot/SpringBoot%E5%A4%9A%E6%A8%A1%E5%9D%97%E6%97%A0%E6%B3%95%E6%89%AB%E6%8F%8F%E5%88%B0%E9%97%AE%E9%A2%98%E5%8F%8ASpring%20Data%20JPA%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/"
-    >SpringBoot多模块无法扫描到问题及Spring Data JPA多数据源配置</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/04/07/SpringBoot/SpringBoot%E5%A4%9A%E6%A8%A1%E5%9D%97%E6%97%A0%E6%B3%95%E6%89%AB%E6%8F%8F%E5%88%B0%E9%97%AE%E9%A2%98%E5%8F%8ASpring%20Data%20JPA%E5%A4%9A%E6%95%B0%E6%8D%AE%E6%BA%90%E9%85%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2019-04-07T12:26:55.000Z" itemprop="datePublished">2019-04-07</time>
+      <a href="/2019/08/03/SpringBoot/Springboot%E6%96%87%E4%BB%B6%E4%B8%8A%E4%BC%A0%E8%BF%87%E5%A4%A7%E6%97%A0%E6%B3%95%E8%A2%AB%E5%85%A8%E5%B1%80%E5%BC%82%E5%B8%B8%E6%8D%95%E8%8E%B7/" class="article-date">
+  <time datetime="2019-08-03T13:03:00.000Z" itemprop="datePublished">2019-08-03</time>
 </a>
       
   <div class="article-category">
@@ -392,163 +202,349 @@ public class SecondaryConfig &#123;
       
 
       
-      <h2 id="SpringBoot多模块，为何其他模块无法被扫描到"><a href="#SpringBoot多模块，为何其他模块无法被扫描到" class="headerlink" title="SpringBoot多模块，为何其他模块无法被扫描到"></a>SpringBoot多模块，为何其他模块无法被扫描到</h2><ol>
-<li>在项目时，通常是创建一个maven项目，然后有src啊，pom文件啊，src里的main，test，resource等，这些都创建出来了，然后用maven添加模块，然后子模块添加parent标签依赖父模块，最后DemoApplication扫描的时候就没扫到其他模块的注解类。</li>
-<li>以上是通过maven创建的，想想用IDEA 的spring initializr创建时，，只有POM文件和一个iml文件，或者还有一个src。而在之前我也是按第一种方式，以为创建的就是父模块，DemoApplication就放那。但对，他确实是父模块。而Maven对父模块的定义是只是父模块的容器，不作任何操作。因此，他只需要一个POM文件，别的都不需要，而且该POM文件里的packing一定是POM，因为他是父模块，而里面的子模块都是jar。那DemoApplication放哪，放一个单独的模块，在学Timo项目的时候发现，分模块嘛，就把DemoApplication和yml放在一个单独的模块里。</li>
-<li>都知道DemoApplication会扫描当前所在包的所有子包，而SpringBootApplication注解的指定扫描的包，但这不是重点，重点是，模块与模块之间的关系，一般除了各个子模块之间的业务关系，不需要进行依赖。而这个启动类的boot模块，<strong>需要依赖所有的子模块才能把其他的模块里的类被扫描到，并且必须要写上version值</strong>。</li>
-</ol>
-<p>总归两点，1.启动类为单独模块，2.启动类模块依赖其他子模块</p>
-<h2 id="SpringBoot多数据源配置"><a href="#SpringBoot多数据源配置" class="headerlink" title="SpringBoot多数据源配置"></a>SpringBoot多数据源配置</h2><p>我们使用Oracle和Mysql配置 yml配置如下</p>
-<pre><code>spring:
-  jpa:
-    show-sql: true
-    hibernate:
-      ddl-auto: none
-    properties:
-      hibernate.dialect: com.linln.core.mysql.MySQLDialectUTF8
-      hibernate.format_sql: true
-      hibernate.enable_lazy_load_no_trans: true
-  datasource:
-    primary:
-      driver-class-name: oracle.jdbc.driver.OracleDriver
-      jdbcUrl: jdbc:oracle:thin:@127.0.0.1:1521:orcl
-      username: sjbdc
-      password: sjbdc
-    secondary:
-      driver-class-name: com.mysql.jdbc.Driver
-      jdbcUrl: jdbc:mysql://localhost:3306/test?serverTimezone=UTC&amp;characterEncoding=utf-8
-      username: root
-      password: root</code></pre><p>我们需要一个配置数据源的配置类:</p>
-<pre><code>@Configuration
-public class DataSourceConfig &#123;
+      <p>Springboot配置文件上传，设置上传文件最大值，当上传文件过大时，没有进入到controller，且直接抛出异常。在配置_ControllerAdvice_异常捕获类依然无法被捕获到。</p>
+<p>具体可以有效解决的方式有两三种。其中可以设置tomcat的一个配置就可以完成。</p>
+<p>你只需要配置server.tomcat.max-swallow-size的值即可。有效的让异常处理类捕获到异常。</p>
+<p>该配置按照某博客的介绍，从google中获得的内嵌tomcat吞吐量,默认值为2MB,如果当文件上传大小这个值那么就会在controller之前抛出异常。而如果这个值设置大于上传最大值的话，那么就可以被异常捕获到。也可以设置成-1不被限制。因此只要将其值调整到较大，就可以捕获文件过大抛出的异常。更详细的可以去这里<a target="_blank" rel="noopener" href="https://weiku.co/article/198/">https://weiku.co/article/198</a>看看描述。</p>
+<p>还有一种解决方式是禁用默认的上传,<code>spring.servlet.multipart.enable</code>。使用common-upload方式上传。添加依赖，然后进行相关配置。</p>
 
-    @Qualifier(&quot;primaryDataSource&quot;)
-    @Primary
-    @Bean(name = &quot;primaryDataSource&quot;)
-    @ConfigurationProperties(prefix = &quot;spring.datasource.primary&quot;)
-    public DataSource primaryDataSource()&#123;
-        return DataSourceBuilder.create().build();
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Spring/Axis2中不支持1.8新特性" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/"
+    >Axis2中不支持1.8新特性</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/07/31/Spring/Axis2%E4%B8%AD%E4%B8%8D%E6%94%AF%E6%8C%811.8%E6%96%B0%E7%89%B9%E6%80%A7/" class="article-date">
+  <time datetime="2019-07-31T09:16:35.000Z" itemprop="datePublished">2019-07-31</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>在Axis2中不能使用包括lambda表达式stream流等相关代码，否则在发布wsdl服务时会报错。</p>
+<pre><code>Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:441) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.ServiceGroupBuilder.populateServiceGroup(ServiceGroupBuilder.java:101) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 31 common frames omitted
+Caused by: org.apache.axis2.deployment.DeploymentException: The following error occurred during schema generation: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:404) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 32 common frames omitted
+Caused by: java.lang.IllegalStateException: Error looking for paramter names in bytecode: unexpected bytes in file
+    at org.apache.axis2.description.java2wsdl.bytecode.ClassReader.readCpool(ClassReader.java:354) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:78) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ParamReader.&lt;init&gt;(ParamReader.java:57) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.ChainedParamReader.&lt;init&gt;(ChainedParamReader.java:52) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.bytecode.MethodTable.&lt;init&gt;(MethodTable.java:31) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.description.java2wsdl.DefaultSchemaGenerator.&lt;init&gt;(DefaultSchemaGenerator.java:177) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.util.Utils.fillAxisService(Utils.java:439) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    at org.apache.axis2.deployment.ServiceBuilder.populateService(ServiceBuilder.java:396) ~[axis2-kernel-1.7.9.jar:1.7.9]
+    ... 32 common frames omitted</code></pre><p>这是使用spring配置axis2的时候，若发布服务的类中有新特性就会出现问题，但是你可以把新特性放在其它类中，那么axis2就不会出现问题。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/axis2/" rel="tag">axis2</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-MyBatis/Mybatis对存储过程的调用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/"
+    >Mybatis对存储过程的调用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/07/30/MyBatis/Mybatis%E5%AF%B9%E5%AD%98%E5%82%A8%E8%BF%87%E7%A8%8B%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
+  <time datetime="2019-07-30T15:56:15.000Z" itemprop="datePublished">2019-07-30</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h3 id="调用存储过程，输出参数为CURSOR"><a href="#调用存储过程，输出参数为CURSOR" class="headerlink" title="调用存储过程，输出参数为CURSOR"></a>调用存储过程，输出参数为CURSOR</h3><p>使用mybatis来调用存储过程，然后输出参数为CURSOR类型，在存储过程中，输出参数为SYS_REFCURSOR类型的游标。简易存储过程如下:</p>
+<pre><code>create or replace procedure testproc(test in varchar2,RETURNVAL out sys_refcursor)
+is
+test1 VARCHAR2(50);
+begin
+open RETURNVAL for
+     select * from baowen.bizmsg where trunc(receivedate)&gt;=to_date(&apos;2019-07-12&apos;,&apos;yyyy-mm-dd&apos;);
+end;</code></pre><p>那么mybatis中调用的方式如下:</p>
+<pre><code>&lt;resultMap id=&quot;test&quot; type=&quot;hashmap&quot;&gt;
+
+&lt;/resultMap&gt;
+&lt;select id=&quot;testProcedure&quot; parameterType=&quot;map&quot; statementType=&quot;CALLABLE&quot;&gt;
+        &lt;![CDATA[
+           &#123;call baowen.TESTPROC(
+             #&#123;test,mode=IN,jdbcType=VARCHAR&#125;,
+             #&#123;v_cursor,mode=OUT,jdbcType=CURSOR,resultMap=test&#125;
+           )&#125;
+       ]]&gt;
+&lt;/select&gt;</code></pre><p>在mybatis中，dao层定义的方法是无返回值的，参数为map类型，并有test和v_cursor参数，test值设置为实际值，v_cursor值为创建一个空的ArrayList，泛型为map。注意游标接收，一定需要有resultMap指定，否则，会报错需要resultmap，resultmap只做字段映射，所以查出的字段取决于存储过程。</p>
+<pre><code>void testProcedure(Map&lt;String,Object&gt; map);
+
+HashMap&lt;String, Object&gt; hashMap = new HashMap&lt;&gt;();
+hashMap.put(&quot;test&quot;, &quot;test&quot;);
+hashMap.put(&quot;v_cursor&quot;, new ArrayList&lt;Map&lt;String, Object&gt;&gt;());
+dzjDao.testProcedure(hashMap);
+System.out.println(hashMap.get(&quot;v_cursor&quot;));</code></pre><h3 id="当数据库类型时blob时的读写以及blob类型字段转换成json"><a href="#当数据库类型时blob时的读写以及blob类型字段转换成json" class="headerlink" title="当数据库类型时blob时的读写以及blob类型字段转换成json"></a>当数据库类型时blob时的读写以及blob类型字段转换成json</h3><p><strong>读取blob，读取blob时，存储过程参数不用管，输出参数是sys_refcursor类型，在mybatis的mapperxml里游标类型肯定是要配resultMap的，你可以不用设置他的属性，他会自动转换为java.sql.Blob类型</strong></p>
+<pre><code>&lt;resultMap id=&quot;zszmInfo&quot; type=&quot;hashmap&quot;&gt;
+        &lt;result column=&quot;QLR&quot; property=&quot;qlr&quot; javaType=&quot;java.lang.String&quot;/&gt;
+        &lt;result column=&quot;GYQK&quot; property=&quot;gyqk&quot; javaType=&quot;java.lang.String&quot;/&gt;
+        &lt;result column=&quot;EWM&quot; property=&quot;ewm&quot;/&gt;
+&lt;/resultMap&gt;</code></pre><p>然后你要想转为json，那么json里肯定是字符串类型。所以讲Blob转换为base64字符串放在json中。可以通过以下方式转换,改代码将blob转为字节数组，IOUtil是common-io包的类。使用alibaba fastjson的JSON可直接将byte数组转为base64.</p>
+<pre><code>if (o instanceof Blob) &#123;
+    Blob blob = (Blob) o;
+    try &#123;
+        byte[] bytes = IOUtils.toByteArray(blob.getBinaryStream());
+        item.put(key, bytes);
+    &#125; catch (IOException e) &#123;
+        e.printStackTrace();
+    &#125; catch (SQLException e) &#123;
+        e.printStackTrace();
     &#125;
+&#125;</code></pre><p><strong>写入blob类型数据时，若只需要将数据转为byte[]字节数组，若前台传递的是base64，则通过<code>new BASE64Decoder().decodeBuffer(YSXLHP);</code>转为字节数组，然后存储过程调用的参数的jdbcType设置为Blob。不需要任何转换，mybatis有Handler可以让byte数组转为Blob类型。</strong></p>
+<pre><code>&lt;![CDATA[
+   &#123;call bdcdj.LND_PROC_UPDATECERTINFO(
+     #&#123;YWH,mode=IN,jdbcType=VARCHAR&#125;,
+     #&#123;YSXLHP,mode=IN,jdbcType=BLOB&#125;,
+     #&#123;returnval,mode=OUT,jdbcType=INTEGER&#125;
+   )&#125;
+]]&gt;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
 
-    @Bean(name = &quot;secondaryDataSource&quot;)
-    @Qualifier(&quot;secondaryDataSource&quot;)
-    @ConfigurationProperties(prefix = &quot;spring.datasource.secondary&quot;)
-    public DataSource secondaryDataSource() &#123;
-        return DataSourceBuilder.create().build();
-    &#125;
+    </footer>
 
-&#125;</code></pre><p>你需要使用spring data jap，还需要为每个数据源配置jpa properties,所以各需要一个jpa属性配置类</p>
-<pre><code>/**
- * 主数据源配置
- */
-@Configuration
-@EnableTransactionManagement
-@EnableJpaRepositories(
-        entityManagerFactoryRef = &quot;entityManagerFactoryPrimary&quot;,
-        transactionManagerRef = &quot;transactionManagerPrimary&quot;,
-        basePackages = &quot;com.fsats.dbanalysis.oracle&quot; //dao扫描位置
-)
-public class PrimaryConfig &#123;
+  </div>
 
-    @Autowired
-    @Qualifier(&quot;primaryDataSource&quot;)
-    private DataSource primaryDataSource;
+  
 
-    @Primary
-    @Bean(name = &quot;transactionManagerPrimary&quot;)
-    public EntityManager entityManager(EntityManagerFactoryBuilder builder) &#123;
-        return entityManagerFactoryPrimary(builder).getObject().createEntityManager();
-    &#125;
+  
+  
+  
 
-    @Primary
-    @Bean(name = &quot;entityManagerFactoryPrimary&quot;)
-    public LocalContainerEntityManagerFactoryBean entityManagerFactoryPrimary(EntityManagerFactoryBuilder builder) &#123;
-        return builder
-                .dataSource(primaryDataSource)
-                .properties(getVendorProperties())
-                .packages(&quot;com.fsats.dbanalysis.oracle.domain&quot;)         //设置实体类所在位置
-                .persistenceUnit(&quot;primaryPersistenceUnit&quot;)
-                .build();
-    &#125;
+  
 
-    private Map getVendorProperties() &#123;
-        HashMap&lt;String, Object&gt; properties = new HashMap&lt;&gt;();
-        properties.put(&quot;hibernate.dialect&quot;,
-                env.getProperty(&quot;hibernate.dialect&quot;));
-        properties.put(&quot;hibernate.ddl-auto&quot;,
-                &quot;update&quot;);
-        properties.put(&quot;hibernate.physical_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&quot;);
-        properties.put(&quot;hibernate.implicit_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy&quot;);
-        return properties;
-    &#125;
+</article>
+    
+    <article id="post-NodeJS/NodeJS——文件操作" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
 
-    @Autowired
-    private Environment env;
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2019/04/28/NodeJS/NodeJS%E2%80%94%E2%80%94%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/"
+    >NodeJS——文件操作</a
+  >
+</h2>
+  
 
-    @Primary
-    @Bean(name = &quot;transactionManagerPrimary&quot;)
-    public PlatformTransactionManager transactionManagerPrimary(EntityManagerFactoryBuilder builder) &#123;
-        return new JpaTransactionManager(entityManagerFactoryPrimary(builder).getObject());
-    &#125;
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2019/04/28/NodeJS/NodeJS%E2%80%94%E2%80%94%E6%96%87%E4%BB%B6%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2019-04-28T01:59:43.000Z" itemprop="datePublished">2019-04-28</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Node-JS/">Node JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="示例"><a href="#示例" class="headerlink" title="示例"></a>示例</h2><h3 id="1-文件监听"><a href="#1-文件监听" class="headerlink" title="1. 文件监听"></a>1. 文件监听</h3><pre><code>//严格模式
+&apos;use strict&apos;;
+//引入fs模块
+const fs = require(&apos;fs&apos;);
+//使用模块watch函数，并使用箭头函数作为回调函数
+fs.watch(&apos;target.txt&apos;,()=&gt;console.log(&apos;File changed!&apos;));
+console.log(&apos;Now watching target.txt for changes...&apos;);</code></pre><h3 id="2-接受一个文件作为监听文件"><a href="#2-接受一个文件作为监听文件" class="headerlink" title="2. 接受一个文件作为监听文件"></a>2. 接受一个文件作为监听文件</h3><pre><code>const fs = require(&apos;fs&apos;);
+//process全局对象，argv表示参数，第一第二分别为node和当前文件的路径，第三个参数则是传递的第一个参数
+const filename = process.argv[2];
+if(!filename)&#123;
+    throw Error(&apos;A file to watch must be specified!&apos;);
 &#125;
+//输出，反引号(`)表示模板字符串，可以使用$&#123;&#125;，将变量放进去，也可使用表达式
+fs.watch(filename,()=&amp;gt;console.log(`File $&#123;filename&#125; changed!`));
+console.log(`Now watching $&#123;filename&#125; for changes...`);
 
-
-/**
- * 次数据源配置
- */
-@Configuration
-@EnableTransactionManagement
-@EnableJpaRepositories(
-        entityManagerFactoryRef = &quot;entityManagerFactorySecondary&quot;,
-        transactionManagerRef = &quot;transactionManagerSecondary&quot;,
-        basePackages = &#123;&quot;com.fsats.dbanalysis.mysql&quot;&#125;) //设置DAO接口层所在包位置
-public class SecondaryConfig &#123;
-
-    @Autowired
-    @Qualifier(&quot;secondaryDataSource&quot;)
-    private DataSource secondaryDataSource;
-
-    @Bean(name = &quot;entityManagerSecondary&quot;)
-    public EntityManager entityManager(EntityManagerFactoryBuilder builder) &#123;
-        return entityManagerFactorySecondary(builder).getObject().createEntityManager();
+$ node watcher-argv.js target.txt</code></pre><h3 id="3-使用子进程打印ls"><a href="#3-使用子进程打印ls" class="headerlink" title="3. 使用子进程打印ls"></a>3. 使用子进程打印ls</h3><pre><code>const fs = require(&apos;fs&apos;);
+//拿到子模块的spawn函数
+const spawn = require(&apos;child_process&apos;).spawn;
+const filename = process.argv[2];
+if (!filename) &#123;
+    throw Error(&apos;A file to watch must be specified!&apos;);
+&#125;
+fs.watch(filename, () =&amp;gt; &#123;
+    //使用该函数，第一个参数为命令，第二个参数为命令参数，其中最后一个为文件名
+    const ls = spawn(&apos;ls&apos;, [&apos;-l&apos;, &apos;-h&apos;, filename]);
+    //stdout为Stream，作为输入输出，使用pipe方法把子进程的输出内容传送到标准输出流
+    ls.stdout.pipe(process.stdout);
+&#125;);
+console.log(`Now watching $&#123;filename&#125; for changes...`);</code></pre><h3 id="4-通过EventEmitter获得数据，即通过触发事件或响应事件的方式"><a href="#4-通过EventEmitter获得数据，即通过触发事件或响应事件的方式" class="headerlink" title="4. 通过EventEmitter获得数据，即通过触发事件或响应事件的方式"></a>4. 通过EventEmitter获得数据，即通过触发事件或响应事件的方式</h3><pre><code>//监听文件
+fs.watch(filename, () =&amp;gt; &#123;
+    //spawn函数设置命令
+    const ls = spawn(&apos;ls&apos;, [&apos;-l&apos;, &apos;-h&apos;, filename]);
+    let output = &apos;&apos;;
+    //执行绑定data事件，将结果存储output
+    ls.stdout.on(&apos;data&apos;, chuck =&amp;gt; output += chuck);
+    //监听ls的close事件
+    ls.on(&apos;close&apos;, () =&amp;gt; &#123;
+        const parts = output.split(/\s+/);
+        console.log([parts[0], parts[4], parts[8]]);
+    &#125;);
+&#125;);</code></pre><h3 id="5-异步读写文件"><a href="#5-异步读写文件" class="headerlink" title="5. 异步读写文件"></a>5. 异步读写文件</h3><pre><code>&apos;use strict&apos;;
+const fs = require(&apos;fs&apos;);
+fs.readFile(&apos;target.txt&apos;, (err, data) =&amp;gt; &#123;
+    if (err) &#123;
+        throw err;
     &#125;
+    console.log(data.toString());
+&#125;);
 
-    @Bean(name = &quot;entityManagerFactorySecondary&quot;)
-    public LocalContainerEntityManagerFactoryBean entityManagerFactorySecondary(EntityManagerFactoryBuilder builder) &#123;
-        return builder
-                .dataSource(secondaryDataSource)
-                .properties(getVendorProperties())
-                .packages(&quot;com.fsats.dbanalysis.mysql.domain&quot;)        //设置实体类所在包的位置
-                .persistenceUnit(&quot;primaryPersistenceUnit&quot;)
-                .build();
+&apos;use strict&apos;;
+const fs = require(&apos;fs&apos;);
+fs.writeFile(&apos;target.txt&apos;, &apos;HelloWorld&apos;, (err) =&amp;gt; &#123;
+    if (err) &#123;
+        throw err;
     &#125;
+    console.log(&apos;File saved!&apos;);
+&#125;)</code></pre><h3 id="6-创建读-写流"><a href="#6-创建读-写流" class="headerlink" title="6. 创建读/写流"></a>6. 创建读/写流</h3><pre><code>&apos;use strict&apos;;
+require(&apos;fs&apos;).createReadStream(process.argv[2])
+    .on(&apos;data&apos;, chunk =&amp;gt; process.stdout.write(chunk))
+    .on(&apos;error&apos;, err =&amp;gt; process.stderr.write(`ERROR:$&#123;err.message&#125;\n`));</code></pre><h3 id="7-可执行的js文件，将数据流传输到标准输出"><a href="#7-可执行的js文件，将数据流传输到标准输出" class="headerlink" title="7.可执行的js文件，将数据流传输到标准输出"></a>7.可执行的js文件，将数据流传输到标准输出</h3><pre><code>#!/usr/bin/env node
+&apos;use strict&apos;;
+require(&apos;fs&apos;).createReadStream(process.argv[2]).pipe(process.stdout);
 
-    private Map getVendorProperties() &#123;
-        HashMap&lt;String, Object&gt; properties = new HashMap&lt;&gt;();
-        properties.put(&quot;hibernate.hbm2ddl.auto&quot;,
-                env.getProperty(&quot;hibernate.hbm2ddl.auto&quot;));
-        properties.put(&quot;hibernate.ddl-auto&quot;,
-                env.getProperty(&quot;update&quot;));
-        properties.put(&quot;hibernate.dialect&quot;,
-                env.getProperty(&quot;hibernate.dialect&quot;));
-        properties.put(&quot;hibernate.physical_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy&quot;);
-        properties.put(&quot;hibernate.implicit_naming_strategy&quot;,
-                &quot;org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy&quot;);
-        return properties;
-    &#125;
-
-    @Autowired
-    private Environment env;
-
-    @Bean(name = &quot;transactionManagerSecondary&quot;)
-    PlatformTransactionManager transactionManagerSecondary(EntityManagerFactoryBuilder builder) &#123;
-        return new JpaTransactionManager(entityManagerFactorySecondary(builder).getObject());
-    &#125;</code></pre><p>​<br>    }</p>
-<p>这俩配置类，这三个类要关联，不要写错bean依赖名称，要改的就是注解上的dao扫描包，也就是repository位置，和entityManagerFactorySecondary方法里的实体类名称。这两个类都要更改。 因为当但数据源配置是，是默认自动配置的。默认是””,整个项目扫描，或者指定扫描路径。而多数据源需要各自配置Jpa properties，所以需要手动配置jpa扫描的dao位置和实体类位置。否则会报错Repository没有找到。</p>
-
+$ chmod +x cat.js
+$ ./cat.js target.txt</code></pre>
       
       <!-- reward -->
       
@@ -560,317 +556,6 @@ public class SecondaryConfig &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Spring-Boot/" rel="tag">Spring Boot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Java/linux上部署tomcat7及JDK1.6项目导致的某些问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/"
-    >linux上部署tomcat7及JDK1.6项目导致的某些问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/03/13/Java/linux%E4%B8%8A%E9%83%A8%E7%BD%B2tomcat7%E5%8F%8AJDK1.6%E9%A1%B9%E7%9B%AE%E5%AF%BC%E8%87%B4%E7%9A%84%E6%9F%90%E4%BA%9B%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2019-03-13T07:35:11.000Z" itemprop="datePublished">2019-03-13</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="linux上部署tomcat7及JDK1-6项目导致的某些问题"><a href="#linux上部署tomcat7及JDK1-6项目导致的某些问题" class="headerlink" title="linux上部署tomcat7及JDK1.6项目导致的某些问题"></a>linux上部署tomcat7及JDK1.6项目导致的某些问题</h1><p>在linux的tomcat启动项目时，使用wsdl上报的原因，由于客户端出现并发情况，而服务端tomcat，仅有一个，且没有负载均衡。 事故的开始是，每次测试都会成功，正常返回信息，但每次测试只是一条一条的测试，每次测试间隔很大，每次测都能成功，等客户端实际调用请求了，出现并发。第一个好的，后面就客户端超时，超时。 后来看了好几次日志发现，每次的并发请求，都堆到了一个线程里exec-1，好多都等着他一个处理。默认tomcat线程池中是10个线程的，这个在java的bin下有jvisualvm.exe，可以查看jvm，比如tomcat和java进程的资源，CPU，内存，堆栈，等等。 之后发现很奇怪，windows自己电脑上的就好好地，几个请求，几个线程，若同时并发50个，则tomcat会多拿出40个线程到线程池里，这是50的请求处理线程。 <strong>这个是单次循环，非并发的。不报错，ok</strong></p>
-<pre><code>2019-03-06 19:16:58.337  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:192.168.0.98
-2019-03-06 19:16:58.799  INFO 873 --- [http-bio-8080-exec-3] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-08 15:52:00.625  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-08 15:52:00.995  INFO 873 --- [http-bio-8080-exec-7] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-10 14:45:44.918  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-10 14:45:45.273  INFO 873 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 11:50:27.746  INFO 873 --- [http-bio-8080-exec-2] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null</code></pre><p><strong>然后，一次的连续请求，导致出现问题</strong></p>
-<pre><code>2019-03-11 20:22:27.381  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:27.729  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:28.076  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:28.464  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:28.586  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:22:58.602  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url
-
-org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.executeMethod(HTTPSenderImpl.java:872) ~[axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.impl.httpclient3.HTTPSenderImpl.sendViaPost(HTTPSenderImpl.java:212) ~[axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.HTTPSender.send(HTTPSender.java:121) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.writeMessageWithCommons(CommonsHTTPTransportSender.java:403) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.CommonsHTTPTransportSender.invoke(CommonsHTTPTransportSender.java:234) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.engine.AxisEngine.send(AxisEngine.java:431) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.OutInAxisOperationClient.send(OutInAxisOperation.java:399) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.description.OutInAxisOperationClient.executeImpl(OutInAxisOperation.java:225) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.OperationClient.execute(OperationClient.java:150) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:533) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.client.ServiceClient.sendReceive(ServiceClient.java:509) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.rpc.client.RPCServiceClient.invokeBlocking(RPCServiceClient.java:101) [axis2-adb-1.7.9.jar:1.7.9]
-    at com.xxha.logservice.util.ServiceClient.dataExange(ServiceClient.java:36) [classes/:na]
-    at com.xxha.logservice.services.LogWebService.exchangeInfo(LogWebService.java:24) [classes/:na]
-    at sun.reflect.NativeMethodAccessorImpl.invoke0(Native Method) ~[na:1.6.0_45]
-    at sun.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:39) ~[na:1.6.0_45]
-    at sun.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:25) ~[na:1.6.0_45]
-    at java.lang.reflect.Method.invoke(Method.java:597) ~[na:1.6.0_45]
-    at org.apache.axis2.rpc.receivers.RPCUtil.invokeServiceClass(RPCUtil.java:256) [axis2-adb-1.7.9.jar:1.7.9]
-    at org.apache.axis2.rpc.receivers.RPCMessageReceiver.invokeBusinessLogic(RPCMessageReceiver.java:121) [axis2-adb-1.7.9.jar:1.7.9]
-    at org.apache.axis2.receivers.AbstractInOutMessageReceiver.invokeBusinessLogic(AbstractInOutMessageReceiver.java:40) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.receivers.AbstractMessageReceiver.receive(AbstractMessageReceiver.java:106) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.engine.AxisEngine.receive(AxisEngine.java:169) [axis2-kernel-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.HTTPTransportUtils.processHTTPPostRequest(HTTPTransportUtils.java:178) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at org.apache.axis2.transport.http.AxisServlet.doPost(AxisServlet.java:164) [axis2-transport-http-1.7.9.jar:1.7.9]
-    at javax.servlet.http.HttpServlet.service(HttpServlet.java:650) [servlet-api.jar:na]
-    at javax.servlet.http.HttpServlet.service(HttpServlet.java:731) [servlet-api.jar:na]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:303) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.RequestContextFilter.doFilterInternal(RequestContextFilter.java:99) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.HttpPutFormContentFilter.doFilterInternal(HttpPutFormContentFilter.java:87) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.HiddenHttpMethodFilter.doFilterInternal(HiddenHttpMethodFilter.java:77) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.web.filter.CharacterEncodingFilter.doFilterInternal(CharacterEncodingFilter.java:121) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:120) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter.access$000(ErrorPageFilter.java:61) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter$1.doFilterInternal(ErrorPageFilter.java:95) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.springframework.web.filter.OncePerRequestFilter.doFilter(OncePerRequestFilter.java:107) [spring-web-4.2.6.RELEASE.jar:4.2.6.RELEASE]
-    at org.springframework.boot.context.web.ErrorPageFilter.doFilter(ErrorPageFilter.java:113) [spring-boot-1.3.5.RELEASE.jar:1.3.5.RELEASE]
-    at org.apache.catalina.core.ApplicationFilterChain.internalDoFilter(ApplicationFilterChain.java:241) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.ApplicationFilterChain.doFilter(ApplicationFilterChain.java:208) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardWrapperValve.invoke(StandardWrapperValve.java:219) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardContextValve.invoke(StandardContextValve.java:110) [catalina.jar:7.0.92]
-    at org.apache.catalina.authenticator.AuthenticatorBase.invoke(AuthenticatorBase.java:494) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardHostValve.invoke(StandardHostValve.java:169) [catalina.jar:7.0.92]
-    at org.apache.catalina.valves.ErrorReportValve.invoke(ErrorReportValve.java:104) [catalina.jar:7.0.92]
-    at org.apache.catalina.valves.AccessLogValve.invoke(AccessLogValve.java:1025) [catalina.jar:7.0.92]
-    at org.apache.catalina.core.StandardEngineValve.invoke(StandardEngineValve.java:116) [catalina.jar:7.0.92]
-    at org.apache.catalina.connector.CoyoteAdapter.service(CoyoteAdapter.java:445) [catalina.jar:7.0.92]
-    at org.apache.coyote.http11.AbstractHttp11Processor.process(AbstractHttp11Processor.java:1137) [tomcat-coyote.jar:7.0.92]
-    at org.apache.coyote.AbstractProtocol$AbstractConnectionHandler.process(AbstractProtocol.java:637) [tomcat-coyote.jar:7.0.92]
-    at org.apache.tomcat.util.net.JIoEndpoint$SocketProcessor.run(JIoEndpoint.java:318) [tomcat-coyote.jar:7.0.92]
-    at java.util.concurrent.ThreadPoolExecutor$Worker.runTask(ThreadPoolExecutor.java:895) [na:1.6.0_45]
-    at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:918) [na:1.6.0_45]
-    at org.apache.tomcat.util.threads.TaskThread$WrappingRunnable.run(TaskThread.java:61) [tomcat-coyote.jar:7.0.92]
-    at java.lang.Thread.run(Thread.java:662) [na:1.6.0_45]
-
-2019-03-11 20:22:58.605  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志向部服务器请求结束，数据返回
-2019-03-11 20:22:58.744  INFO 10355 --- [http-bio-8080-exec-9] c.x.logservice.services.LogWebService    : 登簿日志上报师ip为:null
-2019-03-11 20:23:28.747  INFO 10355 --- [http-bio-8080-exec-9] o.a.a.t.h.i.httpclient3.HTTPSenderImpl   : Unable to sendViaPost to url[http://10.255.5.123:8081/uaccess/services/registrationLog.dataExchange?wsdl]
-
-org.apache.commons.httpclient.ConnectionPoolTimeoutException: Timeout waiting for connection
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.doGetConnection(MultiThreadedHttpConnectionManager.java:497) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.MultiThreadedHttpConnectionManager.getConnectionWithTimeout(MultiThreadedHttpConnectionManager.java:416) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpMethodDirector.executeMethod(HttpMethodDirector.java:153) ~[commons-httpclient-3.1.jar:na]
-    at org.apache.commons.httpclient.HttpClient.executeMethod(HttpClient.java:397) ~[commons-httpclient-3.1.jar:na]</code></pre><p>最后，找了之后才发现,tomcat有bio，nio，apr的方式，再看看windows上的，都是nio。这才发现问题，根据博客上说的， bio是阻塞式I/O nio是非阻塞式I/O 这也是最后的问题，最后说改个地方就可以了，把tomcat中server.xml的Connector配置8080端口的哪里， 把protocol的值改成org.apache.coyote.http11.Http11NioProtocol</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/tomcat/" rel="tag">tomcat</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/使用JDK1.6构建SpringBoot发布jar和war" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/"
-    >使用JDK1.6构建SpringBoot发布jar和war</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2019/03/01/SpringBoot/%E4%BD%BF%E7%94%A8JDK1.6%E6%9E%84%E5%BB%BASpringBoot%E5%8F%91%E5%B8%83jar%E5%92%8Cwar/" class="article-date">
-  <time datetime="2019-02-28T16:05:10.000Z" itemprop="datePublished">2019-03-01</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="使用jdk1-6和springboot部署程序"><a href="#使用jdk1-6和springboot部署程序" class="headerlink" title="使用jdk1.6和springboot部署程序"></a>使用jdk1.6和springboot部署程序</h3><h4 id="jar包部署程序及没有主清单属性的问题"><a href="#jar包部署程序及没有主清单属性的问题" class="headerlink" title="jar包部署程序及没有主清单属性的问题"></a>jar包部署程序及没有主清单属性的问题</h4><ol>
-<li><p>在使用JDK1.6时，网上普遍的搭配是，JDK1.6+tomcat7.0.59+springboot1.3.5。我用的也是这个。关于springboot和JDK的版本匹配，可以到网上查看一下，搜一下是有的。一般SpringBoot建议是JDK8及以上版本，对应的应该是1.5以上的2.x以上的SpringBoot版本。</p>
-</li>
-<li><p>在·pom.xml文件中，properties标签内指定tomcat-version版本为7.0.59,java版本为1.6</p>
-<pre><code>&lt;properties&gt;
-   &lt;project.build.sourceEncoding&gt;UTF-8&lt;/project.build.sourceEncoding&gt;
-   &lt;project.reporting.outputEncoding&gt;UTF-8&lt;/project.reporting.outputEncoding&gt;
-   &lt;maven.compiler.source&gt;1.6&lt;/maven.compiler.source&gt;
-   &lt;maven.compiler.target&gt;1.6&lt;/maven.compiler.target&gt;
-   &lt;tomcat.version&gt;7.0.59&lt;/tomcat.version&gt;
-   &lt;java.version&gt;1.6&lt;/java.version&gt;
-   &lt;axis.version&gt;1.7.9&lt;/axis.version&gt;
-   &lt;commons-lang3.version&gt;3.2.1&lt;/commons-lang3.version&gt;
-   &lt;lombok.version&gt;1.16.18&lt;/lombok.version&gt;
-&lt;/properties&gt;</code></pre></li>
-</ol>
-<pre><code>在以上jar包版本中，所有的依赖尽量都不是最新的。因为服务器上报jdk师1.6低版本的，而如果依赖的jar包是1.8编译打包的，很可能在使用的时候出现版本不兼容问题，因为1.6和1.8的编译方式可能有些差异，所以将1.8编译的版本放在1.6上运行，在使用某些类时就会报把本不兼容错误，报错信息中的49,，50，51分别为1.6，1.7，1.8版本，所以若出现版本情况，就降低版本依赖。</code></pre><ol start="3">
-<li><p>随后是IDE的编译版本设置，以IDEA为例，需要设置Project Structure的project的选项中选择java sdk为1.6，language level为6，在settings中搜索java compiler，设置当前项目Traget bytecode version为1.6。</p>
-</li>
-<li><p>另外关于打包jar后，使用java -jar命令运行显示没有主清单属性。这种情况，都说是加spring-boot-maven-plugin，没错，就是加他，但是一定要加正确。</p>
-<pre><code>&lt;build&gt;
-   &lt;plugins&gt;
-       &lt;plugin&gt;
-           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-           &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;
-       &lt;/plugin&gt;
-   &lt;/plugins&gt;
-   &lt;defaultGoal&gt;compile&lt;/defaultGoal&gt;
-&lt;/build&gt;</code></pre></li>
-</ol>
-<pre><code>这种情况下才是正确的。但有时创建项目的时候，或其他时候会在plugins外面包裹一个pluginManagement标签，这时，可要注意了。当外面有pluginManagement标签时，插件时无法加载进来的，这个可以在右侧的Maven管理器的Plugins中看到，名称为spring-boot的插件，如果没有，则说明，插件没有下载并引用依赖。 另外出现没有主清单属性的问题，不要修改MANIFEST.MF文件，正常编译通过的情况，里面有很多配置，时没办法写全的，况且也可能不准确。</code></pre><h4 id="发布war包程序"><a href="#发布war包程序" class="headerlink" title="发布war包程序"></a>发布war包程序</h4><ol>
-<li><p>修改pom.xml文件的打包方式为war</p>
-<pre><code>&lt;groupId&gt;com.xxha&lt;/groupId&gt;
-&lt;artifactId&gt;logservice&lt;/artifactId&gt;
-&lt;version&gt;1.0-SNAPSHOT&lt;/version&gt;
-&lt;packaging&gt;war&lt;/packaging&gt;</code></pre></li>
-<li><p>去除spring-boot-starter-web依赖包的tomcat依赖</p>
-<pre><code>&lt;dependency&gt;
-   &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-   &lt;artifactId&gt;spring-boot-starter-web&lt;/artifactId&gt;
-   &lt;!-- 移除嵌入式tomcat插件 --&gt;
-   &lt;exclusions&gt;
-       &lt;exclusion&gt;
-           &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;
-           &lt;artifactId&gt;spring-boot-starter-tomcat&lt;/artifactId&gt;
-       &lt;/exclusion&gt;
-   &lt;/exclusions&gt;
-&lt;/dependency&gt;
-&lt;!-- 若要使用servlet api则引入 --&gt;
-&lt;dependency&gt;
-   &lt;groupId&gt;javax.servlet&lt;/groupId&gt;
-   &lt;artifactId&gt;javax.servlet-api&lt;/artifactId&gt;
-   &lt;version&gt;3.1.0&lt;/version&gt;
-   &lt;scope&gt;provided&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre></li>
-</ol>
-<pre><code>如果，项目中需要用到tomcat中关于servlet或http相关的类，需要手动依赖servlet-api包</code></pre><ol start="3">
-<li><p>修改启动类，使用控制启动类变为Web启动类，继承SpringBootServletInitializer类，并重写configure方法</p>
-<pre><code>/**
-* 修改启动类，继承 SpringBootServletInitializer 并重写 configure 方法
-*/
-public class SpringBootStartApplication extends SpringBootServletInitializer &#123;
-
-   @Override
-   protected SpringApplicationBuilder configure(SpringApplicationBuilder builder) &#123;
-       // 注意这里要指向原先用main方法执行的Application启动类
-       return builder.sources(Application.class);
-   &#125;
-&#125;</code></pre></li>
-<li><p>随后使用Maven命令，clean package，打成war包，直接放到tomcat webapps下就好。若要修改内容，需要先停止tomcat，然后修改对应文件，然后需要移除webapps里的war，否则重新启动tomcat会重新解压覆盖。</p>
-</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
 
     </footer>
 
@@ -892,7 +577,7 @@ public class SpringBootStartApplication extends SpringBootServletInitializer &#1
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/32/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="page-number" href="/page/32/">32</a><span class="page-number current">33</span><a class="page-number" href="/page/34/">34</a><a class="page-number" href="/page/35/">35</a><span class="space">&hellip;</span><a class="page-number" href="/page/54/">54</a><a class="extend next" rel="next" href="/page/34/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/32/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/31/">31</a><a class="page-number" href="/page/32/">32</a><span class="page-number current">33</span><a class="page-number" href="/page/34/">34</a><a class="page-number" href="/page/35/">35</a><span class="space">&hellip;</span><a class="page-number" href="/page/55/">55</a><a class="extend next" rel="next" href="/page/34/">下一页</a>
   </nav>
   
 </section>
@@ -903,7 +588,7 @@ public class SpringBootStartApplication extends SpringBootServletInitializer &#1
     <ul class="list-inline">
       <li>
         &copy;
-        2020-2021
+        2020-2022
         陈光奇
       </li>
       <li>

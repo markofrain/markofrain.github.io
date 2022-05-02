@@ -78,7 +78,7 @@
     
     
     
-    <article id="post-SpringBoot/SpringBoot中启动项目报错URL没有设置属性" class="article article-type-post" itemscope
+    <article id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -86,8 +86,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/11/30/SpringBoot/SpringBoot%E4%B8%AD%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99URL%E6%B2%A1%E6%9C%89%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7/"
-    >SpringBoot中启动项目报错URL没有设置属性</a
+  <a class="article-title" href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/"
+    >Zookeeper分布式搭建及选举机制和节点类型介绍</a
   >
 </h2>
   
@@ -97,12 +97,12 @@
 
     
     <div class="article-meta">
-      <a href="/2018/11/30/SpringBoot/SpringBoot%E4%B8%AD%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99URL%E6%B2%A1%E6%9C%89%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7/" class="article-date">
-  <time datetime="2018-11-30T15:53:04.000Z" itemprop="datePublished">2018-11-30</time>
+      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-date">
+  <time datetime="2018-12-28T16:17:59.000Z" itemprop="datePublished">2018-12-29</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
   </div>
 
       
@@ -119,682 +119,81 @@
       
 
       
-      <h1 id="SpringBoot中启动项目报错URL失败"><a href="#SpringBoot中启动项目报错URL失败" class="headerlink" title="SpringBoot中启动项目报错URL失败"></a>SpringBoot中启动项目报错URL失败</h1><p>Failed to configure a DataSource: ‘url’ attribute is not specified and no embedded datasource could be configured. Reason: Failed to determine a suitable driver class 通常这个情况是首次接触SpringbBoot时，犯的错误。</p>
+      <h2 id="Zookeeper分布式搭建"><a href="#Zookeeper分布式搭建" class="headerlink" title="Zookeeper分布式搭建"></a>Zookeeper分布式搭建</h2><ol>
+<li><p>到<a target="_blank" rel="noopener" href="https://archive.apache.org/dist/zookeeper/">apache zookeeper归档</a>处下载tar包。</p>
+</li>
+<li><p>将包分别拷贝到各自的user下,使用tar -zxf zookeeper-x.x.x.tar.gz解压。注意解压后的目录需要是当前用户组当前用户。传递tar包时使用当前用户登录ftp远程。</p>
+</li>
+<li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
+<pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
+<li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
+<pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
+<li><p>在对应zookeeper目录下创建zkData目录即可</p>
+</li>
+<li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
+<pre><code>bin/zkServer.sh start //启动
+jps //查看jps进程
+bin/zkServer.sh satus //状态
+bin/zkServer.sh stop //停止</code></pre></li>
+<li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
+<pre><code>server.1=192.168.56.11:2888:3888
+server.2=192.168.56.11:2888:3888
+server.3=192.168.56.11:2888:3888</code></pre></li>
+</ol>
+<pre><code>这是三台机子的配置。那么其格式为server.A=B:C:D。
+*   A是一个数字，表示机器的序号，是唯一的，标识着某台机子，这个值要在myid文件中指定，myid文件要放在zkData目录下。
+*   B是服务器地址，可以是IP，也可以是主机名(需要配置host)。
+*   C是这个服务器与集群中的Leader服务器交换数据信息的结构。
+*   D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。
+*   就把这个拷贝到每个机子的zoo.cfg中，把IP地址改一下，机子序号按顺序不重复即可。</code></pre><ol start="8">
+<li><p>在集群模式下的而这个myid文件标识一个机子，Zookeeper启动时读取此文件，拿到里面的数据与zoo.cfg配置信息比较而判断到底是哪个server。那么在zkData下创建myid文件，使用vi或vim命令来编辑</p>
+<pre><code>cd zkData
+touch myid
+vim myid
+对应的机子添加1或2或3就好</code></pre></li>
+<li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
+<pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+ubuntu1@ubuntu1:~/zookeeper$ **jps**
+7522 Jps
+7498 QuorumPeerMain
+ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh status**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Error contacting service. It is probably not running.</code></pre></li>
+</ol>
+<pre><code>可以看到在查看status状态时，说Error contacting service.It is probably not running.此时并不是错误。在单机时可以正常运行。此处因为集群原因，在选举还没选举完成时，就会启动而不运行。当启动第二台机子时
+
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh start**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Starting zookeeper ... STARTED
+    ubuntu2@ubuntu2:~/zookeeper$ **jps**
+    24704 Jps
+    24652 QuorumPeerMain
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh status**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Mode: leader
+
+
+此时，发现Model:leader,这时，选举机制就完毕了，Leader已经选举出来。此时再看机子1的status状态，已经变成Mode:follower。当然这是随机投票的。启动第三台机子时，状态也是mode:follower. OK，这样三台机子都启动起来了。</code></pre><h2 id="Zookeeper选举机制说明"><a href="#Zookeeper选举机制说明" class="headerlink" title="Zookeeper选举机制说明"></a>Zookeeper选举机制说明</h2><p>选举很简单，<strong>每机一票，当某台机子得票数超过总数的一半以上时即可当选leader，必须一半以上</strong>。 机子的id最大则被投票率最高，若1-5台机子都是最新启动的，没有任何历史数据，按顺序进行启动。 服务器1开始启动，只有当前一台机器启动，则处于Looking状态，没有任何选举结果。等待其他机子启动。 服务器2开始启动，互相交换选举结果，由于两者都没有历史数据,所以id大的胜出，但依然不大于总数的一半，所以依然Looking状态 服务器3开始启动，若有三票投给某个机器，则成为Leader，其他机器状态变为follower。 服务器4，5，<strong>虽然id大，但leader已经被选举出来，所以只能作为follower</strong>.</p>
+<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>节点时客户端连接服务器的标识，因为实际集群操作，所以在任意一个机器上操作，其他机器都能看到。 节点有两种类型:</p>
 <ul>
-<li>一般网上说没有配置spring.database.url配置</li>
-<li>或者使用注解去除DataSource的Bean</li>
-<li>或者是url错误</li>
+<li>持久型:客户端和服务器断开连接后，创建的节点不删除</li>
+<li>暂时型:客户端和服务器断开连接后，创建的节点被删除</li>
 </ul>
-<p>但是如果你url配置了，而且是正确的。 那么很可能是加了这个</p>
-<pre><code>&lt;resources&gt;
-    &lt;resource&gt;
-        &lt;directory&gt;src/main/java&lt;/directory&gt;
-        &lt;includes&gt;
-            &lt;include&gt;**/*.properties&lt;/include&gt;
-            &lt;include&gt;**/*.xml&lt;/include&gt;
-        &lt;/includes&gt;
-        &lt;filtering&gt;false&lt;/filtering&gt;
-    &lt;/resource&gt;
-    &lt;resource&gt;
-        &lt;directory&gt;src/main/resources&lt;/directory&gt;
-        &lt;includes&gt;
-            &lt;include&gt;**/*.properties&lt;/include&gt;
-            &lt;include&gt;**/*.xml&lt;/include&gt;
-        &lt;/includes&gt;
-        &lt;filtering&gt;false&lt;/filtering&gt;
-    &lt;/resource&gt;
-&lt;/resources&gt;</code></pre><p>这串代码放在maven的pom.xml的build标签里。一般在SpringMVC中用于properties,xml文件在resources目录中，放置这个标签，就可以在编译的时候读到resources里的这两种文件，不然无法读到，所以就需要加这个代码。 但SpringBoot中使用yml或properties，不需要这个配置，如果需要编写properties，可以通过yml里的属性配置，然后classpath:/xxx.properties。 所以，去掉这个代码，就完全OK了。 这只是一种情况，还有其他各种各样的情况。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-中间件/Spring集成Quartz定时任务" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/27/%E4%B8%AD%E9%97%B4%E4%BB%B6/Spring%E9%9B%86%E6%88%90Quartz%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/"
-    >Spring集成Quartz定时任务</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/27/%E4%B8%AD%E9%97%B4%E4%BB%B6/Spring%E9%9B%86%E6%88%90Quartz%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/" class="article-date">
-  <time datetime="2018-11-27T15:44:04.000Z" itemprop="datePublished">2018-11-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Spring集成Quartz定时任务"><a href="#Spring集成Quartz定时任务" class="headerlink" title="Spring集成Quartz定时任务"></a>Spring集成Quartz定时任务</h1><p>Spring集成Quartz可以使用直接在spring中配置的，也可以将任务放在database中，通过数据库中的而数据来读取。 那么，简单一点的定时任务，一个两个，不经常改动，需求不多的，可以直接配置spring的XML中。</p>
-<h3 id="直接在Spring-Bean配置文件中配置定时任务-它会随项目的启动自动启动工作任务"><a href="#直接在Spring-Bean配置文件中配置定时任务-它会随项目的启动自动启动工作任务" class="headerlink" title="直接在Spring Bean配置文件中配置定时任务,它会随项目的启动自动启动工作任务"></a>直接在Spring Bean配置文件中配置定时任务,它会随项目的启动自动启动工作任务</h3><p>先添加Maven依赖</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-    &lt;artifactId&gt;quartz&lt;/artifactId&gt;
-    &lt;version&gt;2.3.0&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-    &lt;artifactId&gt;quartz-jobs&lt;/artifactId&gt;
-    &lt;version&gt;2.3.0&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><ol>
-<li><p>首先定义一个工作任务类，我们需要定义一个工作类实现org.quartz.Job接口,并实现execute方法。</p>
-<p>public class TestJob implements Job {</p>
-<pre><code>@Override
-public void execute(JobExecutionContext context) throws JobExecutionException &#123;
-    System.out.println(new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;).format(new Date()));
-&#125;</code></pre><p>}</p>
-</li>
-</ol>
-<ol start="2">
-<li><p>Spring Bean配置，完成后启动，它就会自动执行TestJob类的execute方法</p>
-<!--jobDetail配置-->
-<bean id="jobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
-    <property name="name" value="test1"/>
-    <property name="group" value="group1"/>
-    <property name="jobClass" value="com.fsats.axis.scheduler.TestJob"/>
-</bean>
-
-<!--Cron表达式触发器-->
-<bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
-    <property name="cronExpression" value="0/5 * * * * ?"/>
-    <property name="jobDetail" ref="jobDetail"/>
-</bean>
-
-<!--配置调度工厂-->
-<bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-    <property name="triggers">
-        <list>
-            <ref bean="cronTrigger"/>
-        </list>
-    </property>
-</bean>
-
-
-</li>
-</ol>
-<p><strong>另外还有一种更简单的方式，也是无敌的。需要添加task命名空间，ref引用的类需要注入到spring bean中，设置要执行的方法，以及cron表达式。</strong></p>
-<pre><code>&lt;task:scheduled-tasks&gt;
-    &lt;task:scheduled ref=&quot;newJob&quot; method=&quot;execute&quot; cron=&quot;0/5 * * * * ?&quot;/&gt;
-&lt;/task:scheduled-tasks&gt;</code></pre><h3 id="通过数据库存储工作任务"><a href="#通过数据库存储工作任务" class="headerlink" title="通过数据库存储工作任务"></a>通过数据库存储工作任务</h3><ol>
-<li><p>先添加数据库配置的表，在官网的最新版tar.gz包里有关于所有数据库的建表语句<a target="_blank" rel="noopener" href="http://www.quartz-scheduler.org/downloads/">下载地址</a> 路径在/docs/dbTables下,只<strong>需要将他建到数据库当中</strong>。这个建表所在的包版本建议跟依赖的版本一致，万一有什么改动呢。尤其是1.x和2.x绝对不能混用。</p>
-</li>
-<li><p>数据库存储定时任务，只需要添加properties配置文件，并为SchedulerFactoryBean配置dataSource属性，autoStartup属性，configLocation属性。</p>
-</li>
-</ol>
-<pre><code>&lt;bean id=&quot;schedulerFactoryBean&quot; class=&quot;org.springframework.scheduling.quartz.SchedulerFactoryBean&quot;&gt;
-    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
-    &lt;property name=&quot;autoStartup&quot; value=&quot;true&quot;/&gt;
-    &lt;property name=&quot;configLocation&quot; value=&quot;classpath:quartz.properties&quot;/&gt;
-&lt;/bean&gt;</code></pre><p>属性配置文件如下:</p>
-<pre><code># Default Properties file for use by StdSchedulerFactory
-# to create a Quartz Scheduler Instance, if a different
-# properties file is not explicitly specified.
-#
-#============================================================================
-# Configure Main Scheduler Properties
-#============================================================================
-org.quartz.scheduler.instanceName = DefaultQuartzScheduler
-org.quartz.scheduler.rmi.export = false
-org.quartz.scheduler.rmi.proxy = false
-org.quartz.scheduler.wrapJobExecutionInUserTransaction = false
-#============================================================================
-# Configure ThreadPool
-#============================================================================
-org.quartz.threadPool.class = org.quartz.simpl.SimpleThreadPool
-org.quartz.threadPool.threadCount = 10
-org.quartz.threadPool.threadPriority = 5
-org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread = true
-#============================================================================
-# Configure JobStore
-#============================================================================
-#org.quartz.scheduler.classLoadHelper.class=org.quartz.simpl.CascadingClassLoadHelper
-org.quartz.jobStore.misfireThreshold = 60000
-org.quartz.jobStore.useProperties = true
-org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
-org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-#havent cluster spring
-#org.quartz.jobStore.dataSource = myDS
-org.quartz.jobStore.tablePrefix = qrtz_
-org.quartz.jobStore.isClustered = false  
-org.quartz.jobStore.maxMisfiresToHandleAtATime=1
-#==============================================================
-#Non-Managed Configure Datasource  if you don&apos;t use spring cluster
-#==============================================================
-#org.quartz.dataSource.myDS.driver = com.mysql.jdbc.Driver
-#org.quartz.dataSource.myDS.URL = jdbc\:mysql\://localhost\:3306/qrtz
-#org.quartz.dataSource.myDS.user = root
-#org.quartz.dataSource.myDS.password = root
-#org.quartz.dataSource.myDS.maxConnections =10</code></pre><p>数据库连接这个已经注释了，不需要，因为你可以直接通过dataSource引用。 完成这些之后，启动项目，添加一个定时任务。</p>
-<pre><code>@Component
-public class QuartzManager &#123;
-
-    @Autowired
-    private Scheduler scheduler;
-
-    public void addJob() &#123;
-        try &#123;
-            //构建一个名称为test1的工作，组为group1
-            JobDetail detail = JobBuilder.newJob(TestJob.class).withIdentity(&quot;test1&quot;, &quot;group1&quot;).build();
-            //表达式调度构建器
-            CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(&quot;*/5 * * * * ?&quot;);
-            //按cronExcepress构建CronTrigger
-            CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(&quot;test1&quot;, &quot;group1&quot;).withSchedule(scheduleBuilder).build();
-            scheduler.scheduleJob(detail, trigger);
-            JobKey key = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-&#125;</code></pre><p>这里，我没有使用参数，传递，直接将任务类写成了TestJob.class，你可以创建一个实体类，来存储JobDetail，Trigger，和name，group这些属性信息。这个方法是在一个专门的管理类里，要添加的话，需要通过页面调用这个方法。若添加成功可到数据库中看JobDetail等信息。 待关闭项目，重新开启项目后，任务自动进行调度。</p>
-<h3 id="scheduler对象可调用的一些方法"><a href="#scheduler对象可调用的一些方法" class="headerlink" title="scheduler对象可调用的一些方法"></a>scheduler对象可调用的一些方法</h3><pre><code>@Component
-public class QuartzManager &#123;
-
-    @Autowired
-    private Scheduler scheduler;
-
-    public void addJob() &#123;
-        try &#123;
-            //构建一个名称为test1的工作，组为group1
-            JobDetail detail = JobBuilder.newJob(TestJob.class).withIdentity(&quot;test1&quot;, &quot;group1&quot;).build();
-            //表达式调度构建器
-            CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(&quot;*/5 * * * * ?&quot;);
-            //按cronExcepress构建CronTrigger
-            CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(&quot;test1&quot;, &quot;group1&quot;).withSchedule(scheduleBuilder).build();
-            scheduler.scheduleJob(detail, trigger);
-            JobKey key = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 暂停任务
-     */
-    public void pauseJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.pauseJob(jobKey);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 恢复任务
-     */
-    public void resumeJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.resumeJob(jobKey);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 立即执行一次
-     */
-    public void triggerJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.triggerJob(jobKey);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 删除定时任务
-     */
-    public void deleteJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.deleteJob(jobKey);
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 修改触发器CronExpress表达式
-     */
-    public void modifyCron(String name, String group, String cronExpression) &#123;
-        try &#123;
-            TriggerKey triggerKey = TriggerKey.triggerKey(name, group);
-            CronTrigger newCron = TriggerBuilder.newTrigger().withIdentity(triggerKey).withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)).build();
-            scheduler.rescheduleJob(triggerKey, newCron);
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 获得所有工作任务
-     */
-    public void getAllJob() &#123;
-        try &#123;
-            GroupMatcher&lt;JobKey&gt; jobGroupMatcher = GroupMatcher.anyJobGroup();
-            Set&lt;JobKey&gt; jobKeys = scheduler.getJobKeys(jobGroupMatcher);
-            System.out.println(&quot;所有工作数量&quot; + jobKeys.size());
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 获得所有运行中的任务
-     */
-    public void getRunningJob()&#123;
-        try &#123;
-            List&lt;JobExecutionContext&gt; jobExecutionContexts = scheduler.getCurrentlyExecutingJobs();
-            System.out.println(&quot;运行中的任务个数&quot; + jobExecutionContexts.size());
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 验证cron表达式
-     */
-    public void validationCron(String cron)&#123;
-        CronExpression.isValidExpression(cron);
-    &#125;
-&#125;</code></pre><p>除了这些，还有其它方法在scheduler中，等等,都可以通过scheduler获得的对象来得到信息。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" rel="tag">任务调度</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/axis2的简单集成Spring服务部署" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/26/Spring/axis2%E7%9A%84%E7%AE%80%E5%8D%95%E9%9B%86%E6%88%90Spring%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2/"
-    >axis2的简单集成Spring服务部署</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/26/Spring/axis2%E7%9A%84%E7%AE%80%E5%8D%95%E9%9B%86%E6%88%90Spring%E6%9C%8D%E5%8A%A1%E9%83%A8%E7%BD%B2/" class="article-date">
-  <time datetime="2018-11-26T07:54:17.000Z" itemprop="datePublished">2018-11-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E4%B8%AD%E9%97%B4%E4%BB%B6/">中间件</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="axis2的简单集成Spring服务部署"><a href="#axis2的简单集成Spring服务部署" class="headerlink" title="axis2的简单集成Spring服务部署"></a>axis2的简单集成Spring服务部署</h1><p>在本篇文章里，我们无需下载bin包，war包，arr，jar之类的什么东西。只需要添加依赖，配置services即可。</p>
-<h3 id="1-添加依赖"><a href="#1-添加依赖" class="headerlink" title="1. 添加依赖"></a>1. 添加依赖</h3><pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.axis2&lt;/groupId&gt;
-    &lt;artifactId&gt;axis2-kernel&lt;/artifactId&gt;
-    &lt;version&gt;1.7.9&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.axis2&lt;/groupId&gt;
-    &lt;artifactId&gt;axis2-ant-plugin&lt;/artifactId&gt;
-    &lt;version&gt;1.7.9&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.axis2&lt;/groupId&gt;
-    &lt;artifactId&gt;axis2-corba&lt;/artifactId&gt;
-    &lt;version&gt;1.7.9&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.axis2&lt;/groupId&gt;
-    &lt;artifactId&gt;axis2-jaxws&lt;/artifactId&gt;
-    &lt;version&gt;1.7.9&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.apache.axis2&lt;/groupId&gt;
-    &lt;artifactId&gt;axis2-spring&lt;/artifactId&gt;
-    &lt;version&gt;1.7.9&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><h3 id="2-配置web-xml-AxisServlet"><a href="#2-配置web-xml-AxisServlet" class="headerlink" title="2. 配置web.xml AxisServlet"></a>2. 配置web.xml AxisServlet</h3><pre><code>&lt;servlet&gt;
-    &lt;servlet-name&gt;AxisServlet&lt;/servlet-name&gt;
-    &lt;servlet-class&gt;org.apache.axis2.transport.http.AxisServlet&lt;/servlet-class&gt;
-&lt;/servlet&gt;
-
-&lt;servlet-mapping&gt;
-    &lt;servlet-name&gt;AxisServlet&lt;/servlet-name&gt;
-    &lt;url-pattern&gt;/services/*&lt;/url-pattern&gt;
-&lt;/servlet-mapping&gt;</code></pre><h3 id="3-配置axis的ApplicationContextHolder"><a href="#3-配置axis的ApplicationContextHolder" class="headerlink" title="3. 配置axis的ApplicationContextHolder"></a>3. 配置axis的ApplicationContextHolder</h3><p>在spring配置文件中配置</p>
-<pre><code>&lt;bean name=&quot;applicationContext&quot; class=&quot;org.apache.axis2.extensions.spring.receivers.ApplicationContextHolder&quot;/&gt;</code></pre><h3 id="4-配置配置服务类"><a href="#4-配置配置服务类" class="headerlink" title="4. 配置配置服务类"></a>4. 配置配置服务类</h3><p>本类以简单服务为例</p>
-<pre><code>package com.fsats.axis;
-
-import org.springframework.stereotype.Component;
-
-@Component
-public class NameService &#123;
-    public String getName(String name)&#123;
-        return &quot;你的名字是&quot; + name;
-    &#125;
-&#125;</code></pre><h3 id="5-配置services-xml"><a href="#5-配置services-xml" class="headerlink" title="5. 配置services.xml"></a>5. 配置services.xml</h3><p>在WEB-INF目录下创建【services】-【conf】-【META-INF】-【services.xml】,结构如下:</p>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/11/20181126112545.png?x-oss-process=image/resize,m_fill,w_296,h_300" alt=""></p>
-<p>文件配置为:</p>
-<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
-&lt;serviceGroup&gt;
-    &lt;service name=&quot;nameService&quot;&gt;
-        &lt;parameter name=&quot;ServiceObjectSupplier&quot;&gt;
-            org.apache.axis2.extensions.spring.receivers.SpringServletContextObjectSupplier
-        &lt;/parameter&gt;
-        &lt;parameter name=&quot;SpringBeanName&quot;&gt;nameService&lt;/parameter&gt;
-        &lt;messageReceivers&gt;
-            &lt;messageReceiver mep=&quot;http://www.w3.org/ns/wsdl/in-only&quot; class=&quot;org.apache.axis2.rpc.receivers.RPCInOnlyMessageReceiver&quot;&gt;&lt;/messageReceiver&gt;
-            &lt;messageReceiver mep=&quot;http://www.w3.org/ns/wsdl/in-out&quot; class=&quot;org.apache.axis2.rpc.receivers.RPCMessageReceiver&quot;&gt;&lt;/messageReceiver&gt;
-        &lt;/messageReceivers&gt;
-&lt;/service&gt;
-&lt;/serviceGroup&gt;</code></pre><ul>
-<li>其中，serviceGroup表示服务组，里面配置多个service</li>
-<li>service的name为服务名称</li>
-<li>parameter的name值为SpringBeanName，表示服务类的bean实例名称，这个服务类需要注入到spring容器中</li>
-<li>其他的默认就好</li>
+<p>节点有四种目录形式的节点:</p>
+<ul>
+<li>持久化目录节点:客户端断开后这个节点依然存在</li>
+<li>持久化顺序编号目录节点:客户端断开后这个节点依然存在，只是<strong>给该节点名称进行顺序编号</strong>。</li>
+<li>临时目录节点:客户端点开后节点被删除</li>
+<li>临时顺序编号目录节点:客户端断开连接后，节点被删除，只是Zookeeper会给该节点进行顺序编号。</li>
 </ul>
-<h3 id="6-启动web项目，访问-项目地址-项目名称-services-服务名-wsdl"><a href="#6-启动web项目，访问-项目地址-项目名称-services-服务名-wsdl" class="headerlink" title="6.启动web项目，访问 项目地址/项目名称/services/服务名?wsdl"></a>6.启动web项目，访问 项目地址/项目名称/services/服务名?wsdl</h3><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/11/20181126113215.png" alt=""></p>
-<p>此处，我这里使用IDEA，没有配置项目名。你可以访问方法</p>
-<p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/11/20181126113331.png" alt=""></p>
-<h3 id="7-使用RPC方式调用服务端接口-远程wsdl"><a href="#7-使用RPC方式调用服务端接口-远程wsdl" class="headerlink" title="7. 使用RPC方式调用服务端接口,远程wsdl"></a>7. 使用RPC方式调用服务端接口,远程wsdl</h3><p>调用服务端接口，需要注意的是，注意创建Options对象，需要通过RPCServiceClient创建，不要new，否则就不会关联，这是容易出错的。<br>命名空间，默认命名空间是当前类所属的包名倒过来，比如:服务类为com.fsats.axis.NameService,则明命名空间默认为<a target="_blank" rel="noopener" href="http://axis.fsats.com">http://axis.fsats.com</a></p>
-<pre><code>String address = &quot;http://localhost:8080/services/nameService?wsdl&quot;;
-try &#123;
-    RPCServiceClient client = new RPCServiceClient();
-    EndpointReference reference = new EndpointReference(address);
-    Options options = client.getOptions();
-    options.setTo(reference);
-    QName qname = new QName(&quot;http://axis.fsats.com&quot;,&quot;getName&quot;);
-    //指定参数
-    Object[] parameters = new Object[] &#123; &quot;chen&quot; &#125;;
-    //指定返回类型
-    Class[] returnTypes = new Class[] &#123; String.class &#125;;
-    Object[] response = client.invokeBlocking(qname, parameters, returnTypes);
-    System.out.println(response[0]);
-&#125; catch (AxisFault axisFault) &#123;
-    axisFault.printStackTrace();
-&#125;</code></pre><h3 id="8-调用请求服务端接口，用HttpURLConnection，以HTTP-XML的方式实现SOAP的请求"><a href="#8-调用请求服务端接口，用HttpURLConnection，以HTTP-XML的方式实现SOAP的请求" class="headerlink" title="8. 调用请求服务端接口，用HttpURLConnection，以HTTP+XML的方式实现SOAP的请求"></a>8. 调用请求服务端接口，用HttpURLConnection，以HTTP+XML的方式实现SOAP的请求</h3><pre><code>@Test
-public void client3() throws IOException &#123;
-    URL url = new URL(&quot;http://localhost:8080/b&quot;);
-    HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-    String xml = &quot;&lt;?xml version=&apos;1.0&apos; encoding=&apos;UTF-8&apos;?&gt;\n&quot; +
-        &quot;&lt;soapenv:Envelope xmlns:soapenv=\&quot;http://schemas.xmlsoap.org/soap/envelope/\&quot;&gt;\n&quot; +
-        &quot;    &lt;soapenv:Header/&gt;\n&quot; +
-        &quot;    &lt;soapenv:Body&gt;\n&quot; +
-        &quot;        &lt;getAge xmlns=\&quot;http://axis.fsats.com\&quot;&gt;\n&quot; +
-        &quot;            &lt;arg0 xmlns=\&quot;\&quot;&gt;chen&lt;/arg0&gt;\n&quot; +
-        &quot;            &lt;arg1 xmlns=\&quot;\&quot;&gt;18&lt;/arg1&gt;\n&quot; +
-        &quot;        &lt;/getAge&gt;\n&quot; +
-        &quot;    &lt;/soapenv:Body&gt;\n&quot; +
-        &quot;&lt;/soapenv:Envelope&gt;&quot;;
-    byte[] buf = xml.getBytes(&quot;UTF-8&quot;);
-    //connection.setRequestProperty(&quot;Content-Length&quot;,String.valueOf(buf.length));
-    connection.setRequestProperty(&quot;Content-Type&quot;,&quot;text/xml; charset=utf-8&quot;);
-    connection.setRequestMethod(&quot;GET&quot;);
-    //设置输入输出参数
-    connection.setDoOutput(true);
-    connection.setDoInput(true);
-    OutputStream out = connection.getOutputStream();
-    out.write(buf);
-    out.close();
+<p>顺序号时单调的递增，由父节点进行维护 在分布式系统中，顺序号可以被用于为所有的事件进行全局排序，这样客户端可以通过顺序号推断事件的顺序。 关于节点的创建在下一节说明，会自然的了解节点的持久和暂时型。</p>
 
-    System.out.println(IOUtils.toString(connection.getInputStream()));
-&#125;</code></pre><p>以上是客户端的请求代码，我们通过URL创建路径，设置请求头(必须的),设置XML，其中xml字符串包含了soap的版本信息，及服务端的命名空间。<br>那么服务端接收到的就是这写出的XML，那么服务端解析后返回的依然是SOAP。</p>
-<pre><code>@RequestMapping(&quot;/b&quot;)
-public void getB(HttpServletRequest request, HttpServletResponse response)&#123;
-    try &#123;
-        request.setCharacterEncoding(&quot;UTF-8&quot;);
-        response.setContentType(&quot;application/soap+xml; charset=utf-8&quot;);
-        //response.setContentType(&quot;text/xml; charset=utf-8&quot;);
-        BufferedReader reader = request.getReader();
-        SAXReader saxReader = new SAXReader();
-        Document document = saxReader.read(reader);
-        String value = document.getRootElement().selectNodes(&quot;//arg0&quot;).get(0).getText();
-        String a= &quot;&lt;?xml version=\&quot;1.0\&quot; encoding=\&quot;UTF-8\&quot;?&gt;&quot; +
-            &quot;&lt;soap:Envelope xmlns:soap=\&quot;http://www.w3.org/2003/05/soap-envelope\&quot;&gt;&quot; +
-            &quot;&lt;soap:Body&gt;&quot; +
-            &quot;&lt;response xmlns=\&quot;http://axis.fsats.com\&quot;&gt;你的名字是:&quot;+ value +&quot;&lt;/response&gt;&quot; +
-            &quot;&lt;/soap:Body&gt;&quot; +
-            &quot;&lt;/soap:Envelope&gt;&quot;;
-
-        System.out.println(a);
-        response.getWriter().write(a);
-    &#125; catch (IOException e) &#123;
-        e.printStackTrace();
-    &#125; catch (DocumentException e) &#123;
-        e.printStackTrace();
-    &#125;
-&#125;</code></pre><h3 id="9-使用RPC进行远程SOAP请求，该请求地址为url请求路径，但无法获得返回值"><a href="#9-使用RPC进行远程SOAP请求，该请求地址为url请求路径，但无法获得返回值" class="headerlink" title="9. 使用RPC进行远程SOAP请求，该请求地址为url请求路径，但无法获得返回值"></a>9. 使用RPC进行远程SOAP请求，该请求地址为url请求路径，但无法获得返回值</h3><pre><code>public void client2()&#123;
-    String address = &quot;http://localhost:8080/a&quot;;
-    try &#123;
-        RPCServiceClient client = new RPCServiceClient();
-        EndpointReference reference = new EndpointReference(address);
-        Options options = client.getOptions();
-        options.setTo(reference);
-        QName qname = new QName(&quot;http://axis.fsats.com&quot;,&quot;getAge&quot;);
-        //指定参数
-        Object[] parameters = new Object[] &#123; 18 &#125;;
-        //指定返回类型
-        Class[] returnTypes = new Class[] &#123; String.class &#125;;
-        //client.invokeRobust(qname, parameters);
-        Object[] objects = client.invokeBlocking(qname,parameters,returnTypes);
-        client.cleanupTransport();
-        System.out.println(objects[0]);
-    &#125; catch (AxisFault axisFault) &#123;
-        axisFault.printStackTrace();
-    &#125;
-&#125;</code></pre><p>将EndpointReference的地址设为服务方法，请求路径，以http的方式，请求，命名空间设置是一样的。需要注意client.invokeBlocking方法，若有返回值则使用这个，没有则使用client.invokeRobust();但尽管使用了有返回值的方法，也不会有返回值，因为PRC以http请求，虽然服务端已经写出去了，但因为是http，所以client.invokeBlocking无法接收到值。只要使用了http，则wsdl就不会再使用，所以，返回结果无法接受到。</p>
-<h3 id="10-问题描述-org-apache-axis2-AxisFault-com-ctc-wstx-exc-WstxEOFException-Unexpected-EOF-in-prolog-at-row-col-unknown-source-1-0"><a href="#10-问题描述-org-apache-axis2-AxisFault-com-ctc-wstx-exc-WstxEOFException-Unexpected-EOF-in-prolog-at-row-col-unknown-source-1-0" class="headerlink" title="10. 问题描述:org.apache.axis2.AxisFault: com.ctc.wstx.exc.WstxEOFException: Unexpected EOF in prolog at [row,col {unknown-source}]: [1,0]"></a>10. 问题描述:org.apache.axis2.AxisFault: com.ctc.wstx.exc.WstxEOFException: Unexpected EOF in prolog at [row,col {unknown-source}]: [1,0]</h3><p>出现此问题，可能是，服务端并没有返回值，而客户却使用client.invokeBlocking(qname,parameters,returnTypes);来获取返回值，所以导致可能的错误。如果确定没有返回值，应使用client.invokeRobust(qname, parameters);</p>
-<h3 id="11-问题描述-Transport-level-information-does-not-match-with-SOAP-Message-namespace-URI"><a href="#11-问题描述-Transport-level-information-does-not-match-with-SOAP-Message-namespace-URI" class="headerlink" title="11. 问题描述: Transport level information does not match with SOAP Message namespace URI"></a>11. 问题描述: Transport level information does not match with SOAP Message namespace URI</h3><p>这个错误是因为响应头的设置错误导致的，应根据soap1.1或1.2设置响应的命名空间和content-Type</p>
-<pre><code>SOAP 1.2使用“application/soap+xml”作为内容类型，SOAP 1.1使用“text/xml”。
-SOAP 1.2 不使用 SOAP Action 标题行。
-SOAP 1.2 使用 &quot;http://www.w3.org/2003/05/soap-envelope&quot; 作为envolope命名空间。
-SOAP 1.1 使用 &quot;http://schemas.xmlsoap.org/soap/envelope/&quot;作为命名空间。</code></pre><p>这两个地方需要搞清楚，否则客户端虽然请求成功，服务端能到的数据，但是服务响应的时候，因为响应的可能不正确，并非soap报文，那么客户端就会报错。</p>
-<h1 id="Spring-Boot与Axis2的集成"><a href="#Spring-Boot与Axis2的集成" class="headerlink" title="Spring Boot与Axis2的集成"></a>Spring Boot与Axis2的集成</h1><p>jar包的依赖是相同的，注意，一定要1.7以上版本，否则1.6只可可能造成axis操作时生成大量的临时文件占用空间。</p>
-<p>在Spring Boot中直接配置servlet和services.xml文件就好。此处注意添加servlet的init参数，定义axis2的services.xml文件位置</p>
-<pre><code>@Configuration
-public class WebConfig &#123;
-
-    /**
-     * 配置servlet的Bean，添加axis2
-     * @return
-     */
-    @Bean
-    public ServletRegistrationBean myServletBean()&#123;
-        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new AxisServlet(),&quot;/services/*&quot;);
-        servletRegistrationBean.addInitParameter(&quot;axis2.repository.path&quot;,this.getClass().getResource(&quot;/WEB-INF&quot;).getPath().toString());
-        return servletRegistrationBean;
-    &#125;
-&#125;</code></pre><p>这里的services.xml文件放在resource/下，新建WEB-INF/service/conf/META-INF/services.xml文件。</p>
-<p>然后就是定义service服务了，注意要注入Bean，与service.xml对应就好。</p>
-<h3 id="springboot与axis2的打包war-jar后启动问题"><a href="#springboot与axis2的打包war-jar后启动问题" class="headerlink" title="springboot与axis2的打包war,jar后启动问题"></a>springboot与axis2的打包war,jar后启动问题</h3><p>关于war包的打包方式可以在<a target="_blank" rel="noopener" href="http://www.fsats.com/2019/03/01/499/">http://www.fsats.com/2019/03/01/499/</a></p>
-<p>对于war包，在部署的时候，通过war包解压，对于访问axis服务没有太大问题。但应注意的是，可能在编译的时候使用1.8，使用tomcat7的时候可能会出现问题，至少在8.0以上。</p>
-<p>当打包的是jar包的时候，启动后没有问题，但访问axis2的服务地址页面，就会出现问题了。它会给一个如下的错误:</p>
-<pre><code>org.apache.axis2.deployment.DeploymentException: The system cannot locate the specified repository location: file:/C:/Users/chen/Desktop/hsdzj/hsdzjservice-0.0.1-SNAPSHOT.jar!/BOOT-INF/classes!/WEB-INF</code></pre><p>该错误指出找不到存储库，在这个目录下，因为是直接运行jar包，所以地址栏中出现的!可能就表示一层解压。但是axis2不能通过该地址访问到services.xml文件。因此需要更改AxisServlet的axis2.repository.path参数配置。这个发现也是通过 <a target="_blank" rel="noopener" href="https://blog.csdn.net/qq133328114/article/details/84957219">https://blog.csdn.net/qq133328114/article/details/84957219</a> 发现的。因此更改axisServlet的配置成如下</p>
-<pre><code>@Bean
-public ServletRegistrationBean myServletBean()&#123;
-    ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new AxisServlet(),&quot;/services/*&quot;);
-    String path = this.getClass().getResource(&quot;/WEB-INF&quot;).getPath().toString();
-    System.out.println(path);
-    //去除路径前面的file:
-    if(path.indexOf(&quot;file:&quot;)==0)&#123;
-        path = path.substring(5);
-    &#125;
-    //去除解压包的!符号
-    if (path.indexOf(&quot;!&quot;)!=-1)&#123;
-        //将services.xml文件拷贝到jar包同级目录下
-        try &#123;
-            FileCopyUtils.copy(&quot;WEB-INF/services/conf/META-INF/services.xml&quot;);
-        &#125; catch (IOException e) &#123;
-            e.printStackTrace();
-        &#125;
-        path = path.substring(0, path.lastIndexOf(&quot;/&quot;, path.indexOf(&quot;!&quot;))) + &quot;/WEB-INF&quot;;
-    &#125;
-    System.out.println(&quot;最终path:&quot;+path);
-    servletRegistrationBean.addInitParameter(&quot;axis2.repository.path&quot;,path);
-    return servletRegistrationBean;
-&#125;</code></pre><p>该代码表示更改axis2.repository.path的路径，将services.xml拷贝的jar包的同级目录下。但其实路径还是发布的路径<code>this.getClass().getResource(&quot;/WEB-INF&quot;).getPath().toString()</code>,但是却把<code>!符号和file:</code>给去掉了，这样在执行jar的时候，这个地址是和在idea运行项目时的地址是一样的。</p>
-<p>最终测试，发现是真的可以的。</p>
-<p>FileCopyUtils的代码如下:</p>
-<pre><code>public class FileCopyUtils &#123;
-
-    private static InputStream getResource(String location) throws IOException &#123;
-        PathMatchingResourcePatternResolver resolver = new PathMatchingResourcePatternResolver();
-        InputStream in = resolver.getResource(location).getInputStream();
-        byte[] byteArray = IOUtils.toByteArray(in);
-        in.close();
-        return new ByteArrayInputStream(byteArray);
-    &#125;
-
-    /**
-     * 获取项目所在文件夹的绝对路径
-     * @return
-     */
-    private static String getCurrentDirPath() &#123;
-        URL url = FileCopyUtils.class.getProtectionDomain().getCodeSource().getLocation();
-        String path = url.getPath();
-        if(path.startsWith(&quot;file:&quot;)) &#123;
-            path = path.replace(&quot;file:&quot;, &quot;&quot;);
-        &#125;
-        if(path.contains(&quot;.jar!/&quot;)) &#123;
-            path = path.substring(0, path.indexOf(&quot;.jar!/&quot;)+4);
-        &#125;
-
-        File file = new File(path);
-        path = file.getParentFile().getAbsolutePath();
-        return path;
-    &#125;
-
-    private static Path getDistFile(String path) throws IOException &#123;
-        String currentRealPath = getCurrentDirPath();
-        Path dist = Paths.get(currentRealPath + File.separator + path);
-        Path parent = dist.getParent();
-        if(parent != null) &#123;
-            Files.createDirectories(parent);
-        &#125;
-        Files.deleteIfExists(dist);
-        return dist;
-    &#125;
-
-    /**
-     * 复制classpath下的文件到jar包的同级目录下
-     * @param location 相对路径文件,例如kafka/kafka_client_jaas.conf
-     * @return
-     * @throws IOException
-     */
-    public static String copy(String location) throws IOException &#123;
-        InputStream in = getResource(&quot;classpath:&quot;+location);
-        Path dist = getDistFile(location);
-        Files.copy(in, dist);
-        in.close();
-        return dist.toAbsolutePath().toString();
-    &#125;
-&#125;</code></pre>
       
       <!-- reward -->
       
@@ -806,7 +205,7 @@ public ServletRegistrationBean myServletBean()&#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/axis2/" rel="tag">axis2</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
 
 
     </footer>
@@ -823,7 +222,7 @@ public ServletRegistrationBean myServletBean()&#123;
 
 </article>
     
-    <article id="post-SpringBoot/SpringBoot中关于Jackson的配置" class="article article-type-post" itemscope
+    <article id="post-Java/记录工作中某些表的某些字段为空的数量并按行政区形成excel表格" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -831,8 +230,8 @@ public ServletRegistrationBean myServletBean()&#123;
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/11/25/SpringBoot/SpringBoot%E4%B8%AD%E5%85%B3%E4%BA%8EJackson%E7%9A%84%E9%85%8D%E7%BD%AE/"
-    >SpringBoot中关于Jackson的配置</a
+  <a class="article-title" href="/2018/12/27/Java/%E8%AE%B0%E5%BD%95%E5%B7%A5%E4%BD%9C%E4%B8%AD%E6%9F%90%E4%BA%9B%E8%A1%A8%E7%9A%84%E6%9F%90%E4%BA%9B%E5%AD%97%E6%AE%B5%E4%B8%BA%E7%A9%BA%E7%9A%84%E6%95%B0%E9%87%8F%E5%B9%B6%E6%8C%89%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%BD%A2%E6%88%90excel%E8%A1%A8%E6%A0%BC/"
+    >记录工作中某些表的某些字段为空的数量并按行政区形成excel表格</a
   >
 </h2>
   
@@ -842,12 +241,12 @@ public ServletRegistrationBean myServletBean()&#123;
 
     
     <div class="article-meta">
-      <a href="/2018/11/25/SpringBoot/SpringBoot%E4%B8%AD%E5%85%B3%E4%BA%8EJackson%E7%9A%84%E9%85%8D%E7%BD%AE/" class="article-date">
-  <time datetime="2018-11-25T14:38:37.000Z" itemprop="datePublished">2018-11-25</time>
+      <a href="/2018/12/27/Java/%E8%AE%B0%E5%BD%95%E5%B7%A5%E4%BD%9C%E4%B8%AD%E6%9F%90%E4%BA%9B%E8%A1%A8%E7%9A%84%E6%9F%90%E4%BA%9B%E5%AD%97%E6%AE%B5%E4%B8%BA%E7%A9%BA%E7%9A%84%E6%95%B0%E9%87%8F%E5%B9%B6%E6%8C%89%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%BD%A2%E6%88%90excel%E8%A1%A8%E6%A0%BC/" class="article-date">
+  <time datetime="2018-12-27T15:17:09.000Z" itemprop="datePublished">2018-12-27</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
   </div>
 
       
@@ -864,132 +263,168 @@ public ServletRegistrationBean myServletBean()&#123;
       
 
       
-      <h1 id="SpringBoot中关于Jackson的配置"><a href="#SpringBoot中关于Jackson的配置" class="headerlink" title="SpringBoot中关于Jackson的配置"></a>SpringBoot中关于Jackson的配置</h1><h3 id="可能出现Jackson少注解的情况"><a href="#可能出现Jackson少注解的情况" class="headerlink" title="可能出现Jackson少注解的情况"></a>可能出现Jackson少注解的情况</h3><p>在创建项目的时候，选中web，会自带jackson的包，但携带的注解并不全，因为其缺少了jackson-dataformat-xml依赖，如果maven项目有的话，就不必添加，如果没有就去Maven中查找依赖，如下</p>
-<pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;com.fasterxml.jackson.dataformat&lt;/groupId&gt;
-    &lt;artifactId&gt;jackson-dataformat-xml&lt;/artifactId&gt;
-    &lt;version&gt;2.9.7&lt;/version&gt;
-&lt;/dependency&gt;
-
-compile group: &apos;com.fasterxml.jackson.dataformat&apos;, name: &apos;jackson-dataformat-xml&apos;, version: &apos;2.9.7&apos;</code></pre><h3 id="xml转换器配置-通过jackson，以application-xml方式请求，返回xml"><a href="#xml转换器配置-通过jackson，以application-xml方式请求，返回xml" class="headerlink" title="xml转换器配置,通过jackson，以application/xml方式请求，返回xml"></a>xml转换器配置,通过jackson，以application/xml方式请求，返回xml</h3><p>首先需要添加com.fasterxml.jackson.dataformat依赖的，同时需要设置转换配置</p>
-<pre><code>/**
- * xml消息转换器
- */
-@Configuration
-public class MessageConverterConfig extends WebMvcConfigurationSupport &#123;
-
-    @Override
-    public void configureMessageConverters(List&lt;HttpMessageConverter&lt;?&gt;&gt; converters) &#123;
-        Jackson2ObjectMapperBuilder builder = Jackson2ObjectMapperBuilder.xml();
-        builder.indentOutput(true);
-        converters.add(new MappingJackson2XmlHttpMessageConverter(builder.build()));
-    &#125;
-&#125;</code></pre><p>其次，为实体类添加类注解@JacksonXmlRootElement,为每个属性添加@JacksonXmlProperty注解。 随后需要为请求方法配置PostMapping的consumes和produces为MediaType.APPLICATION_XML_VALUE的Media</p>
-<pre><code>@PostMapping(value = &quot;/user&quot;,
-             consumes = MediaType.APPLICATION_XML_VALUE,
-             produces = MediaType.APPLICATION_XML_VALUE)
-@ResponseBody
-public User create(@RequestBody User user) &#123;
-    user.setId(user.getId());
-    user.setName(user.getName());
-    return user;
-&#125;</code></pre><p>最后，可以通过POSTMAN请求,需要在请求时设置请求头content-Type,值为Application/xml，你可以直接点Body，点raw，右边选择XML(application/xml),然后请求即可。 XML消息转换器一定是要配置的。 此方式若配置XML消息转换器，则所有返回的json都被转换为xml。这个问题还没解决。….</p>
-<h3 id="日期格式化"><a href="#日期格式化" class="headerlink" title="日期格式化"></a>日期格式化</h3><p>首先请求参数设置对象属性，需要将字符串转换为日期，所以属性上需要<strong>标注@DateTimeFormat注解，并配置pattern属性</strong>。 然后需要再添加一个@JsonFormat注解，是Jackson显示日期的转换，<strong>pattern设置格式，一定要设置timezone时区属性</strong>，中国则设置为timezone=”GMT+8”。 或者不使用注解，直接在yml上配置也可以。但此情况只有返回json格式才是有效的。若使用了XML消息转换配置，则此配置无效。</p>
-<h3 id="不序列化属性为null或””"><a href="#不序列化属性为null或””" class="headerlink" title="不序列化属性为null或””"></a>不序列化属性为null或””</h3><p>在实体类上添加@JsonInclude注解</p>
-<pre><code>@JsonInclude(JsonInclude.Include.NON_EMPTY)     表示NULL和&quot;&quot;都不序列化
-@JsonInclude(JsonInclude.Include.NON_NULL)      表示为NUll的不序列化
-还有其他配置</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/Spring Boot中的lombok使用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/25/SpringBoot/Spring%20Boot%E4%B8%AD%E7%9A%84lombok%E4%BD%BF%E7%94%A8/"
-    >Spring Boot中的lombok使用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/11/25/SpringBoot/Spring%20Boot%E4%B8%AD%E7%9A%84lombok%E4%BD%BF%E7%94%A8/" class="article-date">
-  <time datetime="2018-11-25T12:49:29.000Z" itemprop="datePublished">2018-11-25</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h1 id="Spring-Boot中的lombok使用"><a href="#Spring-Boot中的lombok使用" class="headerlink" title="Spring Boot中的lombok使用"></a>Spring Boot中的lombok使用</h1><p>lombok也是我在学java并发和SpringBoot中知道的。这个东西可一方百年Java开发者减少代码的冗长，尤其对POJO等，它都通过注解来解决这个问题 如果你要在IDEA中使用它的话，不管要添加依赖，还需要在IDEA的plugin中添加lombok插件，才能不报错。 对于gradle和Maven的引用是</p>
-<pre><code>compileOnly(&apos;org.projectlombok:lombok&apos;)
-
-&lt;dependency&gt;
-    &lt;groupId&gt;org.projectlombok&lt;/groupId&gt;
-    &lt;artifactId&gt;lombok&lt;/artifactId&gt;
-    &lt;version&gt;$&#123;lombok.version&#125;&lt;/version&gt;
-    &lt;scope&gt;provided&lt;/scope&gt;
-&lt;/dependency&gt;</code></pre><p>对于他的注解，如:</p>
+      <p>该统计主要就是，得到每个表里检测空字段的数量，并且是按行政区统计数量。 简单地说就是 这几十张表里每条数据都有可能是任何一个行政区的数据，并且某些字段都有为空的情况，那么要做的统计就是某个表某个字段为空的数量。如下图这样。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181227222220.png" alt=""> 当然啊，这个上面的表名是可以换成表名称的。 其实统计是很简单的，只不过要通过POI包，将数据通过POI写到excel里，并且布置布局比较困难。查询还是很简单的。另外这个结果图还没有带excel单元格格式设置。 总体来说查询，就是单个单个的查，一个表对应一个字段，表和字段时一对多，那多个表就是多个一对多。这样一条一条的统计确实是很慢。若表比较多，要检查的字段也很多。有多少个检查字段，就要查多少次。 这个单个字段检测空的统计，就是到指定表里查询为空的数据，然后group分组一下，再右关联行政区划字段表(右表全部)。这样所有的行政区都会有，设置行政区为空的，也就是没匹配上的使用NVL化空位0. 当然这个统计需要按顺序的，不管行政区排序，还是表排序。其实这样做可以避免一些出错，或某些应用统计需要这样做。因为排好序的话，字段列多，可以使用到线程帮忙。一般而言，每个字段查询的数据越多、字段越多，那么数据量就越大。耗时越高。 总体的程序步骤是这样的:</p>
 <ol>
-<li>@Data 标注在POJO类上，可以免去setter，getter的编写,toString，构造函数等，它包括了这几个注解{@Getter @Setter @RequiredArgsConstructor @ToString @EqualsAndHashCode}</li>
-<li>@Getter 标注在POJO类上，可以免去getter的编写</li>
-<li>@Setter 标注在POJO类上，可以免去setter的编写</li>
-<li>@RequiredArgsConstructor 生成具有必须参数的构造函数,具有标注了@NonNull注解的属性</li>
-<li>@ToString 生成toString()实现，具有打印属性的功能</li>
-<li>@EqualsAndHashCode 生成equals和hashcode实现</li>
-<li>@Value 生成大量代码，包括@Data,以及有参，无参构造等等。</li>
-<li>@AllArgsConstructor 生成包含所有属性的构造函数,参数顺序与属性定义顺序一致</li>
-<li>@NoArgsConstructor 生成无参构造函数</li>
-<li>@NonNull 标注在属性，方法，参数，本地变量上，会对其进行空检查。</li>
-<li>@Slf4j 标注在类上，可直接使用logger对象 .info,error</li>
-<li>@Cleanup 放置在流上，以自动化关闭流</li>
+<li><p>一个表对应一个字段，这样形成一张表，可以依次通过表名和字段名到统计里查，这两个值作为参数</p>
+</li>
+<li><p>因为每个字段是一列数据，所以每个字段作为一个linkedList，然后在用一个LinkedList在外面包起来。其中这数据再查询时必须要以行政区排序，纵轴行政区也是要排序的，一一对应。</p>
+</li>
+<li><p>这样这个数据就是外层list为每个列数据，内层nlist的每个值是每行的数据，这样嵌套循环时，就是<strong>list.get(j).get(i)了</strong>，表示的就是:POI先创建整行row，再创建单个cell，j为内层循环表示某个列，也就是该行的单元格，依次用j循环，就是循环所有列集合的第i个元素，也就是第i行的数据。看下代码吧。</p>
+<pre><code>for (int i = 0; i &amp;lt; rowNum; i++)&#123;
+        row = sheet.getRow(i+2);//第i行,行已经在设置行政区时创建
+
+        //创建列，一共有属性集合数量个列
+        for(int j = 0; j &amp;lt; linkedList.size(); j++)&#123;
+            cell = row.createCell(j+2);//每行有多少列，是依据列的数量的,所以是j
+            CheckNullField checkNullField = list.get(j);//获得当前的为空属性对象
+
+            //当出现行号i大于等于最大行号时，后面的设置值就会超出索引。也就是说任意一列的某一行，这个行超出了内部集合区县的数量。
+
+            //System.out.println(&amp;quot;第&amp;quot; + i + &amp;quot;行第&amp;quot; + j + &amp;quot;列的值为:&amp;quot; + linkedList.get(j).get(checkNullField.getTableName()+&amp;quot;,&amp;quot;+checkNullField.getField()).get(i).toString());
+            Long value = linkedList.get(j).get(checkNullField.getTableName()+&amp;quot;,&amp;quot;+checkNullField.getField()).get(i);
+            if(value!=0)&#123;
+                cell.setCellStyle(cellStyle);
+            &#125;
+            cell.setCellValue(value.toString());
+        &#125;
+    &#125;</code></pre></li>
 </ol>
-<p>更多的可以参看文档，以上是常用注解。 关于使用@Data注解后，编译检查报错说没有getId等，但却没有划线，说明你正常引入了，在IDEA里你需要enable Annotation Processors，【Settings】-【搜索Annotation Processors】-选中enable Annotation Processors。</p>
+<ol start="4">
+<li><p>里面有多余的注释，是循环时可能出现的问题。不过被删了。暂时先不考虑，等错了再加上去。i+2和j+2表示从第三行开始也就是索引为2的开始，因为设置布局时已经被站了两行两列。这里的getRow()是为什么geRow而不是createRow，因为在布局行政区两列时已经把所有行都创建了，所以这里只有createCell。</p>
+</li>
+<li><p>当然应该先配置两行两列的布局,先配置列，行政区。这里的方法就是，循环所有区县，当他们的上级一样时就添加endRow，不一样时就合并上一个单元格。看代码比较好一点吧。</p>
+<pre><code>sheet.createRow(0);
+    sheet.createRow(1);
+    //设置&amp;quot;地州&amp;quot;合并单元格
+    CellRangeAddress cellRangeAddress = new CellRangeAddress(0,1,0,0);
+    sheet.addMergedRegion(cellRangeAddress);
+    sheet.getRow(0).createCell(0).setCellValue(&amp;quot;地州&amp;quot;);
+    //设置&amp;quot;市县&amp;quot;合并单元格
+    cellRangeAddress = new CellRangeAddress(0,1,1,1);
+    sheet.addMergedRegion(cellRangeAddress);
+    sheet.getRow(0).createCell(1).setCellValue(&amp;quot;区县&amp;quot;);
+    //合并单元格之后，此时行和列都在第2
+    //######################################以下为列循环###########################################################
+    //循环区县列表
+    int beginrow = 2;
+    int endrow = 2;
+    String twoXzqh = xzqhList.get(0).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;//二级行政区判断
+    for (int i = 0; i&amp;lt; xzqhList.size(); i++)&#123;
+
+        XSSFRow row = sheet.createRow(i+2);//创建第三行
+        if (i==104)&#123;
+            cellRangeAddress = new CellRangeAddress(beginrow,endrow,0,0);//合并第一列单元格，改行值不改列值
+            sheet.addMergedRegion(cellRangeAddress);
+            sheet.getRow(cellRangeAddress.getFirstRow()).createCell(0).setCellValue(twoMap.get(twoXzqh));
+            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
+        &#125;
+        if((xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;).equals(twoXzqh))&#123;//判断当前三级代码替换为二级后是否与判断的相同，相同则为一个地州
+            twoXzqh = xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;
+            endrow=endrow+1;
+            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
+        &#125;else&#123;//不等于,说明已经换一个地州的区县了
+            //合并单元格，设置单元格值
+            cellRangeAddress = new CellRangeAddress(beginrow,endrow-1,0,0);//合并第一列单元格，改行值不改列值
+            sheet.addMergedRegion(cellRangeAddress);
+            //修改开始结束row,将结束设置为开始
+            beginrow = endrow;
+            //在更改临时二级行政变量之前，设置值
+
+            sheet.getRow(cellRangeAddress.getFirstRow()).createCell(0).setCellValue(twoMap.get(twoXzqh));
+            //尽管变了二级行政，但依然要设置
+            twoXzqh = xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;
+            endrow=endrow+1;
+            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
+        &#125;
+    &#125;</code></pre></li>
+</ol>
+<ol start="6">
+<li><p>其中beginRow和endRow就是合并单元格时候的开始行和结束行，那么就通过这两和值，将相同的区县时，把endRow累加，不相同时，就换二级行政区了，需要合并上个单元格并设置值，然后设置当前行当前单元格的值。其中需要注意beginRow和endRow的关系，比如合并单元格时endrow-1，因为是以0为索引，所以要合并上一个单元格需要-1，这个需要通过尝试再调试，刚开始的时候不容易找到这个表达式。还有endrow=enrow+1是当前这个行，增的第一行，所以需要加1。而中间的benginrow=endrow表示合并完毕，就把结尾值为开始值，重新增长合并。</p>
+</li>
+<li><p>然后是设置两行:与设置列是一样的，对应相反，行已经创建了，只需要创建每个单元格</p>
+<pre><code>public static void createRowHeader(XSSFWorkbook workbook, XSSFSheet sheet,List list)&#123;
+    //前两行row在创建行政区时已经创建过了，直接getRow第一行第二行就好
+    XSSFRow row1 = sheet.getRow(0);
+    XSSFRow row2 = sheet.getRow(1);
+    CellRangeAddress cellRangeAddress = null;
+    int beginCell = 2;
+    int endCell = 2;
+
+    String tableName = list.get(0).getTableName() ;//第一个表名
+    for(int i =0; i &amp;lt; list.size(); i++)&#123;
+
+        row1.createCell(i+2);
+        row2.createCell(i+2);
+
+        if(i==list.size()-1)&#123;
+            cellRangeAddress = new CellRangeAddress(0, 0, beginCell, endCell);
+            sheet.addMergedRegion(cellRangeAddress);
+            row1.getCell(cellRangeAddress.getFirstColumn()).setCellValue(tableName);//设置合并单元格值
+
+            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());
+        &#125;
+
+        if(list.get(i).getTableName().equals(tableName))&#123;
+            tableName = list.get(i).getTableName();
+            endCell += 1;
+            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());
+        &#125;else&#123;
+            //###设置之前单元格合并
+            if(beginCell+1!=endCell) &#123;//不是单独单元格的进行合并
+                cellRangeAddress = new CellRangeAddress(0, 0, beginCell, endCell - 1);
+                sheet.addMergedRegion(cellRangeAddress);
+                row1.getCell(cellRangeAddress.getFirstColumn()).setCellValue(tableName);//设置合并单元格值
+            &#125;else&#123;
+                row1.getCell(i-1 +2).setCellValue(tableName);//设置上一个单元格，因为没有合并单元格，所以在新表之前设置上个单元格值
+            &#125;
+            //##设置当前第二行单元格值
+            beginCell = endCell;
+            tableName = list.get(i).getTableName();
+            endCell = endCell+1;
+            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());//添加当前新tablename的row2
+        &#125;
+    &#125;
+&#125;</code></pre></li>
+</ol>
+<ol start="8">
+<li><p>这里，在外部循环时，创建Cell，内部是要getCell，不能再创建了，否则获得不到值。而else中的那个判断表示的是当一个表只有一个字段要检查时，合并的话不能C1:C1,所以要设置这个判断条件。</p>
+</li>
+<li><p>最后结果就是，先配置行政区，后配置字段行，最后配置数据列，这个数据列要依据被占的行和列对应添加数。</p>
+</li>
+</ol>
+<p>然后说一下表名和字段名作为参数的这个查询。我在之前想和好久，又是视图又是存储过程的。用视图和存储过程的话需要创建好多结果表，然后很难表连接，连一块。而且表名和字段是特殊字，有些地方不能直接使用。最后用hql来解决，jpa的entityManager的createNativeQuery,创建一个本地查询，可以直接将拼接字符串作为hql进行查询，后面尽量加上查询结果类型Class。因为jpa尽管方便的原因是有很多规则，包括必须的持久化类，还要添加注解，标识列.</p>
+<pre><code>public HashMap&lt;String, LinkedList&lt;Long&gt;&gt; get(String table,String field,String startDate,String endDate) &#123;
+        HashMap&lt;String, LinkedList&lt;Long&gt;&gt; map = new HashMap&lt;&gt;();//map集合存储表字段名，和数量集合
+        LinkedList&lt;Long&gt; list = new LinkedList&lt;&gt;();
+        //这些表不统计,仍需要确定表和字段，然后添加到linkedList中
+        //todo 更改
+        if(noCheck.contains(table)
+                || (table.equals(&quot;QLF_FW_FDCQ_DZ_XM&quot;)&amp;&amp;field.equals(&quot;QLLX&quot;)))&#123;
+            for (int i=0 ; i&lt;105; i++)&#123;
+                list.add(0L);
+            &#125;
+            map.put(table + &quot;,&quot; + field,list);
+            return map;
+        &#125;
+        //创建sql语句
+        String sql = &quot;with\n&quot; +
+                &quot;v0 as (\n&quot; +
+                &quot;select qxdm from baowen.&quot; + table + &quot; \n&quot; +
+                &quot;where (&quot; + field + &quot; is null or rtrim(ltrim(&quot;+ field +&quot;)) = &apos;&apos;) \n&quot; +
+                &quot;and (qxdm is not null or qxdm!=&apos;&apos;) \n&quot; +
+                &quot;and bizmsgid in (select bizmsgid from baowen.bizmsg where trunc(receivedate) between to_date(&apos;&quot; + startDate + &quot;&apos;,&apos;yyyy-mm-dd&apos;) and to_date(&apos;&quot; + endDate + &quot;&apos;,&apos;yyyy-mm-dd&apos;))\n&quot; +
+                &quot;),v1 as (\n&quot; +
+                &quot;select qxdm,count(qxdm) count from v0 group by qxdm\n&quot; +
+                &quot;)select nvl(count,0) count from baowen.dict_xzqh a left join v1 on a.dm=v1.qxdm where a.dj=3 order by a.dm asc&quot;;
+        Query query = entityManager.createNativeQuery(sql);
+        //获得结果，将结果循序添加到LinkedList
+        List nlist = query.getResultList();
+        for (int i =0; i&lt;nlist.size();i++)&#123;
+            list.add(i,Long.valueOf(nlist.get(i).toString()));
+        &#125;
+        map.put(table+&quot;,&quot;+field,list);
+        return map;
+    &#125;</code></pre><p>一般简单查询的话就使用hql使用entityManager的createQuery，使用hql语法查询，若查询语句复杂的使用createNativeQuery这个本地查询。 另外我为什么使用entityManager，因为继承JpaRepository的话，使用注解，不能用表名字段当参数，可能是没找到方法吧。而你要整合entityManager的话，这俩不太可能，因为这样会实现你的自定义接口，然后就的实现JpaRepsitory方法，所以只能一个用接口，一个用Dao实现类，并且不能实现。 <a target="_blank" rel="noopener" href="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/demo.7z">源码包demo</a></p>
 
       
       <!-- reward -->
@@ -1002,7 +437,337 @@ public User create(@RequestBody User user) &#123;
     <footer class="article-footer">
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/lombok/" rel="tag">lombok</a></li></ul>
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle VirtualBox虚拟机复制，更改用户信息" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/26/Oracle/Oracle%20VirtualBox%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%A4%8D%E5%88%B6%EF%BC%8C%E6%9B%B4%E6%94%B9%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF/"
+    >Oracle VirtualBox虚拟机复制，更改用户信息</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/26/Oracle/Oracle%20VirtualBox%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%A4%8D%E5%88%B6%EF%BC%8C%E6%9B%B4%E6%94%B9%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF/" class="article-date">
+  <time datetime="2018-12-25T17:37:38.000Z" itemprop="datePublished">2018-12-26</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Ubuntu/">Ubuntu</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <p>若可以更改静态IP，则先更改静态IP,以便宿主机和虚拟机可以即时通信,相关文档再本站查找ubuntu分类目录下。如果不太懂看本章结尾</p>
+<ol>
+<li><p>先关闭已经创建配置好的虚拟机，右击复制，默认勾选重新配置网卡选项,然后选择完全复制 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226000703.png" alt="图片"> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226000815.png" alt=""></p>
+</li>
+<li><p>启动虚拟机，目前，用户密码任何东西与被复制的那个是一模一样的，除了刚刚设置的虚拟机名称。本案例呢，是吧ubuntu1复制一份为ubuntu3，用户名与密码一样。</p>
+</li>
+<li><p>首先更改主机名hostname文件，名字更改为ubuntu3</p>
+<pre><code>sudo vim /etc/hostname</code></pre></li>
+</ol>
+<ol start="4">
+<li><p>然后更改host文件，设置本机ip对应的主机名,和若需要配置静态IP的IP地址</p>
+<pre><code>vim /etc/hosts</code></pre></li>
+</ol>
+<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001339.png)</code></pre><ol start="5">
+<li><p>修改shadow文件,拉到最下边，找到原来的用户名，进行修改</p>
+<pre><code>sudo vim /etc/shadow</code></pre></li>
+</ol>
+<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001827.png)</code></pre><ol start="6">
+<li><p>修改home下当前用户目录名称</p>
+<pre><code>sudo mv ubuntu1 ubuntu3</code></pre></li>
+</ol>
+<ol start="7">
+<li><p>修改passwd文件,注意画圈的，一定要改成一样的，与你hosts中一致，一定要都改，否则你根本就登陆不上，不要忘了</p>
+<pre><code>sudo vim /etc/passwd</code></pre></li>
+</ol>
+<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226010202.png)</code></pre><ol start="8">
+<li><p>修改组group文件,依然是找到之前的用户名改为当前用户名</p>
+<pre><code>sudo vim /etc/group</code></pre></li>
+</ol>
+<ol start="9">
+<li><p>更改当前用户密码,此时这里应该是ubuntu3，新用户名称，因为主机名用户名已经被更改了。</p>
+<pre><code>sudo passwd ubuntu3</code></pre></li>
+</ol>
+<pre><code>此时你应该无法更改，提示ubuntu3 is not in the sudoers file. This incident will be reported。此时应擦做root用户更改sudoers文件
+
+    su root
+    vim /etc/sudoers
+    #添加下面图片对应的ubuntu3
+    ubuntu3 ALL=(ALL:ALL) ALL
+
+
+![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001623.png)</code></pre><h2 id="虚拟机互通静态IP配置，文章说明"><a href="#虚拟机互通静态IP配置，文章说明" class="headerlink" title="虚拟机互通静态IP配置，文章说明"></a>虚拟机互通静态IP配置，文章说明</h2><p>根据<a target="_blank" rel="noopener" href="http://www.fsats.com/2018/09/18/294/文章可以简单说明。">http://www.fsats.com/2018/09/18/294/文章可以简单说明。</a></p>
+<ol>
+<li>在默认安装VirtualBox之后，会默认提示你让你安装一个虚拟网段的网络适配器 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226012219.png" alt=""></li>
+<li>如果你的网络和共享中心，适配器设置中没有这个VirtualBox的这个适配器，则你打开这个软件.点管理-主机网络管理器，如果列表没有就新建一个，下面那个手动配置网卡选中，IP4xxx.xxx.xxx.1就是网关，HDCP起不起用都可以，可以关了。</li>
+<li>创建了网络管理适配后，就有了网段，这个网段可以跟你本机的局域网ping通的，可以尝试一下。这样有了两个网卡。一个是这个创建的适配的Only-Host用于虚拟机之间互通，另一个就是网络NAT方式</li>
+<li>配置虚拟机网络是，第一张网卡是网络NAT，第一张网卡就选创建的那个，为仅主机模式</li>
+<li>进入Ubuntu后，一个是网卡03，一个是网卡08，一般第一个03的是连接宿主的，08的是创建的仅主机模式的。所以，第一张网卡IP4，IP6都自动获取，所以这个网卡的IP是10.xx.xx.xx的，但可以通过宿主机的网络访问外网。第二张网卡选择手动配置IP4，配置创建的网络适配器的网关，随意取一个地址，子网掩码依旧是255，DNS配置为114.114.114.114,别的也可以，IP6可以禁了，若有需要的话就不禁了。</li>
+</ol>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Oracle/Oracle物化视图使用相关查询" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/"
+    >Oracle物化视图使用相关查询</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/" class="article-date">
+  <time datetime="2018-12-13T08:27:55.000Z" itemprop="datePublished">2018-12-13</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="Oracle物化视图使用相关查询"><a href="#Oracle物化视图使用相关查询" class="headerlink" title="Oracle物化视图使用相关查询"></a>Oracle物化视图使用相关查询</h2><h3 id="查询当前用户所有物化视图"><a href="#查询当前用户所有物化视图" class="headerlink" title="查询当前用户所有物化视图"></a>查询当前用户所有物化视图</h3><pre><code>select * from user_mviews;</code></pre><h3 id="查询物化视图创建语句及更新时间、更新方式、是否失效"><a href="#查询物化视图创建语句及更新时间、更新方式、是否失效" class="headerlink" title="查询物化视图创建语句及更新时间、更新方式、是否失效"></a>查询物化视图创建语句及更新时间、更新方式、是否失效</h3><pre><code>SELECT OWNER            , --所有者账户
+           MVIEW_NAME       , --名称
+           LAST_REFRESH_DATE, --上次更新时间
+           REFRESH_METHOD   , --更新方式
+           INVALID          , --是否失效
+           QUERY              --查询语句
+      FROM USER_MVIEW_ANALYSIS 
+  ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="3-查询物化视图所有列名及列注释"><a href="#3-查询物化视图所有列名及列注释" class="headerlink" title="3. 查询物化视图所有列名及列注释"></a>3. 查询物化视图所有列名及列注释</h3><pre><code>SELECT a.OWNER        , --所有者账户
+            a.MVIEW_NAME   , --名称
+            b.COLUMN_NAME  , --列名称
+            b.COMMENTS       --列注释
+       FROM USER_MVIEW_ANALYSIS a
+ INNER JOIN USER_COL_COMMENTS b
+ON a.MVIEW_NAME = b.TABLE_NAME;</code></pre><h3 id="查询所有物化视图使用的基表"><a href="#查询所有物化视图使用的基表" class="headerlink" title="查询所有物化视图使用的基表"></a>查询所有物化视图使用的基表</h3><pre><code>SELECT DISTINCT 
+               A.OWNER,          --所有者账户
+               A.MVIEW_NAME     ,--物化视图名称
+               B.COMMENTS       ,--视图注释
+               A.DETAILOBJ_OWNER,--基表所有者账号
+               A.DETAILOBJ_NAME  --基表名称
+          FROM USER_MVIEW_DETAIL_RELATIONS A
+    INNER JOIN USER_MVIEW_COMMENTS B ON A.MVIEW_NAME = B.MVIEW_NAME
+         WHERE DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;;</code></pre><h3 id="物化视图或普通视图使用哪些基表，被那个存储过程引用"><a href="#物化视图或普通视图使用哪些基表，被那个存储过程引用" class="headerlink" title="物化视图或普通视图使用哪些基表，被那个存储过程引用"></a>物化视图或普通视图使用哪些基表，被那个存储过程引用</h3><pre><code>WITH CTE AS (
+    SELECT DISTINCT 
+           A.OWNER,               -- 所有者账户
+           A.MVIEW_NAME         , -- 物化视图名称
+           A.DETAILOBJ_OWNER    , -- 被引用表账号
+           A.DETAILOBJ_NAME       -- 被引用表名称
+      FROM USER_MVIEW_DETAIL_RELATIONS A
+     WHERE A.DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;
+ UNION ALL
+    SELECT &apos;&apos; AS OWNER,
+           NAME AS MVIEW_NAME,
+           REFERENCED_OWNER AS DETAILOBJ_OWNER,
+           REFERENCED_NAME AS DETAILOBJ_NAME
+      FROM USER_DEPENDENCIES 
+     WHERE TYPE =&apos;VIEW&apos;
+)
+    SELECT A.OWNER            ,-- 视图所有者账户
+           A.MVIEW_NAME AS MV ,-- 视图名称
+           A.DETAILOBJ_OWNER  ,-- 基表所有者账户
+           A.DETAILOBJ_NAME   ,-- 基表/视图
+           NVL(B.NAME,&apos;-&apos;) AS PROC_NAME -- 存储过程名称
+      FROM CTE A
+ LEFT JOIN (SELECT DISTINCT NAME,REFERENCED_NAME 
+              FROM USER_DEPENDENCIES B 
+             WHERE B.TYPE = &apos;PROCEDURE&apos; 
+            ) B ON A.MVIEW_NAME = B.REFERENCED_NAME
+  ORDER BY A.MVIEW_NAME,A.DETAILOBJ_NAME,B.NAME;</code></pre><h3 id="查询物化视图刷新信息"><a href="#查询物化视图刷新信息" class="headerlink" title="查询物化视图刷新信息"></a>查询物化视图刷新信息</h3><pre><code>SELECT MVIEW_NAME,--物化视图名称
+       REFRESH_MODE,--刷新方式
+       REFRESH_METHOD,--刷新类型
+       FAST_REFRESHABLE,--是否可刷新
+       LAST_REFRESH_TYPE,--最近一次刷新类型
+       LAST_REFRESH_DATE,--最近一次刷新时间
+       STALENESS --数据是否过时
+  FROM USER_MVIEWS 
+ ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="物化视图最后一次刷新信息"><a href="#物化视图最后一次刷新信息" class="headerlink" title="物化视图最后一次刷新信息"></a>物化视图最后一次刷新信息</h3><pre><code>SELECT MVIEW_NAME,  --物化视图名称
+        LAST_REFRESH_DATE &quot;START_TIME&quot;, --刷新开始时间
+        CASE WHEN FULLREFRESHTIM &lt;&gt; 0 
+             THEN LAST_REFRESH_DATE + FULLREFRESHTIM/60/60/24
+             WHEN INCREFRESHTIM &lt;&gt; 0 
+             THEN LAST_REFRESH_DATE + INCREFRESHTIM/60/60/24
+             ELSE LAST_REFRESH_DATE
+        END &quot;END_TIME&quot;, --刷新结束时间
+        FULLREFRESHTIM, --全量刷新耗时
+        INCREFRESHTIM , --增量刷新耗时
+        REFRESH_METHOD, --最近一次刷新方式
+        SUMMARY       , --是否含有聚合查询
+        INC_REFRESHABLE,--是否支持增量刷新
+        INVALID       , --是否失效
+        REWRITE_ENABLED --是否支持查询重写
+   FROM ALL_MVIEW_ANALYSIS
+   WHERE OWNER=&apos;BDCCXTJ&apos;
+ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
+
+
+    </footer>
+
+  </div>
+
+  
+
+  
+  
+  
+
+  
+
+</article>
+    
+    <article id="post-Javascript/关于使用Editor.md的一些问题，尤其是方法的调用" class="article article-type-post" itemscope
+  itemprop="blogPost" data-scroll-reveal>
+
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/"
+    >关于使用Editor.md的一些问题，尤其是方法的调用</a
+  >
+</h2>
+  
+
+    </header>
+    
+
+    
+    <div class="article-meta">
+      <a href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
+  <time datetime="2018-12-02T12:00:12.000Z" itemprop="datePublished">2018-12-02</time>
+</a>
+      
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/JS/">JS</a>
+  </div>
+
+      
+      
+      
+    </div>
+    
+
+    
+
+    
+    <div class="article-entry" itemprop="articleBody">
+      
+      
+
+      
+      <h2 id="关于使用Editor-md的一些问题"><a href="#关于使用Editor-md的一些问题" class="headerlink" title="关于使用Editor.md的一些问题"></a>关于使用Editor.md的一些问题</h2><h3 id="testEditor无法调用该编译器的previewing-方法"><a href="#testEditor无法调用该编译器的previewing-方法" class="headerlink" title="testEditor无法调用该编译器的previewing()方法"></a>testEditor无法调用该编译器的previewing()方法</h3><p>我想用以下方法来预览全部和取消预览全部，所以需要watch属性和previewing方法，试了好多次，都说没有toggle方法或什么的，然后我就取editormd.js去看，发现调用这个方法需要好多对象支持，尤其是codeMirror,但是我看页面，这写js都已经在lib包里导入了。而且使用testEditor打印为undefined。只有在onload里使用this才能调用所有方法。 然后下载源码看，拷贝了老半天，才发现，需要使用方法调用才能使用testEditor执行方法，于是试了试，发现可以，然后就把没用的删了，把height改为autoHeight，因为这样更美观。之后再试，不行。 弄着弄着发现黑主题能显示出来，default主题出不来，于是又试，发现能出来，最后又改了改，又不行了。 最后后，一一的排查，发现是autoHeight搞得，一使用这个属性，就不能preview预览。于是只能改为height才行。 最终的问题，一个是需要使用function方法或事件来调用方法，另一个是autoHeight的坑爹之处。</p>
+
+      
+      <!-- reward -->
+      
+    </div>
+    
+    
+      <!-- copyright -->
+      
+    <footer class="article-footer">
+      
+      
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
 
 
     </footer>
@@ -1025,7 +790,7 @@ public User create(@RequestBody User user) &#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/36/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/35/">35</a><a class="page-number" href="/page/36/">36</a><span class="page-number current">37</span><a class="page-number" href="/page/38/">38</a><a class="page-number" href="/page/39/">39</a><span class="space">&hellip;</span><a class="page-number" href="/page/54/">54</a><a class="extend next" rel="next" href="/page/38/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/36/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/35/">35</a><a class="page-number" href="/page/36/">36</a><span class="page-number current">37</span><a class="page-number" href="/page/38/">38</a><a class="page-number" href="/page/39/">39</a><span class="space">&hellip;</span><a class="page-number" href="/page/55/">55</a><a class="extend next" rel="next" href="/page/38/">下一页</a>
   </nav>
   
 </section>
@@ -1036,7 +801,7 @@ public User create(@RequestBody User user) &#123;
     <ul class="list-inline">
       <li>
         &copy;
-        2020-2021
+        2020-2022
         陈光奇
       </li>
       <li>

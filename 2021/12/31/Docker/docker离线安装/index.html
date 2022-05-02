@@ -6,7 +6,7 @@
     
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
   <title>
-    linux上仅编译redis-cli |  雪里
+    docker离线安装 |  雪里
   </title>
   <meta name="generator" content="hexo-theme-yilia-plus">
   
@@ -44,7 +44,7 @@
   <div id="app">
     <main class="content">
       <section class="outer">
-  <article id="post-Linux/linux上仅编译redis-cli" class="article article-type-post" itemscope
+  <article id="post-Docker/docker离线安装" class="article article-type-post" itemscope
   itemprop="blogPost" data-scroll-reveal>
 
   <div class="article-inner">
@@ -52,7 +52,7 @@
     <header class="article-header">
        
 <h1 class="article-title sea-center" style="border-left:0" itemprop="name">
-  linux上仅编译redis-cli
+  docker离线安装
 </h1>
   
 
@@ -61,12 +61,12 @@
 
     
     <div class="article-meta">
-      <a href="/2021/01/18/Linux/linux%E4%B8%8A%E4%BB%85%E7%BC%96%E8%AF%91redis-cli/" class="article-date">
-  <time datetime="2021-01-18T04:00:00.000Z" itemprop="datePublished">2021-01-18</time>
+      <a href="/2021/12/31/Docker/docker%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/" class="article-date">
+  <time datetime="2021-12-31T04:00:00.000Z" itemprop="datePublished">2021-12-31</time>
 </a>
       
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Linux/">Linux</a>
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
   </div>
 
       
@@ -76,7 +76,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-quill-pen-line"></i>
             <span class="post-meta-item-text"> 字数统计:</span>
-            <span class="post-count">33字</span>
+            <span class="post-count">440字</span>
         </span>
     </span>
 
@@ -85,7 +85,7 @@
         <span class="post-meta-item-icon">
             <i class="ri-book-open-line"></i>
             <span class="post-meta-item-text"> 阅读时长≈</span>
-            <span class="post-count">1分钟</span>
+            <span class="post-count">2分钟</span>
         </span>
     </span>
 </div>
@@ -108,7 +108,20 @@
       
 
       
-      <figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">wget http:&#x2F;&#x2F;download.redis.io&#x2F;redis-stable.tar.gz</span><br><span class="line">tar -xvzf redis-stable.tar.gz</span><br><span class="line">cd redis-stable</span><br><span class="line">make redis-cli</span><br><span class="line">sudo cp src&#x2F;redis-cli &#x2F;usr&#x2F;local&#x2F;bin&#x2F;</span><br></pre></td></tr></table></figure>
+      <p>到 <a target="_blank" rel="noopener" href="https://download.docker.com/linux/static/stable/x86_64/">https://download.docker.com/linux/static/stable/x86_64/</a> 地址找到对应的docker.tgz包。里面是docker的可执行二进制文件。</p>
+<p>官方文档在 <a target="_blank" rel="noopener" href="https://docs.docker.com/engine/install/binaries/#install-static-binaries">https://docs.docker.com/engine/install/binaries/#install-static-binaries</a> 中。</p>
+<p>很多人没有看到这块，只看到了yum安装和rpm安装。这些都是需要网的。提供的rpm的docker仓库里的几个rpm，虽然说是docker必须的，但是其中有许多的依赖包并没有提供。因此还是需要网自动下载依赖。因此要想离线安装必须使用静态二进制的安装方式。</p>
+<p>docker二进制文件可以直接启动。但是需要把他做成服务，便于管理。因此需要做成systemd service。</p>
+<p>注意：网上的18.x.x版本比较老。会有些bug。比如docker-compose内，部分容器无法访问其他容器映射到宿主机的端口，无法ping同宿主机。</p>
+<p>解压，并将二进制文件放到在存在环境变量的目录中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">tar  -xvf  docker-20.10.9.tgz</span><br><span class="line">cp  docker/*    /usr/bin/</span><br></pre></td></tr></table></figure>
+
+<p>注册docker 服务</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">vim /etc/systemd/system/docker.service</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line">[Unit]</span><br><span class="line">Description=Docker Application Container Engine</span><br><span class="line">Documentation=https://docs.docker.com</span><br><span class="line">After=network-online.target firewalld.service</span><br><span class="line">Wants=network-online.target</span><br><span class="line">[Service]</span><br><span class="line">Type=notify</span><br><span class="line"><span class="meta">#</span><span class="bash"> the default is not to use systemd <span class="keyword">for</span> cgroups because the delegate issues still</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> exists and systemd currently does not support the cgroup feature <span class="built_in">set</span> required</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">for</span> containers run by docker</span></span><br><span class="line">ExecStart=/usr/bin/dockerd</span><br><span class="line">ExecReload=/bin/kill -s HUP $MAINPID</span><br><span class="line"><span class="meta">#</span><span class="bash"> Having non-zero Limit*s causes performance problems due to accounting overhead</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">in</span> the kernel. We recommend using cgroups to <span class="keyword">do</span> container-local accounting.</span></span><br><span class="line">LimitNOFILE=infinity</span><br><span class="line">LimitNPROC=infinity</span><br><span class="line">LimitCORE=infinity</span><br><span class="line"><span class="meta">#</span><span class="bash"> Uncomment TasksMax <span class="keyword">if</span> your systemd version supports it.</span></span><br><span class="line"><span class="meta">#</span><span class="bash"> Only systemd 226 and above support this version.</span></span><br><span class="line"><span class="meta">#</span><span class="bash">TasksMax=infinity</span></span><br><span class="line">TimeoutStartSec=0</span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="built_in">set</span> delegate yes so that systemd does not reset the cgroups of docker containers</span></span><br><span class="line">Delegate=yes</span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="built_in">kill</span> only the docker process, not all processes <span class="keyword">in</span> the cgroup</span></span><br><span class="line">KillMode=process</span><br><span class="line"><span class="meta">#</span><span class="bash"> restart the docker process <span class="keyword">if</span> it exits prematurely</span></span><br><span class="line">Restart=on-failure</span><br><span class="line">StartLimitBurst=3</span><br><span class="line">StartLimitInterval=60s</span><br><span class="line"> </span><br><span class="line">[Install]</span><br><span class="line">WantedBy=multi-user.target</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">chmod +x /etc/systemd/system/docker.service</span><br><span class="line">systemctl  daemon-reload</span><br><span class="line">systemctl  start docker</span><br><span class="line">systemctl  enable  docker.service</span><br><span class="line">systemctl status docker</span><br></pre></td></tr></table></figure>
 
 
       
@@ -179,15 +192,13 @@
     <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
     <p>扫一扫，分享到微信</p>
     <div class="wx-qrcode">
-      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2021/01/18/Linux/linux%E4%B8%8A%E4%BB%85%E7%BC%96%E8%AF%91redis-cli/" alt="微信分享二维码">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2021/12/31/Docker/docker%E7%A6%BB%E7%BA%BF%E5%AE%89%E8%A3%85/" alt="微信分享二维码">
     </div>
 </div>
 
 <div id="share-mask"></div>
       
       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Redis/" rel="tag">Redis</a></li></ul>
-
 
     </footer>
 
@@ -197,19 +208,19 @@
   
   <nav class="article-nav">
     
-      <a href="/2021/01/18/Javascript/ajax-post%E8%AF%B7%E6%B1%82%E4%B8%8B%E8%BD%BD%E6%96%87%E4%BB%B6/" class="article-nav-link">
+      <a href="/2022/04/01/Redis/Redis%E6%95%85%E9%9A%9C%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-nav-link">
         <strong class="article-nav-caption">上一篇</strong>
         <div class="article-nav-title">
           
-            ajax post请求下载文件
+            Redis故障相关问题
           
         </div>
       </a>
     
     
-      <a href="/2021/01/15/k8s/k8s-helm/" class="article-nav-link">
+      <a href="/2021/12/06/Java/JVM%E5%90%AF%E5%8A%A8%E5%8F%82%E6%95%B0/" class="article-nav-link">
         <strong class="article-nav-caption">下一篇</strong>
-        <div class="article-nav-title">k8s helm</div>
+        <div class="article-nav-title"></div>
       </a>
     
   </nav>
@@ -282,7 +293,7 @@
     <ul class="list-inline">
       <li>
         &copy;
-        2020-2021
+        2020-2022
         陈光奇
       </li>
       <li>
