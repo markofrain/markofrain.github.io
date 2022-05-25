@@ -1,1180 +1,399 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8" />
-    
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="yanm1ng&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
   <title>
-     雪里
+    
+      雪里
+    
   </title>
-  <meta name="generator" content="hexo-theme-yilia-plus">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
   
-  <link rel="shortcut icon" href="/favicon.ico" />
-  
-  
-<link rel="stylesheet" href="/css/main.css">
-
-  
-  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
-  
-  
+<link rel="stylesheet" href="/css/style.css">
 
   
-
-  <script>
-(function(){
-    var bp = document.createElement('script');
-    var curProtocol = window.location.protocol.split(':')[0];
-    if (curProtocol === 'https') {
-        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-    }
-    else {
-        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-    }
-    var s = document.getElementsByTagName("script")[0];
-    s.parentNode.insertBefore(bp, s);
-})();
-</script>
-</head>
-
-</html>
-
-<body>
-  <div id="app">
-    <main class="content">
-      
-<section class="cover">
-    
-  <div class="cover-frame">
-    <div class="bg-box">
-      <img src="/images/cover4.jpg" alt="image frame" />
-    </div>
-    <div class="cover-inner text-center text-white">
-      <h1><a href="/">雪里</a></h1>
-      <div id="subtitle-box">
-        
-        <span id="subtitle"></span>
-        
-      </div>
-      <div>
-        
-      </div>
-    </div>
-  </div>
-  <div class="cover-learn-more">
-    <a href="javascript:void(0)" class="anchor"><i class="ri-arrow-down-line"></i></a>
-  </div>
-</section>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js"></script>
-
-<div id="main">
-  <section class="outer">
-  <article class="articles">
-    
-    
-    
-    
-    <article id="post-SpringBoot/SpringSecurity-Oauth2-源码解析" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/06/08/SpringBoot/SpringSecurity-Oauth2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/"
-    >Spring Security Oauth2 源码解析</a
-  >
-</h2>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
   
-
-    </header>
     
-
-    
-    <div class="article-meta">
-      <a href="/2021/06/08/SpringBoot/SpringSecurity-Oauth2-%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90/" class="article-date">
-  <time datetime="2021-06-08T04:00:00.000Z" itemprop="datePublished">2021-06-08</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/SpringCloud/">SpringCloud</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210608170657.png" alt=""></p>
-<h3 id="TokenEndpoint入口"><a href="#TokenEndpoint入口" class="headerlink" title="TokenEndpoint入口"></a>TokenEndpoint入口</h3><p>TokenEndpoint类的postAccessToken方法是认证入口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!(principal <span class="keyword">instanceof</span> Authentication)) &#123;</span><br><span class="line">   <span class="keyword">throw</span> <span class="keyword">new</span> InsufficientAuthenticationException(</span><br><span class="line">         <span class="string">&quot;There is no client authentication. Try adding an appropriate authentication filter.&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">String clientId = getClientId(principal);</span><br><span class="line"><span class="comment">// 获取客户端应用信息</span></span><br><span class="line">ClientDetails authenticatedClient = getClientDetailsService().loadClientByClientId(clientId);</span><br><span class="line"><span class="comment">// 生成 TokenRequest 对象</span></span><br><span class="line">TokenRequest tokenRequest = getOAuth2RequestFactory().createTokenRequest(parameters, authenticatedClient);</span><br><span class="line"><span class="comment">// 验证client_id</span></span><br><span class="line"><span class="keyword">if</span> (clientId != <span class="keyword">null</span> &amp;&amp; !clientId.equals(<span class="string">&quot;&quot;</span>)) &#123;</span><br><span class="line">   <span class="comment">// Only validate the client details if a client authenticated during this</span></span><br><span class="line">   <span class="comment">// request.</span></span><br><span class="line">   <span class="keyword">if</span> (!clientId.equals(tokenRequest.getClientId())) &#123;</span><br><span class="line">      <span class="comment">// double check to make sure that the client ID in the token request is the same as that in the</span></span><br><span class="line">      <span class="comment">// authenticated client</span></span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> InvalidClientException(<span class="string">&quot;Given client ID does not match authenticated client&quot;</span>);</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 验证scope</span></span><br><span class="line"><span class="keyword">if</span> (authenticatedClient != <span class="keyword">null</span>) &#123;</span><br><span class="line">   oAuth2RequestValidator.validateScope(tokenRequest, authenticatedClient);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 验证授权类型</span></span><br><span class="line"><span class="keyword">if</span> (!StringUtils.hasText(tokenRequest.getGrantType())) &#123;</span><br><span class="line">   <span class="keyword">throw</span> <span class="keyword">new</span> InvalidRequestException(<span class="string">&quot;Missing grant type&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">if</span> (tokenRequest.getGrantType().equals(<span class="string">&quot;implicit&quot;</span>)) &#123;</span><br><span class="line">   <span class="keyword">throw</span> <span class="keyword">new</span> InvalidGrantException(<span class="string">&quot;Implicit grant type not supported from token endpoint&quot;</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 是否是授权码模式。授权码模式的scope是在发送获取授权码请求的时候的scope，而不使用认证时携带的scope，因此此处设为空，后面会从授权码记录里拿到。</span></span><br><span class="line"><span class="keyword">if</span> (isAuthCodeRequest(parameters)) &#123;</span><br><span class="line">   <span class="comment">// The scope was requested or determined during the authorization step</span></span><br><span class="line">   <span class="keyword">if</span> (!tokenRequest.getScope().isEmpty()) &#123;</span><br><span class="line">      logger.debug(<span class="string">&quot;Clearing scope of incoming token request&quot;</span>);</span><br><span class="line">      tokenRequest.setScope(Collections.&lt;String&gt; emptySet());</span><br><span class="line">   &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 是否刷新令牌请求</span></span><br><span class="line"><span class="keyword">if</span> (isRefreshTokenRequest(parameters)) &#123;</span><br><span class="line">   <span class="comment">// A refresh token has its own default scopes, so we should ignore any added by the factory here.</span></span><br><span class="line">   tokenRequest.setScope(OAuth2Utils.parseParameterList(parameters.get(OAuth2Utils.SCOPE)));</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 生成 OAuth2AccessToken 对象并返回。其中包含了诸多步骤</span></span><br><span class="line">OAuth2AccessToken token = getTokenGranter().grant(tokenRequest.getGrantType(), tokenRequest);</span><br><span class="line"><span class="keyword">if</span> (token == <span class="keyword">null</span>) &#123;</span><br><span class="line">   <span class="keyword">throw</span> <span class="keyword">new</span> UnsupportedGrantTypeException(<span class="string">&quot;Unsupported grant type: &quot;</span> + tokenRequest.getGrantType());</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> getResponse(token);</span><br></pre></td></tr></table></figure>
-
-<h3 id="生成-TokenRequest对象-DefaultOauth2RequestFactory"><a href="#生成-TokenRequest对象-DefaultOauth2RequestFactory" class="headerlink" title="生成 TokenRequest对象(DefaultOauth2RequestFactory)"></a>生成 TokenRequest对象(DefaultOauth2RequestFactory)</h3><p>生成对象由ClientDetails客户端应用信息和授权请求参数共同完成。</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> TokenRequest <span class="title">createTokenRequest</span><span class="params">(Map&lt;String, String&gt; requestParameters, ClientDetails authenticatedClient)</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 验证client_id</span></span><br><span class="line">   String clientId = requestParameters.get(OAuth2Utils.CLIENT_ID);</span><br><span class="line">   <span class="keyword">if</span> (clientId == <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="comment">// if the clientId wasn&#x27;t passed in in the map, we add pull it from the authenticated client object</span></span><br><span class="line">      clientId = authenticatedClient.getClientId();</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">else</span> &#123;</span><br><span class="line">      <span class="comment">// otherwise, make sure that they match</span></span><br><span class="line">      <span class="keyword">if</span> (!clientId.equals(authenticatedClient.getClientId())) &#123;</span><br><span class="line">         <span class="keyword">throw</span> <span class="keyword">new</span> InvalidClientException(<span class="string">&quot;Given client ID does not match authenticated client&quot;</span>);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   String grantType = requestParameters.get(OAuth2Utils.GRANT_TYPE);</span><br><span class="line">   <span class="comment">// 提取scope，从客户端应用信息和scope参数中进行验证并提取</span></span><br><span class="line">   Set&lt;String&gt; scopes = extractScopes(requestParameters, clientId);</span><br><span class="line">   <span class="comment">// 通过请求参数、client_id、scope、grantType共同创建TokenRequest</span></span><br><span class="line">   TokenRequest tokenRequest = <span class="keyword">new</span> TokenRequest(requestParameters, clientId, scopes, grantType);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> tokenRequest;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="创建Oauth2Request与OAuth2Authentication"><a href="#创建Oauth2Request与OAuth2Authentication" class="headerlink" title="创建Oauth2Request与OAuth2Authentication"></a>创建Oauth2Request与OAuth2Authentication</h3><p>通过TokenGranter接口来生成Oauth2AccessToken结果。但其中包含创建Oauth2Request、Oauth2Authentication对象</p>
-<p>TokenGranter接口有多个实现类，对应不同的授权模式。</p>
-<p>首先会进入实现类CompositeTokenGranter类，他是一个组合类，有一个TokenGranter列表，会循环判断请求来的授权模式和当前TokenGranter是否是匹配的，进行处理。会在各TokenGranter父类AbstractTokenGranter类中进行grant验证。</p>
-<ul>
-<li>AuthorizationCodeTokenGranter：授权码模式</li>
-<li>RefreshTokenGranter：令牌刷新</li>
-<li>ImplicitTokenGranter：简易模式</li>
-<li>ClientCredentialsTokenGranter</li>
-<li>ResourceOwnerPasswordTokenGranter</li>
-</ul>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// AbstractTokenGranter</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> OAuth2AccessToken <span class="title">grant</span><span class="params">(String grantType, TokenRequest tokenRequest)</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 验证当前实现类的grantType与请求grantType是否相同</span></span><br><span class="line">   <span class="keyword">if</span> (!<span class="keyword">this</span>.grantType.equals(grantType)) &#123;</span><br><span class="line">      <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">   &#125;</span><br><span class="line">   </span><br><span class="line">   String clientId = tokenRequest.getClientId();</span><br><span class="line">   ClientDetails client = clientDetailsService.loadClientByClientId(clientId);</span><br><span class="line">   <span class="comment">// 验证授权类型，客户端应用信息中的授权类型与该授权类型是否符合</span></span><br><span class="line">   validateGrantType(grantType, client);</span><br><span class="line"></span><br><span class="line">   <span class="keyword">if</span> (logger.isDebugEnabled()) &#123;</span><br><span class="line">      logger.debug(<span class="string">&quot;Getting access token for: &quot;</span> + clientId);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="comment">// 调用方法生成OAuth2AccessToken</span></span><br><span class="line">   <span class="keyword">return</span> getAccessToken(client, tokenRequest);</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">protected</span> OAuth2AccessToken <span class="title">getAccessToken</span><span class="params">(ClientDetails client, TokenRequest tokenRequest)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest));</span><br><span class="line">&#125;</span><br><span class="line"><span class="comment">// 此处ResourceOwnerPasswordTokenGranter重写方法</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> OAuth2Authentication <span class="title">getOAuth2Authentication</span><span class="params">(ClientDetails client, TokenRequest tokenRequest)</span> </span>&#123;</span><br><span class="line">    OAuth2Request storedOAuth2Request = requestFactory.createOAuth2Request(client, tokenRequest);</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">new</span> OAuth2Authentication(storedOAuth2Request, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>在getAccessToken方法中创建了<strong>OAuth2Request</strong>对象，同时通过此对象创建了<strong>OAuth2Authentication</strong>对象</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// ResourceOwnerPasswordTokenGranter password模式TokenGranter</span></span><br><span class="line"></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> OAuth2Authentication <span class="title">getOAuth2Authentication</span><span class="params">(ClientDetails client, TokenRequest tokenRequest)</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">   Map&lt;String, String&gt; parameters = <span class="keyword">new</span> LinkedHashMap&lt;String, String&gt;(tokenRequest.getRequestParameters());</span><br><span class="line">   String username = parameters.get(<span class="string">&quot;username&quot;</span>);</span><br><span class="line">   String password = parameters.get(<span class="string">&quot;password&quot;</span>);</span><br><span class="line">   <span class="comment">// Protect from downstream leaks of password</span></span><br><span class="line">   parameters.remove(<span class="string">&quot;password&quot;</span>);</span><br><span class="line">   <span class="comment">// 通过用户名密码 创建Authentication认证类</span></span><br><span class="line">   Authentication userAuth = <span class="keyword">new</span> UsernamePasswordAuthenticationToken(username, password);</span><br><span class="line">   ((AbstractAuthenticationToken) userAuth).setDetails(parameters);</span><br><span class="line">   <span class="keyword">try</span> &#123;</span><br><span class="line">      <span class="comment">// 进行身份认证,最终会调用UserDetailService接口实现类的loadUserByUsername方法</span></span><br><span class="line">      userAuth = authenticationManager.authenticate(userAuth);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">catch</span> (AccountStatusException ase) &#123;</span><br><span class="line">      <span class="comment">//covers expired, locked, disabled cases (mentioned in section 5.2, draft 31)</span></span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> InvalidGrantException(ase.getMessage());</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">catch</span> (BadCredentialsException e) &#123;</span><br><span class="line">      <span class="comment">// If the username/password are wrong the spec says we should send 400/invalid grant</span></span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> InvalidGrantException(e.getMessage());</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">if</span> (userAuth == <span class="keyword">null</span> || !userAuth.isAuthenticated()) &#123;</span><br><span class="line">      <span class="keyword">throw</span> <span class="keyword">new</span> InvalidGrantException(<span class="string">&quot;Could not authenticate user: &quot;</span> + username);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="comment">// 通过ClientDetails和TokenRequest创建对象</span></span><br><span class="line">   OAuth2Request storedOAuth2Request = getRequestFactory().createOAuth2Request(client, tokenRequest);    </span><br><span class="line">   <span class="comment">// 通过OAuth2Request和Authentication创建对象</span></span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">new</span> OAuth2Authentication(storedOAuth2Request, userAuth);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// TokenRequest</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">public</span> OAuth2Request <span class="title">createOAuth2Request</span><span class="params">(ClientDetails client)</span> </span>&#123;</span><br><span class="line">   Map&lt;String, String&gt; requestParameters = getRequestParameters();</span><br><span class="line">   HashMap&lt;String, String&gt; modifiable = <span class="keyword">new</span> HashMap&lt;String, String&gt;(requestParameters);</span><br><span class="line">   <span class="comment">// Remove password if present to prevent leaks</span></span><br><span class="line">   modifiable.remove(<span class="string">&quot;password&quot;</span>);</span><br><span class="line">   modifiable.remove(<span class="string">&quot;client_secret&quot;</span>);</span><br><span class="line">   <span class="comment">// Add grant type so it can be retrieved from OAuth2Request</span></span><br><span class="line">   modifiable.put(<span class="string">&quot;grant_type&quot;</span>, grantType);</span><br><span class="line">   <span class="keyword">return</span> <span class="keyword">new</span> OAuth2Request(modifiable, client.getClientId(), client.getAuthorities(), <span class="keyword">true</span>, <span class="keyword">this</span>.getScope(),</span><br><span class="line">         client.getResourceIds(), <span class="keyword">null</span>, <span class="keyword">null</span>, <span class="keyword">null</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<h3 id="AuthorizationServerTokenServices创建OAuth2AccessToken"><a href="#AuthorizationServerTokenServices创建OAuth2AccessToken" class="headerlink" title="AuthorizationServerTokenServices创建OAuth2AccessToken"></a>AuthorizationServerTokenServices创建OAuth2AccessToken</h3><p>然后开始执行AbstractTokenGranter的这段代码createAccessToken</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">protected</span> OAuth2AccessToken <span class="title">getAccessToken</span><span class="params">(ClientDetails client, TokenRequest tokenRequest)</span> </span>&#123;</span><br><span class="line">   <span class="keyword">return</span> tokenServices.createAccessToken(getOAuth2Authentication(client, tokenRequest));</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>AuthorizationServerTokenServices接口的唯一实现类DefaultTokenServices来创建对象</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Transactional</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> OAuth2AccessToken <span class="title">createAccessToken</span><span class="params">(OAuth2Authentication authentication)</span> <span class="keyword">throws</span> AuthenticationException </span>&#123;</span><br><span class="line">   <span class="comment">// 从存储器中获取该认证是否已经存在过Token令牌</span></span><br><span class="line">   OAuth2AccessToken existingAccessToken = tokenStore.getAccessToken(authentication);</span><br><span class="line">   OAuth2RefreshToken refreshToken = <span class="keyword">null</span>;</span><br><span class="line">   <span class="comment">// 存在则验证是否过期，如果过期则删除令牌和刷新令牌；不过期则重新存储令牌和刷新令牌 并返回。</span></span><br><span class="line">   <span class="keyword">if</span> (existingAccessToken != <span class="keyword">null</span>) &#123;</span><br><span class="line">      <span class="keyword">if</span> (existingAccessToken.isExpired()) &#123;</span><br><span class="line">         <span class="keyword">if</span> (existingAccessToken.getRefreshToken() != <span class="keyword">null</span>) &#123;</span><br><span class="line">            refreshToken = existingAccessToken.getRefreshToken();</span><br><span class="line">            <span class="comment">// The token store could remove the refresh token when the</span></span><br><span class="line">            <span class="comment">// access token is removed, but we want to</span></span><br><span class="line">            <span class="comment">// be sure...</span></span><br><span class="line">            tokenStore.removeRefreshToken(refreshToken);</span><br><span class="line">         &#125;</span><br><span class="line">         tokenStore.removeAccessToken(existingAccessToken);</span><br><span class="line">      &#125;</span><br><span class="line">      <span class="keyword">else</span> &#123;</span><br><span class="line">         <span class="comment">// Re-store the access token in case the authentication has changed</span></span><br><span class="line">         tokenStore.storeAccessToken(existingAccessToken, authentication);</span><br><span class="line">         <span class="keyword">return</span> existingAccessToken;</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="comment">// 创建一个新的刷新令牌</span></span><br><span class="line">   <span class="comment">// Only create a new refresh token if there wasn&#x27;t an existing one</span></span><br><span class="line">   <span class="comment">// associated with an expired access token.</span></span><br><span class="line">   <span class="comment">// Clients might be holding existing refresh tokens, so we re-use it in</span></span><br><span class="line">   <span class="comment">// the case that the old access token</span></span><br><span class="line">   <span class="comment">// expired.</span></span><br><span class="line">   <span class="keyword">if</span> (refreshToken == <span class="keyword">null</span>) &#123;</span><br><span class="line">      refreshToken = createRefreshToken(authentication);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="comment">// But the refresh token itself might need to be re-issued if it has</span></span><br><span class="line">   <span class="comment">// expired.</span></span><br><span class="line">   <span class="keyword">else</span> <span class="keyword">if</span> (refreshToken <span class="keyword">instanceof</span> ExpiringOAuth2RefreshToken) &#123;</span><br><span class="line">      ExpiringOAuth2RefreshToken expiring = (ExpiringOAuth2RefreshToken) refreshToken;</span><br><span class="line">      <span class="keyword">if</span> (System.currentTimeMillis() &gt; expiring.getExpiration().getTime()) &#123;</span><br><span class="line">         refreshToken = createRefreshToken(authentication);</span><br><span class="line">      &#125;</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="comment">// 创建OAuth2AccessToken。在token存储器存储</span></span><br><span class="line">   OAuth2AccessToken accessToken = createAccessToken(authentication, refreshToken);</span><br><span class="line">   tokenStore.storeAccessToken(accessToken, authentication);</span><br><span class="line">   <span class="comment">// In case it was modified</span></span><br><span class="line">   refreshToken = accessToken.getRefreshToken();</span><br><span class="line">   <span class="keyword">if</span> (refreshToken != <span class="keyword">null</span>) &#123;</span><br><span class="line">      tokenStore.storeRefreshToken(refreshToken, authentication);</span><br><span class="line">   &#125;</span><br><span class="line">   <span class="keyword">return</span> accessToken;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>TokenStore是Token存储器，包括基于内存的，JWT，Redis，JDBC，JWK方式</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">private</span> OAuth2AccessToken <span class="title">createAccessToken</span><span class="params">(OAuth2Authentication authentication, OAuth2RefreshToken refreshToken)</span> </span>&#123;</span><br><span class="line">   <span class="comment">// 创建uuid的token，进行过期设置及刷新token和scope</span></span><br><span class="line">   DefaultOAuth2AccessToken token = <span class="keyword">new</span> DefaultOAuth2AccessToken(UUID.randomUUID().toString());</span><br><span class="line">   <span class="keyword">int</span> validitySeconds = getAccessTokenValiditySeconds(authentication.getOAuth2Request());</span><br><span class="line">   <span class="keyword">if</span> (validitySeconds &gt; <span class="number">0</span>) &#123;</span><br><span class="line">      token.setExpiration(<span class="keyword">new</span> Date(System.currentTimeMillis() + (validitySeconds * <span class="number">1000L</span>)));</span><br><span class="line">   &#125;</span><br><span class="line">   token.setRefreshToken(refreshToken);</span><br><span class="line">   token.setScope(authentication.getOAuth2Request().getScope());</span><br><span class="line"></span><br><span class="line">   <span class="keyword">return</span> accessTokenEnhancer != <span class="keyword">null</span> ? accessTokenEnhancer.enhance(token, authentication) : token;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="自定义登录"><a href="#自定义登录" class="headerlink" title="自定义登录"></a>自定义登录</h2>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
+<script src="/js/qrious.js"></script>
 
   
   
   
-
   
-
-</article>
-    
-    <article id="post-Arcgis/arcgis连接postgresql所需客户端ddl" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/05/17/Arcgis/arcgis%E8%BF%9E%E6%8E%A5postgresql%E6%89%80%E9%9C%80%E5%AE%A2%E6%88%B7%E7%AB%AFddl/"
-    >arcgis连接postgresql所需客户端ddl</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/05/17/Arcgis/arcgis%E8%BF%9E%E6%8E%A5postgresql%E6%89%80%E9%9C%80%E5%AE%A2%E6%88%B7%E7%AB%AFddl/" class="article-date">
-  <time datetime="2021-05-17T04:00:00.000Z" itemprop="datePublished">2021-05-17</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/ArcGIS/">ArcGIS</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>ArcGIS通过ArcMap或ArcCatalog连接数据库</p>
-<p>使用该提供的文件适用于PostgreSQL11版本，其他版本需要自行测试</p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libeay32.dll">libeay32.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libiconv-2.dll">libiconv-2.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libintl-8.dll">libintl-8.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/libpq.dll">libpq.dll</a></p>
-<p><a target="_blank" rel="noopener" href="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/arcgis/postgresql/ssleay32.dll">ssleay32.dll</a></p>
-<p>将文件放置到Arcgis Desktop的bin目录下即可。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ArcGIS/" rel="tag">ArcGIS</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/PostgreSQL/" rel="tag">PostgreSQL</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Spring/Spring中出现的问题" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/05/17/Spring/Spring%E4%B8%AD%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/"
-    >Spring中出现的问题</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/05/17/Spring/Spring%E4%B8%AD%E5%87%BA%E7%8E%B0%E7%9A%84%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-05-17T04:00:00.000Z" itemprop="datePublished">2021-05-17</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Spring/">Spring</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h3 id="validation校验字段时，不能给数值类型使用-NotBlank或-NotEmpty"><a href="#validation校验字段时，不能给数值类型使用-NotBlank或-NotEmpty" class="headerlink" title="validation校验字段时，不能给数值类型使用@NotBlank或@NotEmpty"></a>validation校验字段时，不能给数值类型使用@NotBlank或@NotEmpty</h3>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-PostgreSQL/PostgreSQL-相关操作" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/05/15/PostgreSQL/PostgreSQL-%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
-    >PostgreSQL 相关操作</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/05/15/PostgreSQL/PostgreSQL-%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
-  <time datetime="2021-05-15T04:00:00.000Z" itemprop="datePublished">2021-05-15</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/PostgreSQL/">PostgreSQL</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <blockquote>
-<p>pg系统表:<a target="_blank" rel="noopener" href="https://www.php.cn/manual/view/20908.html">https://www.php.cn/manual/view/20908.html</a></p>
-</blockquote>
-<h2 id="问题描述"><a href="#问题描述" class="headerlink" title="问题描述"></a>问题描述</h2><h3 id="数据库、模式、角色、search-path、currentSchema"><a href="#数据库、模式、角色、search-path、currentSchema" class="headerlink" title="数据库、模式、角色、search_path、currentSchema"></a>数据库、模式、角色、search_path、currentSchema</h3><h4 id="数据库"><a href="#数据库" class="headerlink" title="数据库"></a>数据库</h4><p>一个数据库可以对应一个应用，各个数据库是独立的。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建数据库</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">DATABASE</span> db [OWNER <span class="keyword">ROLE</span>]</span><br><span class="line"><span class="comment">-- 更改数据库所有者</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">DATABASE</span> db OWNER <span class="keyword">TO</span> <span class="keyword">role</span>;</span><br></pre></td></tr></table></figure>
-
-<h4 id="角色与用户"><a href="#角色与用户" class="headerlink" title="角色与用户"></a>角色与用户</h4><p>角色是相对于整个数据库实例的，每个数据库都可以通过pg_roles查询到。几乎与用户相同，角色可以是一个用户<code>create user命令等同于create role</code></p>
-<p>除了一点:create user有隐含的login权限.而create role不会有该权限。也就是说通过create user创建，是可以作为用户名密码进行登录的。</p>
-<p><strong>创建用户</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">CREATE</span> <span class="keyword">USER</span> sxfk <span class="keyword">WITH</span> <span class="keyword">PASSWORD</span> <span class="string">&#x27;sxfk&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<p><strong>权限</strong></p>
-<p>权限有select,delete,update,insert,execute，可以针对各个表进行设置。</p>
-<h4 id="模式-命名空间namespace"><a href="#模式-命名空间namespace" class="headerlink" title="模式(命名空间namespace)"></a>模式(命名空间namespace)</h4><p>一个数据库下可以有多个模式。可以在创建模式的时候指定模式的所有者，或创建后alter更新所有者(用户角色)。</p>
-<p>模式下可以创建任何对象，表、视图、索引、序列等。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 创建模式</span></span><br><span class="line"><span class="keyword">CREATE</span> <span class="keyword">SCHEMA</span> temp OWNER sxkf;</span><br><span class="line"><span class="comment">-- 更新所有者</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">SCHEMA</span> temp OWNER <span class="keyword">TO</span> sxkf;</span><br></pre></td></tr></table></figure>
-
-<p>每个模式下的表都是独立的，可以同名。</p>
-<p>在同一数据库下，操作其他模式的表可以通过模式点表名查询。</p>
-<h4 id="模式与角色"><a href="#模式与角色" class="headerlink" title="模式与角色"></a>模式与角色</h4><p>模式可以被指定所有者角色owner。</p>
-<p>一个角色可以绑定多个模式（当出现此情况，有同名表就需要额外注意）。</p>
-<h4 id="search-path"><a href="#search-path" class="headerlink" title="search_path"></a>search_path</h4><p>此参数作用于当前数据库。该参数表示当前查询的路径，值为模式名，默认是<code>$user,pubilc</code>，也就是说有了search_path里的模式，就不需要模式点表名了。</p>
-<p>此时current_schema函数获取当前schema模式的值为search_path值的第一个模式名，需要注意的是search_path是有顺序的。</p>
-<p>如果存在多个模式都search_path中，且多模式下有相同的表，如果不指定模式点的话，会从左到右模式一次查找表，将会匹配第一个。</p>
-<p>因此这种操作必须使用模式点表名，否则如果你想要取的不在第一个就无法得到想要的数据，而且你需要时刻注意current_schema函数返回的值永远是第一个。</p>
-<p>案例问题：</p>
-<p>生产环境当有一个数据库，只有一个角色，多个模式的时候。我们在开发的时候是不同的角色的，多个数据库，一个角色给予一个模式。所以开发在正常的情况下切换多数据源。但是现场只有一个数据库，把原有的两个库的模式融合到一个库里了，且用户只有一个。</p>
-<ol>
-<li><p>原有多数据源切换已经并没有任何作用，同一个库、同一个用户。切换相当于没切。但是因为开发环境下正常切换数据源无需使用模式点表名。但现场因为相当于没切数据源，那么就会查询public下的表，导致表不存在。</p>
-</li>
-<li><p>基于 生产环境无法改变一个库一个用户的情况。我们在不改动代码的情况下，将数据库的search_path由默认的public,增加到public,temp,current,history。此时我们就可以直接访问其他模式下的表了。</p>
-<p>但因为有些业务代码会查询current_schema函数获取切换数据源后的当前模式名，查询此模式名下所有符合条件的表名。这种情况直接拿到了public，导致没有拿到任何想要的匹配到的表。</p>
-</li>
-<li><p>为了解决这个问题。。。这个问题好像解决不了。</p>
-</li>
-<li><p>还有一个问题是，在开发环境下连到temp模式后，获取一个表的所有字段信息，我们只需要过滤角色即可，但现在所有模式都是一个角色，直接就查询除了所有模式下的同名表和字段。因此要想指定某个模式的表必须添加上过滤模式的条件。</p>
-</li>
-<li><p>另外对于search_path的顺序是至关重要的。</p>
-</li>
-</ol>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">-- 设置search_path为public,business,temp,current</span></span><br><span class="line"><span class="keyword">ALTER</span> <span class="keyword">DATABASE</span> sxkfk <span class="keyword">set</span> search_path <span class="keyword">to</span> <span class="keyword">public</span>,business,temp,<span class="keyword">current</span>;</span><br><span class="line"><span class="comment">-- 作用于当前会话</span></span><br><span class="line"><span class="keyword">SET</span> search_path <span class="keyword">to</span> <span class="keyword">public</span>,business,temp,<span class="keyword">current</span>;</span><br></pre></td></tr></table></figure>
-
-<p>使用ALTER修改时，部分数据库，如翰高highgo，需要在未指定模式下执行才生效。</p>
-<p><strong>给用户角色增加search_path属性</strong></p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> temp <span class="keyword">set</span> search_path <span class="keyword">to</span> temp,<span class="keyword">public</span></span><br><span class="line"><span class="keyword">alter</span> <span class="keyword">user</span> history <span class="keyword">set</span> search_path <span class="keyword">to</span> history,<span class="keyword">public</span></span><br></pre></td></tr></table></figure>
-
-<p>添加完成后的配置在pg_roles中的rolconfig字段中会显示出来。然后java应用进行数据库连接后，所指定用户名密码登录的用户角色就使用这个配置。</p>
-<p>这突然让我不知道，<code>ALTER DATABASE db set seatch_path to pubilc</code>是有什么作用了。是否应用于整个数据库？</p>
-<p>当一个数据库只有一个用户角色的情况下，这种alter user设置的和alter database设置的效果应该是一样的。</p>
-<p><strong>测试了一下</strong></p>
-<p>使用<code>ALTER DATABASE sxkfk set search_path to public,business,temp,current;</code>似乎没有任何效果，<code>alter user</code>是有效果的。</p>
-<p>但是使用<code>alter user sxkf reset search_path</code>来重置search_path，虽然pg_role看不到了。但是已经设置过的还在，没有重置，使用<code>alter database sxkfk reset search_path</code>确还原了，还原成默认<code>&quot;$user&quot;,public</code>。</p>
-<p>以上测试问题，通过postgresql.conf的参数设置章节了解到，配置文件&lt;alter database&lt;alter user&lt;set这种优先级。</p>
-<h4 id="设置权限"><a href="#设置权限" class="headerlink" title="设置权限"></a>设置权限</h4><p><a target="_blank" rel="noopener" href="https://www.cnblogs.com/wang_yb/p/14262736.html">https://www.cnblogs.com/wang_yb/p/14262736.html</a></p>
-<h2 id="常用查询"><a href="#常用查询" class="headerlink" title="常用查询"></a>常用查询</h2><h3 id="查询当前数据库下的各模式信息"><a href="#查询当前数据库下的各模式信息" class="headerlink" title="查询当前数据库下的各模式信息"></a>查询当前数据库下的各模式信息</h3><ol>
-<li><p>查询各模式下所有表</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>查询各模式下所有表的字段列</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.columns <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>查询各模式下所有sequence序列</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.sequences <span class="keyword">where</span> sequence_schema=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>查询各模式下所有view视图</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.views <span class="keyword">where</span> table_schema=<span class="string">&#x27;public&#x27;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>获取角色授权表关联</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.role_table_grants <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span> <span class="keyword">and</span> table_name=<span class="string">&#x27;czkfbj&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>grantor：授予者</li>
-<li>grantee：受让人</li>
-<li>privilege_type：授权类型</li>
-<li>is_grantable：是否已授权</li>
-</ul>
-</li>
-<li><p>获取角色授权列关联</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> information_schema.role_column_grants <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span> <span class="keyword">and</span> table_name=<span class="string">&#x27;czkfbj&#x27;</span></span><br></pre></td></tr></table></figure>
-
-<p>权限类型有SELECT、REFERENCES、INSERT、UPDATE</p>
-</li>
-</ol>
-<p>​    </p>
-<ol>
-<li><p>查询各模式下所有表及owner</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_tables <span class="keyword">where</span> schemaname=<span class="string">&#x27;temp&#x27;</span> <span class="keyword">and</span> tableowner=<span class="string">&#x27;temp&#x27;</span></span><br></pre></td></tr></table></figure>
-</li>
-<li><p>获取角色信息</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> rolname,<span class="keyword">oid</span> <span class="keyword">from</span> pg_roles</span><br></pre></td></tr></table></figure>
-</li>
-<li><p>获取表信息、表关联其他属性信息</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class</span><br></pre></td></tr></table></figure>
-
-<table>
-<thead>
-<tr>
-<th>字段名</th>
-<th>关联</th>
-<th>说明</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>relname</td>
-<td></td>
-<td>表、索引、视图名称:star:</td>
-</tr>
-<tr>
-<td>relnamespace</td>
-<td>pg_namespace.oid</td>
-<td>命名空间(模式):star:</td>
-</tr>
-<tr>
-<td>reltype</td>
-<td>pg_type.oid</td>
-<td>对应这个表的行类型的数据类型，把表名作为数据类型</td>
-</tr>
-<tr>
-<td>relowner</td>
-<td>pg_authid.oid或pg_roles.oid</td>
-<td>所属人，pg_authid只有超级管理员角色才能访问:star:</td>
-</tr>
-<tr>
-<td>oid</td>
-<td></td>
-<td>标识id,其他表会引用</td>
-</tr>
-</tbody></table>
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://www.php.cn/manual/view/20908.html">https://www.php.cn/manual/view/20908.html</a></p>
-</blockquote>
-</li>
-<li><p>属性表、字段表</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_attribute;</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>attrelid：pg_class的oid，</li>
-<li>atttypid：pg_type的oid</li>
-<li>attlen：字段长度</li>
-<li>attnum：字段位置</li>
-</ul>
-</li>
-<li><p>数据类型表</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_type</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>typename：数据类型</li>
-</ul>
-</li>
-<li><p>描述注释表</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_description</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li><p>classoid：pg_class的oid</p>
-</li>
-<li><p>description：描述注释</p>
-</li>
-</ul>
-</li>
-</ol>
-<table>
-<thead>
-<tr>
-<th>表名</th>
-<th>说明</th>
-<th></th>
-</tr>
-</thead>
-<tbody><tr>
-<td>pg_class</td>
-<td>class信息表，引用namepsace、type、role</td>
-<td></td>
-</tr>
-<tr>
-<td>pg_tables</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>pg_roles</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>pg_attribute</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>pg_type</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>pg_description</td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td>pg_namespace</td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<h3 id="批量修改表的owner"><a href="#批量修改表的owner" class="headerlink" title="批量修改表的owner"></a>批量修改表的owner</h3><p>使用拼接的方式得到执行语句，并将结果列导出成sql语句即可。</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="string">&#x27;ALTER TABLE &#x27;</span> || table_name || <span class="string">&#x27; OWNER TO temp;&#x27;</span> <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="string">&#x27;temp&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<p>对于sequence的更改也是一样的。</p>
-<h3 id="获取数据库下，当前所有表名叫czkfbj的pg-class"><a href="#获取数据库下，当前所有表名叫czkfbj的pg-class" class="headerlink" title="获取数据库下，当前所有表名叫czkfbj的pg_class"></a>获取数据库下，当前所有表名叫czkfbj的pg_class</h3><ol>
-<li>每个模式都有角色</li>
-</ol>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class </span><br><span class="line"><span class="keyword">where</span> relowner=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_roles <span class="keyword">where</span> rolname=<span class="string">&#x27;sxkf&#x27;</span>) <span class="comment">-- 角色名</span></span><br><span class="line"><span class="keyword">and</span> relname=<span class="string">&#x27;czkfbj&#x27;</span>;</span><br></pre></td></tr></table></figure>
-
-<ol start="2">
-<li>只有一个角色，多个模式，多个相同的表</li>
-</ol>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> * <span class="keyword">from</span> pg_class</span><br><span class="line"><span class="keyword">where</span> relowner=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_roles <span class="keyword">where</span> rolname=<span class="string">&#x27;sxkf&#x27;</span>) <span class="comment">-- 角色名</span></span><br><span class="line">    <span class="keyword">and</span> relname=<span class="string">&#x27;czkfbj&#x27;</span></span><br><span class="line">    <span class="keyword">and</span> relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;temp&#x27;</span>)<span class="comment">--模式名</span></span><br><span class="line">;</span><br></pre></td></tr></table></figure>
-
-<h3 id="获取指定模式下，某表的所有字段"><a href="#获取指定模式下，某表的所有字段" class="headerlink" title="获取指定模式下，某表的所有字段"></a>获取指定模式下，某表的所有字段</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span> a.attnum, a.attname <span class="keyword">AS</span> <span class="keyword">field</span>, t.typname <span class="keyword">AS</span> <span class="keyword">type</span>, a.attlen <span class="keyword">AS</span> <span class="keyword">length</span> <span class="keyword">from</span> pg_class c ,pg_attribute a,pg_type t</span><br><span class="line"><span class="keyword">where</span> c.relname=<span class="string">&#x27;czkfbj&#x27;</span> <span class="comment">-- 指定表</span></span><br><span class="line">    <span class="keyword">AND</span> a.attnum &gt; <span class="number">0</span></span><br><span class="line">    <span class="keyword">AND</span> a.attrelid = c.oid</span><br><span class="line">    <span class="keyword">AND</span> a.atttypid = t.oid</span><br><span class="line"><span class="keyword">and</span> c.relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;temp&#x27;</span>) <span class="comment">-- 指定了此模式下</span></span><br><span class="line">;</span><br></pre></td></tr></table></figure>
-
-<p>如果不添加模式的话，如果多个模式都有同名的表，并且字段都不一样，那么取所有的字段到某个模式下查询表的话就会出现字段不存在的情况。</p>
-<h3 id="获取所有表名和注释"><a href="#获取所有表名和注释" class="headerlink" title="获取所有表名和注释"></a>获取所有表名和注释</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span></span><br><span class="line">    relname <span class="keyword">as</span> tabname,</span><br><span class="line">    <span class="keyword">coalesce</span>(</span><br><span class="line">                <span class="keyword">cast</span>(obj_description(relfilenode, <span class="string">&#x27;pg_class&#x27;</span>) <span class="keyword">as</span> <span class="built_in">varchar</span>),</span><br><span class="line">                (<span class="keyword">select</span> description <span class="keyword">from</span> pg_description <span class="keyword">where</span> objoid=<span class="keyword">OID</span> <span class="keyword">and</span> objsubid=<span class="number">0</span>)</span><br><span class="line">                ) <span class="keyword">as</span> <span class="keyword">comment</span></span><br><span class="line"><span class="keyword">from</span></span><br><span class="line">    pg_class c</span><br><span class="line"><span class="keyword">where</span></span><br><span class="line">    relkind = <span class="string">&#x27;r&#x27;</span></span><br><span class="line">  <span class="keyword">and</span> relname <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;pg_%&#x27;</span></span><br><span class="line">  <span class="keyword">and</span> relname <span class="keyword">not</span> <span class="keyword">like</span> <span class="string">&#x27;sql_%&#x27;</span></span><br><span class="line">  <span class="keyword">and</span> relname=<span class="string">&#x27;表名&#x27;</span></span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="获取表中所有属性、类型、注释"><a href="#获取表中所有属性、类型、注释" class="headerlink" title="获取表中所有属性、类型、注释"></a>获取表中所有属性、类型、注释</h3><p>使用内联，无注释可能查不出来对应字段数据</p>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">	a.attname <span class="keyword">AS</span> columnName,</span><br><span class="line">	<span class="keyword">concat_ws</span>(<span class="string">&#x27;&#x27;</span>,t.typname,<span class="keyword">SUBSTRING</span>(format_type(a.atttypid,a.atttypmod) <span class="keyword">from</span> <span class="string">&#x27;\(.*\)&#x27;</span>)) <span class="keyword">as</span> columnType,</span><br><span class="line">	d.description <span class="keyword">AS</span> <span class="keyword">comment</span> </span><br><span class="line"><span class="keyword">FROM</span></span><br><span class="line">	pg_class C,</span><br><span class="line">	pg_attribute A,</span><br><span class="line">	pg_type T,</span><br><span class="line">	pg_description d</span><br><span class="line"><span class="keyword">WHERE</span></span><br><span class="line">	C.relname = <span class="string">&#x27;kjgh_plan_result&#x27;</span></span><br><span class="line"><span class="keyword">AND</span> c.relnamespace=(<span class="keyword">select</span> <span class="keyword">oid</span> <span class="keyword">from</span> pg_namespace <span class="keyword">where</span> nspname=<span class="string">&#x27;business&#x27;</span>) <span class="comment">-- 指定了此模式下</span></span><br><span class="line"><span class="keyword">AND</span> A .attnum &gt; <span class="number">0</span></span><br><span class="line"><span class="keyword">AND</span> A .attrelid = C .oid</span><br><span class="line"><span class="keyword">AND</span> A .atttypid = T .oid</span><br><span class="line"><span class="keyword">AND</span> d.objoid = A .attrelid</span><br><span class="line"><span class="keyword">AND</span> d.objsubid = A .attnum</span><br><span class="line"><span class="keyword">ORDER</span> <span class="keyword">BY</span></span><br><span class="line">	C .relname <span class="keyword">DESC</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="查询表占用空间大小，索引大小"><a href="#查询表占用空间大小，索引大小" class="headerlink" title="查询表占用空间大小，索引大小"></a>查询表占用空间大小，索引大小</h3><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SELECT</span></span><br><span class="line">    table_name,</span><br><span class="line">    pg_size_pretty(table_size) <span class="keyword">AS</span> table_size,</span><br><span class="line">    pg_size_pretty(indexes_size) <span class="keyword">AS</span> indexes_size,</span><br><span class="line">    pg_size_pretty(total_size) <span class="keyword">AS</span> total_size</span><br><span class="line"><span class="keyword">FROM</span> (</span><br><span class="line">    <span class="keyword">SELECT</span></span><br><span class="line">        table_name,</span><br><span class="line">        pg_table_size(table_name) <span class="keyword">AS</span> table_size,</span><br><span class="line">        pg_indexes_size(table_name) <span class="keyword">AS</span> indexes_size,</span><br><span class="line">        pg_total_relation_size(table_name) <span class="keyword">AS</span> total_size</span><br><span class="line">    <span class="keyword">FROM</span> (</span><br><span class="line">        <span class="keyword">SELECT</span> (<span class="string">&#x27;&quot;&#x27;</span> || table_schema || <span class="string">&#x27;&quot;.&quot;&#x27;</span> || table_name || <span class="string">&#x27;&quot;&#x27;</span>) <span class="keyword">AS</span> table_name</span><br><span class="line">        <span class="keyword">FROM</span> information_schema.tables</span><br><span class="line">    ) <span class="keyword">AS</span> all_tables</span><br><span class="line">    <span class="keyword">ORDER</span> <span class="keyword">BY</span> total_size <span class="keyword">DESC</span></span><br><span class="line">) <span class="keyword">AS</span> pretty_sizes;</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="参数设置"><a href="#参数设置" class="headerlink" title="参数设置"></a>参数设置</h2><h3 id="pg-hba-conf配置说明"><a href="#pg-hba-conf配置说明" class="headerlink" title="pg_hba.conf配置说明"></a>pg_hba.conf配置说明</h3><p>配置相关访问权限，如允许某ip/网段连接，允许哪些用户访问那些数据库，并设置连接方式(oassword,MD5,trust等)</p>
-<p><a target="_blank" rel="noopener" href="https://blog.csdn.net/hmxz2nn/article/details/83717663">https://blog.csdn.net/hmxz2nn/article/details/83717663</a></p>
-<h3 id="postgresql-conf配置说明"><a href="#postgresql-conf配置说明" class="headerlink" title="postgresql.conf配置说明"></a>postgresql.conf配置说明</h3><p><a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/config-setting.html">https://www.yiibai.com/manual/postgresql/config-setting.html</a></p>
-<h4 id="重加载配置"><a href="#重加载配置" class="headerlink" title="重加载配置"></a>重加载配置</h4><p><code>pg_ctl reload</code>命令会重新读取这个配置文件，同时主服务器进程也将这个信号广播给所有正在运行的子服务器进程，这样现有会话也能得到新值。有些参数只能在服务器启动的时候设置；对这些条目的修改将被忽略，直到下次服务器重启。</p>
-<h4 id="对于单个数据库或角色的更新覆盖"><a href="#对于单个数据库或角色的更新覆盖" class="headerlink" title="对于单个数据库或角色的更新覆盖"></a>对于单个数据库或角色的更新覆盖</h4><ol>
-<li><p>我们可以给一个用户或者一个数据库赋予一套选项设置。在一个会话开始的时候，装载所涉及到的用户和数据库的缺省设置。命令 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-alteruser.html"><em>ALTER USER</em></a> 和 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-alterdatabase.html"><em>ALTER DATABASE</em></a> 分别用于配置这些设置。针对每个数据库的设置将覆盖任何从 <code>postgres</code> 命令行或者配置文件收到的设置，然后接着又被针对每个用户的设置覆盖；最后又会都被针对每个会话的设置覆盖。</p>
-<p>也可以把一个会话缺省绑定到一个特定用户，而不是某个数据库上；参阅 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-alteruser.html"><em>ALTER USER</em></a> ，如果存在冲突，那么用户声明的设置覆盖数据库相关的设置。</p>
-</li>
-<li><p>一些选项可以在独立的 SQL 会话中修改，方法是使用 <a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-set.html"><em>SET</em></a> 命令，比如：</p>
-</li>
-</ol>
-<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">SET</span> ENABLE_SEQSCAN <span class="keyword">TO</span> <span class="keyword">OFF</span>;</span><br></pre></td></tr></table></figure>
-
-<p>有些参数不能通过 <code>SET</code> 改变：比如，如果这些选项不重启动 PostgreSQL 就无法合理控制其行为。同样，有些参数只能由超级用户通过 <code>SET</code> 或 <code>ALTER</code> 修改，而普通用户不能修改。</p>
-<p><a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/sql-show.html"><em>SHOW</em></a> 命令允许检查所有参数的当前值</p>
-<p>我们也可以用虚表 <code>pg_settings</code>(在<a target="_blank" rel="noopener" href="https://www.yiibai.com/manual/postgresql/view-pg-settings.html">节43.44</a>)里描述)来显示和更新当前会话的运行时参数。它等效于 <code>SHOW</code> 和 <code>SET</code> ，但是用起来更方便，因为它可以和其它表连接起来使用，或者用任意用户需要的选择条件来查询</p>
-<p>以上两条说明，在search_path上很好地说明了情况。</p>
-<table>
-<thead>
-<tr>
-<th>模块</th>
-<th>参数</th>
-<th>是否需要重启</th>
-<th>说明</th>
-<th>默认值</th>
-</tr>
-</thead>
-<tbody><tr>
-<td></td>
-<td>search_path</td>
-<td></td>
-<td></td>
-<td>‘“$user”, public’</td>
-</tr>
-<tr>
-<td>connection</td>
-<td>listen_address</td>
-<td>重启</td>
-<td></td>
-<td>‘*’</td>
-</tr>
-<tr>
-<td>connection</td>
-<td>port</td>
-<td>重启</td>
-<td></td>
-<td>5432</td>
-</tr>
-<tr>
-<td>connection</td>
-<td>max_connections</td>
-<td>重启</td>
-<td></td>
-<td>100</td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody></table>
-<h2 id="docker相关设置"><a href="#docker相关设置" class="headerlink" title="docker相关设置"></a>docker相关设置</h2><h3 id="在docker-compose启动的时候设置最大连接数"><a href="#在docker-compose启动的时候设置最大连接数" class="headerlink" title="在docker-compose启动的时候设置最大连接数"></a>在docker-compose启动的时候设置最大连接数</h3><p>在yml文件中，增加command属性，值为数组的yml展示方式</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">command:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">postgres</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">-c</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">max_connections=2000</span></span><br></pre></td></tr></table></figure>
-
-<p>使用docker命令启动时，在最后输入命令</p>
-<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker run -d --name some-postgres -e POSTGRES_PASSWORD=mysecretpassword postgres -c shared_buffers=256MB -c max_connections=2000</span><br></pre></td></tr></table></figure>
-
-<blockquote>
-<p><a target="_blank" rel="noopener" href="https://registry.hub.docker.com/_/postgres?tab=description&page=1&ordering=last_updated">dockerhub postgres</a></p>
-</blockquote>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-SpringBoot/SpringSecurity-Oauth2单点登录" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/05/14/SpringBoot/SpringSecurity-Oauth2%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/"
-    >Spring Security OAuth2单点登录</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2021/05/14/SpringBoot/SpringSecurity-Oauth2%E5%8D%95%E7%82%B9%E7%99%BB%E5%BD%95/" class="article-date">
-  <time datetime="2021-05-14T04:00:00.000Z" itemprop="datePublished">2021-05-14</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a> / <a class="article-category-link" href="/categories/SpringBoot/SpringCloud/">SpringCloud</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="OAuth2入门，API测试认证"><a href="#OAuth2入门，API测试认证" class="headerlink" title="OAuth2入门，API测试认证"></a>OAuth2入门，API测试认证</h2><blockquote>
-<p>引用参考</p>
-<p><a target="_blank" rel="noopener" href="https://mrbird.cc/Spring-Security-OAuth2-Guide.html">https://mrbird.cc/Spring-Security-OAuth2-Guide.html</a></p>
-<p><a target="_blank" rel="noopener" href="https://blog.gaoyp.cn/2019/12/10/spring-security-oauth2-02/">https://blog.gaoyp.cn/2019/12/10/spring-security-oauth2-02/</a></p>
-</blockquote>
-<h3 id="代码添加"><a href="#代码添加" class="headerlink" title="代码添加"></a>代码添加</h3><h4 id="创建项目"><a href="#创建项目" class="headerlink" title="创建项目"></a>创建项目</h4><p>先创建一个父级项目，再创建一个子模块项目，该子模块为认证服务器和资源服务器角色， 为子模块添加依赖。</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">project</span> <span class="attr">xmlns</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xmlns:xsi</span>=<span class="string">&quot;http://www.w3.org/2001/XMLSchema-instance&quot;</span></span></span><br><span class="line"><span class="tag">         <span class="attr">xsi:schemaLocation</span>=<span class="string">&quot;http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd&quot;</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">parent</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-parent<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">version</span>&gt;</span>2.1.6.RELEASE<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">relativePath</span>/&gt;</span> <span class="comment">&lt;!-- lookup parent from repository --&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">parent</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">modelVersion</span>&gt;</span>4.0.0<span class="tag">&lt;/<span class="name">modelVersion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.cgq.oauth<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>introduction-server<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>0.0.1-SNAPSHOT<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">properties</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.source</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.source</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">maven.compiler.target</span>&gt;</span>8<span class="tag">&lt;/<span class="name">maven.compiler.target</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">spring-cloud.version</span>&gt;</span>Greenwich.SR1<span class="tag">&lt;/<span class="name">spring-cloud.version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">properties</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-oauth2<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-starter-security<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.apache.commons<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-lang3<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.projectlombok<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>lombok<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">dependencies</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.cloud<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-cloud-dependencies<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;spring-cloud.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">type</span>&gt;</span>pom<span class="tag">&lt;/<span class="name">type</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">scope</span>&gt;</span>import<span class="tag">&lt;/<span class="name">scope</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">dependencies</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">dependencyManagement</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">build</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">plugins</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">plugins</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">build</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">project</span>&gt;</span></span><br></pre></td></tr></table></figure>
-
-<h4 id="添加认证服务器配置"><a href="#添加认证服务器配置" class="headerlink" title="添加认证服务器配置"></a>添加认证服务器配置</h4><p>添加一个用户类</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">MyUser</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = -<span class="number">7614063286560993848L</span>;</span><br><span class="line">    <span class="keyword">private</span> String userName;</span><br><span class="line">    <span class="keyword">private</span> String password;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> accountNonExpired = <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> accountNonLocked= <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> credentialsNonExpired= <span class="keyword">true</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> enabled= <span class="keyword">true</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>定义UserDetailService类实现<code>org.springframework.security.core.userdetails.UserDetailsService</code>接口</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.core.authority.AuthorityUtils;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.core.userdetails.User;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.core.userdetails.UserDetails;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.core.userdetails.UserDetailsService;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.core.userdetails.UsernameNotFoundException;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.PasswordEncoder;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Service;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> chen</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Service</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">UserDetailService</span> <span class="keyword">implements</span> <span class="title">UserDetailsService</span> </span>&#123;</span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> PasswordEncoder passwordEncoder;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> UserDetails <span class="title">loadUserByUsername</span><span class="params">(String username)</span> <span class="keyword">throws</span> UsernameNotFoundException </span>&#123;</span><br><span class="line">        MyUser user = <span class="keyword">new</span> MyUser();</span><br><span class="line">        user.setUserName(username);</span><br><span class="line">        user.setPassword(<span class="keyword">this</span>.passwordEncoder.encode(<span class="string">&quot;123456&quot;</span>));</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> User(username, user.getPassword(), user.isEnabled(),</span><br><span class="line">                user.isAccountNonExpired(), user.isCredentialsNonExpired(),</span><br><span class="line">                user.isAccountNonLocked(), AuthorityUtils.commaSeparatedStringToAuthorityList(<span class="string">&quot;admin&quot;</span>));</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>配置SecurityConfig类</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@EnableWebSecurity</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">SecurityConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">passwordEncoder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> BCryptPasswordEncoder();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">        http.requestMatchers()</span><br><span class="line">                .antMatchers(<span class="string">&quot;/oauth/**&quot;</span>,<span class="string">&quot;/login/**&quot;</span>,<span class="string">&quot;/logout/**&quot;</span>)</span><br><span class="line">                .and()</span><br><span class="line">                .authorizeRequests()</span><br><span class="line">                .antMatchers(<span class="string">&quot;/oauth/**&quot;</span>).authenticated()</span><br><span class="line">                .and()</span><br><span class="line">                .csrf().disable()</span><br><span class="line">                .formLogin().permitAll();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<p>配置认证服务类</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.annotation.Order;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.crypto.password.PasswordEncoder;</span><br><span class="line"><span class="keyword">import</span> org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableAuthorizationServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">AuthorizationServerConfig</span> <span class="keyword">extends</span> <span class="title">WebSecurityConfigurerAdapter</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> PasswordEncoder <span class="title">passwordEncoder</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> BCryptPasswordEncoder();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>添加application配置</p>
-<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="string">import</span> <span class="string">com.cgq.oauth.server.UserDetailService;</span></span><br><span class="line"><span class="string">import</span> <span class="string">org.springframework.beans.factory.annotation.Autowired;</span></span><br><span class="line"><span class="string">import</span> <span class="string">org.springframework.context.annotation.Configuration;</span></span><br><span class="line"><span class="string">import</span> <span class="string">org.springframework.security.oauth2.config.annotation.configurers.ClientDetailsServiceConfigurer;</span></span><br><span class="line"><span class="string">import</span> <span class="string">org.springframework.security.oauth2.config.annotation.web.configuration.AuthorizationServerConfigurerAdapter;</span></span><br><span class="line"><span class="string">import</span> <span class="string">org.springframework.security.oauth2.config.annotation.web.configuration.EnableAuthorizationServer;</span></span><br><span class="line"><span class="string">import</span> <span class="string">org.springframework.security.oauth2.config.annotation.web.configurers.AuthorizationServerEndpointsConfigurer;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="string">@Configuration</span></span><br><span class="line"><span class="string">@EnableAuthorizationServer</span></span><br><span class="line"><span class="string">public</span> <span class="string">class</span> <span class="string">AuthorizationServerConfig</span> <span class="string">extends</span> <span class="string">AuthorizationServerConfigurerAdapter</span> &#123;</span><br><span class="line"></span><br><span class="line">    <span class="string">@Autowired</span></span><br><span class="line">    <span class="string">private</span> <span class="string">PasswordEncoder</span> <span class="string">passwordEncoder;</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">    <span class="string">/**</span></span><br><span class="line">     <span class="string">*</span> <span class="string">配置客户端信息</span></span><br><span class="line">     <span class="string">*</span> <span class="string">@param</span> <span class="string">clients</span></span><br><span class="line">     <span class="string">*</span> <span class="string">@throws</span> <span class="string">Exception</span></span><br><span class="line">     <span class="string">*/</span></span><br><span class="line">    <span class="string">@Override</span></span><br><span class="line">    <span class="string">public</span> <span class="string">void</span> <span class="string">configure(ClientDetailsServiceConfigurer</span> <span class="string">clients)</span> <span class="string">throws</span> <span class="string">Exception</span> &#123;</span><br><span class="line">        <span class="string">//</span> <span class="string">从内存中获取客户端信息</span></span><br><span class="line">        <span class="string">clients.inMemory()</span></span><br><span class="line">                <span class="string">//</span> <span class="string">客户端id</span></span><br><span class="line">                <span class="string">.withClient(&quot;test&quot;)</span></span><br><span class="line">                <span class="string">//</span> <span class="string">客户端secret</span></span><br><span class="line">                <span class="string">.secret(passwordEncoder.encode(&quot;test1234&quot;))</span></span><br><span class="line">                <span class="string">//</span> <span class="string">认证类型</span></span><br><span class="line">                <span class="string">.authorizedGrantTypes(&quot;password&quot;</span>, <span class="string">&quot;refresh_token&quot;</span>,<span class="string">&quot;authorization_code&quot;</span><span class="string">)</span></span><br><span class="line">                <span class="string">//</span> <span class="string">授权范围</span></span><br><span class="line">                <span class="string">.scopes(&quot;all&quot;)</span></span><br><span class="line">                <span class="string">//</span> <span class="string">回调地址</span></span><br><span class="line">                <span class="string">.redirectUris(&quot;http://mrbird.cc&quot;);</span></span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-
-
-<h3 id="授权码模式获取令牌"><a href="#授权码模式获取令牌" class="headerlink" title="授权码模式获取令牌"></a>授权码模式获取令牌</h3><p>打开浏览器访问<code>http://localhost:9000/oauth/authorize?response_type=code&amp;client_id=test&amp;redirect_uri=http://mrbird.cc&amp;scope=all&amp;state=hello</code></p>
-<ul>
-<li>response_type必须为code</li>
-<li>redirect_uri为重定向地址，重定向地址必须要注册</li>
-<li>scope为all表示所有权限</li>
-</ul>
-<p>会转到登录页面，输入用户名和密码，用户名和密码在UserDetailService进行认证，用户名随意写，密码为123456。登录后页面如下</p>
-<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210514153333.png" alt=""></p>
-<p>选择Approve，并点击Authorize认证，则会跳转到<code>https://mrbird.cc/?code=fxFSNF&amp;state=hello</code>的路径</p>
-<p>使用postman请求token接口</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">POST localhost:9000/oauth/token?grant_type=authorization_code&amp;code=fxFSNF&amp;client_id=test&amp;redirect_uri=http://mrbird.cc&amp;scope=all</span><br></pre></td></tr></table></figure>
-
-<ul>
-<li>grant_type为固定值authorization_code</li>
-<li>code为上一步获取的授权码</li>
-<li>client_id为服务端定义的client_id</li>
-<li>redirect_uri为重定向地址，应与注册的重定向地址一致</li>
-</ul>
-<p>在Headers中添加Authorization请求头，值为<code>Basic</code>加上<code>client_id:client_secret</code>的base64编码值<code>Basic dGVzdDp0ZXN0MTIzNA==</code></p>
-<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210514155357.png" alt=""></p>
-<p>一次授权码只能获取一次令牌，再次点击发送会返回错误。</p>
-<p>使用token获取资源，提前定义好一个get接口访问<code>localhost:9000/index</code>并添加请求头</p>
-<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/2021/source/QQ%E6%88%AA%E5%9B%BE20210514163249.png" alt=""></p>
-<p>此时token是正确的，但受到了拦截，因此需要配置资源服务器</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="meta">@EnableResourceServer</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ResourceServerConfig</span> </span>&#123;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>因为在请求访问的时候security配置服务器与资源服务器有加载优先级，需要确保security配置服务器先于资源服务器加载，@EnableResourceServer加载order为3，我们需要把SecurityConfig设置为@Order(2)。</p>
-<p>重启服务后再次访问即可。</p>
-<h3 id="密码模式"><a href="#密码模式" class="headerlink" title="密码模式"></a>密码模式</h3><p>请求</p>
-<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">POST localhost:9000/oauth/token?grant_type=password&amp;username=123456&amp;password=123456&amp;scope=all</span><br><span class="line">Authorization:Basic dGVzdDp0ZXN0MTIzNA==</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">    &quot;error&quot;: &quot;unsupported_grant_type&quot;,</span><br><span class="line">    &quot;error_description&quot;: &quot;Unsupported grant type: password&quot;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>我们需要新增配置</p>
-<p>新增SecurityConfig类如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 密码模式需要用到</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@return</span></span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="meta">@Bean</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> AuthenticationManager <span class="title">authenticationManagerBean</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    <span class="keyword">return</span> <span class="keyword">super</span>.authenticationManagerBean();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>新增AuthorizationServerConfig类如下</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> AuthenticationManager authenticationManager;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Autowired</span></span><br><span class="line"><span class="keyword">private</span> UserDetailService userDetailService;</span><br><span class="line"></span><br><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 设置认证配置</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> endpoints</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@throws</span> Exception</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(AuthorizationServerEndpointsConfigurer endpoints)</span></span></span><br><span class="line"><span class="function">        <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    endpoints.authenticationManager(authenticationManager).</span><br><span class="line">            userDetailsService(userDetailService);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>重启后再次请求即可获得到。</p>
-<p>使用如上配置后，虽然token获取到了，但是使用授权码模式和密码模式的token访问资源数据的时候，还是401。我们需要在SecurityConfig中新增拦截过滤配置</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configure</span><span class="params">(HttpSecurity http)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    http.requestMatchers()</span><br><span class="line">        .antMatchers(<span class="string">&quot;/oauth/**&quot;</span>,<span class="string">&quot;/login/**&quot;</span>,<span class="string">&quot;/logout/**&quot;</span>)</span><br><span class="line">        .and()</span><br><span class="line">        .authorizeRequests()</span><br><span class="line">        .antMatchers(<span class="string">&quot;/oauth/**&quot;</span>).authenticated()</span><br><span class="line">        .and()</span><br><span class="line">        .csrf().disable()</span><br><span class="line">        .formLogin().permitAll();</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
-
-<p>再次重启后即可，访问到资源数据。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/OAuth2/" rel="tag">OAuth2</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-  </article>
-  
-
-  
-  <nav class="page-nav">
-    
-    <a class="extend prev" rel="prev" href="/page/5/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/4/">4</a><a class="page-number" href="/page/5/">5</a><span class="page-number current">6</span><a class="page-number" href="/page/7/">7</a><a class="page-number" href="/page/8/">8</a><span class="space">&hellip;</span><a class="page-number" href="/page/55/">55</a><a class="extend next" rel="next" href="/page/7/">下一页</a>
-  </nav>
-  
-</section>
-</div>
-
-      <footer class="footer">
-  <div class="outer">
-    <ul class="list-inline">
-      <li>
-        &copy;
-        2020-2022
-        陈光奇
-      </li>
-      <li>
-        
-        Powered by
-        
-        
-        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
-        
-      </li>
-    </ul>
-    <ul class="list-inline">
-      <li>
-        
-      </li>
-      
-      <li>
-        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
-      </li>
-      
-      <li>
-        <!-- cnzz统计 -->
-        
-      </li>
-    </ul>
-  </div>
-</footer>
-      <div class="to_top">
-        <div class="totop" id="totop">
-  <i class="ri-arrow-up-line"></i>
-</div>
-      </div>
-    </main>
-    <aside class="sidebar">
-      <button class="navbar-toggle"></button>
-<nav class="navbar">
-  
-  <div class="logo">
-    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
-  </div>
-  
-  <ul class="nav nav-main">
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/">主页</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/archives">归档</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/categories">分类</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/tags">标签</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/photos">相册</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/2020/about">关于我</a>
-    </li>
-    
-  </ul>
-</nav>
-<nav class="navbar navbar-bottom">
-  <ul class="nav">
-    <li class="nav-item">
-      
-      <a class="nav-item-link nav-item-search"  title="Search">
-        <i class="ri-search-line"></i>
-      </a>
-      
-      
-      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
-        <i class="ri-rss-line"></i>
-      </a>
-      
-    </li>
-  </ul>
-</nav>
-<div class="search-form-wrap">
-  <div class="local-search local-search-plugin">
-  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
-  <div id="local-search-result" class="local-search-result"></div>
-</div>
-</div>
-    </aside>
-    <div id="mask"></div>
-
-<!-- #reward -->
-<div id="reward">
-  <span class="close"><i class="ri-close-line"></i></span>
-  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
-  <div class="reward-box">
-    
-    <div class="reward-item">
-      <img class="reward-img" src="/images/alipay.png">
-      <span class="reward-type">支付宝</span>
-    </div>
-    
-    
-    <div class="reward-item">
-      <img class="reward-img" src="/images/wechat.png">
-      <span class="reward-type">微信</span>
-    </div>
-    
-  </div>
-</div>
-    
-<script src="/js/jquery-2.0.3.min.js"></script>
-
-
-<script src="/js/share.js"></script>
-
-
-<script src="/js/lazyload.min.js"></script>
-
-
-<script>
-  try {
-    var typed = new Typed("#subtitle", {
-      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
-      startDelay: 0,
-      typeSpeed: 200,
-      loop: true,
-      backSpeed: 100,
-      showCursor: true
-    });
-  } catch (err) {
-  }
-
-</script>
-
-
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
-<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
-
-<script src="/js/ayer.js"></script>
-
-
-
-<!-- Root element of PhotoSwipe. Must have class pswp. -->
-<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
-
-    <!-- Background of PhotoSwipe. 
-         It's a separate element as animating opacity is faster than rgba(). -->
-    <div class="pswp__bg"></div>
-
-    <!-- Slides wrapper with overflow:hidden. -->
-    <div class="pswp__scroll-wrap">
-
-        <!-- Container that holds slides. 
-            PhotoSwipe keeps only 3 of them in the DOM to save memory.
-            Don't modify these 3 pswp__item elements, data is added later on. -->
-        <div class="pswp__container">
-            <div class="pswp__item"></div>
-            <div class="pswp__item"></div>
-            <div class="pswp__item"></div>
-        </div>
-
-        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
-        <div class="pswp__ui pswp__ui--hidden">
-
-            <div class="pswp__top-bar">
-
-                <!--  Controls are self-explanatory. Order can be changed. -->
-
-                <div class="pswp__counter"></div>
-
-                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
-
-                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
-
-                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
-
-                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
-
-                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
-                <!-- element will get class pswp__preloader--active when preloader is running -->
-                <div class="pswp__preloader">
-                    <div class="pswp__preloader__icn">
-                        <div class="pswp__preloader__cut">
-                            <div class="pswp__preloader__donut"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
-                <div class="pswp__share-tooltip"></div>
-            </div>
-
-            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
-            </button>
-
-            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
-            </button>
-
-            <div class="pswp__caption">
-                <div class="pswp__caption__center"></div>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
-<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
-
-<script>
-    function viewer_init() {
-        let pswpElement = document.querySelectorAll('.pswp')[0];
-        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
-
-        $imgArr.forEach(($em, i) => {
-            $em.onclick = () => {
-                // slider展开状态
-                // todo: 这样不好，后面改成状态
-                if (document.querySelector('.left-col.show')) return
-                let items = []
-                $imgArr.forEach(($em2, i2) => {
-                    let img = $em2.getAttribute('data-idx', i2)
-                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
-                    let title = $em2.getAttribute('alt')
-                    // 获得原图尺寸
-                    const image = new Image()
-                    image.src = src
-                    items.push({
-                        src: src,
-                        w: image.width || $em2.width,
-                        h: image.height || $em2.height,
-                        title: title
-                    })
-                })
-                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
-                    index: parseInt(i)
-                });
-                gallery.init()
-            }
-        })
-    }
-    viewer_init()
-</script>
-
-
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-      tex2jax: {
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
           inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
           processEscapes: true,
           skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-      }
-  });
+        }
+      });
+    </script>
 
-  MathJax.Hub.Queue(function() {
-      var all = MathJax.Hub.getAllJax(), i;
-      for(i=0; i < all.length; i += 1) {
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
           all[i].SourceElement().parentNode.className += ' has-jax';
-      }
-  });
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script>
-  var ayerConfig = {
-    mathjax: true
-  }
-</script>
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
 
 
+  
+  
+    
+<script src="/js/local-search.js"></script>
 
-<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
 
+<meta name="generator" content="Hexo 5.2.0"></head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>雪里</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link active">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/series/" class="item-link">Series</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">Projects</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+      
+        <li class="menu-item menu-item-search right-list">
+    <a role="button" class="popup-trigger">
+        <i class="fa fa-search fa-fw"></i>
+    </a>
+</li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link mobile-active">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/series/" class="menu-link">Series</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">Projects</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+    
+      <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+            <span class="search-icon">
+                <i class="fa fa-search"></i>
+            </span>
+            <div class="search-input-container">
+                <input autocomplete="off" autocapitalize="off"
+                    placeholder="Please enter your keyword(s) to search." spellcheck="false"
+                    type="search" class="search-input">
+            </div>
+            <span class="popup-btn-close">
+                <i class="fa fa-times-circle"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
     
   </div>
-</body>
+</header>
 
+    <main class="app-body">
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2021/09/18/Netty/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E7%AE%80%E5%8D%95rpc%E9%A1%B9%E7%9B%AE%E5%8E%9F%E7%90%86/">基于netty的简单rpc项目原理</a>
+      </h2>
+      <p class="article-date">September 18, 2021</p>
+      
+        
+  <a href="/tags#RPC" >
+    <span class="tag-code">RPC</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          
+个人理解项目来自：
+https://github.com/luxiaoxun/NettyRpc
+https://www.cnblogs.com/luxiaoxun/p/5272384.html
+https://www.cnblogs.com/LBSer/p/4853234.html
+
+该程 ...
+        
+      </div>
+      <a class="more" href="/2021/09/18/Netty/%E5%9F%BA%E4%BA%8ENetty%E7%9A%84%E7%AE%80%E5%8D%95rpc%E9%A1%B9%E7%9B%AE%E5%8E%9F%E7%90%86/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2021/09/18/Spring/Spring%E5%B8%B8%E7%94%A8%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/">Spring常用类接口说明</a>
+      </h2>
+      <p class="article-date">September 18, 2021</p>
+      
+        
+  <a href="/tags#Spring" >
+    <span class="tag-code">Spring</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          
+        
+      </div>
+      <a class="more" href="/2021/09/18/Spring/Spring%E5%B8%B8%E7%94%A8%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2021/09/16/Java/%E5%9C%A8docker%E4%B8%AD%E4%BD%BF%E7%94%A8jdk-jstack%E5%B7%A5%E5%85%B7%E6%B2%A1%E6%9C%89%E6%9D%83%E9%99%90%E6%97%A0%E6%B3%95%E8%BE%93%E5%87%BA%E7%9A%84%E9%97%AE%E9%A2%98/">在docker中使用jdk jstack工具没有权限无法输出的问题</a>
+      </h2>
+      <p class="article-date">September 16, 2021</p>
+      
+        
+  <a href="/tags#Docker" >
+    <span class="tag-code">Docker</span>
+  </a>
+
+  <a href="/tags#Java" >
+    <span class="tag-code">Java</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          docker中执行jdk提供的命令出现问题
+123456root@f07b5d6d235c:/usr/local/tomcat# jstack -F 1Attaching to process ID 1, please wait...ERROR: ptrace(PTRACE_ATTACH,  ...
+        
+      </div>
+      <a class="more" href="/2021/09/16/Java/%E5%9C%A8docker%E4%B8%AD%E4%BD%BF%E7%94%A8jdk-jstack%E5%B7%A5%E5%85%B7%E6%B2%A1%E6%9C%89%E6%9D%83%E9%99%90%E6%97%A0%E6%B3%95%E8%BE%93%E5%87%BA%E7%9A%84%E9%97%AE%E9%A2%98/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2021/09/16/Java/%E8%AE%B0%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95%E6%97%B6%E6%89%A7%E8%A1%8C%E4%B8%80%E5%8D%8A%E5%B0%B1%E7%9B%B4%E6%8E%A5%E7%BB%93%E6%9D%9F%EF%BC%8C%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%97%A0%E6%97%A5%E5%BF%97%E7%9A%84%E9%97%AE%E9%A2%98/">记调用方法时执行一半就直接结束，控制台无日志的问题</a>
+      </h2>
+      <p class="article-date">September 16, 2021</p>
+      
+        
+  <a href="/tags#Docker" >
+    <span class="tag-code">Docker</span>
+  </a>
+
+  <a href="/tags#Java" >
+    <span class="tag-code">Java</span>
+  </a>
+
+  <a href="/tags#SpringBoot" >
+    <span class="tag-code">SpringBoot</span>
+  </a>
+
+  <a href="/tags#项目问题" >
+    <span class="tag-code">项目问题</span>
+  </a>
+
+  <a href="/tags#Arthas" >
+    <span class="tag-code">Arthas</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          
+在子线程9调用方法执行时，执行到insert into 语句，后面就没有了，没有打印parameter参数日志和更新日志，也没有后续输出。没有报错显示。页面上接口请求结果状态为200，但没有任何响应内容。
+找不到原因，在本机是好的。
+因为是在docker中，因此尝试用jstack查看堆栈信 ...
+        
+      </div>
+      <a class="more" href="/2021/09/16/Java/%E8%AE%B0%E8%B0%83%E7%94%A8%E6%96%B9%E6%B3%95%E6%97%B6%E6%89%A7%E8%A1%8C%E4%B8%80%E5%8D%8A%E5%B0%B1%E7%9B%B4%E6%8E%A5%E7%BB%93%E6%9D%9F%EF%BC%8C%E6%8E%A7%E5%88%B6%E5%8F%B0%E6%97%A0%E6%97%A5%E5%BF%97%E7%9A%84%E9%97%AE%E9%A2%98/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2021/07/13/SpringBoot/%E6%9C%89%E5%85%B3%E4%BD%BF%E7%94%A8SpringSecurity%E6%97%B6%E8%B7%A8%E5%9F%9F%E5%A4%B1%E6%95%88%E9%85%8D%E7%BD%AE/">有关使用Spring Security时跨域失效配置</a>
+      </h2>
+      <p class="article-date">July 13, 2021</p>
+      
+        
+  <a href="/tags#跨域" >
+    <span class="tag-code">跨域</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          
+参考：http://www.jetchen.cn/spring-security-cors/
+
+使用UrlBasedCorsConfigurationSource或使用CorsRegistry时跨域配置不起效。
+12345678@Overridepublic void addCorsMap ...
+        
+      </div>
+      <a class="more" href="/2021/07/13/SpringBoot/%E6%9C%89%E5%85%B3%E4%BD%BF%E7%94%A8SpringSecurity%E6%97%B6%E8%B7%A8%E5%9F%9F%E5%A4%B1%E6%95%88%E9%85%8D%E7%BD%AE/">Read more</a>
+    </article>
+  
+
+  
+    <div class="guide-pager">
+  
+    <a href="/page/5/"><span class="page-arrow">← </span>Prev</a>
+  
+  
+    <a href="/page/7/">Next<span class="page-arrow"> →</span></a>
+  
+</div>
+  
+</main>
+
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2022 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a target="_blank" rel="noopener" href="https://github.com/yanm1ng">yanm1ng</a>
+    
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      hljs.configure({useBR: true});
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+
+<script src="/js/script.js"></script>
+
+
+  </body>
 </html>

@@ -1,1095 +1,369 @@
 <!DOCTYPE html>
-<html lang="en">
-
-<head>
-  <meta charset="utf-8" />
-    
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+<html>
+  <head>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8">
+  <meta content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" name="viewport">
+  <meta name="description" content="yanm1ng&#39;s blog">
+  <meta name="keyword" content="hexo-theme, vuejs">
+  
+    <link rel="shortcut icon" href="/css/images/logo.png">
+  
   <title>
-     雪里
+    
+      雪里
+    
   </title>
-  <meta name="generator" content="hexo-theme-yilia-plus">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css" rel="stylesheet">
+  <link href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/tomorrow.min.css" rel="stylesheet">
   
-  <link rel="shortcut icon" href="/favicon.ico" />
-  
-  
-<link rel="stylesheet" href="/css/main.css">
-
-  
-  <script src="https://cdn.jsdelivr.net/npm/pace-js@1.0.2/pace.min.js"></script>
-  
-  
+<link rel="stylesheet" href="/css/style.css">
 
   
-
-  <script>
-(function(){
-    var bp = document.createElement('script');
-    var curProtocol = window.location.protocol.split(':')[0];
-    if (curProtocol === 'https') {
-        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
-    }
-    else {
-        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
-    }
-    var s = document.getElementsByTagName("script")[0];
-    s.parentNode.insertBefore(bp, s);
-})();
-</script>
-</head>
-
-</html>
-
-<body>
-  <div id="app">
-    <main class="content">
-      
-<section class="cover">
-    
-  <div class="cover-frame">
-    <div class="bg-box">
-      <img src="/images/cover4.jpg" alt="image frame" />
-    </div>
-    <div class="cover-inner text-center text-white">
-      <h1><a href="/">雪里</a></h1>
-      <div id="subtitle-box">
-        
-        <span id="subtitle"></span>
-        
-      </div>
-      <div>
-        
-      </div>
-    </div>
-  </div>
-  <div class="cover-learn-more">
-    <a href="javascript:void(0)" class="anchor"><i class="ri-arrow-down-line"></i></a>
-  </div>
-</section>
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/typed.js@2.0.11/lib/typed.min.js"></script>
-
-<div id="main">
-  <section class="outer">
-  <article class="articles">
-    
-    
-    
-    
-    <article id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/"
-    >Zookeeper分布式搭建及选举机制和节点类型介绍</a
-  >
-</h2>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/geopattern/1.2.3/js/geopattern.min.js"></script>
+  <script src="//cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
   
-
-    </header>
     
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-date">
-  <time datetime="2018-12-28T16:17:59.000Z" itemprop="datePublished">2018-12-29</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Zookeeper分布式搭建"><a href="#Zookeeper分布式搭建" class="headerlink" title="Zookeeper分布式搭建"></a>Zookeeper分布式搭建</h2><ol>
-<li><p>到<a target="_blank" rel="noopener" href="https://archive.apache.org/dist/zookeeper/">apache zookeeper归档</a>处下载tar包。</p>
-</li>
-<li><p>将包分别拷贝到各自的user下,使用tar -zxf zookeeper-x.x.x.tar.gz解压。注意解压后的目录需要是当前用户组当前用户。传递tar包时使用当前用户登录ftp远程。</p>
-</li>
-<li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
-<pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
-<li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
-<pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
-<li><p>在对应zookeeper目录下创建zkData目录即可</p>
-</li>
-<li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
-<pre><code>bin/zkServer.sh start //启动
-jps //查看jps进程
-bin/zkServer.sh satus //状态
-bin/zkServer.sh stop //停止</code></pre></li>
-<li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
-<pre><code>server.1=192.168.56.11:2888:3888
-server.2=192.168.56.11:2888:3888
-server.3=192.168.56.11:2888:3888</code></pre></li>
-</ol>
-<pre><code>这是三台机子的配置。那么其格式为server.A=B:C:D。
-*   A是一个数字，表示机器的序号，是唯一的，标识着某台机子，这个值要在myid文件中指定，myid文件要放在zkData目录下。
-*   B是服务器地址，可以是IP，也可以是主机名(需要配置host)。
-*   C是这个服务器与集群中的Leader服务器交换数据信息的结构。
-*   D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。
-*   就把这个拷贝到每个机子的zoo.cfg中，把IP地址改一下，机子序号按顺序不重复即可。</code></pre><ol start="8">
-<li><p>在集群模式下的而这个myid文件标识一个机子，Zookeeper启动时读取此文件，拿到里面的数据与zoo.cfg配置信息比较而判断到底是哪个server。那么在zkData下创建myid文件，使用vi或vim命令来编辑</p>
-<pre><code>cd zkData
-touch myid
-vim myid
-对应的机子添加1或2或3就好</code></pre></li>
-<li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
-<pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
-ZooKeeper JMX enabled by default
-Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
-Starting zookeeper ... STARTED
-ubuntu1@ubuntu1:~/zookeeper$ **jps**
-7522 Jps
-7498 QuorumPeerMain
-ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh status**
-ZooKeeper JMX enabled by default
-Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
-Error contacting service. It is probably not running.</code></pre></li>
-</ol>
-<pre><code>可以看到在查看status状态时，说Error contacting service.It is probably not running.此时并不是错误。在单机时可以正常运行。此处因为集群原因，在选举还没选举完成时，就会启动而不运行。当启动第二台机子时
-
-    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh start**
-    ZooKeeper JMX enabled by default
-    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
-    Starting zookeeper ... STARTED
-    ubuntu2@ubuntu2:~/zookeeper$ **jps**
-    24704 Jps
-    24652 QuorumPeerMain
-    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh status**
-    ZooKeeper JMX enabled by default
-    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
-    Mode: leader
-
-
-此时，发现Model:leader,这时，选举机制就完毕了，Leader已经选举出来。此时再看机子1的status状态，已经变成Mode:follower。当然这是随机投票的。启动第三台机子时，状态也是mode:follower. OK，这样三台机子都启动起来了。</code></pre><h2 id="Zookeeper选举机制说明"><a href="#Zookeeper选举机制说明" class="headerlink" title="Zookeeper选举机制说明"></a>Zookeeper选举机制说明</h2><p>选举很简单，<strong>每机一票，当某台机子得票数超过总数的一半以上时即可当选leader，必须一半以上</strong>。 机子的id最大则被投票率最高，若1-5台机子都是最新启动的，没有任何历史数据，按顺序进行启动。 服务器1开始启动，只有当前一台机器启动，则处于Looking状态，没有任何选举结果。等待其他机子启动。 服务器2开始启动，互相交换选举结果，由于两者都没有历史数据,所以id大的胜出，但依然不大于总数的一半，所以依然Looking状态 服务器3开始启动，若有三票投给某个机器，则成为Leader，其他机器状态变为follower。 服务器4，5，<strong>虽然id大，但leader已经被选举出来，所以只能作为follower</strong>.</p>
-<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>节点时客户端连接服务器的标识，因为实际集群操作，所以在任意一个机器上操作，其他机器都能看到。 节点有两种类型:</p>
-<ul>
-<li>持久型:客户端和服务器断开连接后，创建的节点不删除</li>
-<li>暂时型:客户端和服务器断开连接后，创建的节点被删除</li>
-</ul>
-<p>节点有四种目录形式的节点:</p>
-<ul>
-<li>持久化目录节点:客户端断开后这个节点依然存在</li>
-<li>持久化顺序编号目录节点:客户端断开后这个节点依然存在，只是<strong>给该节点名称进行顺序编号</strong>。</li>
-<li>临时目录节点:客户端点开后节点被删除</li>
-<li>临时顺序编号目录节点:客户端断开连接后，节点被删除，只是Zookeeper会给该节点进行顺序编号。</li>
-</ul>
-<p>顺序号时单调的递增，由父节点进行维护 在分布式系统中，顺序号可以被用于为所有的事件进行全局排序，这样客户端可以通过顺序号推断事件的顺序。 关于节点的创建在下一节说明，会自然的了解节点的持久和暂时型。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
+<script src="/js/qrious.js"></script>
 
   
   
   
-
   
-
-</article>
-    
-    <article id="post-Java/记录工作中某些表的某些字段为空的数量并按行政区形成excel表格" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/27/Java/%E8%AE%B0%E5%BD%95%E5%B7%A5%E4%BD%9C%E4%B8%AD%E6%9F%90%E4%BA%9B%E8%A1%A8%E7%9A%84%E6%9F%90%E4%BA%9B%E5%AD%97%E6%AE%B5%E4%B8%BA%E7%A9%BA%E7%9A%84%E6%95%B0%E9%87%8F%E5%B9%B6%E6%8C%89%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%BD%A2%E6%88%90excel%E8%A1%A8%E6%A0%BC/"
-    >记录工作中某些表的某些字段为空的数量并按行政区形成excel表格</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/27/Java/%E8%AE%B0%E5%BD%95%E5%B7%A5%E4%BD%9C%E4%B8%AD%E6%9F%90%E4%BA%9B%E8%A1%A8%E7%9A%84%E6%9F%90%E4%BA%9B%E5%AD%97%E6%AE%B5%E4%B8%BA%E7%A9%BA%E7%9A%84%E6%95%B0%E9%87%8F%E5%B9%B6%E6%8C%89%E8%A1%8C%E6%94%BF%E5%8C%BA%E5%BD%A2%E6%88%90excel%E8%A1%A8%E6%A0%BC/" class="article-date">
-  <time datetime="2018-12-27T15:17:09.000Z" itemprop="datePublished">2018-12-27</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/%E6%9D%82%E9%A1%B9/">杂项</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>该统计主要就是，得到每个表里检测空字段的数量，并且是按行政区统计数量。 简单地说就是 这几十张表里每条数据都有可能是任何一个行政区的数据，并且某些字段都有为空的情况，那么要做的统计就是某个表某个字段为空的数量。如下图这样。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181227222220.png" alt=""> 当然啊，这个上面的表名是可以换成表名称的。 其实统计是很简单的，只不过要通过POI包，将数据通过POI写到excel里，并且布置布局比较困难。查询还是很简单的。另外这个结果图还没有带excel单元格格式设置。 总体来说查询，就是单个单个的查，一个表对应一个字段，表和字段时一对多，那多个表就是多个一对多。这样一条一条的统计确实是很慢。若表比较多，要检查的字段也很多。有多少个检查字段，就要查多少次。 这个单个字段检测空的统计，就是到指定表里查询为空的数据，然后group分组一下，再右关联行政区划字段表(右表全部)。这样所有的行政区都会有，设置行政区为空的，也就是没匹配上的使用NVL化空位0. 当然这个统计需要按顺序的，不管行政区排序，还是表排序。其实这样做可以避免一些出错，或某些应用统计需要这样做。因为排好序的话，字段列多，可以使用到线程帮忙。一般而言，每个字段查询的数据越多、字段越多，那么数据量就越大。耗时越高。 总体的程序步骤是这样的:</p>
-<ol>
-<li><p>一个表对应一个字段，这样形成一张表，可以依次通过表名和字段名到统计里查，这两个值作为参数</p>
-</li>
-<li><p>因为每个字段是一列数据，所以每个字段作为一个linkedList，然后在用一个LinkedList在外面包起来。其中这数据再查询时必须要以行政区排序，纵轴行政区也是要排序的，一一对应。</p>
-</li>
-<li><p>这样这个数据就是外层list为每个列数据，内层nlist的每个值是每行的数据，这样嵌套循环时，就是<strong>list.get(j).get(i)了</strong>，表示的就是:POI先创建整行row，再创建单个cell，j为内层循环表示某个列，也就是该行的单元格，依次用j循环，就是循环所有列集合的第i个元素，也就是第i行的数据。看下代码吧。</p>
-<pre><code>for (int i = 0; i &amp;lt; rowNum; i++)&#123;
-        row = sheet.getRow(i+2);//第i行,行已经在设置行政区时创建
-
-        //创建列，一共有属性集合数量个列
-        for(int j = 0; j &amp;lt; linkedList.size(); j++)&#123;
-            cell = row.createCell(j+2);//每行有多少列，是依据列的数量的,所以是j
-            CheckNullField checkNullField = list.get(j);//获得当前的为空属性对象
-
-            //当出现行号i大于等于最大行号时，后面的设置值就会超出索引。也就是说任意一列的某一行，这个行超出了内部集合区县的数量。
-
-            //System.out.println(&amp;quot;第&amp;quot; + i + &amp;quot;行第&amp;quot; + j + &amp;quot;列的值为:&amp;quot; + linkedList.get(j).get(checkNullField.getTableName()+&amp;quot;,&amp;quot;+checkNullField.getField()).get(i).toString());
-            Long value = linkedList.get(j).get(checkNullField.getTableName()+&amp;quot;,&amp;quot;+checkNullField.getField()).get(i);
-            if(value!=0)&#123;
-                cell.setCellStyle(cellStyle);
-            &#125;
-            cell.setCellValue(value.toString());
-        &#125;
-    &#125;</code></pre></li>
-</ol>
-<ol start="4">
-<li><p>里面有多余的注释，是循环时可能出现的问题。不过被删了。暂时先不考虑，等错了再加上去。i+2和j+2表示从第三行开始也就是索引为2的开始，因为设置布局时已经被站了两行两列。这里的getRow()是为什么geRow而不是createRow，因为在布局行政区两列时已经把所有行都创建了，所以这里只有createCell。</p>
-</li>
-<li><p>当然应该先配置两行两列的布局,先配置列，行政区。这里的方法就是，循环所有区县，当他们的上级一样时就添加endRow，不一样时就合并上一个单元格。看代码比较好一点吧。</p>
-<pre><code>sheet.createRow(0);
-    sheet.createRow(1);
-    //设置&amp;quot;地州&amp;quot;合并单元格
-    CellRangeAddress cellRangeAddress = new CellRangeAddress(0,1,0,0);
-    sheet.addMergedRegion(cellRangeAddress);
-    sheet.getRow(0).createCell(0).setCellValue(&amp;quot;地州&amp;quot;);
-    //设置&amp;quot;市县&amp;quot;合并单元格
-    cellRangeAddress = new CellRangeAddress(0,1,1,1);
-    sheet.addMergedRegion(cellRangeAddress);
-    sheet.getRow(0).createCell(1).setCellValue(&amp;quot;区县&amp;quot;);
-    //合并单元格之后，此时行和列都在第2
-    //######################################以下为列循环###########################################################
-    //循环区县列表
-    int beginrow = 2;
-    int endrow = 2;
-    String twoXzqh = xzqhList.get(0).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;//二级行政区判断
-    for (int i = 0; i&amp;lt; xzqhList.size(); i++)&#123;
-
-        XSSFRow row = sheet.createRow(i+2);//创建第三行
-        if (i==104)&#123;
-            cellRangeAddress = new CellRangeAddress(beginrow,endrow,0,0);//合并第一列单元格，改行值不改列值
-            sheet.addMergedRegion(cellRangeAddress);
-            sheet.getRow(cellRangeAddress.getFirstRow()).createCell(0).setCellValue(twoMap.get(twoXzqh));
-            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
-        &#125;
-        if((xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;).equals(twoXzqh))&#123;//判断当前三级代码替换为二级后是否与判断的相同，相同则为一个地州
-            twoXzqh = xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;
-            endrow=endrow+1;
-            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
-        &#125;else&#123;//不等于,说明已经换一个地州的区县了
-            //合并单元格，设置单元格值
-            cellRangeAddress = new CellRangeAddress(beginrow,endrow-1,0,0);//合并第一列单元格，改行值不改列值
-            sheet.addMergedRegion(cellRangeAddress);
-            //修改开始结束row,将结束设置为开始
-            beginrow = endrow;
-            //在更改临时二级行政变量之前，设置值
-
-            sheet.getRow(cellRangeAddress.getFirstRow()).createCell(0).setCellValue(twoMap.get(twoXzqh));
-            //尽管变了二级行政，但依然要设置
-            twoXzqh = xzqhList.get(i).getDm().toString().substring(0,4)+&amp;quot;00&amp;quot;;
-            endrow=endrow+1;
-            row.createCell(1).setCellValue(xzqhList.get(i).getMc());
-        &#125;
-    &#125;</code></pre></li>
-</ol>
-<ol start="6">
-<li><p>其中beginRow和endRow就是合并单元格时候的开始行和结束行，那么就通过这两和值，将相同的区县时，把endRow累加，不相同时，就换二级行政区了，需要合并上个单元格并设置值，然后设置当前行当前单元格的值。其中需要注意beginRow和endRow的关系，比如合并单元格时endrow-1，因为是以0为索引，所以要合并上一个单元格需要-1，这个需要通过尝试再调试，刚开始的时候不容易找到这个表达式。还有endrow=enrow+1是当前这个行，增的第一行，所以需要加1。而中间的benginrow=endrow表示合并完毕，就把结尾值为开始值，重新增长合并。</p>
-</li>
-<li><p>然后是设置两行:与设置列是一样的，对应相反，行已经创建了，只需要创建每个单元格</p>
-<pre><code>public static void createRowHeader(XSSFWorkbook workbook, XSSFSheet sheet,List list)&#123;
-    //前两行row在创建行政区时已经创建过了，直接getRow第一行第二行就好
-    XSSFRow row1 = sheet.getRow(0);
-    XSSFRow row2 = sheet.getRow(1);
-    CellRangeAddress cellRangeAddress = null;
-    int beginCell = 2;
-    int endCell = 2;
-
-    String tableName = list.get(0).getTableName() ;//第一个表名
-    for(int i =0; i &amp;lt; list.size(); i++)&#123;
-
-        row1.createCell(i+2);
-        row2.createCell(i+2);
-
-        if(i==list.size()-1)&#123;
-            cellRangeAddress = new CellRangeAddress(0, 0, beginCell, endCell);
-            sheet.addMergedRegion(cellRangeAddress);
-            row1.getCell(cellRangeAddress.getFirstColumn()).setCellValue(tableName);//设置合并单元格值
-
-            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());
-        &#125;
-
-        if(list.get(i).getTableName().equals(tableName))&#123;
-            tableName = list.get(i).getTableName();
-            endCell += 1;
-            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());
-        &#125;else&#123;
-            //###设置之前单元格合并
-            if(beginCell+1!=endCell) &#123;//不是单独单元格的进行合并
-                cellRangeAddress = new CellRangeAddress(0, 0, beginCell, endCell - 1);
-                sheet.addMergedRegion(cellRangeAddress);
-                row1.getCell(cellRangeAddress.getFirstColumn()).setCellValue(tableName);//设置合并单元格值
-            &#125;else&#123;
-                row1.getCell(i-1 +2).setCellValue(tableName);//设置上一个单元格，因为没有合并单元格，所以在新表之前设置上个单元格值
-            &#125;
-            //##设置当前第二行单元格值
-            beginCell = endCell;
-            tableName = list.get(i).getTableName();
-            endCell = endCell+1;
-            row2.getCell(i+2).setCellValue(list.get(i).getFieldmc()+&amp;quot;&amp;quot;+list.get(i).getField());//添加当前新tablename的row2
-        &#125;
-    &#125;
-&#125;</code></pre></li>
-</ol>
-<ol start="8">
-<li><p>这里，在外部循环时，创建Cell，内部是要getCell，不能再创建了，否则获得不到值。而else中的那个判断表示的是当一个表只有一个字段要检查时，合并的话不能C1:C1,所以要设置这个判断条件。</p>
-</li>
-<li><p>最后结果就是，先配置行政区，后配置字段行，最后配置数据列，这个数据列要依据被占的行和列对应添加数。</p>
-</li>
-</ol>
-<p>然后说一下表名和字段名作为参数的这个查询。我在之前想和好久，又是视图又是存储过程的。用视图和存储过程的话需要创建好多结果表，然后很难表连接，连一块。而且表名和字段是特殊字，有些地方不能直接使用。最后用hql来解决，jpa的entityManager的createNativeQuery,创建一个本地查询，可以直接将拼接字符串作为hql进行查询，后面尽量加上查询结果类型Class。因为jpa尽管方便的原因是有很多规则，包括必须的持久化类，还要添加注解，标识列.</p>
-<pre><code>public HashMap&lt;String, LinkedList&lt;Long&gt;&gt; get(String table,String field,String startDate,String endDate) &#123;
-        HashMap&lt;String, LinkedList&lt;Long&gt;&gt; map = new HashMap&lt;&gt;();//map集合存储表字段名，和数量集合
-        LinkedList&lt;Long&gt; list = new LinkedList&lt;&gt;();
-        //这些表不统计,仍需要确定表和字段，然后添加到linkedList中
-        //todo 更改
-        if(noCheck.contains(table)
-                || (table.equals(&quot;QLF_FW_FDCQ_DZ_XM&quot;)&amp;&amp;field.equals(&quot;QLLX&quot;)))&#123;
-            for (int i=0 ; i&lt;105; i++)&#123;
-                list.add(0L);
-            &#125;
-            map.put(table + &quot;,&quot; + field,list);
-            return map;
-        &#125;
-        //创建sql语句
-        String sql = &quot;with\n&quot; +
-                &quot;v0 as (\n&quot; +
-                &quot;select qxdm from baowen.&quot; + table + &quot; \n&quot; +
-                &quot;where (&quot; + field + &quot; is null or rtrim(ltrim(&quot;+ field +&quot;)) = &apos;&apos;) \n&quot; +
-                &quot;and (qxdm is not null or qxdm!=&apos;&apos;) \n&quot; +
-                &quot;and bizmsgid in (select bizmsgid from baowen.bizmsg where trunc(receivedate) between to_date(&apos;&quot; + startDate + &quot;&apos;,&apos;yyyy-mm-dd&apos;) and to_date(&apos;&quot; + endDate + &quot;&apos;,&apos;yyyy-mm-dd&apos;))\n&quot; +
-                &quot;),v1 as (\n&quot; +
-                &quot;select qxdm,count(qxdm) count from v0 group by qxdm\n&quot; +
-                &quot;)select nvl(count,0) count from baowen.dict_xzqh a left join v1 on a.dm=v1.qxdm where a.dj=3 order by a.dm asc&quot;;
-        Query query = entityManager.createNativeQuery(sql);
-        //获得结果，将结果循序添加到LinkedList
-        List nlist = query.getResultList();
-        for (int i =0; i&lt;nlist.size();i++)&#123;
-            list.add(i,Long.valueOf(nlist.get(i).toString()));
-        &#125;
-        map.put(table+&quot;,&quot;+field,list);
-        return map;
-    &#125;</code></pre><p>一般简单查询的话就使用hql使用entityManager的createQuery，使用hql语法查询，若查询语句复杂的使用createNativeQuery这个本地查询。 另外我为什么使用entityManager，因为继承JpaRepository的话，使用注解，不能用表名字段当参数，可能是没找到方法吧。而你要整合entityManager的话，这俩不太可能，因为这样会实现你的自定义接口，然后就的实现JpaRepsitory方法，所以只能一个用接口，一个用Dao实现类，并且不能实现。 <a target="_blank" rel="noopener" href="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/demo.7z">源码包demo</a></p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle VirtualBox虚拟机复制，更改用户信息" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/26/Oracle/Oracle%20VirtualBox%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%A4%8D%E5%88%B6%EF%BC%8C%E6%9B%B4%E6%94%B9%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF/"
-    >Oracle VirtualBox虚拟机复制，更改用户信息</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/26/Oracle/Oracle%20VirtualBox%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%A4%8D%E5%88%B6%EF%BC%8C%E6%9B%B4%E6%94%B9%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF/" class="article-date">
-  <time datetime="2018-12-25T17:37:38.000Z" itemprop="datePublished">2018-12-26</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Ubuntu/">Ubuntu</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <p>若可以更改静态IP，则先更改静态IP,以便宿主机和虚拟机可以即时通信,相关文档再本站查找ubuntu分类目录下。如果不太懂看本章结尾</p>
-<ol>
-<li><p>先关闭已经创建配置好的虚拟机，右击复制，默认勾选重新配置网卡选项,然后选择完全复制 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226000703.png" alt="图片"> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226000815.png" alt=""></p>
-</li>
-<li><p>启动虚拟机，目前，用户密码任何东西与被复制的那个是一模一样的，除了刚刚设置的虚拟机名称。本案例呢，是吧ubuntu1复制一份为ubuntu3，用户名与密码一样。</p>
-</li>
-<li><p>首先更改主机名hostname文件，名字更改为ubuntu3</p>
-<pre><code>sudo vim /etc/hostname</code></pre></li>
-</ol>
-<ol start="4">
-<li><p>然后更改host文件，设置本机ip对应的主机名,和若需要配置静态IP的IP地址</p>
-<pre><code>vim /etc/hosts</code></pre></li>
-</ol>
-<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001339.png)</code></pre><ol start="5">
-<li><p>修改shadow文件,拉到最下边，找到原来的用户名，进行修改</p>
-<pre><code>sudo vim /etc/shadow</code></pre></li>
-</ol>
-<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001827.png)</code></pre><ol start="6">
-<li><p>修改home下当前用户目录名称</p>
-<pre><code>sudo mv ubuntu1 ubuntu3</code></pre></li>
-</ol>
-<ol start="7">
-<li><p>修改passwd文件,注意画圈的，一定要改成一样的，与你hosts中一致，一定要都改，否则你根本就登陆不上，不要忘了</p>
-<pre><code>sudo vim /etc/passwd</code></pre></li>
-</ol>
-<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226010202.png)</code></pre><ol start="8">
-<li><p>修改组group文件,依然是找到之前的用户名改为当前用户名</p>
-<pre><code>sudo vim /etc/group</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>更改当前用户密码,此时这里应该是ubuntu3，新用户名称，因为主机名用户名已经被更改了。</p>
-<pre><code>sudo passwd ubuntu3</code></pre></li>
-</ol>
-<pre><code>此时你应该无法更改，提示ubuntu3 is not in the sudoers file. This incident will be reported。此时应擦做root用户更改sudoers文件
-
-    su root
-    vim /etc/sudoers
-    #添加下面图片对应的ubuntu3
-    ubuntu3 ALL=(ALL:ALL) ALL
-
-
-![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001623.png)</code></pre><h2 id="虚拟机互通静态IP配置，文章说明"><a href="#虚拟机互通静态IP配置，文章说明" class="headerlink" title="虚拟机互通静态IP配置，文章说明"></a>虚拟机互通静态IP配置，文章说明</h2><p>根据<a target="_blank" rel="noopener" href="http://www.fsats.com/2018/09/18/294/文章可以简单说明。">http://www.fsats.com/2018/09/18/294/文章可以简单说明。</a></p>
-<ol>
-<li>在默认安装VirtualBox之后，会默认提示你让你安装一个虚拟网段的网络适配器 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226012219.png" alt=""></li>
-<li>如果你的网络和共享中心，适配器设置中没有这个VirtualBox的这个适配器，则你打开这个软件.点管理-主机网络管理器，如果列表没有就新建一个，下面那个手动配置网卡选中，IP4xxx.xxx.xxx.1就是网关，HDCP起不起用都可以，可以关了。</li>
-<li>创建了网络管理适配后，就有了网段，这个网段可以跟你本机的局域网ping通的，可以尝试一下。这样有了两个网卡。一个是这个创建的适配的Only-Host用于虚拟机之间互通，另一个就是网络NAT方式</li>
-<li>配置虚拟机网络是，第一张网卡是网络NAT，第一张网卡就选创建的那个，为仅主机模式</li>
-<li>进入Ubuntu后，一个是网卡03，一个是网卡08，一般第一个03的是连接宿主的，08的是创建的仅主机模式的。所以，第一张网卡IP4，IP6都自动获取，所以这个网卡的IP是10.xx.xx.xx的，但可以通过宿主机的网络访问外网。第二张网卡选择手动配置IP4，配置创建的网络适配器的网关，随意取一个地址，子网掩码依旧是255，DNS配置为114.114.114.114,别的也可以，IP6可以禁了，若有需要的话就不禁了。</li>
-</ol>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Oracle/Oracle物化视图使用相关查询" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/"
-    >Oracle物化视图使用相关查询</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-12-13T08:27:55.000Z" itemprop="datePublished">2018-12-13</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="Oracle物化视图使用相关查询"><a href="#Oracle物化视图使用相关查询" class="headerlink" title="Oracle物化视图使用相关查询"></a>Oracle物化视图使用相关查询</h2><h3 id="查询当前用户所有物化视图"><a href="#查询当前用户所有物化视图" class="headerlink" title="查询当前用户所有物化视图"></a>查询当前用户所有物化视图</h3><pre><code>select * from user_mviews;</code></pre><h3 id="查询物化视图创建语句及更新时间、更新方式、是否失效"><a href="#查询物化视图创建语句及更新时间、更新方式、是否失效" class="headerlink" title="查询物化视图创建语句及更新时间、更新方式、是否失效"></a>查询物化视图创建语句及更新时间、更新方式、是否失效</h3><pre><code>SELECT OWNER            , --所有者账户
-           MVIEW_NAME       , --名称
-           LAST_REFRESH_DATE, --上次更新时间
-           REFRESH_METHOD   , --更新方式
-           INVALID          , --是否失效
-           QUERY              --查询语句
-      FROM USER_MVIEW_ANALYSIS 
-  ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="3-查询物化视图所有列名及列注释"><a href="#3-查询物化视图所有列名及列注释" class="headerlink" title="3. 查询物化视图所有列名及列注释"></a>3. 查询物化视图所有列名及列注释</h3><pre><code>SELECT a.OWNER        , --所有者账户
-            a.MVIEW_NAME   , --名称
-            b.COLUMN_NAME  , --列名称
-            b.COMMENTS       --列注释
-       FROM USER_MVIEW_ANALYSIS a
- INNER JOIN USER_COL_COMMENTS b
-ON a.MVIEW_NAME = b.TABLE_NAME;</code></pre><h3 id="查询所有物化视图使用的基表"><a href="#查询所有物化视图使用的基表" class="headerlink" title="查询所有物化视图使用的基表"></a>查询所有物化视图使用的基表</h3><pre><code>SELECT DISTINCT 
-               A.OWNER,          --所有者账户
-               A.MVIEW_NAME     ,--物化视图名称
-               B.COMMENTS       ,--视图注释
-               A.DETAILOBJ_OWNER,--基表所有者账号
-               A.DETAILOBJ_NAME  --基表名称
-          FROM USER_MVIEW_DETAIL_RELATIONS A
-    INNER JOIN USER_MVIEW_COMMENTS B ON A.MVIEW_NAME = B.MVIEW_NAME
-         WHERE DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;;</code></pre><h3 id="物化视图或普通视图使用哪些基表，被那个存储过程引用"><a href="#物化视图或普通视图使用哪些基表，被那个存储过程引用" class="headerlink" title="物化视图或普通视图使用哪些基表，被那个存储过程引用"></a>物化视图或普通视图使用哪些基表，被那个存储过程引用</h3><pre><code>WITH CTE AS (
-    SELECT DISTINCT 
-           A.OWNER,               -- 所有者账户
-           A.MVIEW_NAME         , -- 物化视图名称
-           A.DETAILOBJ_OWNER    , -- 被引用表账号
-           A.DETAILOBJ_NAME       -- 被引用表名称
-      FROM USER_MVIEW_DETAIL_RELATIONS A
-     WHERE A.DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;
- UNION ALL
-    SELECT &apos;&apos; AS OWNER,
-           NAME AS MVIEW_NAME,
-           REFERENCED_OWNER AS DETAILOBJ_OWNER,
-           REFERENCED_NAME AS DETAILOBJ_NAME
-      FROM USER_DEPENDENCIES 
-     WHERE TYPE =&apos;VIEW&apos;
-)
-    SELECT A.OWNER            ,-- 视图所有者账户
-           A.MVIEW_NAME AS MV ,-- 视图名称
-           A.DETAILOBJ_OWNER  ,-- 基表所有者账户
-           A.DETAILOBJ_NAME   ,-- 基表/视图
-           NVL(B.NAME,&apos;-&apos;) AS PROC_NAME -- 存储过程名称
-      FROM CTE A
- LEFT JOIN (SELECT DISTINCT NAME,REFERENCED_NAME 
-              FROM USER_DEPENDENCIES B 
-             WHERE B.TYPE = &apos;PROCEDURE&apos; 
-            ) B ON A.MVIEW_NAME = B.REFERENCED_NAME
-  ORDER BY A.MVIEW_NAME,A.DETAILOBJ_NAME,B.NAME;</code></pre><h3 id="查询物化视图刷新信息"><a href="#查询物化视图刷新信息" class="headerlink" title="查询物化视图刷新信息"></a>查询物化视图刷新信息</h3><pre><code>SELECT MVIEW_NAME,--物化视图名称
-       REFRESH_MODE,--刷新方式
-       REFRESH_METHOD,--刷新类型
-       FAST_REFRESHABLE,--是否可刷新
-       LAST_REFRESH_TYPE,--最近一次刷新类型
-       LAST_REFRESH_DATE,--最近一次刷新时间
-       STALENESS --数据是否过时
-  FROM USER_MVIEWS 
- ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="物化视图最后一次刷新信息"><a href="#物化视图最后一次刷新信息" class="headerlink" title="物化视图最后一次刷新信息"></a>物化视图最后一次刷新信息</h3><pre><code>SELECT MVIEW_NAME,  --物化视图名称
-        LAST_REFRESH_DATE &quot;START_TIME&quot;, --刷新开始时间
-        CASE WHEN FULLREFRESHTIM &lt;&gt; 0 
-             THEN LAST_REFRESH_DATE + FULLREFRESHTIM/60/60/24
-             WHEN INCREFRESHTIM &lt;&gt; 0 
-             THEN LAST_REFRESH_DATE + INCREFRESHTIM/60/60/24
-             ELSE LAST_REFRESH_DATE
-        END &quot;END_TIME&quot;, --刷新结束时间
-        FULLREFRESHTIM, --全量刷新耗时
-        INCREFRESHTIM , --增量刷新耗时
-        REFRESH_METHOD, --最近一次刷新方式
-        SUMMARY       , --是否含有聚合查询
-        INC_REFRESHABLE,--是否支持增量刷新
-        INVALID       , --是否失效
-        REWRITE_ENABLED --是否支持查询重写
-   FROM ALL_MVIEW_ANALYSIS
-   WHERE OWNER=&apos;BDCCXTJ&apos;
-ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-    <article id="post-Javascript/关于使用Editor.md的一些问题，尤其是方法的调用" class="article article-type-post" itemscope
-  itemprop="blogPost" data-scroll-reveal>
-
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/"
-    >关于使用Editor.md的一些问题，尤其是方法的调用</a
-  >
-</h2>
-  
-
-    </header>
-    
-
-    
-    <div class="article-meta">
-      <a href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
-  <time datetime="2018-12-02T12:00:12.000Z" itemprop="datePublished">2018-12-02</time>
-</a>
-      
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
-  </div>
-
-      
-      
-      
-    </div>
-    
-
-    
-
-    
-    <div class="article-entry" itemprop="articleBody">
-      
-      
-
-      
-      <h2 id="关于使用Editor-md的一些问题"><a href="#关于使用Editor-md的一些问题" class="headerlink" title="关于使用Editor.md的一些问题"></a>关于使用Editor.md的一些问题</h2><h3 id="testEditor无法调用该编译器的previewing-方法"><a href="#testEditor无法调用该编译器的previewing-方法" class="headerlink" title="testEditor无法调用该编译器的previewing()方法"></a>testEditor无法调用该编译器的previewing()方法</h3><p>我想用以下方法来预览全部和取消预览全部，所以需要watch属性和previewing方法，试了好多次，都说没有toggle方法或什么的，然后我就取editormd.js去看，发现调用这个方法需要好多对象支持，尤其是codeMirror,但是我看页面，这写js都已经在lib包里导入了。而且使用testEditor打印为undefined。只有在onload里使用this才能调用所有方法。 然后下载源码看，拷贝了老半天，才发现，需要使用方法调用才能使用testEditor执行方法，于是试了试，发现可以，然后就把没用的删了，把height改为autoHeight，因为这样更美观。之后再试，不行。 弄着弄着发现黑主题能显示出来，default主题出不来，于是又试，发现能出来，最后又改了改，又不行了。 最后后，一一的排查，发现是autoHeight搞得，一使用这个属性，就不能preview预览。于是只能改为height才行。 最终的问题，一个是需要使用function方法或事件来调用方法，另一个是autoHeight的坑爹之处。</p>
-
-      
-      <!-- reward -->
-      
-    </div>
-    
-    
-      <!-- copyright -->
-      
-    <footer class="article-footer">
-      
-      
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
-
-
-    </footer>
-
-  </div>
-
-  
-
-  
-  
-  
-
-  
-
-</article>
-    
-  </article>
-  
-
-  
-  <nav class="page-nav">
-    
-    <a class="extend prev" rel="prev" href="/page/36/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/35/">35</a><a class="page-number" href="/page/36/">36</a><span class="page-number current">37</span><a class="page-number" href="/page/38/">38</a><a class="page-number" href="/page/39/">39</a><span class="space">&hellip;</span><a class="page-number" href="/page/55/">55</a><a class="extend next" rel="next" href="/page/38/">下一页</a>
-  </nav>
-  
-</section>
-</div>
-
-      <footer class="footer">
-  <div class="outer">
-    <ul class="list-inline">
-      <li>
-        &copy;
-        2020-2022
-        陈光奇
-      </li>
-      <li>
-        
-        Powered by
-        
-        
-        <a href="https://hexo.io" target="_blank">Hexo</a> Theme <a href="https://github.com/Shen-Yu/hexo-theme-ayer" target="_blank">Ayer</a>
-        
-      </li>
-    </ul>
-    <ul class="list-inline">
-      <li>
-        
-      </li>
-      
-      <li>
-        <a href="http://www.beian.miit.gov.cn/" target="_black">京ICP备17065668号-3</a>
-      </li>
-      
-      <li>
-        <!-- cnzz统计 -->
-        
-      </li>
-    </ul>
-  </div>
-</footer>
-      <div class="to_top">
-        <div class="totop" id="totop">
-  <i class="ri-arrow-up-line"></i>
-</div>
-      </div>
-    </main>
-    <aside class="sidebar">
-      <button class="navbar-toggle"></button>
-<nav class="navbar">
-  
-  <div class="logo">
-    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
-  </div>
-  
-  <ul class="nav nav-main">
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/">主页</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/archives">归档</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/categories">分类</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/tags">标签</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/photos">相册</a>
-    </li>
-    
-    <li class="nav-item">
-      <a class="nav-item-link" href="/2020/about">关于我</a>
-    </li>
-    
-  </ul>
-</nav>
-<nav class="navbar navbar-bottom">
-  <ul class="nav">
-    <li class="nav-item">
-      
-      <a class="nav-item-link nav-item-search"  title="Search">
-        <i class="ri-search-line"></i>
-      </a>
-      
-      
-      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
-        <i class="ri-rss-line"></i>
-      </a>
-      
-    </li>
-  </ul>
-</nav>
-<div class="search-form-wrap">
-  <div class="local-search local-search-plugin">
-  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
-  <div id="local-search-result" class="local-search-result"></div>
-</div>
-</div>
-    </aside>
-    <div id="mask"></div>
-
-<!-- #reward -->
-<div id="reward">
-  <span class="close"><i class="ri-close-line"></i></span>
-  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
-  <div class="reward-box">
-    
-    <div class="reward-item">
-      <img class="reward-img" src="/images/alipay.png">
-      <span class="reward-type">支付宝</span>
-    </div>
-    
-    
-    <div class="reward-item">
-      <img class="reward-img" src="/images/wechat.png">
-      <span class="reward-type">微信</span>
-    </div>
-    
-  </div>
-</div>
-    
-<script src="/js/jquery-2.0.3.min.js"></script>
-
-
-<script src="/js/share.js"></script>
-
-
-<script src="/js/lazyload.min.js"></script>
-
-
-<script>
-  try {
-    var typed = new Typed("#subtitle", {
-      strings: ['面朝大海，春暖花开', '愿你一生努力，一生被爱', '想要的都拥有，得不到的都释怀'],
-      startDelay: 0,
-      typeSpeed: 200,
-      loop: true,
-      backSpeed: 100,
-      showCursor: true
-    });
-  } catch (err) {
-  }
-
-</script>
-
-
-
-
-
-<script src="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.js"></script>
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/jquery-modal@0.9.2/jquery.modal.min.css">
-<script src="https://cdn.jsdelivr.net/npm/justifiedGallery@3.7.0/dist/js/jquery.justifiedGallery.min.js"></script>
-
-<script src="/js/ayer.js"></script>
-
-
-
-<!-- Root element of PhotoSwipe. Must have class pswp. -->
-<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
-
-    <!-- Background of PhotoSwipe. 
-         It's a separate element as animating opacity is faster than rgba(). -->
-    <div class="pswp__bg"></div>
-
-    <!-- Slides wrapper with overflow:hidden. -->
-    <div class="pswp__scroll-wrap">
-
-        <!-- Container that holds slides. 
-            PhotoSwipe keeps only 3 of them in the DOM to save memory.
-            Don't modify these 3 pswp__item elements, data is added later on. -->
-        <div class="pswp__container">
-            <div class="pswp__item"></div>
-            <div class="pswp__item"></div>
-            <div class="pswp__item"></div>
-        </div>
-
-        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
-        <div class="pswp__ui pswp__ui--hidden">
-
-            <div class="pswp__top-bar">
-
-                <!--  Controls are self-explanatory. Order can be changed. -->
-
-                <div class="pswp__counter"></div>
-
-                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
-
-                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
-
-                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
-
-                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
-
-                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
-                <!-- element will get class pswp__preloader--active when preloader is running -->
-                <div class="pswp__preloader">
-                    <div class="pswp__preloader__icn">
-                        <div class="pswp__preloader__cut">
-                            <div class="pswp__preloader__donut"></div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
-                <div class="pswp__share-tooltip"></div>
-            </div>
-
-            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
-            </button>
-
-            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
-            </button>
-
-            <div class="pswp__caption">
-                <div class="pswp__caption__center"></div>
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
-
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/default-skin/default-skin.min.css">
-<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/photoswipe@4.1.3/dist/photoswipe-ui-default.min.js"></script>
-
-<script>
-    function viewer_init() {
-        let pswpElement = document.querySelectorAll('.pswp')[0];
-        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
-
-        $imgArr.forEach(($em, i) => {
-            $em.onclick = () => {
-                // slider展开状态
-                // todo: 这样不好，后面改成状态
-                if (document.querySelector('.left-col.show')) return
-                let items = []
-                $imgArr.forEach(($em2, i2) => {
-                    let img = $em2.getAttribute('data-idx', i2)
-                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
-                    let title = $em2.getAttribute('alt')
-                    // 获得原图尺寸
-                    const image = new Image()
-                    image.src = src
-                    items.push({
-                        src: src,
-                        w: image.width || $em2.width,
-                        h: image.height || $em2.height,
-                        title: title
-                    })
-                })
-                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
-                    index: parseInt(i)
-                });
-                gallery.init()
-            }
-        })
-    }
-    viewer_init()
-</script>
-
-
-<script type="text/x-mathjax-config">
-  MathJax.Hub.Config({
-      tex2jax: {
+    <!-- MathJax support START -->
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Config({
+        tex2jax: {
           inlineMath: [ ['$','$'], ["\\(","\\)"]  ],
           processEscapes: true,
           skipTags: ['script', 'noscript', 'style', 'textarea', 'pre', 'code']
-      }
-  });
+        }
+      });
+    </script>
 
-  MathJax.Hub.Queue(function() {
-      var all = MathJax.Hub.getAllJax(), i;
-      for(i=0; i < all.length; i += 1) {
+    <script type="text/x-mathjax-config">
+      MathJax.Hub.Queue(function() {
+        var all = MathJax.Hub.getAllJax(), i;
+        for (i=0; i < all.length; i += 1) {
           all[i].SourceElement().parentNode.className += ' has-jax';
-      }
-  });
-</script>
-
-<script src="https://cdn.jsdelivr.net/npm/mathjax@2.7.6/unpacked/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-<script>
-  var ayerConfig = {
-    mathjax: true
-  }
-</script>
+        }
+      });
+    </script>
+    <script type="text/javascript" src="//cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <!-- MathJax support END -->
+  
 
 
+  
+  
+    
+<script src="/js/local-search.js"></script>
 
-<script type="text/javascript" src="https://js.users.51.la/20544303.js"></script>
 
+<meta name="generator" content="Hexo 5.2.0"></head>
+<div class="wechat-share">
+  <img src="/css/images/logo.png" />
+</div>
+  <body>
+    <header class="header fixed-header">
+  <div class="header-container">
+    <a class="home-link" href="/">
+      <div class="logo"></div>
+      <span>雪里</span>
+    </a>
+    <ul class="right-list">
+      
+        <li class="list-item">
+          
+            <a href="/" class="item-link active">Home</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/series/" class="item-link">Series</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/tags/" class="item-link">Tags</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/archives/" class="item-link">Archives</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/project/" class="item-link">Projects</a>
+          
+        </li>
+      
+        <li class="list-item">
+          
+            <a href="/about/" class="item-link">About</a>
+          
+        </li>
+      
+      
+        <li class="menu-item menu-item-search right-list">
+    <a role="button" class="popup-trigger">
+        <i class="fa fa-search fa-fw"></i>
+    </a>
+</li>
+      
+    </ul>
+    <div class="menu">
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+      <span class="icon-bar"></span>
+    </div>
+    <div class="menu-mask">
+      <ul class="menu-list">
+        
+          <li class="menu-item">
+            
+              <a href="/" class="menu-link mobile-active">Home</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/series/" class="menu-link">Series</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/tags/" class="menu-link">Tags</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/archives/" class="menu-link">Archives</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/project/" class="menu-link">Projects</a>
+            
+          </li>
+        
+          <li class="menu-item">
+            
+              <a href="/about/" class="menu-link">About</a>
+            
+          </li>
+        
+      </ul>
+    </div>
+    
+      <div class="search-pop-overlay">
+    <div class="popup search-popup">
+        <div class="search-header">
+            <span class="search-icon">
+                <i class="fa fa-search"></i>
+            </span>
+            <div class="search-input-container">
+                <input autocomplete="off" autocapitalize="off"
+                    placeholder="Please enter your keyword(s) to search." spellcheck="false"
+                    type="search" class="search-input">
+            </div>
+            <span class="popup-btn-close">
+                <i class="fa fa-times-circle"></i>
+            </span>
+        </div>
+        <div id="search-result">
+            <div id="no-result">
+                <i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i>
+            </div>
+        </div>
+    </div>
+</div>
     
   </div>
-</body>
+</header>
 
+    <main class="app-body">
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88RabbitMq/">Spring Boot整合RabbitMq</a>
+      </h2>
+      <p class="article-date">January 17, 2019</p>
+      
+      <div class="article-summary">
+        
+          Spring Boot整合RabbitMq首先说明一下JMS和AMQP，
+
+JMS:(JAVA Message Service)java消息服务,基于JVM消息代理规范，ActiveMQ，HornetMQ是JMS的实现。
+AMQP:高级消息队列协议，也是一个消息代理规范，兼容JMS，Rabb ...
+        
+      </div>
+      <a class="more" href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88RabbitMq/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88ElasticSearch%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%E5%BC%95%E6%93%8E/">Spring Boot整合ElasticSearch全文检索引擎</a>
+      </h2>
+      <p class="article-date">January 17, 2019</p>
+      
+      <div class="article-summary">
+        
+          Spring Boot整合ElasticSearch全文检索引擎docker镜像安装:
+docker pull elasticsearch:6.5.4
+docker run -e ES_JAVA_OPTS=&quot;-Xms256m -Xmx256m&quot; -d -p 9200:92 ...
+        
+      </div>
+      <a class="more" href="/2019/01/17/SpringBoot/Spring%20Boot%E6%95%B4%E5%90%88ElasticSearch%E5%85%A8%E6%96%87%E6%A3%80%E7%B4%A2%E5%BC%95%E6%93%8E/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2019/01/09/SpringBoot/SpringBoot%E5%9B%BD%E9%99%85%E5%8C%96%E5%8F%8A%E6%8E%A5%E7%AE%A1SpringMVC%E6%8B%A6%E6%88%AA%E5%99%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E9%85%8D%E7%BD%AE/">SpringBoot国际化及接管SpringMVC拦截器格式化配置</a>
+      </h2>
+      <p class="article-date">January 9, 2019</p>
+      
+        
+  <a href="/tags#Spring Boot" >
+    <span class="tag-code">Spring Boot</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          页面国际化配置默认依据浏览器国际化依据浏览器的默认首选语言作为国家语言显示。首先我们使用的渲染模板是thymeleaf，其提供的页面显示#{}方式显示数据，为message显示，可以设置国际化变量。而再使用Spring MVC时
+
+首先要配置国际化properties文件
+然后要配置Reso ...
+        
+      </div>
+      <a class="more" href="/2019/01/09/SpringBoot/SpringBoot%E5%9B%BD%E9%99%85%E5%8C%96%E5%8F%8A%E6%8E%A5%E7%AE%A1SpringMVC%E6%8B%A6%E6%88%AA%E5%99%A8%E6%A0%BC%E5%BC%8F%E5%8C%96%E9%85%8D%E7%BD%AE/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/">hadoop搭建本机模式和伪分布式并执行案例</a>
+      </h2>
+      <p class="article-date">December 31, 2018</p>
+      
+        
+  <a href="/tags#hadoop" >
+    <span class="tag-code">hadoop</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          单节点Hadoop运行(本地模式)官网步骤地址 必备条件:安装java及配置java环境变量，安装hadoop及配置hadoop环境变量
+export JAVA_HOME=/home/ubuntu1/jdk1.8
+export PATH=$JAVA_HOME/bin:$PATH
+
+expor ...
+        
+      </div>
+      <a class="more" href="/2018/12/31/Hadoop/hadoop%E6%90%AD%E5%BB%BA%E6%9C%AC%E6%9C%BA%E6%A8%A1%E5%BC%8F%E5%92%8C%E4%BC%AA%E5%88%86%E5%B8%83%E5%BC%8F%E5%B9%B6%E6%89%A7%E8%A1%8C%E6%A1%88%E4%BE%8B/">Read more</a>
+    </article>
+  
+    <article class="article-card">
+      <h2 class="article-head">
+        <a href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/">Zookeeper集群服务器注册动态上下线</a>
+      </h2>
+      <p class="article-date">December 30, 2018</p>
+      
+        
+  <a href="/tags#Zookeeper" >
+    <span class="tag-code">Zookeeper</span>
+  </a>
+
+  <a href="/tags#大数据" >
+    <span class="tag-code">大数据</span>
+  </a>
+
+      
+      <div class="article-summary">
+        
+          服务器上下线，就是服务器在集群化环境下，服务器出现的断开集群连接，或服务器宕机，关机，停止工作等问题。而服务器动态上下线感知就是客户端可以监听服务器的上线或下线，知道哪个服务器正在运行，哪个服务器停止了，若某台机器退出集群了，表示该服务器节点下线了。那么客户端就不会请求这台服务器了。并且客户 ...
+        
+      </div>
+      <a class="more" href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/">Read more</a>
+    </article>
+  
+
+  
+    <div class="guide-pager">
+  
+    <a href="/page/36/"><span class="page-arrow">← </span>Prev</a>
+  
+  
+    <a href="/page/38/">Next<span class="page-arrow"> →</span></a>
+  
+</div>
+  
+</main>
+
+
+    <div class="scroll-top">
+  <span class="arrow-icon"></span>
+</div>
+    <footer class="app-footer">
+  <p class="copyright">
+    &copy; 2022 | Proudly powered by <a href="https://hexo.io" target="_blank">Hexo</a>
+    <br>
+    Theme by <a target="_blank" rel="noopener" href="https://github.com/yanm1ng">yanm1ng</a>
+    
+  </p>
+</footer>
+
+<script>
+  function async(u, c) {
+    var d = document, t = 'script',
+      o = d.createElement(t),
+      s = d.getElementsByTagName(t)[0];
+    o.src = u;
+    if (c) { o.addEventListener('load', function (e) { c(null, e); }, false); }
+    s.parentNode.insertBefore(o, s);
+  }
+</script>
+<script>
+  async("//cdnjs.cloudflare.com/ajax/libs/fastclick/1.0.6/fastclick.min.js", function(){
+    FastClick.attach(document.body);
+  })
+</script>
+
+<script>
+  var hasLine = 'true';
+  async("//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js", function(){
+    $('figure pre').each(function(i, block) {
+      var figure = $(this).parents('figure');
+      if (hasLine === 'false') {
+        figure.find('.gutter').hide();
+      }
+      hljs.configure({useBR: true});
+      var lang = figure.attr('class').split(' ')[1] || 'code';
+      var codeHtml = $(this).html();
+      var codeTag = document.createElement('code');
+      codeTag.className = lang;
+      codeTag.innerHTML = codeHtml;
+      $(this).attr('class', '').empty().html(codeTag);
+      figure.attr('data-lang', lang.toUpperCase());
+      hljs.highlightBlock(block);
+    });
+  })
+</script>
+<!-- Baidu Tongji -->
+
+
+<script src="/js/script.js"></script>
+
+
+  </body>
 </html>
