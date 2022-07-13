@@ -107,7 +107,7 @@
     
     
     <article
-  id="post-Oracle/Oracle VirtualBox虚拟机复制，更改用户信息"
+  id="post-Zoopeeker/Zookeeper集群服务器注册动态上下线"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -118,8 +118,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/12/26/Oracle/Oracle%20VirtualBox%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%A4%8D%E5%88%B6%EF%BC%8C%E6%9B%B4%E6%94%B9%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF/"
-    >Oracle VirtualBox虚拟机复制，更改用户信息</a> 
+  <a class="article-title" href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/"
+    >Zookeeper集群服务器注册动态上下线</a> 
 </h2>
  
 
@@ -127,323 +127,143 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2018/12/26/Oracle/Oracle%20VirtualBox%E8%99%9A%E6%8B%9F%E6%9C%BA%E5%A4%8D%E5%88%B6%EF%BC%8C%E6%9B%B4%E6%94%B9%E7%94%A8%E6%88%B7%E4%BF%A1%E6%81%AF/" class="article-date">
-  <time datetime="2018-12-25T17:37:38.000Z" itemprop="datePublished">2018-12-26</time>
+      <a href="/2018/12/30/Zoopeeker/Zookeeper%E9%9B%86%E7%BE%A4%E6%9C%8D%E5%8A%A1%E5%99%A8%E6%B3%A8%E5%86%8C%E5%8A%A8%E6%80%81%E4%B8%8A%E4%B8%8B%E7%BA%BF/" class="article-date">
+  <time datetime="2018-12-30T13:32:43.000Z" itemprop="datePublished">2018-12-30</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Ubuntu/">Ubuntu</a>
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
   </div>
    
     </div>
       
     <div class="article-entry" itemprop="articleBody">
        
-  <p>若可以更改静态IP，则先更改静态IP,以便宿主机和虚拟机可以即时通信,相关文档再本站查找ubuntu分类目录下。如果不太懂看本章结尾</p>
-<ol>
-<li><p>先关闭已经创建配置好的虚拟机，右击复制，默认勾选重新配置网卡选项,然后选择完全复制 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226000703.png" alt="图片"> <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226000815.png" alt=""></p>
-</li>
-<li><p>启动虚拟机，目前，用户密码任何东西与被复制的那个是一模一样的，除了刚刚设置的虚拟机名称。本案例呢，是吧ubuntu1复制一份为ubuntu3，用户名与密码一样。</p>
-</li>
-<li><p>首先更改主机名hostname文件，名字更改为ubuntu3</p>
-<pre><code>sudo vim /etc/hostname</code></pre></li>
-</ol>
-<ol start="4">
-<li><p>然后更改host文件，设置本机ip对应的主机名,和若需要配置静态IP的IP地址</p>
-<pre><code>vim /etc/hosts</code></pre></li>
-</ol>
-<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001339.png)</code></pre><ol start="5">
-<li><p>修改shadow文件,拉到最下边，找到原来的用户名，进行修改</p>
-<pre><code>sudo vim /etc/shadow</code></pre></li>
-</ol>
-<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001827.png)</code></pre><ol start="6">
-<li><p>修改home下当前用户目录名称</p>
-<pre><code>sudo mv ubuntu1 ubuntu3</code></pre></li>
-</ol>
-<ol start="7">
-<li><p>修改passwd文件,注意画圈的，一定要改成一样的，与你hosts中一致，一定要都改，否则你根本就登陆不上，不要忘了</p>
-<pre><code>sudo vim /etc/passwd</code></pre></li>
-</ol>
-<pre><code>![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226010202.png)</code></pre><ol start="8">
-<li><p>修改组group文件,依然是找到之前的用户名改为当前用户名</p>
-<pre><code>sudo vim /etc/group</code></pre></li>
-</ol>
-<ol start="9">
-<li><p>更改当前用户密码,此时这里应该是ubuntu3，新用户名称，因为主机名用户名已经被更改了。</p>
-<pre><code>sudo passwd ubuntu3</code></pre></li>
-</ol>
-<pre><code>此时你应该无法更改，提示ubuntu3 is not in the sudoers file. This incident will be reported。此时应擦做root用户更改sudoers文件
-
-    su root
-    vim /etc/sudoers
-    #添加下面图片对应的ubuntu3
-    ubuntu3 ALL=(ALL:ALL) ALL
-
-
-![](http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226001623.png)</code></pre><h2 id="虚拟机互通静态IP配置，文章说明"><a href="#虚拟机互通静态IP配置，文章说明" class="headerlink" title="虚拟机互通静态IP配置，文章说明"></a>虚拟机互通静态IP配置，文章说明</h2><p>根据<a target="_blank" rel="noopener" href="http://www.fsats.com/2018/09/18/294/文章可以简单说明。">http://www.fsats.com/2018/09/18/294/文章可以简单说明。</a></p>
-<ol>
-<li>在默认安装VirtualBox之后，会默认提示你让你安装一个虚拟网段的网络适配器 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181226012219.png" alt=""></li>
-<li>如果你的网络和共享中心，适配器设置中没有这个VirtualBox的这个适配器，则你打开这个软件.点管理-主机网络管理器，如果列表没有就新建一个，下面那个手动配置网卡选中，IP4xxx.xxx.xxx.1就是网关，HDCP起不起用都可以，可以关了。</li>
-<li>创建了网络管理适配后，就有了网段，这个网段可以跟你本机的局域网ping通的，可以尝试一下。这样有了两个网卡。一个是这个创建的适配的Only-Host用于虚拟机之间互通，另一个就是网络NAT方式</li>
-<li>配置虚拟机网络是，第一张网卡是网络NAT，第一张网卡就选创建的那个，为仅主机模式</li>
-<li>进入Ubuntu后，一个是网卡03，一个是网卡08，一般第一个03的是连接宿主的，08的是创建的仅主机模式的。所以，第一张网卡IP4，IP6都自动获取，所以这个网卡的IP是10.xx.xx.xx的，但可以通过宿主机的网络访问外网。第二张网卡选择手动配置IP4，配置创建的网络适配器的网关，随意取一个地址，子网掩码依旧是255，DNS配置为114.114.114.114,别的也可以，IP6可以禁了，若有需要的话就不禁了。</li>
-</ol>
- 
-      <!-- reward -->
-      
-    </div>
-    
-
-    <!-- copyright -->
-    
-    <footer class="article-footer">
-       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/ubuntu/" rel="tag">ubuntu</a></li></ul>
-
-    </footer>
-  </div>
-
-    
- 
-    
-</article>
-
-    
-    <article
-  id="post-Oracle/Oracle物化视图使用相关查询"
-  class="article article-type-post"
-  itemscope
-  itemprop="blogPost"
-  data-scroll-reveal
->
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/"
-    >Oracle物化视图使用相关查询</a> 
-</h2>
- 
-
-      
-    </header>
-     
-    <div class="article-meta">
-      <a href="/2018/12/13/Oracle/Oracle%E7%89%A9%E5%8C%96%E8%A7%86%E5%9B%BE%E4%BD%BF%E7%94%A8%E7%9B%B8%E5%85%B3%E6%9F%A5%E8%AF%A2/" class="article-date">
-  <time datetime="2018-12-13T08:27:55.000Z" itemprop="datePublished">2018-12-13</time>
-</a> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Oracle/">Oracle</a>
-  </div>
-   
-    </div>
-      
-    <div class="article-entry" itemprop="articleBody">
-       
-  <h2 id="Oracle物化视图使用相关查询"><a href="#Oracle物化视图使用相关查询" class="headerlink" title="Oracle物化视图使用相关查询"></a>Oracle物化视图使用相关查询</h2><h3 id="查询当前用户所有物化视图"><a href="#查询当前用户所有物化视图" class="headerlink" title="查询当前用户所有物化视图"></a>查询当前用户所有物化视图</h3><pre><code>select * from user_mviews;</code></pre><h3 id="查询物化视图创建语句及更新时间、更新方式、是否失效"><a href="#查询物化视图创建语句及更新时间、更新方式、是否失效" class="headerlink" title="查询物化视图创建语句及更新时间、更新方式、是否失效"></a>查询物化视图创建语句及更新时间、更新方式、是否失效</h3><pre><code>SELECT OWNER            , --所有者账户
-           MVIEW_NAME       , --名称
-           LAST_REFRESH_DATE, --上次更新时间
-           REFRESH_METHOD   , --更新方式
-           INVALID          , --是否失效
-           QUERY              --查询语句
-      FROM USER_MVIEW_ANALYSIS 
-  ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="3-查询物化视图所有列名及列注释"><a href="#3-查询物化视图所有列名及列注释" class="headerlink" title="3. 查询物化视图所有列名及列注释"></a>3. 查询物化视图所有列名及列注释</h3><pre><code>SELECT a.OWNER        , --所有者账户
-            a.MVIEW_NAME   , --名称
-            b.COLUMN_NAME  , --列名称
-            b.COMMENTS       --列注释
-       FROM USER_MVIEW_ANALYSIS a
- INNER JOIN USER_COL_COMMENTS b
-ON a.MVIEW_NAME = b.TABLE_NAME;</code></pre><h3 id="查询所有物化视图使用的基表"><a href="#查询所有物化视图使用的基表" class="headerlink" title="查询所有物化视图使用的基表"></a>查询所有物化视图使用的基表</h3><pre><code>SELECT DISTINCT 
-               A.OWNER,          --所有者账户
-               A.MVIEW_NAME     ,--物化视图名称
-               B.COMMENTS       ,--视图注释
-               A.DETAILOBJ_OWNER,--基表所有者账号
-               A.DETAILOBJ_NAME  --基表名称
-          FROM USER_MVIEW_DETAIL_RELATIONS A
-    INNER JOIN USER_MVIEW_COMMENTS B ON A.MVIEW_NAME = B.MVIEW_NAME
-         WHERE DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;;</code></pre><h3 id="物化视图或普通视图使用哪些基表，被那个存储过程引用"><a href="#物化视图或普通视图使用哪些基表，被那个存储过程引用" class="headerlink" title="物化视图或普通视图使用哪些基表，被那个存储过程引用"></a>物化视图或普通视图使用哪些基表，被那个存储过程引用</h3><pre><code>WITH CTE AS (
-    SELECT DISTINCT 
-           A.OWNER,               -- 所有者账户
-           A.MVIEW_NAME         , -- 物化视图名称
-           A.DETAILOBJ_OWNER    , -- 被引用表账号
-           A.DETAILOBJ_NAME       -- 被引用表名称
-      FROM USER_MVIEW_DETAIL_RELATIONS A
-     WHERE A.DETAILOBJ_NAME NOT LIKE &apos;BIN%&apos;
- UNION ALL
-    SELECT &apos;&apos; AS OWNER,
-           NAME AS MVIEW_NAME,
-           REFERENCED_OWNER AS DETAILOBJ_OWNER,
-           REFERENCED_NAME AS DETAILOBJ_NAME
-      FROM USER_DEPENDENCIES 
-     WHERE TYPE =&apos;VIEW&apos;
-)
-    SELECT A.OWNER            ,-- 视图所有者账户
-           A.MVIEW_NAME AS MV ,-- 视图名称
-           A.DETAILOBJ_OWNER  ,-- 基表所有者账户
-           A.DETAILOBJ_NAME   ,-- 基表/视图
-           NVL(B.NAME,&apos;-&apos;) AS PROC_NAME -- 存储过程名称
-      FROM CTE A
- LEFT JOIN (SELECT DISTINCT NAME,REFERENCED_NAME 
-              FROM USER_DEPENDENCIES B 
-             WHERE B.TYPE = &apos;PROCEDURE&apos; 
-            ) B ON A.MVIEW_NAME = B.REFERENCED_NAME
-  ORDER BY A.MVIEW_NAME,A.DETAILOBJ_NAME,B.NAME;</code></pre><h3 id="查询物化视图刷新信息"><a href="#查询物化视图刷新信息" class="headerlink" title="查询物化视图刷新信息"></a>查询物化视图刷新信息</h3><pre><code>SELECT MVIEW_NAME,--物化视图名称
-       REFRESH_MODE,--刷新方式
-       REFRESH_METHOD,--刷新类型
-       FAST_REFRESHABLE,--是否可刷新
-       LAST_REFRESH_TYPE,--最近一次刷新类型
-       LAST_REFRESH_DATE,--最近一次刷新时间
-       STALENESS --数据是否过时
-  FROM USER_MVIEWS 
- ORDER BY LAST_REFRESH_DATE DESC;</code></pre><h3 id="物化视图最后一次刷新信息"><a href="#物化视图最后一次刷新信息" class="headerlink" title="物化视图最后一次刷新信息"></a>物化视图最后一次刷新信息</h3><pre><code>SELECT MVIEW_NAME,  --物化视图名称
-        LAST_REFRESH_DATE &quot;START_TIME&quot;, --刷新开始时间
-        CASE WHEN FULLREFRESHTIM &lt;&gt; 0 
-             THEN LAST_REFRESH_DATE + FULLREFRESHTIM/60/60/24
-             WHEN INCREFRESHTIM &lt;&gt; 0 
-             THEN LAST_REFRESH_DATE + INCREFRESHTIM/60/60/24
-             ELSE LAST_REFRESH_DATE
-        END &quot;END_TIME&quot;, --刷新结束时间
-        FULLREFRESHTIM, --全量刷新耗时
-        INCREFRESHTIM , --增量刷新耗时
-        REFRESH_METHOD, --最近一次刷新方式
-        SUMMARY       , --是否含有聚合查询
-        INC_REFRESHABLE,--是否支持增量刷新
-        INVALID       , --是否失效
-        REWRITE_ENABLED --是否支持查询重写
-   FROM ALL_MVIEW_ANALYSIS
-   WHERE OWNER=&apos;BDCCXTJ&apos;
-ORDER BY LAST_REFRESH_DATE DESC;</code></pre> 
-      <!-- reward -->
-      
-    </div>
-    
-
-    <!-- copyright -->
-    
-    <footer class="article-footer">
-       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Oracle/" rel="tag">Oracle</a></li></ul>
-
-    </footer>
-  </div>
-
-    
- 
-    
-</article>
-
-    
-    <article
-  id="post-Javascript/关于使用Editor.md的一些问题，尤其是方法的调用"
-  class="article article-type-post"
-  itemscope
-  itemprop="blogPost"
-  data-scroll-reveal
->
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/"
-    >关于使用Editor.md的一些问题，尤其是方法的调用</a> 
-</h2>
- 
-
-      
-    </header>
-     
-    <div class="article-meta">
-      <a href="/2018/12/02/Javascript/%E5%85%B3%E4%BA%8E%E4%BD%BF%E7%94%A8Editor.md%E7%9A%84%E4%B8%80%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%8C%E5%B0%A4%E5%85%B6%E6%98%AF%E6%96%B9%E6%B3%95%E7%9A%84%E8%B0%83%E7%94%A8/" class="article-date">
-  <time datetime="2018-12-02T12:00:12.000Z" itemprop="datePublished">2018-12-02</time>
-</a> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/JS/">JS</a>
-  </div>
-   
-    </div>
-      
-    <div class="article-entry" itemprop="articleBody">
-       
-  <h2 id="关于使用Editor-md的一些问题"><a href="#关于使用Editor-md的一些问题" class="headerlink" title="关于使用Editor.md的一些问题"></a>关于使用Editor.md的一些问题</h2><h3 id="testEditor无法调用该编译器的previewing-方法"><a href="#testEditor无法调用该编译器的previewing-方法" class="headerlink" title="testEditor无法调用该编译器的previewing()方法"></a>testEditor无法调用该编译器的previewing()方法</h3><p>我想用以下方法来预览全部和取消预览全部，所以需要watch属性和previewing方法，试了好多次，都说没有toggle方法或什么的，然后我就取editormd.js去看，发现调用这个方法需要好多对象支持，尤其是codeMirror,但是我看页面，这写js都已经在lib包里导入了。而且使用testEditor打印为undefined。只有在onload里使用this才能调用所有方法。 然后下载源码看，拷贝了老半天，才发现，需要使用方法调用才能使用testEditor执行方法，于是试了试，发现可以，然后就把没用的删了，把height改为autoHeight，因为这样更美观。之后再试，不行。 弄着弄着发现黑主题能显示出来，default主题出不来，于是又试，发现能出来，最后又改了改，又不行了。 最后后，一一的排查，发现是autoHeight搞得，一使用这个属性，就不能preview预览。于是只能改为height才行。 最终的问题，一个是需要使用function方法或事件来调用方法，另一个是autoHeight的坑爹之处。</p>
- 
-      <!-- reward -->
-      
-    </div>
-    
-
-    <!-- copyright -->
-    
-    <footer class="article-footer">
-       
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/JS/" rel="tag">JS</a></li></ul>
-
-    </footer>
-  </div>
-
-    
- 
-    
-</article>
-
-    
-    <article
-  id="post-SpringBoot/SpringBoot中启动项目报错URL没有设置属性"
-  class="article article-type-post"
-  itemscope
-  itemprop="blogPost"
-  data-scroll-reveal
->
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2018/11/30/SpringBoot/SpringBoot%E4%B8%AD%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99URL%E6%B2%A1%E6%9C%89%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7/"
-    >SpringBoot中启动项目报错URL没有设置属性</a> 
-</h2>
- 
-
-      
-    </header>
-     
-    <div class="article-meta">
-      <a href="/2018/11/30/SpringBoot/SpringBoot%E4%B8%AD%E5%90%AF%E5%8A%A8%E9%A1%B9%E7%9B%AE%E6%8A%A5%E9%94%99URL%E6%B2%A1%E6%9C%89%E8%AE%BE%E7%BD%AE%E5%B1%9E%E6%80%A7/" class="article-date">
-  <time datetime="2018-11-30T15:53:04.000Z" itemprop="datePublished">2018-11-30</time>
-</a> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/SpringBoot/">SpringBoot</a>
-  </div>
-   
-    </div>
-      
-    <div class="article-entry" itemprop="articleBody">
-       
-  <h1 id="SpringBoot中启动项目报错URL失败"><a href="#SpringBoot中启动项目报错URL失败" class="headerlink" title="SpringBoot中启动项目报错URL失败"></a>SpringBoot中启动项目报错URL失败</h1><p>Failed to configure a DataSource: ‘url’ attribute is not specified and no embedded datasource could be configured. Reason: Failed to determine a suitable driver class 通常这个情况是首次接触SpringbBoot时，犯的错误。</p>
+  <p>服务器上下线，就是服务器在集群化环境下，服务器出现的断开集群连接，或服务器宕机，关机，停止工作等问题。而服务器动态上下线感知就是客户端可以监听服务器的上线或下线，知道哪个服务器正在运行，哪个服务器停止了，若某台机器退出集群了，表示该服务器节点下线了。那么客户端就不会请求这台服务器了。并且客户端通过监听就可以知道那些机器在运行中。 首先Zookeepr能做什么，主要是作为分布式命名服务，通过调用zNode api 能够很容易的创建一个全局的path，一个path就是一个名称，且具有层级结构。当然还有其他作用。 而Zookeeper具有监听watch的功能，监听节点值和子节点。那么将服务器作为每个节点，由zookeeper统一管理，每个节点都会有stat信息，存储这相关内容及配置。那么节点又分为临时和持久，以及四个节点目录类型。只要将服务器节点设置为临时顺序节点，即可监听节点的数量。只要服务器节点断开。那个临时节点就会删除。这句话也就是说，将服务器通过Zookeeper管理，两者的关系就是，服务器就是Client，同真正的Client客户端类似。也就是说，服务器需要到Zookeeper值注册节点，那么Server服务器也就理应成了Client的角色。 <strong>简而言之:</strong></p>
 <ul>
-<li>一般网上说没有配置spring.database.url配置</li>
-<li>或者使用注解去除DataSource的Bean</li>
-<li>或者是url错误</li>
+<li>n个服务器到Zookeeper中注册节点，注册到同一个节点下，那么他们都是同级的子节点。</li>
+<li>而客户端会通过ls path [watch]，来监听这个节点的变化，也就是路径的变化。在java操作客户端时getChildren可以使用Watcher来监听某个节点。那么被监听的这个节点就是众多服务器节点的父节点。</li>
 </ul>
-<p>但是如果你url配置了，而且是正确的。 那么很可能是加了这个</p>
-<pre><code>&lt;resources&gt;
-    &lt;resource&gt;
-        &lt;directory&gt;src/main/java&lt;/directory&gt;
-        &lt;includes&gt;
-            &lt;include&gt;**/*.properties&lt;/include&gt;
-            &lt;include&gt;**/*.xml&lt;/include&gt;
-        &lt;/includes&gt;
-        &lt;filtering&gt;false&lt;/filtering&gt;
-    &lt;/resource&gt;
-    &lt;resource&gt;
-        &lt;directory&gt;src/main/resources&lt;/directory&gt;
-        &lt;includes&gt;
-            &lt;include&gt;**/*.properties&lt;/include&gt;
-            &lt;include&gt;**/*.xml&lt;/include&gt;
-        &lt;/includes&gt;
-        &lt;filtering&gt;false&lt;/filtering&gt;
-    &lt;/resource&gt;
-&lt;/resources&gt;</code></pre><p>这串代码放在maven的pom.xml的build标签里。一般在SpringMVC中用于properties,xml文件在resources目录中，放置这个标签，就可以在编译的时候读到resources里的这两种文件，不然无法读到，所以就需要加这个代码。 但SpringBoot中使用yml或properties，不需要这个配置，如果需要编写properties，可以通过yml里的属性配置，然后classpath:/xxx.properties。 所以，去掉这个代码，就完全OK了。 这只是一种情况，还有其他各种各样的情况。</p>
+<p>需要注意的是，服务器都通过zookeeper来管理，要到Zookeeper中注册节点。而客户端专门监听Zookeeper的节点列表。 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181230202802.png" alt=""> java代码的具体方式就是，先服务器注册，在客户端监听。 看一下服务器代码:</p>
+<pre><code>public class ZkServer &#123;
+
+    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
+    private int sessionTimeout=20000;
+    private ZooKeeper zkServer = null;
+
+    public static void main(String[] args) &#123;
+        ZkServer server = new ZkServer();
+        server.connect();//连接Zookeeper
+        server.register(args[0]);//注册服务器节点
+        server.message(args[0]);
+    &#125;
+
+    /**
+     * 服务器注册完毕提示
+     * @param string
+     */
+    private void message(String hostName) &#123;
+        System.out.println(hostName + &quot;启动完毕!!!&quot;);
+    &#125;
+
+    /**
+     * 服务器节点注册
+     */
+    private void register(String hostName) &#123;
+        try &#123;
+            zkServer.create(&quot;/servers/server&quot;, hostName.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.EPHEMERAL_SEQUENTIAL);
+        &#125; catch (KeeperException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125; catch (InterruptedException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+        System.out.println(&quot;注册服务器节点&quot; + hostName);
+        try &#123;
+            Thread.sleep(Long.MAX_VALUE);
+        &#125; catch (InterruptedException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+    &#125;
+
+    /**
+     * 服务器作为客户端连接Zookeeper
+     */
+    private void connect() &#123;
+        try &#123;
+            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
+
+                public void process(WatchedEvent event) &#123;
+
+                &#125;
+            &#125;);
+        &#125; catch (IOException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+    &#125;
+&#125;</code></pre><p>客户端代码:</p>
+<pre><code>public class ZkClient &#123;
+
+    private String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
+    private int sessionTimeout=20000;
+    private ZooKeeper zkServer = null;
+
+    public static void main(String[] args) &#123;
+        ZkClient client = new ZkClient();
+        client.connect();//连接Zookeeper
+
+    &#125;
+
+    /**
+     * 服务器作为客户端连接Zookeeper
+     */
+    private void connect() &#123;
+        try &#123;
+            zkServer  = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
+                public void process(WatchedEvent event) &#123;
+                    try &#123;
+                        List&lt;String&gt; list = zkServer.getChildren(&quot;/servers&quot;, true);
+                        System.out.println(list.toString());
+                    &#125; catch (KeeperException e) &#123;
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    &#125; catch (InterruptedException e) &#123;
+                        // TODO Auto-generated catch block
+                        e.printStackTrace();
+                    &#125;
+                &#125;
+            &#125;);
+        &#125; catch (IOException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+        try &#123;
+            Thread.sleep(Long.MAX_VALUE);
+        &#125; catch (InterruptedException e) &#123;
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        &#125;
+    &#125;
+
+&#125;</code></pre><p>其实总体来说，只有客户端代码有用，它负责监听，并把子节点打印出来。我们可以直接启动客户端代码。而对于服务器注册而言，无非是命令行创建变成了通过java代码创建。所以，只需要把客户端启动起来，在命令行上创建临时顺序节点即可。下面是命令行注册服务器，以及对应的客户端打印输出。</p>
+<pre><code>[zk: localhost:2181(CONNECTED) 34] ls /servers
+[]
+[zk: localhost:2181(CONNECTED) 35] create -s -e /servers/server server1
+Created /servers/server0000000001
+[zk: localhost:2181(CONNECTED) 36] create -s -e /servers/server server2
+Created /servers/server0000000002
+[zk: localhost:2181(CONNECTED) 37] create -s -e /servers/server server3
+Created /servers/server0000000003
+[zk: localhost:2181(CONNECTED) 38] delete /servers/server0000000001
+
+
+[]
+[server0000000001]
+[server0000000002, server0000000001]
+[server0000000003, server0000000002, server0000000001]
+[server0000000003, server0000000002]</code></pre><p>为什么我不用java启动服务注册，因为，你需要开线程，或者打个包才能执行三次。没有命令行快速方便。然后，没了。</p>
  
       <!-- reward -->
       
@@ -454,7 +274,7 @@ ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/SpringBoot/" rel="tag">SpringBoot</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
 
     </footer>
   </div>
@@ -466,7 +286,7 @@ ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
 
     
     <article
-  id="post-中间件/Spring集成Quartz定时任务"
+  id="post-Zoopeeker/Zookeeper客户端java操作说明"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -477,8 +297,8 @@ ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2018/11/27/%E4%B8%AD%E9%97%B4%E4%BB%B6/Spring%E9%9B%86%E6%88%90Quartz%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/"
-    >Spring集成Quartz定时任务</a> 
+  <a class="article-title" href="/2018/12/30/Zoopeeker/Zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AFjava%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E/"
+    >Zookeeper客户端java操作说明</a> 
 </h2>
  
 
@@ -486,267 +306,110 @@ ORDER BY LAST_REFRESH_DATE DESC;</code></pre>
     </header>
      
     <div class="article-meta">
-      <a href="/2018/11/27/%E4%B8%AD%E9%97%B4%E4%BB%B6/Spring%E9%9B%86%E6%88%90Quartz%E5%AE%9A%E6%97%B6%E4%BB%BB%E5%8A%A1/" class="article-date">
-  <time datetime="2018-11-27T15:44:04.000Z" itemprop="datePublished">2018-11-27</time>
+      <a href="/2018/12/30/Zoopeeker/Zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AFjava%E6%93%8D%E4%BD%9C%E8%AF%B4%E6%98%8E/" class="article-date">
+  <time datetime="2018-12-30T11:23:59.000Z" itemprop="datePublished">2018-12-30</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a>
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
   </div>
    
     </div>
       
     <div class="article-entry" itemprop="articleBody">
        
-  <h1 id="Spring集成Quartz定时任务"><a href="#Spring集成Quartz定时任务" class="headerlink" title="Spring集成Quartz定时任务"></a>Spring集成Quartz定时任务</h1><p>Spring集成Quartz可以使用直接在spring中配置的，也可以将任务放在database中，通过数据库中的而数据来读取。 那么，简单一点的定时任务，一个两个，不经常改动，需求不多的，可以直接配置spring的XML中。</p>
-<h3 id="直接在Spring-Bean配置文件中配置定时任务-它会随项目的启动自动启动工作任务"><a href="#直接在Spring-Bean配置文件中配置定时任务-它会随项目的启动自动启动工作任务" class="headerlink" title="直接在Spring Bean配置文件中配置定时任务,它会随项目的启动自动启动工作任务"></a>直接在Spring Bean配置文件中配置定时任务,它会随项目的启动自动启动工作任务</h3><p>先添加Maven依赖</p>
+  <p>创建Maven项目，添加对应zookeeper版本依赖</p>
 <pre><code>&lt;dependency&gt;
-    &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-    &lt;artifactId&gt;quartz&lt;/artifactId&gt;
-    &lt;version&gt;2.3.0&lt;/version&gt;
-&lt;/dependency&gt;
-&lt;dependency&gt;
-    &lt;groupId&gt;org.quartz-scheduler&lt;/groupId&gt;
-    &lt;artifactId&gt;quartz-jobs&lt;/artifactId&gt;
-    &lt;version&gt;2.3.0&lt;/version&gt;
-&lt;/dependency&gt;</code></pre><ol>
-<li><p>首先定义一个工作任务类，我们需要定义一个工作类实现org.quartz.Job接口,并实现execute方法。</p>
-<p>public class TestJob implements Job {</p>
-<pre><code>@Override
-public void execute(JobExecutionContext context) throws JobExecutionException &#123;
-    System.out.println(new SimpleDateFormat(&quot;yyyy-MM-dd HH:mm:ss&quot;).format(new Date()));
-&#125;</code></pre><p>}</p>
-</li>
-</ol>
-<ol start="2">
-<li><p>Spring Bean配置，完成后启动，它就会自动执行TestJob类的execute方法</p>
-<!--jobDetail配置-->
-<bean id="jobDetail" class="org.springframework.scheduling.quartz.JobDetailFactoryBean">
-    <property name="name" value="test1"/>
-    <property name="group" value="group1"/>
-    <property name="jobClass" value="com.fsats.axis.scheduler.TestJob"/>
-</bean>
+    &lt;groupId&gt;org.apache.zookeeper&lt;/groupId&gt;
+    &lt;artifactId&gt;zookeeper&lt;/artifactId&gt;
+    &lt;version&gt;3.4.13&lt;/version&gt;
+&lt;/dependency&gt;</code></pre><p>再拷贝zookeeper.tar.gz包下的conf下的log4j.properties日志。到maven的resource目录下</p>
+<pre><code>public class App &#123;
 
-<!--Cron表达式触发器-->
-<bean id="cronTrigger" class="org.springframework.scheduling.quartz.CronTriggerFactoryBean">
-    <property name="cronExpression" value="0/5 * * * * ?"/>
-    <property name="jobDetail" ref="jobDetail"/>
-</bean>
+    //连接字符串
+    private static String connectString = &quot;192.168.56.11:2181,192.168.56.12:2181,192.168.56.13:2181&quot;;
+    //会话超时时间
+    private static int sessionTimeout = 20000;
+    //Zookeeper对象
+    ZooKeeper zkCli = null;
 
-<!--配置调度工厂-->
-<bean id="schedulerFactoryBean" class="org.springframework.scheduling.quartz.SchedulerFactoryBean">
-    <property name="triggers">
-        <list>
-            <ref bean="cronTrigger"/>
-        </list>
-    </property>
-</bean>
+    @Before
+    public void initCli() throws IOException &#123;
 
+        zkCli = new ZooKeeper(connectString, sessionTimeout, new Watcher() &#123;
 
-</li>
-</ol>
-<p><strong>另外还有一种更简单的方式，也是无敌的。需要添加task命名空间，ref引用的类需要注入到spring bean中，设置要执行的方法，以及cron表达式。</strong></p>
-<pre><code>&lt;task:scheduled-tasks&gt;
-    &lt;task:scheduled ref=&quot;newJob&quot; method=&quot;execute&quot; cron=&quot;0/5 * * * * ?&quot;/&gt;
-&lt;/task:scheduled-tasks&gt;</code></pre><h3 id="通过数据库存储工作任务"><a href="#通过数据库存储工作任务" class="headerlink" title="通过数据库存储工作任务"></a>通过数据库存储工作任务</h3><ol>
-<li><p>先添加数据库配置的表，在官网的最新版tar.gz包里有关于所有数据库的建表语句<a target="_blank" rel="noopener" href="http://www.quartz-scheduler.org/downloads/">下载地址</a> 路径在/docs/dbTables下,只<strong>需要将他建到数据库当中</strong>。这个建表所在的包版本建议跟依赖的版本一致，万一有什么改动呢。尤其是1.x和2.x绝对不能混用。</p>
-</li>
-<li><p>数据库存储定时任务，只需要添加properties配置文件，并为SchedulerFactoryBean配置dataSource属性，autoStartup属性，configLocation属性。</p>
-</li>
-</ol>
-<pre><code>&lt;bean id=&quot;schedulerFactoryBean&quot; class=&quot;org.springframework.scheduling.quartz.SchedulerFactoryBean&quot;&gt;
-    &lt;property name=&quot;dataSource&quot; ref=&quot;dataSource&quot;/&gt;
-    &lt;property name=&quot;autoStartup&quot; value=&quot;true&quot;/&gt;
-    &lt;property name=&quot;configLocation&quot; value=&quot;classpath:quartz.properties&quot;/&gt;
-&lt;/bean&gt;</code></pre><p>属性配置文件如下:</p>
-<pre><code># Default Properties file for use by StdSchedulerFactory
-# to create a Quartz Scheduler Instance, if a different
-# properties file is not explicitly specified.
-#
-#============================================================================
-# Configure Main Scheduler Properties
-#============================================================================
-org.quartz.scheduler.instanceName = DefaultQuartzScheduler
-org.quartz.scheduler.rmi.export = false
-org.quartz.scheduler.rmi.proxy = false
-org.quartz.scheduler.wrapJobExecutionInUserTransaction = false
-#============================================================================
-# Configure ThreadPool
-#============================================================================
-org.quartz.threadPool.class = org.quartz.simpl.SimpleThreadPool
-org.quartz.threadPool.threadCount = 10
-org.quartz.threadPool.threadPriority = 5
-org.quartz.threadPool.threadsInheritContextClassLoaderOfInitializingThread = true
-#============================================================================
-# Configure JobStore
-#============================================================================
-#org.quartz.scheduler.classLoadHelper.class=org.quartz.simpl.CascadingClassLoadHelper
-org.quartz.jobStore.misfireThreshold = 60000
-org.quartz.jobStore.useProperties = true
-org.quartz.jobStore.class = org.quartz.impl.jdbcjobstore.JobStoreTX
-org.quartz.jobStore.driverDelegateClass = org.quartz.impl.jdbcjobstore.StdJDBCDelegate
-#havent cluster spring
-#org.quartz.jobStore.dataSource = myDS
-org.quartz.jobStore.tablePrefix = qrtz_
-org.quartz.jobStore.isClustered = false  
-org.quartz.jobStore.maxMisfiresToHandleAtATime=1
-#==============================================================
-#Non-Managed Configure Datasource  if you don&apos;t use spring cluster
-#==============================================================
-#org.quartz.dataSource.myDS.driver = com.mysql.jdbc.Driver
-#org.quartz.dataSource.myDS.URL = jdbc\:mysql\://localhost\:3306/qrtz
-#org.quartz.dataSource.myDS.user = root
-#org.quartz.dataSource.myDS.password = root
-#org.quartz.dataSource.myDS.maxConnections =10</code></pre><p>数据库连接这个已经注释了，不需要，因为你可以直接通过dataSource引用。 完成这些之后，启动项目，添加一个定时任务。</p>
-<pre><code>@Component
-public class QuartzManager &#123;
-
-    @Autowired
-    private Scheduler scheduler;
-
-    public void addJob() &#123;
-        try &#123;
-            //构建一个名称为test1的工作，组为group1
-            JobDetail detail = JobBuilder.newJob(TestJob.class).withIdentity(&quot;test1&quot;, &quot;group1&quot;).build();
-            //表达式调度构建器
-            CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(&quot;*/5 * * * * ?&quot;);
-            //按cronExcepress构建CronTrigger
-            CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(&quot;test1&quot;, &quot;group1&quot;).withSchedule(scheduleBuilder).build();
-            scheduler.scheduleJob(detail, trigger);
-            JobKey key = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
+            public void process(WatchedEvent event) &#123;
+                // TODO Auto-generated method stub
+                System.out.println(&quot;事件类型&quot; + event.getType());
             &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
+        &#125;);
+    &#125;
+
+    @Test
+    public void createNode() throws KeeperException, InterruptedException &#123;
+        String path = zkCli.create(&quot;/chen&quot;, &quot;chenguangqi&quot;.getBytes(), Ids.OPEN_ACL_UNSAFE, CreateMode.PERSISTENT);
+        System.out.println(path);
+    &#125;
+
+&#125;</code></pre><p>代码中initCli方法用于创建客户端，通过Zokkepper构造方法构造客户端对象。</p>
+<ul>
+<li>第一个参数为连接字符串,多个连接使用逗号分开，可以写一个或多个，将随机连接。</li>
+<li>第二个参数为会话超时时间，这个尽量不要低于5秒吧，否则可能导致超时报错。</li>
+<li>第三个参数为监听Watcher,也就是监听器原理中的那个，获得到监听响应后会执行process方法。</li>
+</ul>
+<p>客户端创建节点，返回创建节点的路径</p>
+<ul>
+<li>第一个参数为创建的节点路径</li>
+<li>第二个参数为节点数据值</li>
+<li>第三个参数为ACL访问控制权限，Ids中获得其他节点权限，当前为开放权限不安全。</li>
+<li>第四个参数为节点类型，暂时，暂时顺序，持久，持久顺序</li>
+</ul>
+<p>java客户端在连接服务器执行完操作后，就会断开连接。且<strong>每次连接客户端的Watcher都会执行</strong>。也就是首次连接服务器必会执行process方法。</p>
+<h3 id="获得子节点"><a href="#获得子节点" class="headerlink" title="获得子节点"></a>获得子节点</h3><pre><code>@Test
+public void getNode() throws KeeperException, InterruptedException &#123;
+    List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, false);
+    for (String string : list) &#123;
+        System.out.println(string);
+    &#125;
+&#125;
+
+
+@Test
+public void getNode() throws KeeperException, InterruptedException &#123;
+    //List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, false);
+    List&lt;String&gt; list = zkCli.getChildren(&quot;/&quot;, new Watcher() &#123;
+        public void process(WatchedEvent event) &#123;
+            // TODO Auto-generated method stub
+            System.out.println(&quot;监听路径&quot; + event.getPath());
         &#125;
-    &#125;
-&#125;</code></pre><p>这里，我没有使用参数，传递，直接将任务类写成了TestJob.class，你可以创建一个实体类，来存储JobDetail，Trigger，和name，group这些属性信息。这个方法是在一个专门的管理类里，要添加的话，需要通过页面调用这个方法。若添加成功可到数据库中看JobDetail等信息。 待关闭项目，重新开启项目后，任务自动进行调度。</p>
-<h3 id="scheduler对象可调用的一些方法"><a href="#scheduler对象可调用的一些方法" class="headerlink" title="scheduler对象可调用的一些方法"></a>scheduler对象可调用的一些方法</h3><pre><code>@Component
-public class QuartzManager &#123;
-
-    @Autowired
-    private Scheduler scheduler;
-
-    public void addJob() &#123;
-        try &#123;
-            //构建一个名称为test1的工作，组为group1
-            JobDetail detail = JobBuilder.newJob(TestJob.class).withIdentity(&quot;test1&quot;, &quot;group1&quot;).build();
-            //表达式调度构建器
-            CronScheduleBuilder scheduleBuilder = CronScheduleBuilder.cronSchedule(&quot;*/5 * * * * ?&quot;);
-            //按cronExcepress构建CronTrigger
-            CronTrigger trigger = TriggerBuilder.newTrigger().withIdentity(&quot;test1&quot;, &quot;group1&quot;).withSchedule(scheduleBuilder).build();
-            scheduler.scheduleJob(detail, trigger);
-            JobKey key = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
+    &#125;);
+    for (String string : list) &#123;
+        System.out.println(string);
     &#125;
 
-    /**
-     * 暂停任务
-     */
-    public void pauseJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.pauseJob(jobKey);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
+    Thread.sleep(Long.MAX_VALUE);//因为客户端连接服务器执行操作后就会关闭连接，所以需要睡眠才能够看到监听结果的输出
+&#125;</code></pre><p>通过getChildren方法获得子节点集合，第二个参数为是否监听，如果设置为true，则监听当前节点，并在创建客户端时的Watcher捕获的。 当getChildren方法的监听参数为true时，则连接服务器的Watcher会依据当前getChildren监听的节点的反应来执行process方法。同命令行监听一样，只会监听一次。 当getChildren方法的监听参数为false时，连接服务器的Watcher仅会在连接服务器时执行第一次process，而不会监听当前getChildren的节点。 当getChilredn方法的监听参数为Watcher监听对象，那么连接服务器的监听只有第一次连接服务器执行process，而更改/子节点时只有getChidren的监听才会执行。也只监听一次执行一次。 要想连续监听，需要在连接服务器的监听的process方法里，再次来一次getChildren(“/“,true);这样才能再次监听。</p>
+<h3 id="查看节点是否存在"><a href="#查看节点是否存在" class="headerlink" title="查看节点是否存在"></a>查看节点是否存在</h3><p>依然可以监听当前节点，是否存在，同样可以设置true，false，Watcher</p>
+<pre><code>@Test
+public void exist() throws KeeperException, InterruptedException &#123;
+    Stat stat = zkCli.exists(&quot;/chen&quot;,false);
+    if(stat!=null) &#123;
+        System.out.println(stat.getVersion());
+        System.out.println(stat.getDataLength());
+    &#125;else &#123;
+        System.out.println(&quot;不存在&quot;);
     &#125;
-
-    /**
-     * 恢复任务
-     */
-    public void resumeJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.resumeJob(jobKey);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 立即执行一次
-     */
-    public void triggerJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.triggerJob(jobKey);
-            if (scheduler.isShutdown()) &#123;
-                scheduler.start();
-            &#125;
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 删除定时任务
-     */
-    public void deleteJob() &#123;
-        try &#123;
-            JobKey jobKey = new JobKey(&quot;test1&quot;, &quot;group1&quot;);
-            scheduler.deleteJob(jobKey);
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 修改触发器CronExpress表达式
-     */
-    public void modifyCron(String name, String group, String cronExpression) &#123;
-        try &#123;
-            TriggerKey triggerKey = TriggerKey.triggerKey(name, group);
-            CronTrigger newCron = TriggerBuilder.newTrigger().withIdentity(triggerKey).withSchedule(CronScheduleBuilder.cronSchedule(cronExpression)).build();
-            scheduler.rescheduleJob(triggerKey, newCron);
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 获得所有工作任务
-     */
-    public void getAllJob() &#123;
-        try &#123;
-            GroupMatcher&lt;JobKey&gt; jobGroupMatcher = GroupMatcher.anyJobGroup();
-            Set&lt;JobKey&gt; jobKeys = scheduler.getJobKeys(jobGroupMatcher);
-            System.out.println(&quot;所有工作数量&quot; + jobKeys.size());
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 获得所有运行中的任务
-     */
-    public void getRunningJob()&#123;
-        try &#123;
-            List&lt;JobExecutionContext&gt; jobExecutionContexts = scheduler.getCurrentlyExecutingJobs();
-            System.out.println(&quot;运行中的任务个数&quot; + jobExecutionContexts.size());
-        &#125; catch (SchedulerException e) &#123;
-            e.printStackTrace();
-        &#125;
-    &#125;
-
-    /**
-     * 验证cron表达式
-     */
-    public void validationCron(String cron)&#123;
-        CronExpression.isValidExpression(cron);
-    &#125;
-&#125;</code></pre><p>除了这些，还有其它方法在scheduler中，等等,都可以通过scheduler获得的对象来得到信息。</p>
+    Thread.sleep(Long.MAX_VALUE);
+&#125;</code></pre><p>监听与getChildren都是一样的。</p>
+<h3 id="修改节点值"><a href="#修改节点值" class="headerlink" title="修改节点值"></a>修改节点值</h3><pre><code>@Test
+public void setData() throws KeeperException, InterruptedException &#123;
+    Stat stat = zkCli.setData(&quot;/chen&quot;, &quot;what is your name&quot;.getBytes(), 0);
+    System.out.println(&quot;版本&quot; + stat.getVersion());
+    System.out.println(&quot;修改时间&quot; + stat.getMtime());
+&#125;</code></pre><ul>
+<li>第一个参数为要修改的节点</li>
+<li>第二个参数为要修改的节点值</li>
+<li>第三个参数为被修改节点的版本</li>
+</ul>
  
       <!-- reward -->
       
@@ -757,7 +420,322 @@ public class QuartzManager &#123;
     
     <footer class="article-footer">
        
-  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E4%BB%BB%E5%8A%A1%E8%B0%83%E5%BA%A6/" rel="tag">任务调度</a></li></ul>
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+
+    </footer>
+  </div>
+
+    
+ 
+    
+</article>
+
+    
+    <article
+  id="post-Zoopeeker/zookeeper的监听器原理和客户端写数据流程"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/"
+    >zookeeper的监听器原理和客户端写数据流程</a> 
+</h2>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E7%9A%84%E7%9B%91%E5%90%AC%E5%99%A8%E5%8E%9F%E7%90%86%E5%92%8C%E5%AE%A2%E6%88%B7%E7%AB%AF%E5%86%99%E6%95%B0%E6%8D%AE%E6%B5%81%E7%A8%8B/" class="article-date">
+  <time datetime="2018-12-29T15:35:39.000Z" itemprop="datePublished">2018-12-29</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
+  </div>
+   
+    </div>
+      
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h2 id="监听器原理"><a href="#监听器原理" class="headerlink" title="监听器原理"></a>监听器原理</h2><p><img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229231357.png" alt="监听器原理"> 如图所示: 首先要有一个main线程，这个main线程创建zookeeper客户端，zkClient会分发两个子线程，一个用来监听，一个用来连接服务器。 通过connect线程将注册的监听事件发送给Zookeeper，Zookeeper的注册监听器列表将注册的监听事件添加到列表中。 Zookeeper监听到有数据变化或路径变化，就会将消息发送到listener线程。 而listener线程内部则调用process()方法。 通常有这两种监听，分别是监听节点值和子节点</p>
+<ul>
+<li>get path [watch]:监听节点数据变化</li>
+<li>ls path [watch]:监听子节点增减的变化</li>
+</ul>
+<h2 id="客户端写数据到服务器流程"><a href="#客户端写数据到服务器流程" class="headerlink" title="客户端写数据到服务器流程"></a>客户端写数据到服务器流程</h2><p>下图为客户端请求写数据到服务器流程 <img src="http://fsats-blog.oss-cn-beijing.aliyuncs.com/2018/12/20181229232711.png" alt=""></p>
+<ol>
+<li>首先Client会请求到某台服务器</li>
+<li>如果请求的服务器不是Leader，则刚服务器将吧请求转发给Leader服务器</li>
+<li>Leader会发通知各个服务器进行数据写入操作。</li>
+<li>各个服务器写入完成后会再通知给Leader。</li>
+<li>当Leader收到大多数服务器写成功后，就认为写成功了</li>
+<li>Leader会将写入成功的通知发给请求的服务器</li>
+<li>由服务器再把结果返回给客户端</li>
+</ol>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+
+    </footer>
+  </div>
+
+    
+ 
+    
+</article>
+
+    
+    <article
+  id="post-Zoopeeker/zookeeper客户端的使用"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/"
+    >zookeeper客户端的使用</a> 
+</h2>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/zookeeper%E5%AE%A2%E6%88%B7%E7%AB%AF%E7%9A%84%E4%BD%BF%E7%94%A8/" class="article-date">
+  <time datetime="2018-12-29T13:58:49.000Z" itemprop="datePublished">2018-12-29</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
+  </div>
+   
+    </div>
+      
+    <div class="article-entry" itemprop="articleBody">
+       
+  <p>三台机子都启动完毕，状态都为Leader或Follower后，便可以找一个服务器启动客户端了，看一些客户端的命令。因为是集群所以，某台机器操作，数据是共享的，其他机器都会查到。选一个机器启动客户端程序,bin下的zkCli.sh</p>
+<pre><code>bin/zkCli.sh</code></pre><h3 id="查看帮助命令"><a href="#查看帮助命令" class="headerlink" title="查看帮助命令"></a>查看帮助命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 2] help</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看znode节点-ls命令"><a href="#查看znode节点-ls命令" class="headerlink" title="查看znode节点,ls命令"></a>查看znode节点,ls命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 3] ls &#x2F;</span><br><span class="line">[chen, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 4] ls &#x2F;chen</span><br><span class="line">[]</span><br></pre></td></tr></table></figure>
+
+<h3 id="查看节点详细信息ls2"><a href="#查看节点详细信息ls2" class="headerlink" title="查看节点详细信息ls2"></a>查看节点详细信息ls2</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 6] ls2 &#x2F;chen</span><br><span class="line">[]</span><br><span class="line">cZxid &#x3D; 0x100000002</span><br><span class="line">ctime &#x3D; Thu Dec 27 00:58:04 CST 2018</span><br><span class="line">mZxid &#x3D; 0x100000002</span><br><span class="line">mtime &#x3D; Thu Dec 27 00:58:04 CST 2018</span><br><span class="line">pZxid &#x3D; 0x100000002</span><br><span class="line">cversion &#x3D; 0</span><br><span class="line">dataVersion &#x3D; 0</span><br><span class="line">aclVersion &#x3D; 0</span><br><span class="line">ephemeralOwner &#x3D; 0x0</span><br><span class="line">dataLength &#x3D; 7</span><br><span class="line">numChildren &#x3D; 0</span><br></pre></td></tr></table></figure>
+
+
+<p><strong>后面的节点信息太多，占用篇幅，节点值还显示，后面的信息我就以xxxxx代替。</strong></p>
+<h3 id="创建普通节点create"><a href="#创建普通节点create" class="headerlink" title="创建普通节点create"></a>创建普通节点create</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 7] create &#x2F;name &quot;this is name&quot;</span><br><span class="line">Created &#x2F;name</span><br><span class="line">[zk: localhost:2181(CONNECTED) 8] ls &#x2F;</span><br><span class="line">[chen, name, zookeeper]</span><br></pre></td></tr></table></figure>
+
+<h3 id="获得节点值get"><a href="#获得节点值get" class="headerlink" title="获得节点值get"></a>获得节点值get</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 9] get &#x2F;name</span><br><span class="line">this is name</span><br><span class="line">xxxxxx</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建暂时节点-然后推出客户端重新登陆查看"><a href="#创建暂时节点-然后推出客户端重新登陆查看" class="headerlink" title="创建暂时节点,然后推出客户端重新登陆查看"></a>创建暂时节点,然后推出客户端重新登陆查看</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 0] create -e &#x2F;temp &quot;temp&quot;</span><br><span class="line">Created &#x2F;temp</span><br><span class="line">[zk: localhost:2181(CONNECTED) 1] ls &#x2F;</span><br><span class="line">[chen, name, temp, zookeeper]</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 2] quit</span><br><span class="line">Quitting...</span><br><span class="line">2018-12-29 21:12:38,133 [myid:] - INFO  [main-EventThread:ClientCnxn$EventThread@522] - EventThread shut down for session: 0x100000204ad0002</span><br><span class="line">2018-12-29 21:12:38,133 [myid:] - INFO  [main:ZooKeeper@693] - Session: 0x100000204ad0002 closed</span><br><span class="line">ubuntu1@ubuntu1:~&#x2F;zookeeper&#x2F;bin$ .&#x2F;zkCli.sh</span><br><span class="line">Connecting to localhost:2181</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 1] ls &#x2F;</span><br><span class="line">[chen, name, zookeeper]</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="创建带序号节点"><a href="#创建带序号节点" class="headerlink" title="创建带序号节点"></a>创建带序号节点</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 9] create &#x2F;app &quot;app&quot;</span><br><span class="line">Created &#x2F;app</span><br><span class="line">[zk: localhost:2181(CONNECTED) 10] create -s &#x2F;app&#x2F;sun &quot;sun&quot;</span><br><span class="line">Created &#x2F;app&#x2F;sun0000000000</span><br><span class="line">[zk: localhost:2181(CONNECTED) 11] ls &#x2F;app</span><br><span class="line">[sun0000000000]</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 12] create -s &#x2F;app&#x2F;sun &quot;sun2&quot;</span><br><span class="line">Created &#x2F;app&#x2F;sun0000000001</span><br><span class="line">[zk: localhost:2181(CONNECTED) 13] ls &#x2F;app</span><br><span class="line">[sun0000000000, sun0000000001]</span><br></pre></td></tr></table></figure>
+
+<p>创建的节点是带顺序号的，就算创建的节点名称一样，但是被创建时仍然会添加上序号。另外就算创建的第一个sun节点时非顺序的，那么第二个顺序的sun仍然是000001，而不是000000.</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 14] ls &#x2F;</span><br><span class="line">[chen, name, app, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 15] create &#x2F;sum &quot;sum&quot;</span><br><span class="line">Created &#x2F;sum</span><br><span class="line">[zk: localhost:2181(CONNECTED) 16] create &#x2F;sum&#x2F;test &quot;sumtest1&quot;</span><br><span class="line">Created &#x2F;sum&#x2F;test</span><br><span class="line">[zk: localhost:2181(CONNECTED) 17] create -s &#x2F;sum&#x2F;test &quot;sumtest1&quot;</span><br><span class="line">Created &#x2F;sum&#x2F;test0000000001</span><br><span class="line">[zk: localhost:2181(CONNECTED) 18] ls &#x2F;sum</span><br><span class="line">[test0000000001, test]</span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>尽管创建非顺序节点时没有加顺序号，但再创建有序号的节点时依然会算上前面的节点。</p>
+<h3 id="修改节点数据值set"><a href="#修改节点数据值set" class="headerlink" title="修改节点数据值set"></a>修改节点数据值set</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 19] ls &#x2F;</span><br><span class="line">[chen, name, app, sum, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 20] get &#x2F;chen</span><br><span class="line">guangqi</span><br><span class="line">xxxxxx</span><br><span class="line">[zk: localhost:2181(CONNECTED) 21] set &#x2F;chen &quot;chenguangqi&quot;</span><br><span class="line">xxxxxx</span><br><span class="line">[zk: localhost:2181(CONNECTED) 22] get &#x2F;chen</span><br><span class="line">chenguangqi</span><br><span class="line">xxxxx</span><br></pre></td></tr></table></figure>
+
+<h3 id="节点值的变化监听get-path-watch"><a href="#节点值的变化监听get-path-watch" class="headerlink" title="节点值的变化监听get path watch"></a>节点值的变化监听get path watch</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">--1号机器</span><br><span class="line">[zk: localhost:2181(CONNECTED) 24] get &#x2F;chen watch</span><br><span class="line">chenguangqi</span><br><span class="line">xxxx</span><br><span class="line"></span><br><span class="line">-- 2号机器</span><br><span class="line">[zk: localhost:2181(CONNECTED) 0] set &#x2F;chen &quot;chen&quot;</span><br><span class="line">xxxx</span><br><span class="line"></span><br><span class="line">[zk: localhost:2181(CONNECTED) 25]</span><br><span class="line">WATCHER::</span><br><span class="line">--1号机器</span><br><span class="line">WatchedEvent state:SyncConnected type:NodeDataChanged path:&#x2F;chen</span><br></pre></td></tr></table></figure>
+
+
+<p>首先在1号机器上设置某个节点的监听，然后在另一个机器上修改它，同时另一个机器的监听就会捕捉到。但监听只起一次作用，当再次更改后，1号机器就不会监听了，也不会有任何监听提示。</p>
+<h3 id="节点的子节点监听-路径变化-ls-path-watch"><a href="#节点的子节点监听-路径变化-ls-path-watch" class="headerlink" title="节点的子节点监听(路径变化)ls path watch"></a>节点的子节点监听(路径变化)ls path watch</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 25] ls &#x2F; watch</span><br><span class="line"> [chen, name, app, sum, zookeeper]</span><br><span class="line"> </span><br><span class="line"> [zk: localhost:2181(CONNECTED) 1] create &#x2F;test &quot;testwatch&quot;</span><br><span class="line"> Created &#x2F;test</span><br><span class="line"> </span><br><span class="line"> [zk: localhost:2181(CONNECTED) 26]</span><br><span class="line"> WATCHER::</span><br><span class="line"> WatchedEvent state:SyncConnected type:NodeChildrenChanged path:&#x2F;</span><br></pre></td></tr></table></figure>
+
+
+<p>由此看到当添加子节点或删除子节点时就会触发监听。当然，和监听节点值一样，同样监听只会作用一次。</p>
+<h3 id="删除节点与递归删除节点delete-rmr"><a href="#删除节点与递归删除节点delete-rmr" class="headerlink" title="删除节点与递归删除节点delete/rmr"></a>删除节点与递归删除节点delete/rmr</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 26] ls &#x2F;</span><br><span class="line">[chen, name, app, sum, zookeeper, test]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 27] delete &#x2F;test</span><br><span class="line">[zk: localhost:2181(CONNECTED) 29] ls &#x2F;</span><br><span class="line">[chen, name, app, sum, zookeeper]</span><br><span class="line">[zk: localhost:2181(CONNECTED) 34] delete &#x2F;sum</span><br><span class="line">Node not empty: &#x2F;sum</span><br><span class="line">[zk: localhost:2181(CONNECTED) 35] rmr &#x2F;sum</span><br><span class="line">[zk: localhost:2181(CONNECTED) 36] ls &#x2F;</span><br><span class="line">[chen, name, app, zookeeper]</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="查看节点状态信息stat"><a href="#查看节点状态信息stat" class="headerlink" title="查看节点状态信息stat"></a>查看节点状态信息stat</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 39] stat &#x2F;chen</span><br><span class="line">cZxid &#x3D; 0x200000021</span><br><span class="line">ctime &#x3D; Sat Dec 29 21:53:30 CST 2018</span><br><span class="line">mZxid &#x3D; 0x200000021</span><br><span class="line">mtime &#x3D; Sat Dec 29 21:53:30 CST 2018</span><br><span class="line">pZxid &#x3D; 0x200000021</span><br><span class="line">cversion &#x3D; 0</span><br><span class="line">dataVersion &#x3D; 0</span><br><span class="line">aclVersion &#x3D; 0</span><br><span class="line">ephemeralOwner &#x3D; 0x0</span><br><span class="line">dataLength &#x3D; 4</span><br><span class="line">numChildren &#x3D; 0</span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>对于stat的信息分别如下:</p>
+<ul>
+<li>cZxid:因此这个节点创建的xzid，创建节点的事务的zxid。事务ID是ZooKeeper中所有修改总的次序。每个修改都有唯一的zxid，如果zxid1小于zxid2，那么zxid1在zxid2之前发生。</li>
+<li>ctime:节点被创建的时间</li>
+<li>mZxid:节点最后更新zxid</li>
+<li>mtime:节点最后更新的时间</li>
+<li>pZxid:最后更新的子节点zxid</li>
+<li>cversion:子节点变化号，子节点修改次数</li>
+<li>dataVersion:节点数据变化号</li>
+<li>aclVersion:节点访问控制列表的变化号</li>
+<li>ephemeralOwner:如果是临时节点，这个是znode拥有者的session id。如果不是临时节点则是0。</li>
+<li>dataLength:节点值的长度。(重要)</li>
+<li>numChildren:子节点数目。(重要)</li>
+</ul>
+<h3 id="历史命令history-查看之前使用过的命令"><a href="#历史命令history-查看之前使用过的命令" class="headerlink" title="历史命令history,查看之前使用过的命令"></a>历史命令history,查看之前使用过的命令</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">[zk: localhost:2181(CONNECTED) 42] history</span><br><span class="line">32 - rmr &#x2F;chen</span><br><span class="line">33 - ls &#x2F;</span><br><span class="line">34 - delete &#x2F;sum</span><br><span class="line">35 - rmr &#x2F;sum</span><br><span class="line">36 - ls &#x2F;</span><br><span class="line">37 - ls &#x2F;</span><br><span class="line">38 - create &#x2F;chen &quot;chen&quot;</span><br><span class="line">39 - stat &#x2F;chen</span><br><span class="line">40 - help</span><br><span class="line">41 - histor</span><br><span class="line">42 - history</span><br></pre></td></tr></table></figure>
+
+
+
+
+<p>还有其他的命令请查看Zookeeper文档。</p>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
+
+    </footer>
+  </div>
+
+    
+ 
+    
+</article>
+
+    
+    <article
+  id="post-Zoopeeker/Zookeeper分布式搭建及选举机制和节点类型介绍"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/"
+    >Zookeeper分布式搭建及选举机制和节点类型介绍</a> 
+</h2>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2018/12/29/Zoopeeker/Zookeeper%E5%88%86%E5%B8%83%E5%BC%8F%E6%90%AD%E5%BB%BA%E5%8F%8A%E9%80%89%E4%B8%BE%E6%9C%BA%E5%88%B6%E5%92%8C%E8%8A%82%E7%82%B9%E7%B1%BB%E5%9E%8B%E4%BB%8B%E7%BB%8D/" class="article-date">
+  <time datetime="2018-12-28T16:17:59.000Z" itemprop="datePublished">2018-12-29</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Zookeeper/">Zookeeper</a>
+  </div>
+   
+    </div>
+      
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h2 id="Zookeeper分布式搭建"><a href="#Zookeeper分布式搭建" class="headerlink" title="Zookeeper分布式搭建"></a>Zookeeper分布式搭建</h2><ol>
+<li><p>到<a target="_blank" rel="noopener" href="https://archive.apache.org/dist/zookeeper/">apache zookeeper归档</a>处下载tar包。</p>
+</li>
+<li><p>将包分别拷贝到各自的user下,使用tar -zxf zookeeper-x.x.x.tar.gz解压。注意解压后的目录需要是当前用户组当前用户。传递tar包时使用当前用户登录ftp远程。</p>
+</li>
+<li><p>进入到zookeeper目录下的conf目录下，拷贝zoo_sample.cfg重命名为zoo.cfg</p>
+<pre><code>cp zoo_sample.cfg zoo.cfg</code></pre></li>
+<li><p>vim或vi命令修改zoo.cfg文件,修改dataDir属性值为zookeeper目录/zkData,这个目录使用来存储数据的。</p>
+<pre><code>例如:dataDir=/home/ubuntu1/zookeeper/zkData</code></pre></li>
+<li><p>在对应zookeeper目录下创建zkData目录即可</p>
+</li>
+<li><p>三台机子都这么做就好。但是目前还没有进行分布式的配置。但单个字节都可以使用bin下的命令</p>
+<pre><code>bin/zkServer.sh start //启动
+jps //查看jps进程
+bin/zkServer.sh satus //状态
+bin/zkServer.sh stop //停止</code></pre></li>
+<li><p>集群配置:在每个机子的zoo.cfg中配置如下信息</p>
+<pre><code>server.1=192.168.56.11:2888:3888
+server.2=192.168.56.11:2888:3888
+server.3=192.168.56.11:2888:3888</code></pre></li>
+</ol>
+<pre><code>这是三台机子的配置。那么其格式为server.A=B:C:D。
+*   A是一个数字，表示机器的序号，是唯一的，标识着某台机子，这个值要在myid文件中指定，myid文件要放在zkData目录下。
+*   B是服务器地址，可以是IP，也可以是主机名(需要配置host)。
+*   C是这个服务器与集群中的Leader服务器交换数据信息的结构。
+*   D是万一集群中的Leader服务器挂了，需要一个端口来重新进行选举，选出一个新的Leader，而这个端口就是用来执行选举时服务器相互通信的端口。
+*   就把这个拷贝到每个机子的zoo.cfg中，把IP地址改一下，机子序号按顺序不重复即可。</code></pre><ol start="8">
+<li><p>在集群模式下的而这个myid文件标识一个机子，Zookeeper启动时读取此文件，拿到里面的数据与zoo.cfg配置信息比较而判断到底是哪个server。那么在zkData下创建myid文件，使用vi或vim命令来编辑</p>
+<pre><code>cd zkData
+touch myid
+vim myid
+对应的机子添加1或2或3就好</code></pre></li>
+<li><p>配置完server和myid后，可以依次启动。以下是启动第一台机子</p>
+<pre><code>ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh start**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Starting zookeeper ... STARTED
+ubuntu1@ubuntu1:~/zookeeper$ **jps**
+7522 Jps
+7498 QuorumPeerMain
+ubuntu1@ubuntu1:~/zookeeper$ **bin/zkServer.sh status**
+ZooKeeper JMX enabled by default
+Using config: /home/ubuntu1/zookeeper/bin/../conf/zoo.cfg
+Error contacting service. It is probably not running.</code></pre></li>
+</ol>
+<pre><code>可以看到在查看status状态时，说Error contacting service.It is probably not running.此时并不是错误。在单机时可以正常运行。此处因为集群原因，在选举还没选举完成时，就会启动而不运行。当启动第二台机子时
+
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh start**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Starting zookeeper ... STARTED
+    ubuntu2@ubuntu2:~/zookeeper$ **jps**
+    24704 Jps
+    24652 QuorumPeerMain
+    ubuntu2@ubuntu2:~/zookeeper$ **bin/zkServer.sh status**
+    ZooKeeper JMX enabled by default
+    Using config: /home/ubuntu2/zookeeper/bin/../conf/zoo.cfg
+    Mode: leader
+
+
+此时，发现Model:leader,这时，选举机制就完毕了，Leader已经选举出来。此时再看机子1的status状态，已经变成Mode:follower。当然这是随机投票的。启动第三台机子时，状态也是mode:follower. OK，这样三台机子都启动起来了。</code></pre><h2 id="Zookeeper选举机制说明"><a href="#Zookeeper选举机制说明" class="headerlink" title="Zookeeper选举机制说明"></a>Zookeeper选举机制说明</h2><p>选举很简单，<strong>每机一票，当某台机子得票数超过总数的一半以上时即可当选leader，必须一半以上</strong>。 机子的id最大则被投票率最高，若1-5台机子都是最新启动的，没有任何历史数据，按顺序进行启动。 服务器1开始启动，只有当前一台机器启动，则处于Looking状态，没有任何选举结果。等待其他机子启动。 服务器2开始启动，互相交换选举结果，由于两者都没有历史数据,所以id大的胜出，但依然不大于总数的一半，所以依然Looking状态 服务器3开始启动，若有三票投给某个机器，则成为Leader，其他机器状态变为follower。 服务器4，5，<strong>虽然id大，但leader已经被选举出来，所以只能作为follower</strong>.</p>
+<h2 id="节点类型"><a href="#节点类型" class="headerlink" title="节点类型"></a>节点类型</h2><p>节点时客户端连接服务器的标识，因为实际集群操作，所以在任意一个机器上操作，其他机器都能看到。 节点有两种类型:</p>
+<ul>
+<li>持久型:客户端和服务器断开连接后，创建的节点不删除</li>
+<li>暂时型:客户端和服务器断开连接后，创建的节点被删除</li>
+</ul>
+<p>节点有四种目录形式的节点:</p>
+<ul>
+<li>持久化目录节点:客户端断开后这个节点依然存在</li>
+<li>持久化顺序编号目录节点:客户端断开后这个节点依然存在，只是<strong>给该节点名称进行顺序编号</strong>。</li>
+<li>临时目录节点:客户端点开后节点被删除</li>
+<li>临时顺序编号目录节点:客户端断开连接后，节点被删除，只是Zookeeper会给该节点进行顺序编号。</li>
+</ul>
+<p>顺序号时单调的递增，由父节点进行维护 在分布式系统中，顺序号可以被用于为所有的事件进行全局排序，这样客户端可以通过顺序号推断事件的顺序。 关于节点的创建在下一节说明，会自然的了解节点的持久和暂时型。</p>
+ 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+  <ul class="article-tag-list" itemprop="keywords"><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/Zookeeper/" rel="tag">Zookeeper</a></li><li class="article-tag-list-item"><a class="article-tag-list-link" href="/tags/%E5%A4%A7%E6%95%B0%E6%8D%AE/" rel="tag">大数据</a></li></ul>
 
     </footer>
   </div>
@@ -774,7 +752,7 @@ public class QuartzManager &#123;
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/38/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/37/">37</a><a class="page-number" href="/page/38/">38</a><span class="page-number current">39</span><a class="page-number" href="/page/40/">40</a><a class="page-number" href="/page/41/">41</a><span class="space">&hellip;</span><a class="page-number" href="/page/57/">57</a><a class="extend next" rel="next" href="/page/40/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/38/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/37/">37</a><a class="page-number" href="/page/38/">38</a><span class="page-number current">39</span><a class="page-number" href="/page/40/">40</a><a class="page-number" href="/page/41/">41</a><span class="space">&hellip;</span><a class="page-number" href="/page/58/">58</a><a class="extend next" rel="next" href="/page/40/">下一页</a>
   </nav>
   
 </section>

@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+
+
+<html lang="en">
+  
+
+    <head>
+      <meta charset="utf-8" />
+        
+      <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=1"
+      />
+      <title>hyperledger-fabric 官方文档 Fabric 测试网络案例 |  雪里</title>
+  <meta name="generator" content="hexo-theme-ayer">
+      
+      <link rel="shortcut icon" href="/favicon.ico" />
+       
+<link rel="stylesheet" href="/dist/main.css">
+
+      
+<link rel="stylesheet" href="/css/fonts/remixicon.css">
+
+      
+<link rel="stylesheet" href="/css/custom.css">
+ 
+      <script src="https://cdn.staticfile.org/pace/1.2.4/pace.min.js"></script>
+       
+ 
+
+      <link
+        rel="stylesheet"
+        href="https://cdn.jsdelivr.net/npm/@sweetalert2/theme-bulma@5.0.1/bulma.min.css"
+      />
+      <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11.0.19/dist/sweetalert2.min.js"></script>
+
+      <!-- mermaid -->
+      
+      <style>
+        .swal2-styled.swal2-confirm {
+          font-size: 1.6rem;
+        }
+      </style>
+    </head>
+  </html>
+</html>
+
+
+<body>
+  <div id="app">
+    
+      
+    <main class="content on">
+      <section class="outer">
+  <article
+  id="post-hyperledger-fabric/hyperledger-fabric-官方文档-Fabric-测试网络案例"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h1 class="article-title sea-center" style="border-left:0" itemprop="name">
+  hyperledger-fabric 官方文档 Fabric 测试网络案例
+</h1>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2022/06/30/hyperledger-fabric/hyperledger-fabric-%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3-Fabric-%E6%B5%8B%E8%AF%95%E7%BD%91%E7%BB%9C%E6%A1%88%E4%BE%8B/" class="article-date">
+  <time datetime="2022-06-30T04:00:00.000Z" itemprop="datePublished">2022-06-30</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/hyperledger-fabric/">hyperledger-fabric</a>
+  </div>
+  
+<div class="word_count">
+    <span class="post-time">
+        <span class="post-meta-item-icon">
+            <i class="ri-quill-pen-line"></i>
+            <span class="post-meta-item-text"> Word count:</span>
+            <span class="post-count">2.5k</span>
+        </span>
+    </span>
+
+    <span class="post-time">
+        &nbsp; | &nbsp;
+        <span class="post-meta-item-icon">
+            <i class="ri-book-open-line"></i>
+            <span class="post-meta-item-text"> Reading time≈</span>
+            <span class="post-count">11 min</span>
+        </span>
+    </span>
+</div>
+ 
+    </div>
+      
+    <div class="tocbot"></div>
+
+
+
+
+  
+    <div class="article-entry" itemprop="articleBody">
+       
+  <h2 id="先决条件"><a href="#先决条件" class="headerlink" title="先决条件"></a>先决条件</h2><blockquote>
+<p><strong><a target="_blank" rel="noopener" href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html">https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html</a></strong></p>
+</blockquote>
+<p>采用Centos7以上服务器版本，可访问外网，系统安装后可使用<code>yum update</code>命令进行系统已有依赖包的更新</p>
+<h3 id="使用yum命令安装git、wget、curl"><a href="#使用yum命令安装git、wget、curl" class="headerlink" title="使用yum命令安装git、wget、curl"></a>使用yum命令安装git、wget、curl</h3><h3 id="通过docker官方文档安装docker和docker-compose"><a href="#通过docker官方文档安装docker和docker-compose" class="headerlink" title="通过docker官方文档安装docker和docker-compose"></a>通过docker官方文档安装docker和docker-compose</h3><p>找一个国内可快速下载的镜像源。并进行配置，重启docker</p>
+<h3 id="安装golang"><a href="#安装golang" class="headerlink" title="安装golang"></a>安装golang</h3><p>前往<a target="_blank" rel="noopener" href="https://studygolang.com/dl">golang中文社区</a>下载<a target="_blank" rel="noopener" href="https://studygolang.com/dl/golang/go1.18.3.linux-amd64.tar.gz">go1.18.x.linux-amd64</a>的包</p>
+<p>将golang安装在/opt目录下，并将/bin目录设置到PATH环境变量中。GOPATH环境变量可以不设置</p>
+<h4 id="linux-golang修改环境变量，设置代理地址"><a href="#linux-golang修改环境变量，设置代理地址" class="headerlink" title="linux golang修改环境变量，设置代理地址"></a>linux golang修改环境变量，设置代理地址</h4><p>设置go的环境变量，允许第三方依赖下载，设置代理源为中国可访问的源，避免后续下载超时失败</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">go env -w GO111MODULE=on</span><br><span class="line">go env -w GOPROXY=https://goproxy.cn,direct</span><br><span class="line">go clean -modcache</span><br><span class="line">go mod tidy</span><br></pre></td></tr></table></figure>
+
+<p>参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/sunandstarws/article/details/113666190">https://blog.csdn.net/sunandstarws/article/details/113666190</a></p>
+<p>参考<a target="_blank" rel="noopener" href="https://blog.csdn.net/chl6021/article/details/116489341">https://blog.csdn.net/chl6021/article/details/116489341</a></p>
+<p>参考<a target="_blank" rel="noopener" href="https://segmentfault.com/a/1190000020450159">https://segmentfault.com/a/1190000020450159</a></p>
+<h2 id="下载示例项目，进行安装"><a href="#下载示例项目，进行安装" class="headerlink" title="下载示例项目，进行安装"></a>下载示例项目，进行安装</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html">https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html</a></p>
+</blockquote>
+<ol>
+<li><p>文档中描述了可以直接从github上下载<a target="_blank" rel="noopener" href="https://github.com/hyperledger/fabric-samples">hyperledger/fabric-samples</a>的存储库，下载对应的2.2的版本</p>
+</li>
+<li><p>同时还需要下载Hyperledger Fabric，里面包含了bin目录和config目录，里面是可执行脚本和配置文件，这个也是可以在github上进行下载，但是会少了bin/目录下面一些有关ca认证的可执行脚本。将下载的bin和config放到fabric-samples示例项目根目录中。</p>
+</li>
+<li><p>还需要下载诸多的指定版本的 Hyperledger Fabric docker image，并将版本号设置为latest</p>
+</li>
+</ol>
+<p>这些操作要是一步一步来还是很麻烦的，但是会有curl去根据一个网站进行一键式下载。我们可以根据文档上笔记提示，使用未缩短的url进行下载[一键式安装脚本](<a target="_blank" rel="noopener" href="https://raw.githubusercontent.com/hyperledger/fabric/release-2.2/scripts/bootstrap.sh">https ://raw.githubusercontent.com/hyperledger/fabric/release-2.2/scripts/bootstrap.sh</a>)</p>
+<p>下载改脚本后，为脚本添加可执行权限。然后执行，脚本会下载示例项目到当前目录，并将Hyperledger Fabric包的bin和config目录直接放到fabric-samples示例项目中。同时下载必要的docker images镜像。</p>
+<p>下载完成后，将bin目录设置到path环境变量中，如下</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export PATH=$PATH:$GOPATH/bin:/root/fabric-samples/bin</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="使用-Fabric-测试网络"><a href="#使用-Fabric-测试网络" class="headerlink" title="使用 Fabric 测试网络"></a>使用 Fabric 测试网络</h2><blockquote>
+<p><a target="_blank" rel="noopener" href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/test_network.html">https://hyperledger-fabric.readthedocs.io/en/release-2.2/test_network.html</a></p>
+</blockquote>
+<h3 id="启动测试网络"><a href="#启动测试网络" class="headerlink" title="启动测试网络"></a>启动测试网络</h3><p>可以在存储库<code>fabric-samples</code>的<code>test-network</code>目录中找到启动网络的脚本。使用以下命令导航到测试网络目录：</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cd fabric-samples/test-network</span><br></pre></td></tr></table></figure>
+
+<p>执行以下命令可以将之前运行的容器和配置全部删除</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./network.sh down</span><br></pre></td></tr></table></figure>
+
+<p>然后，您可以通过发出以下命令来启动网络</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./network.sh up</span><br></pre></td></tr></table></figure>
+
+<p>最终会打印如下信息</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">Creating network &quot;fabric_test&quot; with the default driver</span><br><span class="line">Creating volume &quot;docker_orderer.example.com&quot; with default driver</span><br><span class="line">Creating volume &quot;docker_peer0.org1.example.com&quot; with default driver</span><br><span class="line">Creating volume &quot;docker_peer0.org2.example.com&quot; with default driver</span><br><span class="line">Creating orderer.example.com    ... done</span><br><span class="line">Creating peer0.org2.example.com ... done</span><br><span class="line">Creating peer0.org1.example.com ... done</span><br><span class="line">Creating cli                    ... done</span><br><span class="line">CONTAINER ID   IMAGE                               COMMAND             CREATED         STATUS                  PORTS                                                                                            NAMES</span><br><span class="line">177938f46526   hyperledger&#x2F;fabric-tools:latest     &quot;&#x2F;bin&#x2F;bash&quot;         1 second ago    Up Less than a second</span><br><span class="line">                                                                                        cli</span><br><span class="line">c89f0f14f5e2   hyperledger&#x2F;fabric-peer:latest      &quot;peer node start&quot;   2 seconds ago   Up Less than a second   0.0.0.0:7051-&gt;7051&#x2F;tcp, :::7051-&gt;7051&#x2F;tcp, 0.0.0.0:9444-&gt;9444&#x2F;tcp, :::9444-&gt;9444&#x2F;tcp             peer0.org1.example.com</span><br><span class="line">a3c1883b82bd   hyperledger&#x2F;fabric-peer:latest      &quot;peer node start&quot;   2 seconds ago   Up Less than a second   0.0.0.0:9051-&gt;9051&#x2F;tcp, :::9051-&gt;9051&#x2F;tcp, 7051&#x2F;tcp, 0.0.0.0:9445-&gt;9445&#x2F;tcp, :::9445-&gt;9445&#x2F;tcp   peer0.org2.example.com</span><br><span class="line">c35f9e79f076   hyperledger&#x2F;fabric-orderer:latest   &quot;orderer&quot;           2 seconds ago   Up Less than a second   0.0.0.0:7050-&gt;7050&#x2F;tcp, :::7050-&gt;7050&#x2F;tcp, 0.0.0.0:9443-&gt;9443&#x2F;tcp, :::9443-&gt;9443&#x2F;tcp             orderer.example.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建通道"><a href="#创建通道" class="headerlink" title="创建通道"></a>创建通道</h3><p>使用以下命令在Org1和Org2中间创建一个通道，并将他们的peer 加入通道。默认名称为<code>mychannel</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.&#x2F;network.sh createChannel</span><br></pre></td></tr></table></figure>
+
+<p>创建成功后几行会有提示表示成功</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">2022-06-30 08:05:03.347 UTC [channelCmd] InitCmdFactory -&gt; INFO 001 Endorser and orderer connections initialized</span><br><span class="line">2022-06-30 08:05:03.360 UTC [channelCmd] update -&gt; INFO 002 Successfully submitted channel update</span><br><span class="line">Anchor peer set for org &#39;Org2MSP&#39; on channel &#39;mychannel&#39;</span><br><span class="line">Channel &#39;mychannel&#39; joined</span><br></pre></td></tr></table></figure>
+
+<p>也可以指定通道名称</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">.&#x2F;network.sh createChannel -c channel1</span><br></pre></td></tr></table></figure>
+
+<p>如果您想在一个步骤中启动网络并创建一个通道，您可以同时使用<code>up</code>和<code>createChannel</code>模式：</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./network.sh up createChannel</span><br></pre></td></tr></table></figure>
+
+<h3 id="在通道上启动链码"><a href="#在通道上启动链码" class="headerlink" title="在通道上启动链码"></a>在通道上启动链码</h3><p>使用<code>network.sh</code>创建通道后，您可以使用以下命令在通道上启动链代码</p>
+<p>执行此命令将通过go命令下载诸多第三方依赖，因此GOPROXY代理一定要配置好，否则超时。</p>
+<figure class="highlight sh"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go</span><br></pre></td></tr></table></figure>
+
+<p>提示如下信息表示安装完成</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Query chaincode definition successful on peer0.org2 on channel &#x27;mychannel&#x27;</span><br><span class="line">Chaincode initialization is not required</span><br></pre></td></tr></table></figure>
+
+<p>该<code>deployCC</code>子命令将安装<strong>资产转移（基本）</strong>链代码 <code>peer0.org1.example.com</code>，<code>peer0.org2.example.com</code>然后将链代码部署到使用通道标志指定的通道上（或者<code>mychannel</code> 如果未指定通道）。如果您是第一次部署链代码，脚本将安装链代码依赖项。您可以使用语言标志 ,<code>-ccl</code>来安装链代码的 Go、typescript 或 javascript 版本。<code>asset-transfer-basic</code>您可以在目录的文件夹中找到资产转移（基本）链码<code>fabric-samples</code> 。此文件夹包含示例链代码，这些链代码作为示例提供，并被教程用于突出显示 Fabric 功能。</p>
+<h3 id="与网络交互"><a href="#与网络交互" class="headerlink" title="与网络交互"></a>与网络交互</h3><ol>
+<li><p>启动测试网络后，您可以使用<code>peer</code>CLI 与您的网络进行交互。CLI 允许您从<code>peer</code>CLI 调用已部署的智能合约、更新通道或安装和部署新的智能合约。</p>
+<p><code>peer</code>二进制文件在之前已经配置到PATH环境变量中。同时文档中提示到将<code>fabric-samples</code>项目中的config设置到<code>FABRIC_CFG_PATH</code>环境变量中</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">export FABRIC_CFG_PATH=/root/fabric-samples/config/</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置允许您将<code>peer</code> CLI 作为 Org1 操作的环境变量</p>
+<p>直接在当前<code>test-network</code>目录下的命令行执行这些环境变量设置</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">export CORE_PEER_TLS_ENABLED=true</span><br><span class="line">export CORE_PEER_LOCALMSPID=&quot;Org1MSP&quot;</span><br><span class="line">export CORE_PEER_TLS_ROOTCERT_FILE=$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt</span><br><span class="line">export CORE_PEER_MSPCONFIGPATH=$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp</span><br><span class="line">export CORE_PEER_ADDRESS=localhost:7051</span><br></pre></td></tr></table></figure>
+
+<p><code>CORE_PEER_TLS_ROOTCERT_FILE</code>和<code>CORE_PEER_MSPCONFIGPATH</code>环境变量指向<code>organizations</code>文件夹中的Org1加密材料。</p>
+</li>
+<li><p>运行以下命令初始化账单和资产</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile &quot;$&#123;PWD&#125;/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem&quot; -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt&quot; --peerAddresses localhost:9051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt&quot; -c &#x27;&#123;&quot;function&quot;:&quot;InitLedger&quot;,&quot;Args&quot;:[]&#125;&#x27;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>提示如下信息标识设置完成</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2022-06-30 16:19:38.424 CST [chaincodeCmd] chaincodeInvokeOrQuery -&gt; INFO 001 Chaincode invoke successful. result: status:200</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>现在可以从 CLI 查询分类帐。运行以下命令以获取已添加到您的通道分类帐的资产列表</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode query -C mychannel -n basic -c &#39;&#123;&quot;Args&quot;:[&quot;GetAllAssets&quot;]&#125;&#39;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset1&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;blue&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">5</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Tomoko&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">300</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset2&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;red&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">5</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Brad&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">400</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset3&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;green&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">10</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Jin Soo&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">500</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset4&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;yellow&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">10</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Max&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">600</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset5&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;black&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">15</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Adriana&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">700</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset6&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;white&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">15</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Michel&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">800</span>&#125;]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当网络成员想要转移或更改分类帐上的资产时，会调用链码。使用以下命令通过调用资产转移（基本）链码来更改账本上资产的所有者</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile &quot;$&#123;PWD&#125;/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem&quot; -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt&quot; --peerAddresses localhost:9051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt&quot; -c &#x27;&#123;&quot;function&quot;:&quot;TransferAsset&quot;,&quot;Args&quot;:[&quot;asset6&quot;,&quot;Christopher&quot;]&#125;&#x27;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如果命令成功，您应该会看到以下响应</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">2022-06-30 16:22:16.872 CST [chaincodeCmd] chaincodeInvokeOrQuery -&gt; INFO 001 Chaincode invoke successful. result: status:200</span><br></pre></td></tr></table></figure>
+
+<p>因为资产转移（基本）链码的背书策略要求交易由 Org1 和 Org2 签名，所以链码调用命令需要针对两者 <code>peer0.org1.example.com</code>并<code>peer0.org2.example.com</code>使用<code>--peerAddresses</code> 标志。由于为网络启用了 TLS，因此该命令还需要使用该<code>--tlsRootCertFiles</code>标志为每个对等方引用 TLS 证书。</p>
+<p>调用链码后，我们可以使用另一个查询来查看调用如何更改区块链分类帐上的资产。由于我们已经查询了 Org1 节点，我们可以借此机会查询运行在 Org2 节点上的链码。设置以下环境变量以作为 Org2 运行：</p>
+</li>
+<li><p>在当前命令窗口设置临时环境变量</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">export CORE_PEER_TLS_ENABLED=true</span><br><span class="line">export CORE_PEER_LOCALMSPID=&quot;Org2MSP&quot;</span><br><span class="line">export CORE_PEER_TLS_ROOTCERT_FILE=$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt</span><br><span class="line">export CORE_PEER_MSPCONFIGPATH=$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp</span><br><span class="line">export CORE_PEER_ADDRESS=localhost:9051</span><br></pre></td></tr></table></figure>
+
+<p>现在可以查询运行在以下位置的资产转移（基本）链代码<code>peer0.org2.example.com</code></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">peer chaincode query -C mychannel -n basic -c &#x27;&#123;&quot;Args&quot;:[&quot;ReadAsset&quot;,&quot;asset6&quot;]&#125;&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>结果将显示<code>&quot;asset6&quot;</code>已转移到 Christopher</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset6&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;white&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">15</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Christopher&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">800</span>&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="关闭网络"><a href="#关闭网络" class="headerlink" title="关闭网络"></a>关闭网络</h3><p>使用完测试网络后，可以使用以下命令关闭网络</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">./network.sh down</span><br></pre></td></tr></table></figure>
+
+<p>该命令将停止并删除节点和链码容器，删除组织加密材料，并从 Docker Registry 中删除链码映像。该命令还会从以前的运行中删除通道工件和 docker 卷，以便您在遇到任何问题时再次运行<code>./network.sh up</code></p>
+ 
+      <!-- reward -->
+      
+      <div id="reword-out">
+        <div id="reward-btn">
+          Donate
+        </div>
+      </div>
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <div class="declare">
+      <ul class="post-copyright">
+        <li>
+          <i class="ri-copyright-line"></i>
+          <strong>Copyright： </strong>
+          
+          Copyright is owned by the author. For commercial reprints, please contact the author for authorization. For non-commercial reprints, please indicate the source.
+          
+        </li>
+      </ul>
+    </div>
+    
+    <footer class="article-footer">
+       
+<div class="share-btn">
+      <span class="share-sns share-outer">
+        <i class="ri-share-forward-line"></i>
+        分享
+      </span>
+      <div class="share-wrap">
+        <i class="arrow"></i>
+        <div class="share-icons">
+          
+          <a class="weibo share-sns" href="javascript:;" data-type="weibo">
+            <i class="ri-weibo-fill"></i>
+          </a>
+          <a class="weixin share-sns wxFab" href="javascript:;" data-type="weixin">
+            <i class="ri-wechat-fill"></i>
+          </a>
+          <a class="qq share-sns" href="javascript:;" data-type="qq">
+            <i class="ri-qq-fill"></i>
+          </a>
+          <a class="douban share-sns" href="javascript:;" data-type="douban">
+            <i class="ri-douban-line"></i>
+          </a>
+          <!-- <a class="qzone share-sns" href="javascript:;" data-type="qzone">
+            <i class="icon icon-qzone"></i>
+          </a> -->
+          
+          <a class="facebook share-sns" href="javascript:;" data-type="facebook">
+            <i class="ri-facebook-circle-fill"></i>
+          </a>
+          <a class="twitter share-sns" href="javascript:;" data-type="twitter">
+            <i class="ri-twitter-fill"></i>
+          </a>
+          <a class="google share-sns" href="javascript:;" data-type="google">
+            <i class="ri-google-fill"></i>
+          </a>
+        </div>
+      </div>
+</div>
+
+<div class="wx-share-modal">
+    <a class="modal-close" href="javascript:;"><i class="ri-close-circle-line"></i></a>
+    <p>扫一扫，分享到微信</p>
+    <div class="wx-qrcode">
+      <img src="//api.qrserver.com/v1/create-qr-code/?size=150x150&data=https://www.chenguangqi.com/2022/06/30/hyperledger-fabric/hyperledger-fabric-%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3-Fabric-%E6%B5%8B%E8%AF%95%E7%BD%91%E7%BB%9C%E6%A1%88%E4%BE%8B/" alt="微信分享二维码">
+    </div>
+</div>
+
+<div id="share-mask"></div>  
+    </footer>
+  </div>
+
+   
+  <nav class="article-nav">
+    
+      <a href="/2022/06/30/hyperledger-fabric/hyperledger-fabric-%E5%B0%86%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6%E9%83%A8%E7%BD%B2%E5%88%B0%E9%80%9A%E9%81%93/" class="article-nav-link">
+        <strong class="article-nav-caption">上一篇</strong>
+        <div class="article-nav-title">
+          
+            hyperledger-fabric 将智能合约部署到通道
+          
+        </div>
+      </a>
+    
+    
+      <a href="/2022/06/21/PostgreSQL/PostgreSQL%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BC%98%E5%8C%96/" class="article-nav-link">
+        <strong class="article-nav-caption">下一篇</strong>
+        <div class="article-nav-title">PostgreSQL数据库优化</div>
+      </a>
+    
+  </nav>
+
+   
+<!-- valine评论 -->
+<div id="vcomments-box">
+  <div id="vcomments"></div>
+</div>
+<script src="//cdn1.lncld.net/static/js/3.0.4/av-min.js"></script>
+<script src="https://cdn.staticfile.org/valine/1.4.16/Valine.min.js"></script>
+<script>
+  new Valine({
+    el: "#vcomments",
+    app_id: "6mEPMQ2xurhSekkGkJI5wUzA-gzGzoHsz",
+    app_key: "iliPU54Izlh7k5143khLQ93u",
+    path: window.location.pathname,
+    avatar: "mp",
+    placeholder: "给我的文章加点评论吧~",
+    recordIP: true,
+  });
+  const infoEle = document.querySelector("#vcomments .info");
+  if (infoEle && infoEle.childNodes && infoEle.childNodes.length > 0) {
+    infoEle.childNodes.forEach(function (item) {
+      item.parentNode.removeChild(item);
+    });
+  }
+</script>
+<style>
+  #vcomments-box {
+    padding: 5px 30px;
+  }
+
+  @media screen and (max-width: 800px) {
+    #vcomments-box {
+      padding: 5px 0px;
+    }
+  }
+
+  #vcomments-box #vcomments {
+    background-color: #fff;
+  }
+
+  .v .vlist .vcard .vh {
+    padding-right: 20px;
+  }
+
+  .v .vlist .vcard {
+    padding-left: 10px;
+  }
+</style>
+
+ 
+   
+    
+    <script src="https://cdn.staticfile.org/twikoo/1.4.18/twikoo.all.min.js"></script>
+    <div id="twikoo" class="twikoo"></div>
+    <script>
+        twikoo.init({
+            envId: ""
+        })
+    </script>
+ 
+</article>
+
+</section>
+      <footer class="footer">
+  <div class="outer">
+    <ul>
+      <li>
+        Copyrights &copy;
+        2020-2022
+        <i class="ri-heart-fill heart_icon"></i> 陈光奇
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      <li>
+        
+      </li>
+    </ul>
+    <ul>
+      
+        <li>
+          <a href="https://beian.miit.gov.cn/" target="_black" rel="nofollow">京ICP备17065668号-3</a>
+        </li>
+        
+    </ul>
+    <ul>
+      
+    </ul>
+    <ul>
+      <li>
+        <!-- cnzz统计 -->
+        
+      </li>
+    </ul>
+  </div>
+</footer>    
+    </main>
+    <div class="float_btns">
+      <div class="totop" id="totop">
+  <i class="ri-arrow-up-line"></i>
+</div>
+
+<div class="todark" id="todark">
+  <i class="ri-moon-line"></i>
+</div>
+
+    </div>
+    <aside class="sidebar on">
+      <button class="navbar-toggle"></button>
+<nav class="navbar">
+  
+  <div class="logo">
+    <a href="/"><img src="/images/ayer.jpg" alt="雪里"></a>
+  </div>
+  
+  <ul class="nav nav-main">
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/">主页</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/archives">归档</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/categories">分类</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/tags">标签</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/photos">相册</a>
+    </li>
+    
+    <li class="nav-item">
+      <a class="nav-item-link" href="/2020/about">关于我</a>
+    </li>
+    
+  </ul>
+</nav>
+<nav class="navbar navbar-bottom">
+  <ul class="nav">
+    <li class="nav-item">
+      
+      <a class="nav-item-link nav-item-search"  title="Search">
+        <i class="ri-search-line"></i>
+      </a>
+      
+      
+      <a class="nav-item-link" target="_blank" href="/atom.xml" title="RSS Feed">
+        <i class="ri-rss-line"></i>
+      </a>
+      
+    </li>
+  </ul>
+</nav>
+<div class="search-form-wrap">
+  <div class="local-search local-search-plugin">
+  <input type="search" id="local-search-input" class="local-search-input" placeholder="Search...">
+  <div id="local-search-result" class="local-search-result"></div>
+</div>
+</div>
+    </aside>
+    <div id="mask"></div>
+
+<!-- #reward -->
+<div id="reward">
+  <span class="close"><i class="ri-close-line"></i></span>
+  <p class="reward-p"><i class="ri-cup-line"></i>请我喝杯咖啡吧~</p>
+  <div class="reward-box">
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/alipay.png">
+      <span class="reward-type">支付宝</span>
+    </div>
+    
+    
+    <div class="reward-item">
+      <img class="reward-img" src="/images/wechat.png">
+      <span class="reward-type">微信</span>
+    </div>
+    
+  </div>
+</div>
+    
+<script src="/js/jquery-3.6.0.min.js"></script>
+ 
+<script src="/js/lazyload.min.js"></script>
+
+<!-- Tocbot -->
+ 
+<script src="/js/tocbot.min.js"></script>
+
+<script>
+  tocbot.init({
+    tocSelector: ".tocbot",
+    contentSelector: ".article-entry",
+    headingSelector: "h1, h2, h3, h4, h5, h6",
+    hasInnerContainers: true,
+    scrollSmooth: true,
+    scrollContainer: "main",
+    positionFixedSelector: ".tocbot",
+    positionFixedClass: "is-position-fixed",
+    fixedSidebarOffset: "auto",
+  });
+</script>
+
+<script src="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.js"></script>
+<link
+  rel="stylesheet"
+  href="https://cdn.staticfile.org/jquery-modal/0.9.2/jquery.modal.min.css"
+/>
+<script src="https://cdn.staticfile.org/justifiedGallery/3.8.1/js/jquery.justifiedGallery.min.js"></script>
+
+<script src="/dist/main.js"></script>
+
+<!-- ImageViewer -->
+ <!-- Root element of PhotoSwipe. Must have class pswp. -->
+<div class="pswp" tabindex="-1" role="dialog" aria-hidden="true">
+
+    <!-- Background of PhotoSwipe. 
+         It's a separate element as animating opacity is faster than rgba(). -->
+    <div class="pswp__bg"></div>
+
+    <!-- Slides wrapper with overflow:hidden. -->
+    <div class="pswp__scroll-wrap">
+
+        <!-- Container that holds slides. 
+            PhotoSwipe keeps only 3 of them in the DOM to save memory.
+            Don't modify these 3 pswp__item elements, data is added later on. -->
+        <div class="pswp__container">
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+            <div class="pswp__item"></div>
+        </div>
+
+        <!-- Default (PhotoSwipeUI_Default) interface on top of sliding area. Can be changed. -->
+        <div class="pswp__ui pswp__ui--hidden">
+
+            <div class="pswp__top-bar">
+
+                <!--  Controls are self-explanatory. Order can be changed. -->
+
+                <div class="pswp__counter"></div>
+
+                <button class="pswp__button pswp__button--close" title="Close (Esc)"></button>
+
+                <button class="pswp__button pswp__button--share" style="display:none" title="Share"></button>
+
+                <button class="pswp__button pswp__button--fs" title="Toggle fullscreen"></button>
+
+                <button class="pswp__button pswp__button--zoom" title="Zoom in/out"></button>
+
+                <!-- Preloader demo http://codepen.io/dimsemenov/pen/yyBWoR -->
+                <!-- element will get class pswp__preloader--active when preloader is running -->
+                <div class="pswp__preloader">
+                    <div class="pswp__preloader__icn">
+                        <div class="pswp__preloader__cut">
+                            <div class="pswp__preloader__donut"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="pswp__share-modal pswp__share-modal--hidden pswp__single-tap">
+                <div class="pswp__share-tooltip"></div>
+            </div>
+
+            <button class="pswp__button pswp__button--arrow--left" title="Previous (arrow left)">
+            </button>
+
+            <button class="pswp__button pswp__button--arrow--right" title="Next (arrow right)">
+            </button>
+
+            <div class="pswp__caption">
+                <div class="pswp__caption__center"></div>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.css">
+<link rel="stylesheet" href="https://cdn.staticfile.org/photoswipe/4.1.3/default-skin/default-skin.min.css">
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe.min.js"></script>
+<script src="https://cdn.staticfile.org/photoswipe/4.1.3/photoswipe-ui-default.min.js"></script>
+
+<script>
+    function viewer_init() {
+        let pswpElement = document.querySelectorAll('.pswp')[0];
+        let $imgArr = document.querySelectorAll(('.article-entry img:not(.reward-img)'))
+
+        $imgArr.forEach(($em, i) => {
+            $em.onclick = () => {
+                // slider展开状态
+                // todo: 这样不好，后面改成状态
+                if (document.querySelector('.left-col.show')) return
+                let items = []
+                $imgArr.forEach(($em2, i2) => {
+                    let img = $em2.getAttribute('data-idx', i2)
+                    let src = $em2.getAttribute('data-target') || $em2.getAttribute('src')
+                    let title = $em2.getAttribute('alt')
+                    // 获得原图尺寸
+                    const image = new Image()
+                    image.src = src
+                    items.push({
+                        src: src,
+                        w: image.width || $em2.width,
+                        h: image.height || $em2.height,
+                        title: title
+                    })
+                })
+                var gallery = new PhotoSwipe(pswpElement, PhotoSwipeUI_Default, items, {
+                    index: parseInt(i)
+                });
+                gallery.init()
+            }
+        })
+    }
+    viewer_init()
+</script> 
+<!-- MathJax -->
+
+<!-- Katex -->
+
+<!-- busuanzi  -->
+
+<!-- ClickLove -->
+
+<!-- ClickBoom1 -->
+
+<!-- ClickBoom2 -->
+
+<!-- CodeCopy -->
+ 
+<link rel="stylesheet" href="/css/clipboard.css">
+ <script src="https://cdn.staticfile.org/clipboard.js/2.0.10/clipboard.min.js"></script>
+<script>
+  function wait(callback, seconds) {
+    var timelag = null;
+    timelag = window.setTimeout(callback, seconds);
+  }
+  !function (e, t, a) {
+    var initCopyCode = function(){
+      var copyHtml = '';
+      copyHtml += '<button class="btn-copy" data-clipboard-snippet="">';
+      copyHtml += '<i class="ri-file-copy-2-line"></i><span>COPY</span>';
+      copyHtml += '</button>';
+      $(".highlight .code pre").before(copyHtml);
+      $(".article pre code").before(copyHtml);
+      var clipboard = new ClipboardJS('.btn-copy', {
+        target: function(trigger) {
+          return trigger.nextElementSibling;
+        }
+      });
+      clipboard.on('success', function(e) {
+        let $btn = $(e.trigger);
+        $btn.addClass('copied');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-checkbox-circle-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPIED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-checkbox-circle-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+      clipboard.on('error', function(e) {
+        e.clearSelection();
+        let $btn = $(e.trigger);
+        $btn.addClass('copy-failed');
+        let $icon = $($btn.find('i'));
+        $icon.removeClass('ri-file-copy-2-line');
+        $icon.addClass('ri-time-line');
+        let $span = $($btn.find('span'));
+        $span[0].innerText = 'COPY FAILED';
+        
+        wait(function () { // 等待两秒钟后恢复
+          $icon.removeClass('ri-time-line');
+          $icon.addClass('ri-file-copy-2-line');
+          $span[0].innerText = 'COPY';
+        }, 2000);
+      });
+    }
+    initCopyCode();
+  }(window, document);
+</script>
+ 
+<!-- CanvasBackground -->
+
+<script>
+  if (window.mermaid) {
+    mermaid.initialize({ theme: "forest" });
+  }
+</script>
+
+
+    
+    
+
+  </div>
+</body>
+
+</html>

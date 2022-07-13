@@ -1,6 +1,190 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title></title>
+    <url>/2022/07/11/%E5%90%8D%E8%AF%8D/</url>
+    <content><![CDATA[<p>raft 一致性算法</p>
+]]></content>
+  </entry>
+  <entry>
+    <title>常用镜像构建</title>
+    <url>/2022/07/04/Docker/%E5%B8%B8%E7%94%A8%E9%95%9C%E5%83%8F%E6%9E%84%E5%BB%BA/</url>
+    <content><![CDATA[<h2 id="activemq构建"><a href="#activemq构建" class="headerlink" title="activemq构建"></a>activemq构建</h2><figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> rmohr/activemq:<span class="number">5.15</span>.<span class="number">9</span>-alpine</span><br><span class="line"></span><br><span class="line"><span class="comment"># 增加JMX端口</span></span><br><span class="line"><span class="keyword">ENV</span> ACTIVEMQ_JMX=<span class="number">1093</span></span><br><span class="line"><span class="comment">#ENV CONNECTORHOST=localhost</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># 替换文件</span></span><br><span class="line"><span class="keyword">ADD</span><span class="bash"> activemq.xml /opt/activemq/conf/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> run.sh /</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">USER</span> root</span><br><span class="line"></span><br><span class="line"><span class="comment"># 安装包</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk --update add perl &amp;&amp; rm -rf /var/cache/apk/*</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">USER</span> activemq</span><br><span class="line"></span><br><span class="line"><span class="keyword">WORKDIR</span><span class="bash"> <span class="variable">$ACTIVEMQ_HOME</span></span></span><br><span class="line"><span class="keyword">EXPOSE</span> $ACTIVEMQ_JMX</span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">&quot;/bin/sh&quot;</span>, <span class="string">&quot;/run.sh&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<p>新增了JMX开启，并增加端口</p>
+<h2 id="alpine-jdk-tomcat"><a href="#alpine-jdk-tomcat" class="headerlink" title="alpine jdk tomcat"></a>alpine jdk tomcat</h2><figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> tomcat:<span class="number">8</span>-alpine</span><br><span class="line"></span><br><span class="line"><span class="keyword">MAINTAINER</span> cgq&lt;cgqrain@<span class="number">163</span>.com&gt;</span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> font/* /usr/share/fonts/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/main\nhttps://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/community&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> sed -i <span class="string">&#x27;s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g&#x27;</span> /etc/apk/repositories</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update --no-cache build-base zlib-dev curl jq py3-configobj py3-pip py3-setuptools python3 python3-dev</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pip3 install jenkspy==0.2.0 &amp;&amp; python3 --version &amp;&amp; <span class="built_in">cd</span> /usr/bin &amp;&amp; ln -s python3 python</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update ttf-dejavu fontconfig \</span></span><br><span class="line"><span class="bash">        &amp;&amp; rm -rf /var/cache/apk/* \</span></span><br><span class="line"><span class="bash">        &amp;&amp; apk add tzdata \</span></span><br><span class="line"><span class="bash">        &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime \</span></span><br><span class="line"><span class="bash">        &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone \</span></span><br><span class="line"><span class="bash">        &amp;&amp; apk del tzdata</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">CMD</span><span class="bash"> [<span class="string">&quot;/usr/local/tomcat/bin/catalina.sh&quot;</span>,<span class="string">&quot;run&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<p>新增了font字体</p>
+<p>安装了python，并增加了jenkspy第三方依赖</p>
+<h2 id="jdk-alpine-python-arthas"><a href="#jdk-alpine-python-arthas" class="headerlink" title="jdk alpine python arthas"></a>jdk alpine python arthas</h2><figure class="highlight dockerfile"><table><tr><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">8</span>-jdk-alpine</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/main\nhttps://mirror.tuna.tsinghua.edu.cn/alpine/v3.9/community&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> sed -i <span class="string">&#x27;s/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g&#x27;</span> /etc/apk/repositories</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update --no-cache tini ttf-dejavu fontconfig build-base zlib-dev curl jq py3-configobj py3-pip py3-setuptools python3 python3-dev</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> pip3 install jenkspy &amp;&amp; python3 --version &amp;&amp; <span class="built_in">cd</span> /usr/bin &amp;&amp; ln -s python3 python</span></span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tzdata &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone &amp;&amp; apk del tzdata</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> --from=hengyunabc/arthas:latest /opt/arthas /opt/arthas</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">COPY</span><span class="bash"> ./SIMSUN.TTC /usr/share/fonts/</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">ENTRYPOINT</span><span class="bash"> [<span class="string">&quot;/sbin/tini&quot;</span>, <span class="string">&quot;--&quot;</span>]</span></span><br></pre></td></tr></table></figure>
+
+<p>如果不需要python，则需要删除<code>py3-configobj py3-pip py3-setuptools python3 python3-dev</code>,<code>RUN pip3 install jenkspy &amp;&amp; python3 --version &amp;&amp; cd /usr/bin &amp;&amp; ln -s python3 python</code></p>
+]]></content>
+      <categories>
+        <category>Docker</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>hyperledger-fabric 将智能合约部署到通道</title>
+    <url>/2022/06/30/hyperledger-fabric/hyperledger-fabric-%E5%B0%86%E6%99%BA%E8%83%BD%E5%90%88%E7%BA%A6%E9%83%A8%E7%BD%B2%E5%88%B0%E9%80%9A%E9%81%93/</url>
+    <content><![CDATA[<h1 id="将智能合约部署到通道"><a href="#将智能合约部署到通道" class="headerlink" title="将智能合约部署到通道"></a>将智能合约部署到通道</h1><p>使用本教程了解如何使用对<a href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/commands/peerlifecycle.html">等生命周期链代码命令</a>将链代码部署到 Fabric 测试网络的通道。了解命令后，您可以使用本教程中的步骤将自己的链代码部署到测试网络，或将链代码部署到生产网络。在本教程中，您将部署<a href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/write_first_app.html">编写您的第一个应用程序教程</a>使用的资产转移（基本）链代码。</p>
+<h2 id="启动网络"><a href="#启动网络" class="headerlink" title="启动网络"></a>启动网络</h2><p>将从已知的初始状态进行操作。以下命令将杀死任何活动或陈旧的 docker 容器并删除以前生成的工件。</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd fabric-samples/test-network</span><br><span class="line">./network.sh down</span><br><span class="line">./network.sh up createChannel</span><br></pre></td></tr></table></figure>
+
+<h2 id="设置-Logspout"><a href="#设置-Logspout" class="headerlink" title="设置 Logspout"></a>设置 Logspout</h2><p>此步骤不是必需的，但对于排查链代码非常有用。要监控智能合约的日志，管理员可以使用该<code>logspout</code> <a href="https://logdna.com/what-is-logspout/">工具</a>查看一组 Docker 容器的聚合输出。该工具将来自不同 Docker 容器的输出流收集到一个位置，从而可以轻松地从单个窗口查看正在发生的事情。这可以帮助管理员在安装智能合约或开发人员调用智能合约时调试问题。由于某些容器纯粹是为了启动智能合约而创建的，并且只存在很短的时间，因此从您的网络收集所有日志会很有帮助。</p>
+<p>Fabric 示例<code>monitordocker.sh</code>中的示例中已经包含一个用于安装和配置 Logspout 的脚本。<code>commercial-paper</code>我们也将在本教程中使用相同的脚本。Logspout 工具会不断地将日志流式传输到您的终端，<u>因此您需要使用新的终端窗口。打开一个新终端并导航到该<code>test-network</code>目录</u></p>
+<p>您可以<code>monitordocker.sh</code>从任何目录运行脚本。为了方便使用，我们将<code>monitordocker.sh</code>脚本从<code>commercial-paper</code>示例复制到您的工作目录</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cp ../commercial-paper/organization/digibank/configuration/cli/monitordocker.sh .</span><br><span class="line"><span class="meta">#</span><span class="bash"> <span class="keyword">if</span> you<span class="string">&#x27;re not sure where it is</span></span></span><br><span class="line">find . -name monitordocker.sh</span><br></pre></td></tr></table></figure>
+
+<p>然后，您可以通过运行以下命令来启动 Logspout：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./monitordocker.sh fabric_test</span><br></pre></td></tr></table></figure>
+
+<p>您应该会看到类似于以下内容的输出：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Starting monitoring on all containers on the network fabric_test</span><br><span class="line">Unable to find image &#39;gliderlabs&#x2F;logspout:latest&#39; locally</span><br><span class="line">latest: Pulling from gliderlabs&#x2F;logspout</span><br><span class="line">8572bc8fb8a3: Pull complete</span><br><span class="line">bd801371a862: Pull complete</span><br><span class="line">58100c398b34: Pull complete</span><br><span class="line">Digest: sha256:2d81c026e11ac67f7887029dbfd7d36ee986d946066b45c1dabd966278eb5681</span><br><span class="line">Status: Downloaded newer image for gliderlabs&#x2F;logspout:latest</span><br><span class="line">1654e7aab82a91c7bfafbc147dab2069b2bb4288691f74fa5f903771030272cb</span><br></pre></td></tr></table></figure>
+
+<h2 id="打包智能合约"><a href="#打包智能合约" class="headerlink" title="打包智能合约"></a>打包智能合约</h2>]]></content>
+      <categories>
+        <category>hyperledger-fabric</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>hyperledger-fabric 官方文档 Fabric 测试网络案例</title>
+    <url>/2022/06/30/hyperledger-fabric/hyperledger-fabric-%E5%AE%98%E6%96%B9%E6%96%87%E6%A1%A3-Fabric-%E6%B5%8B%E8%AF%95%E7%BD%91%E7%BB%9C%E6%A1%88%E4%BE%8B/</url>
+    <content><![CDATA[<h2 id="先决条件"><a href="#先决条件" class="headerlink" title="先决条件"></a>先决条件</h2><blockquote>
+<p><strong><a href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html">https://hyperledger-fabric.readthedocs.io/en/release-2.2/prereqs.html</a></strong></p>
+</blockquote>
+<p>采用Centos7以上服务器版本，可访问外网，系统安装后可使用<code>yum update</code>命令进行系统已有依赖包的更新</p>
+<h3 id="使用yum命令安装git、wget、curl"><a href="#使用yum命令安装git、wget、curl" class="headerlink" title="使用yum命令安装git、wget、curl"></a>使用yum命令安装git、wget、curl</h3><h3 id="通过docker官方文档安装docker和docker-compose"><a href="#通过docker官方文档安装docker和docker-compose" class="headerlink" title="通过docker官方文档安装docker和docker-compose"></a>通过docker官方文档安装docker和docker-compose</h3><p>找一个国内可快速下载的镜像源。并进行配置，重启docker</p>
+<h3 id="安装golang"><a href="#安装golang" class="headerlink" title="安装golang"></a>安装golang</h3><p>前往<a href="https://studygolang.com/dl">golang中文社区</a>下载<a href="https://studygolang.com/dl/golang/go1.18.3.linux-amd64.tar.gz">go1.18.x.linux-amd64</a>的包</p>
+<p>将golang安装在/opt目录下，并将/bin目录设置到PATH环境变量中。GOPATH环境变量可以不设置</p>
+<h4 id="linux-golang修改环境变量，设置代理地址"><a href="#linux-golang修改环境变量，设置代理地址" class="headerlink" title="linux golang修改环境变量，设置代理地址"></a>linux golang修改环境变量，设置代理地址</h4><p>设置go的环境变量，允许第三方依赖下载，设置代理源为中国可访问的源，避免后续下载超时失败</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">go env -w GO111MODULE=on</span><br><span class="line">go env -w GOPROXY=https://goproxy.cn,direct</span><br><span class="line">go clean -modcache</span><br><span class="line">go mod tidy</span><br></pre></td></tr></table></figure>
+
+<p>参考<a href="https://blog.csdn.net/sunandstarws/article/details/113666190">https://blog.csdn.net/sunandstarws/article/details/113666190</a></p>
+<p>参考<a href="https://blog.csdn.net/chl6021/article/details/116489341">https://blog.csdn.net/chl6021/article/details/116489341</a></p>
+<p>参考<a href="https://segmentfault.com/a/1190000020450159">https://segmentfault.com/a/1190000020450159</a></p>
+<h2 id="下载示例项目，进行安装"><a href="#下载示例项目，进行安装" class="headerlink" title="下载示例项目，进行安装"></a>下载示例项目，进行安装</h2><blockquote>
+<p><a href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html">https://hyperledger-fabric.readthedocs.io/en/release-2.2/install.html</a></p>
+</blockquote>
+<ol>
+<li><p>文档中描述了可以直接从github上下载<a href="https://github.com/hyperledger/fabric-samples">hyperledger/fabric-samples</a>的存储库，下载对应的2.2的版本</p>
+</li>
+<li><p>同时还需要下载Hyperledger Fabric，里面包含了bin目录和config目录，里面是可执行脚本和配置文件，这个也是可以在github上进行下载，但是会少了bin/目录下面一些有关ca认证的可执行脚本。将下载的bin和config放到fabric-samples示例项目根目录中。</p>
+</li>
+<li><p>还需要下载诸多的指定版本的 Hyperledger Fabric docker image，并将版本号设置为latest</p>
+</li>
+</ol>
+<p>这些操作要是一步一步来还是很麻烦的，但是会有curl去根据一个网站进行一键式下载。我们可以根据文档上笔记提示，使用未缩短的url进行下载[一键式安装脚本](<a href="https://raw.githubusercontent.com/hyperledger/fabric/release-2.2/scripts/bootstrap.sh">https ://raw.githubusercontent.com/hyperledger/fabric/release-2.2/scripts/bootstrap.sh</a>)</p>
+<p>下载改脚本后，为脚本添加可执行权限。然后执行，脚本会下载示例项目到当前目录，并将Hyperledger Fabric包的bin和config目录直接放到fabric-samples示例项目中。同时下载必要的docker images镜像。</p>
+<p>下载完成后，将bin目录设置到path环境变量中，如下</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export PATH=$PATH:$GOPATH/bin:/root/fabric-samples/bin</span><br></pre></td></tr></table></figure>
+
+
+
+<h2 id="使用-Fabric-测试网络"><a href="#使用-Fabric-测试网络" class="headerlink" title="使用 Fabric 测试网络"></a>使用 Fabric 测试网络</h2><blockquote>
+<p><a href="https://hyperledger-fabric.readthedocs.io/en/release-2.2/test_network.html">https://hyperledger-fabric.readthedocs.io/en/release-2.2/test_network.html</a></p>
+</blockquote>
+<h3 id="启动测试网络"><a href="#启动测试网络" class="headerlink" title="启动测试网络"></a>启动测试网络</h3><p>可以在存储库<code>fabric-samples</code>的<code>test-network</code>目录中找到启动网络的脚本。使用以下命令导航到测试网络目录：</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">cd fabric-samples/test-network</span><br></pre></td></tr></table></figure>
+
+<p>执行以下命令可以将之前运行的容器和配置全部删除</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./network.sh down</span><br></pre></td></tr></table></figure>
+
+<p>然后，您可以通过发出以下命令来启动网络</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./network.sh up</span><br></pre></td></tr></table></figure>
+
+<p>最终会打印如下信息</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">Creating network &quot;fabric_test&quot; with the default driver</span><br><span class="line">Creating volume &quot;docker_orderer.example.com&quot; with default driver</span><br><span class="line">Creating volume &quot;docker_peer0.org1.example.com&quot; with default driver</span><br><span class="line">Creating volume &quot;docker_peer0.org2.example.com&quot; with default driver</span><br><span class="line">Creating orderer.example.com    ... done</span><br><span class="line">Creating peer0.org2.example.com ... done</span><br><span class="line">Creating peer0.org1.example.com ... done</span><br><span class="line">Creating cli                    ... done</span><br><span class="line">CONTAINER ID   IMAGE                               COMMAND             CREATED         STATUS                  PORTS                                                                                            NAMES</span><br><span class="line">177938f46526   hyperledger&#x2F;fabric-tools:latest     &quot;&#x2F;bin&#x2F;bash&quot;         1 second ago    Up Less than a second</span><br><span class="line">                                                                                        cli</span><br><span class="line">c89f0f14f5e2   hyperledger&#x2F;fabric-peer:latest      &quot;peer node start&quot;   2 seconds ago   Up Less than a second   0.0.0.0:7051-&gt;7051&#x2F;tcp, :::7051-&gt;7051&#x2F;tcp, 0.0.0.0:9444-&gt;9444&#x2F;tcp, :::9444-&gt;9444&#x2F;tcp             peer0.org1.example.com</span><br><span class="line">a3c1883b82bd   hyperledger&#x2F;fabric-peer:latest      &quot;peer node start&quot;   2 seconds ago   Up Less than a second   0.0.0.0:9051-&gt;9051&#x2F;tcp, :::9051-&gt;9051&#x2F;tcp, 7051&#x2F;tcp, 0.0.0.0:9445-&gt;9445&#x2F;tcp, :::9445-&gt;9445&#x2F;tcp   peer0.org2.example.com</span><br><span class="line">c35f9e79f076   hyperledger&#x2F;fabric-orderer:latest   &quot;orderer&quot;           2 seconds ago   Up Less than a second   0.0.0.0:7050-&gt;7050&#x2F;tcp, :::7050-&gt;7050&#x2F;tcp, 0.0.0.0:9443-&gt;9443&#x2F;tcp, :::9443-&gt;9443&#x2F;tcp             orderer.example.com</span><br></pre></td></tr></table></figure>
+
+<h3 id="创建通道"><a href="#创建通道" class="headerlink" title="创建通道"></a>创建通道</h3><p>使用以下命令在Org1和Org2中间创建一个通道，并将他们的peer 加入通道。默认名称为<code>mychannel</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">.&#x2F;network.sh createChannel</span><br></pre></td></tr></table></figure>
+
+<p>创建成功后几行会有提示表示成功</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">2022-06-30 08:05:03.347 UTC [channelCmd] InitCmdFactory -&gt; INFO 001 Endorser and orderer connections initialized</span><br><span class="line">2022-06-30 08:05:03.360 UTC [channelCmd] update -&gt; INFO 002 Successfully submitted channel update</span><br><span class="line">Anchor peer set for org &#39;Org2MSP&#39; on channel &#39;mychannel&#39;</span><br><span class="line">Channel &#39;mychannel&#39; joined</span><br></pre></td></tr></table></figure>
+
+<p>也可以指定通道名称</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">.&#x2F;network.sh createChannel -c channel1</span><br></pre></td></tr></table></figure>
+
+<p>如果您想在一个步骤中启动网络并创建一个通道，您可以同时使用<code>up</code>和<code>createChannel</code>模式：</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">./network.sh up createChannel</span><br></pre></td></tr></table></figure>
+
+<h3 id="在通道上启动链码"><a href="#在通道上启动链码" class="headerlink" title="在通道上启动链码"></a>在通道上启动链码</h3><p>使用<code>network.sh</code>创建通道后，您可以使用以下命令在通道上启动链代码</p>
+<p>执行此命令将通过go命令下载诸多第三方依赖，因此GOPROXY代理一定要配置好，否则超时。</p>
+<figure class="highlight sh"><table><tr><td class="code"><pre><span class="line">./network.sh deployCC -ccn basic -ccp ../asset-transfer-basic/chaincode-go -ccl go</span><br></pre></td></tr></table></figure>
+
+<p>提示如下信息表示安装完成</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">Query chaincode definition successful on peer0.org2 on channel &#x27;mychannel&#x27;</span><br><span class="line">Chaincode initialization is not required</span><br></pre></td></tr></table></figure>
+
+<p>该<code>deployCC</code>子命令将安装<strong>资产转移（基本）</strong>链代码 <code>peer0.org1.example.com</code>，<code>peer0.org2.example.com</code>然后将链代码部署到使用通道标志指定的通道上（或者<code>mychannel</code> 如果未指定通道）。如果您是第一次部署链代码，脚本将安装链代码依赖项。您可以使用语言标志 ,<code>-ccl</code>来安装链代码的 Go、typescript 或 javascript 版本。<code>asset-transfer-basic</code>您可以在目录的文件夹中找到资产转移（基本）链码<code>fabric-samples</code> 。此文件夹包含示例链代码，这些链代码作为示例提供，并被教程用于突出显示 Fabric 功能。</p>
+<h3 id="与网络交互"><a href="#与网络交互" class="headerlink" title="与网络交互"></a>与网络交互</h3><ol>
+<li><p>启动测试网络后，您可以使用<code>peer</code>CLI 与您的网络进行交互。CLI 允许您从<code>peer</code>CLI 调用已部署的智能合约、更新通道或安装和部署新的智能合约。</p>
+<p><code>peer</code>二进制文件在之前已经配置到PATH环境变量中。同时文档中提示到将<code>fabric-samples</code>项目中的config设置到<code>FABRIC_CFG_PATH</code>环境变量中</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export FABRIC_CFG_PATH=/root/fabric-samples/config/</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>设置允许您将<code>peer</code> CLI 作为 Org1 操作的环境变量</p>
+<p>直接在当前<code>test-network</code>目录下的命令行执行这些环境变量设置</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export CORE_PEER_TLS_ENABLED=true</span><br><span class="line">export CORE_PEER_LOCALMSPID=&quot;Org1MSP&quot;</span><br><span class="line">export CORE_PEER_TLS_ROOTCERT_FILE=$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt</span><br><span class="line">export CORE_PEER_MSPCONFIGPATH=$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/users/Admin@org1.example.com/msp</span><br><span class="line">export CORE_PEER_ADDRESS=localhost:7051</span><br></pre></td></tr></table></figure>
+
+<p><code>CORE_PEER_TLS_ROOTCERT_FILE</code>和<code>CORE_PEER_MSPCONFIGPATH</code>环境变量指向<code>organizations</code>文件夹中的Org1加密材料。</p>
+</li>
+<li><p>运行以下命令初始化账单和资产</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile &quot;$&#123;PWD&#125;/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem&quot; -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt&quot; --peerAddresses localhost:9051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt&quot; -c &#x27;&#123;&quot;function&quot;:&quot;InitLedger&quot;,&quot;Args&quot;:[]&#125;&#x27;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>提示如下信息标识设置完成</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">2022-06-30 16:19:38.424 CST [chaincodeCmd] chaincodeInvokeOrQuery -&gt; INFO 001 Chaincode invoke successful. result: status:200</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>现在可以从 CLI 查询分类帐。运行以下命令以获取已添加到您的通道分类帐的资产列表</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">peer chaincode query -C mychannel -n basic -c &#39;&#123;&quot;Args&quot;:[&quot;GetAllAssets&quot;]&#125;&#39;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">[&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset1&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;blue&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">5</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Tomoko&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">300</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset2&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;red&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">5</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Brad&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">400</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset3&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;green&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">10</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Jin Soo&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">500</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset4&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;yellow&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">10</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Max&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">600</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset5&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;black&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">15</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Adriana&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">700</span>&#125;,&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset6&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;white&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">15</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Michel&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">800</span>&#125;]</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>当网络成员想要转移或更改分类帐上的资产时，会调用链码。使用以下命令通过调用资产转移（基本）链码来更改账本上资产的所有者</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">peer chaincode invoke -o localhost:7050 --ordererTLSHostnameOverride orderer.example.com --tls --cafile &quot;$&#123;PWD&#125;/organizations/ordererOrganizations/example.com/orderers/orderer.example.com/msp/tlscacerts/tlsca.example.com-cert.pem&quot; -C mychannel -n basic --peerAddresses localhost:7051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org1.example.com/peers/peer0.org1.example.com/tls/ca.crt&quot; --peerAddresses localhost:9051 --tlsRootCertFiles &quot;$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt&quot; -c &#x27;&#123;&quot;function&quot;:&quot;TransferAsset&quot;,&quot;Args&quot;:[&quot;asset6&quot;,&quot;Christopher&quot;]&#125;&#x27;</span><br><span class="line"></span><br></pre></td></tr></table></figure>
+
+<p>如果命令成功，您应该会看到以下响应</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">2022-06-30 16:22:16.872 CST [chaincodeCmd] chaincodeInvokeOrQuery -&gt; INFO 001 Chaincode invoke successful. result: status:200</span><br></pre></td></tr></table></figure>
+
+<p>因为资产转移（基本）链码的背书策略要求交易由 Org1 和 Org2 签名，所以链码调用命令需要针对两者 <code>peer0.org1.example.com</code>并<code>peer0.org2.example.com</code>使用<code>--peerAddresses</code> 标志。由于为网络启用了 TLS，因此该命令还需要使用该<code>--tlsRootCertFiles</code>标志为每个对等方引用 TLS 证书。</p>
+<p>调用链码后，我们可以使用另一个查询来查看调用如何更改区块链分类帐上的资产。由于我们已经查询了 Org1 节点，我们可以借此机会查询运行在 Org2 节点上的链码。设置以下环境变量以作为 Org2 运行：</p>
+</li>
+<li><p>在当前命令窗口设置临时环境变量</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">export CORE_PEER_TLS_ENABLED=true</span><br><span class="line">export CORE_PEER_LOCALMSPID=&quot;Org2MSP&quot;</span><br><span class="line">export CORE_PEER_TLS_ROOTCERT_FILE=$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/peers/peer0.org2.example.com/tls/ca.crt</span><br><span class="line">export CORE_PEER_MSPCONFIGPATH=$&#123;PWD&#125;/organizations/peerOrganizations/org2.example.com/users/Admin@org2.example.com/msp</span><br><span class="line">export CORE_PEER_ADDRESS=localhost:9051</span><br></pre></td></tr></table></figure>
+
+<p>现在可以查询运行在以下位置的资产转移（基本）链代码<code>peer0.org2.example.com</code></p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">peer chaincode query -C mychannel -n basic -c &#x27;&#123;&quot;Args&quot;:[&quot;ReadAsset&quot;,&quot;asset6&quot;]&#125;&#x27;</span><br></pre></td></tr></table></figure>
+
+<p>结果将显示<code>&quot;asset6&quot;</code>已转移到 Christopher</p>
+<figure class="highlight json"><table><tr><td class="code"><pre><span class="line">&#123;<span class="attr">&quot;ID&quot;</span>:<span class="string">&quot;asset6&quot;</span>,<span class="attr">&quot;color&quot;</span>:<span class="string">&quot;white&quot;</span>,<span class="attr">&quot;size&quot;</span>:<span class="number">15</span>,<span class="attr">&quot;owner&quot;</span>:<span class="string">&quot;Christopher&quot;</span>,<span class="attr">&quot;appraisedValue&quot;</span>:<span class="number">800</span>&#125;</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h3 id="关闭网络"><a href="#关闭网络" class="headerlink" title="关闭网络"></a>关闭网络</h3><p>使用完测试网络后，可以使用以下命令关闭网络</p>
+<figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">./network.sh down</span><br></pre></td></tr></table></figure>
+
+<p>该命令将停止并删除节点和链码容器，删除组织加密材料，并从 Docker Registry 中删除链码映像。该命令还会从以前的运行中删除通道工件和 docker 卷，以便您在遇到任何问题时再次运行<code>./network.sh up</code></p>
+]]></content>
+      <categories>
+        <category>hyperledger-fabric</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>PostgreSQL数据库优化</title>
+    <url>/2022/06/21/PostgreSQL/PostgreSQL%E6%95%B0%E6%8D%AE%E5%BA%93%E4%BC%98%E5%8C%96/</url>
+    <content><![CDATA[<h3 id="归档设置"><a href="#归档设置" class="headerlink" title="归档设置"></a>归档设置</h3><p>archive_mode改为on</p>
+]]></content>
+      <categories>
+        <category>PostgreSQL</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>PostgreSQL jdbc COPY执行</title>
+    <url>/2022/06/02/PostgreSQL/PostgreSQL-jdbc-COPY%E6%89%A7%E8%A1%8C/</url>
+    <content><![CDATA[]]></content>
+      <categories>
+        <category>PostgreSQL</category>
+      </categories>
+  </entry>
+  <entry>
     <title>manjaro系统折腾</title>
     <url>/2022/05/08/Linux/manjaro%E7%B3%BB%E7%BB%9F%E6%8A%98%E8%85%BE/</url>
     <content><![CDATA[<p>详细参考 <a href="https://blog.csdn.net/m0_47670683/article/details/113793200">https://blog.csdn.net/m0_47670683/article/details/113793200</a></p>
@@ -40,17 +224,6 @@
       </categories>
   </entry>
   <entry>
-    <title>Scala数据类型</title>
-    <url>/2022/05/04/Scala/Scala%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</url>
-    <content><![CDATA[<p>单个元素直接就转成序列了 (Seq操作符)</p>
-<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">apply</span></span>(fields: <span class="type">Seq</span>[<span class="type">StructField</span>]): <span class="type">StructType</span> = <span class="type">StructType</span>(fields.toArray)</span><br><span class="line"></span><br><span class="line"><span class="type">StructType</span>(<span class="type">StructField</span>(<span class="string">&quot;age&quot;</span>,<span class="type">LongType</span>)::<span class="type">Nil</span>)</span><br></pre></td></tr></table></figure>
-
-]]></content>
-      <categories>
-        <category>Scala</category>
-      </categories>
-  </entry>
-  <entry>
     <title>Scala特性</title>
     <url>/2022/05/04/Scala/Scala%E7%89%B9%E6%80%A7/</url>
     <content><![CDATA[<p>隐式转换</p>
@@ -72,6 +245,17 @@
 <figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="type">StructType</span>(<span class="type">StructField</span>(<span class="string">&quot;sum&quot;</span>, <span class="type">LongType</span>) :: <span class="type">StructField</span>(<span class="string">&quot;count&quot;</span>, <span class="type">LongType</span>) :: <span class="type">Nil</span>)</span><br></pre></td></tr></table></figure>
 
 <p><a href="https://blog.csdn.net/ljp812184246/article/details/53885598">https://blog.csdn.net/ljp812184246/article/details/53885598</a></p>
+]]></content>
+      <categories>
+        <category>Scala</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>Scala数据类型</title>
+    <url>/2022/05/04/Scala/Scala%E6%95%B0%E6%8D%AE%E7%B1%BB%E5%9E%8B/</url>
+    <content><![CDATA[<p>单个元素直接就转成序列了 (Seq操作符)</p>
+<figure class="highlight scala"><table><tr><td class="code"><pre><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">apply</span></span>(fields: <span class="type">Seq</span>[<span class="type">StructField</span>]): <span class="type">StructType</span> = <span class="type">StructType</span>(fields.toArray)</span><br><span class="line"></span><br><span class="line"><span class="type">StructType</span>(<span class="type">StructField</span>(<span class="string">&quot;age&quot;</span>,<span class="type">LongType</span>)::<span class="type">Nil</span>)</span><br></pre></td></tr></table></figure>
+
 ]]></content>
       <categories>
         <category>Scala</category>
@@ -806,31 +990,6 @@
       </categories>
   </entry>
   <entry>
-    <title>OpenLayers开发基础</title>
-    <url>/2022/04/17/WebGIS/OpenLayers%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/</url>
-    <content><![CDATA[<h2 id="OpenLayers-API"><a href="#OpenLayers-API" class="headerlink" title="OpenLayers API"></a>OpenLayers API</h2><p>核心类和组件如下:</p>
-<ol>
-<li>Map(ol.Map)：地图容器，核心部分，可加载各类地图与功能控件，用于渲染显示动态地图。</li>
-<li>View(ol.View)：地图视图，控制地图缩放等基本交互、地图投影坐标系、地图中心点、分辨率、旋转角度等。</li>
-<li>Layers(ol.Layer.Base)：图层，包含多个调用数据的子类，由其子类实例加载地图数据，必须结合数据源(Source)匹配使用。</li>
-<li>Sources（ol.source.Source）∶图层数据源，与图层子类对应，由数据源的实例来加载各种类型的地图数据。</li>
-<li>Format（ol.format.Feature）∶数据解析类，此类用于读/写各种格式的数据，创建了多种格式的子类，即数据解析器。目前支持多种数据格式，如 GeoJSON、GML、XML、WKT、WFS等。 </li>
-<li>Geometry（ol.geom.Geometry）∶地理空间对象的几何实体，由其子类（如 Point、LineString、Polygon）的实例构成了我们所看到的矢量地图。 </li>
-<li>Feature（ol.Feature）;地图要素，可看成矢量地图的组成单元，是地图中的主要部分，点、线、面等几何实体均可组织为地图要素，配合要素的样式渲染到客户端的地图上。 </li>
-<li>Overlay（ol.Overlay）∶叠加层，即叠加到地图上显示的要素，关联自定义的一个HTML 元素，由一个单一的地图坐标点确定叠加位置。与控件（Control）类似，但不同的是叠加元素不是在一个固定的屏幕位置上，而是通过关联一个地图逻辑坐标点跟随地图移动，如标注点、popup 等。 </li>
-<li>Controls（ol.control.Control）∶即通常所说的控件类，提供各种各样的地图功能控件，如地图缩放控件（Zoom）、鼠标位置控件（MousePosition）、鹰眼（OverViewMap）、比例尺（ScaleLine）等。 </li>
-<li>Interaction（ol.interaction.Interaction）∶地图交互控件类。地图交互一般用鼠标与键 盘操作去操控，因此 Interaction 子类为基于鼠标与键盘操控的地图交互功能控件，如选择要素控件（Select）、键盘缩放地图控件（KeyboardZoom）、鼠标控件基类（Pointer）下的绘制控件（Draw））、修改控件（Modify）、拖放平移地图控件（DragPan）等。 </li>
-<li>Style（ol.style.Style）∶样式类，通过其子类实例来渲染矢量要素的样式，包括填充样式（Fill）、边界样式（Stroke）、图标样式（Image 与Icon）、文字样式（Text）等。 </li>
-<li>Projections（ol.pro.Projection）∶地图投影定义类，包括EPSG∶4326（ol.proj.EPSG4326）与EPSG∶3857（ol.proj.EPSG3857）的定义，在地图视图（View）中可以设置地图的投影坐标系，也可以通过ol.proj提供的方法进行投影变换。 </li>
-<li>Renderer（ol.renderer.Renderer）∶渲染器。在 OpenLayers 3中，渲染功能作为 Map 的一个属性存在，支持 Canvas、DOM、WebGL三种渲染方式。可通过设置 Map 的 renderer 属性设定地图渲染方式。 </li>
-</ol>
-<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/blog/image-20220417193600979.png" alt="image-20220417193600979"></p>
-]]></content>
-      <categories>
-        <category>WebGIS</category>
-      </categories>
-  </entry>
-  <entry>
     <title>GIS基础</title>
     <url>/2022/04/17/WebGIS/GIS%E5%9F%BA%E7%A1%80/</url>
     <content><![CDATA[<h2 id="GIS坐标系基础"><a href="#GIS坐标系基础" class="headerlink" title="GIS坐标系基础"></a>GIS坐标系基础</h2><h3 id="坐标系"><a href="#坐标系" class="headerlink" title="坐标系"></a>坐标系</h3><p>坐标系统分为<strong>地理坐标系</strong>和<strong>投影坐标系</strong></p>
@@ -901,6 +1060,31 @@
 <h4 id="矢量地图"><a href="#矢量地图" class="headerlink" title="矢量地图"></a>矢量地图</h4><p>​        矢量地图通常指采用矢量数据模型存储的矢量数据组织的地图。<u>矢量地图加载是根据客户端请求的地图范围实时从服务器的地图数据库取图，实时生成请求范围对应的地图，返回给客户端一张地图图片</u>。其中，遥感影像与矢量地图采用同样的出图机制和方法。</p>
 <h4 id="瓦片"><a href="#瓦片" class="headerlink" title="瓦片"></a>瓦片</h4><p>​        瓦片即网格中有多个类似瓦片的图片集。瓦片数据是将矢量或影像数据进行预处理，采用高效的缓存机制（如金字塔）形成的缓存图片集，采用”级、行、列”方式进行组织，可在网页中快速加载。因此，瓦片地图加载是根据客户端请求的地图范围和级别，通过计算行列号获取对应级别下网格的瓦片（即服务器预裁剪的图片），由这些瓦片集在客户端形成一张地图。</p>
 <p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/blog/image-20220417185518893.png" alt="image-20220417185518893"></p>
+]]></content>
+      <categories>
+        <category>WebGIS</category>
+      </categories>
+  </entry>
+  <entry>
+    <title>OpenLayers开发基础</title>
+    <url>/2022/04/17/WebGIS/OpenLayers%E5%BC%80%E5%8F%91%E5%9F%BA%E7%A1%80/</url>
+    <content><![CDATA[<h2 id="OpenLayers-API"><a href="#OpenLayers-API" class="headerlink" title="OpenLayers API"></a>OpenLayers API</h2><p>核心类和组件如下:</p>
+<ol>
+<li>Map(ol.Map)：地图容器，核心部分，可加载各类地图与功能控件，用于渲染显示动态地图。</li>
+<li>View(ol.View)：地图视图，控制地图缩放等基本交互、地图投影坐标系、地图中心点、分辨率、旋转角度等。</li>
+<li>Layers(ol.Layer.Base)：图层，包含多个调用数据的子类，由其子类实例加载地图数据，必须结合数据源(Source)匹配使用。</li>
+<li>Sources（ol.source.Source）∶图层数据源，与图层子类对应，由数据源的实例来加载各种类型的地图数据。</li>
+<li>Format（ol.format.Feature）∶数据解析类，此类用于读/写各种格式的数据，创建了多种格式的子类，即数据解析器。目前支持多种数据格式，如 GeoJSON、GML、XML、WKT、WFS等。 </li>
+<li>Geometry（ol.geom.Geometry）∶地理空间对象的几何实体，由其子类（如 Point、LineString、Polygon）的实例构成了我们所看到的矢量地图。 </li>
+<li>Feature（ol.Feature）;地图要素，可看成矢量地图的组成单元，是地图中的主要部分，点、线、面等几何实体均可组织为地图要素，配合要素的样式渲染到客户端的地图上。 </li>
+<li>Overlay（ol.Overlay）∶叠加层，即叠加到地图上显示的要素，关联自定义的一个HTML 元素，由一个单一的地图坐标点确定叠加位置。与控件（Control）类似，但不同的是叠加元素不是在一个固定的屏幕位置上，而是通过关联一个地图逻辑坐标点跟随地图移动，如标注点、popup 等。 </li>
+<li>Controls（ol.control.Control）∶即通常所说的控件类，提供各种各样的地图功能控件，如地图缩放控件（Zoom）、鼠标位置控件（MousePosition）、鹰眼（OverViewMap）、比例尺（ScaleLine）等。 </li>
+<li>Interaction（ol.interaction.Interaction）∶地图交互控件类。地图交互一般用鼠标与键 盘操作去操控，因此 Interaction 子类为基于鼠标与键盘操控的地图交互功能控件，如选择要素控件（Select）、键盘缩放地图控件（KeyboardZoom）、鼠标控件基类（Pointer）下的绘制控件（Draw））、修改控件（Modify）、拖放平移地图控件（DragPan）等。 </li>
+<li>Style（ol.style.Style）∶样式类，通过其子类实例来渲染矢量要素的样式，包括填充样式（Fill）、边界样式（Stroke）、图标样式（Image 与Icon）、文字样式（Text）等。 </li>
+<li>Projections（ol.pro.Projection）∶地图投影定义类，包括EPSG∶4326（ol.proj.EPSG4326）与EPSG∶3857（ol.proj.EPSG3857）的定义，在地图视图（View）中可以设置地图的投影坐标系，也可以通过ol.proj提供的方法进行投影变换。 </li>
+<li>Renderer（ol.renderer.Renderer）∶渲染器。在 OpenLayers 3中，渲染功能作为 Map 的一个属性存在，支持 Canvas、DOM、WebGL三种渲染方式。可通过设置 Map 的 renderer 属性设定地图渲染方式。 </li>
+</ol>
+<p><img src="https://fsats-blog.oss-cn-beijing.aliyuncs.com/blog/image-20220417193600979.png" alt="image-20220417193600979"></p>
 ]]></content>
       <categories>
         <category>WebGIS</category>
@@ -1102,6 +1286,14 @@
       </categories>
   </entry>
   <entry>
+    <title>Spring源码理解 类接口说明</title>
+    <url>/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/</url>
+    <content><![CDATA[<h2 id="spring-core"><a href="#spring-core" class="headerlink" title="spring-core"></a>spring-core</h2>]]></content>
+      <categories>
+        <category>Spring</category>
+      </categories>
+  </entry>
+  <entry>
     <title>Spring源码理解 Spring Cache</title>
     <url>/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-Spring-Cache/</url>
     <content><![CDATA[<blockquote>
@@ -1111,14 +1303,6 @@
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CacheInterceptor</span><br></pre></td></tr></table></figure>
 
 <figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">CacheAspectSupport</span><br></pre></td></tr></table></figure>]]></content>
-      <categories>
-        <category>Spring</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>Spring源码理解 类接口说明</title>
-    <url>/2021/11/12/Spring/2021-11-12-Spring%E6%BA%90%E7%A0%81%E7%90%86%E8%A7%A3-%E7%B1%BB%E6%8E%A5%E5%8F%A3%E8%AF%B4%E6%98%8E/</url>
-    <content><![CDATA[<h2 id="spring-core"><a href="#spring-core" class="headerlink" title="spring-core"></a>spring-core</h2>]]></content>
       <categories>
         <category>Spring</category>
       </categories>
@@ -2299,6 +2483,18 @@
       </categories>
   </entry>
   <entry>
+    <title>源码解析-缓存模块</title>
+    <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97/</url>
+    <content><![CDATA[<p>一级缓存是会话级别的缓存，在MyBatis中每创建一个SqlSession 对象，就表示开启一次数据库回话。</p>
+<p>在一次会话中，应用程序可能会在很短的时间内，例如执行一个事务内，反复执行完成相同的查询语句，如果不对数据进行缓存，那么每次查询都会执行一次数据库查询操作。</p>
+<p>一级缓存的生命周期与SqlSession相同，其实也就与SqlSession中封装的Executor对象的生命周期相同。当调用Executor对象的close()方法时，该Executor对象对应的一级缓存就变得不可用。</p>
+<p>在调用Executor.update()方法时，会先清空一级缓存。</p>
+]]></content>
+      <categories>
+        <category>MyBatis</category>
+      </categories>
+  </entry>
+  <entry>
     <title>源码解析-Executor-BaseExecutor</title>
     <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-Executor-BaseExecutor/</url>
     <content><![CDATA[<h2 id="关键类接口"><a href="#关键类接口" class="headerlink" title="关键类接口"></a>关键类接口</h2><p>Executor</p>
@@ -2337,18 +2533,6 @@
 
 
 
-]]></content>
-      <categories>
-        <category>MyBatis</category>
-      </categories>
-  </entry>
-  <entry>
-    <title>源码解析-缓存模块</title>
-    <url>/2021/05/05/MyBatis/%E6%BA%90%E7%A0%81%E8%A7%A3%E6%9E%90-%E7%BC%93%E5%AD%98%E6%A8%A1%E5%9D%97/</url>
-    <content><![CDATA[<p>一级缓存是会话级别的缓存，在MyBatis中每创建一个SqlSession 对象，就表示开启一次数据库回话。</p>
-<p>在一次会话中，应用程序可能会在很短的时间内，例如执行一个事务内，反复执行完成相同的查询语句，如果不对数据进行缓存，那么每次查询都会执行一次数据库查询操作。</p>
-<p>一级缓存的生命周期与SqlSession相同，其实也就与SqlSession中封装的Executor对象的生命周期相同。当调用Executor对象的close()方法时，该Executor对象对应的一级缓存就变得不可用。</p>
-<p>在调用Executor.update()方法时，会先清空一级缓存。</p>
 ]]></content>
       <categories>
         <category>MyBatis</category>
@@ -4999,21 +5183,145 @@
   <entry>
     <title>k8s 操作命令及问题</title>
     <url>/2021/01/07/k8s/k8s-%E6%93%8D%E4%BD%9C%E5%91%BD%E4%BB%A4/</url>
-    <content><![CDATA[<h2 id="组件Kind"><a href="#组件Kind" class="headerlink" title="组件Kind"></a>组件Kind</h2><h3 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line"></span><br><span class="line">&#x2F;&#x2F; 所有pod</span><br><span class="line">kubectl get pods</span><br><span class="line">&#x2F;&#x2F; 显示pod包含所在节点</span><br><span class="line">kubectl get pods -o wide</span><br></pre></td></tr></table></figure>
+    <content><![CDATA[<h2 id="组件Kind"><a href="#组件Kind" class="headerlink" title="组件Kind"></a>组件Kind</h2><h3 id="示例应用的整个过程"><a href="#示例应用的整个过程" class="headerlink" title="示例应用的整个过程"></a>示例应用的整个过程</h3><h4 id="生成一个Deployment文件"><a href="#生成一个Deployment文件" class="headerlink" title="生成一个Deployment文件"></a>生成一个Deployment文件</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl create deployment web --image=nginx -o yaml --dry-run=client &gt;my.yaml</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">web</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">  <span class="attr">strategy:</span> &#123;&#125;</span><br><span class="line">  <span class="attr">template:</span> </span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">resources:</span> &#123;&#125;</span><br><span class="line"><span class="attr">status:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<p>改为redis的部署文件</p>
+<figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">redis</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">redis</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">redis</span></span><br><span class="line">  <span class="attr">strategy:</span> &#123;&#125;</span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">redis</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">6379</span></span><br><span class="line">          <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">        <span class="attr">resources:</span></span><br><span class="line"><span class="attr">status:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="应用这个Deployment文件"><a href="#应用这个Deployment文件" class="headerlink" title="应用这个Deployment文件"></a>应用这个Deployment文件</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl apply -f redis.yaml</span><br></pre></td></tr></table></figure>
+
+<h4 id="导出已经创建的Deployment为yaml文件"><a href="#导出已经创建的Deployment为yaml文件" class="headerlink" title="导出已经创建的Deployment为yaml文件"></a>导出已经创建的Deployment为yaml文件</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl get deployment redis -o yaml &gt; redis-deploy-export.yaml</span><br></pre></td></tr></table></figure>
+
+<h4 id="使用service供外部访问"><a href="#使用service供外部访问" class="headerlink" title="使用service供外部访问"></a>使用service供外部访问</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl expose deployment redis --port=6379 --type=NodePort --target-port=6379 --name=redis-wai -o yaml &gt; redis-wai.yaml</span><br><span class="line"></span><br><span class="line">kubectl create -f redis-wai.yaml</span><br></pre></td></tr></table></figure>
+
+<h4 id="进入pod容器内"><a href="#进入pod容器内" class="headerlink" title="进入pod容器内"></a>进入pod容器内</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl -n &lt;namespace&gt; -it &lt;pod&gt; -c &lt;containerName&gt; -- &#x2F;bin&#x2F;bash</span><br><span class="line">kubectl -n &lt;namespace&gt; -it &lt;pod&gt; -c &lt;containerName&gt; -- &lt;shell command&gt;</span><br><span class="line">kubectl exec -it redis-6d874bf455-qzkdd -- &#x2F;bin&#x2F;bash</span><br></pre></td></tr></table></figure>
+
+<p>退出使用exit</p>
+<h4 id="修改Deployment副本数"><a href="#修改Deployment副本数" class="headerlink" title="修改Deployment副本数"></a>修改Deployment副本数</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl scale deployment redis --replicas=3</span><br></pre></td></tr></table></figure>
+
+<p>设置副本数后自动拓展pod，但是因为没有做负载均衡，所有三个pod是没有任何关联的。当通过service提供的外部访问时，连接的redis pod是随机或轮询的方式</p>
+<h4 id="更新Deployment镜像"><a href="#更新Deployment镜像" class="headerlink" title="更新Deployment镜像"></a>更新Deployment镜像</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl set image deployment&#x2F;web nginx&#x3D;nginx:1.22.0</span><br></pre></td></tr></table></figure>
+
+<h4 id="回滚Deployment镜像"><a href="#回滚Deployment镜像" class="headerlink" title="回滚Deployment镜像"></a>回滚Deployment镜像</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl rollout undo deployment&#x2F;web</span><br></pre></td></tr></table></figure>
+
+<h3 id="为Pod增加持久化卷"><a href="#为Pod增加持久化卷" class="headerlink" title="为Pod增加持久化卷"></a>为Pod增加持久化卷</h3><blockquote>
+<p><a href="https://kubernetes.io/docs/concepts/storage/persistent-volumes/">https://kubernetes.io/docs/concepts/storage/persistent-volumes/</a></p>
+<p><a href="https://rootsongjc.gitbooks.io/kubernetes-handbook/content/concepts/persistent-volume.html">https://rootsongjc.gitbooks.io/kubernetes-handbook/content/concepts/persistent-volume.html</a></p>
+</blockquote>
+<p>使用nfs方式的，一定要在所有的node节点上安装nfs支持，必须是所有，如果还不行则在master上也安装上，具体要看pod部署在哪个node节点上，那个节点就必须要有</p>
+<ol>
+<li><p>centos安装依赖</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">yum install -y nfs-utils</span><br></pre></td></tr></table></figure>
+</li>
+<li><p>为nfs服务器设置挂载路径</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">vim &#x2F;etc&#x2F;exports</span><br><span class="line"></span><br><span class="line">&#x2F;data&#x2F;nfs *(rw,no_root_squash)</span><br></pre></td></tr></table></figure>
 
 
 
-<h3 id="service"><a href="#service" class="headerlink" title="service"></a>service</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 对外暴露端口的pod</span><br><span class="line">kubectl get svc</span><br><span class="line">&#x2F;&#x2F; 更新svc，使用vi打开，可进行编辑并保存，自动更新</span><br><span class="line">kubectl edit svc &lt;svc_name&gt;</span><br></pre></td></tr></table></figure>
+</li>
+</ol>
+<p>指定nfs存在/data/nfs目录。*标识可访问所有目录文件，rw为可读写</p>
+<ul>
+<li>no_root_squash：登入 NFS 主机使用分享目录的使用者，如果是 root 的话，那么对于这个分享的目录来说，他就具有 root 的权限！这个项目『极不安全』，不建议使用！</li>
+<li>root_squash：在登入 NFS 主机使用分享之目录的使用者如果是 root 时，那么这个使用者的权限将被压缩成为匿名使用者，通常他的 UID 与 GID 都会变成 nobody 那个系统账号的身份。</li>
+</ul>
+<blockquote>
+<p>nfs的存储位置一定要预先创建出来。</p>
+</blockquote>
+<ol start="3">
+<li><p>nfs服务器启动nfs服务</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">systemctl start nfs</span><br><span class="line">systemctl enable nfs</span><br></pre></td></tr></table></figure>
+
+</li>
+</ol>
+<h4 id="创建PV"><a href="#创建PV" class="headerlink" title="创建PV"></a>创建PV</h4><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolume</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-pv</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">capacity:</span></span><br><span class="line">    <span class="attr">storage:</span> <span class="string">5Gi</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">mountOptions:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">hard</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">nfsvers=4.1</span></span><br><span class="line">  <span class="attr">nfs:</span></span><br><span class="line">    <span class="attr">path:</span> <span class="string">/data/nfs</span></span><br><span class="line">    <span class="attr">server:</span> <span class="number">192.168</span><span class="number">.38</span><span class="number">.140</span></span><br></pre></td></tr></table></figure>
+
+<h4 id="创建PVC"><a href="#创建PVC" class="headerlink" title="创建PVC"></a>创建PVC</h4><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">kind:</span> <span class="string">PersistentVolumeClaim</span></span><br><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx-pvc</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">accessModes:</span></span><br><span class="line">    <span class="bullet">-</span> <span class="string">ReadWriteMany</span></span><br><span class="line">  <span class="attr">resources:</span></span><br><span class="line">    <span class="attr">requests:</span></span><br><span class="line">      <span class="attr">storage:</span> <span class="string">5Gi</span></span><br></pre></td></tr></table></figure>
 
 
 
+<h4 id="Deployment中使用pvc挂载"><a href="#Deployment中使用pvc挂载" class="headerlink" title="Deployment中使用pvc挂载"></a>Deployment中使用pvc挂载</h4><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">apps/v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Deployment</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">web</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">replicas:</span> <span class="number">1</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">matchLabels:</span></span><br><span class="line">      <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">  <span class="attr">strategy:</span> &#123;&#125;</span><br><span class="line">  <span class="attr">template:</span></span><br><span class="line">    <span class="attr">metadata:</span></span><br><span class="line">      <span class="attr">creationTimestamp:</span> <span class="literal">null</span></span><br><span class="line">      <span class="attr">labels:</span></span><br><span class="line">        <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">    <span class="attr">spec:</span></span><br><span class="line">      <span class="attr">containers:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">image:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">containerPort:</span> <span class="number">80</span></span><br><span class="line">        <span class="attr">volumeMounts:</span></span><br><span class="line">        <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">          <span class="attr">mountPath:</span> <span class="string">/usr/share/nginx/html</span></span><br><span class="line">        <span class="attr">resources:</span> &#123;&#125;</span><br><span class="line">      <span class="attr">volumes:</span></span><br><span class="line">      <span class="bullet">-</span> <span class="attr">name:</span> <span class="string">wwwroot</span></span><br><span class="line">        <span class="attr">persistentVolumeClaim:</span></span><br><span class="line">          <span class="attr">claimName:</span> <span class="string">nginx-pvc</span></span><br><span class="line"><span class="attr">status:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h4 id="配置service外部访问"><a href="#配置service外部访问" class="headerlink" title="配置service外部访问"></a>配置service外部访问</h4><figure class="highlight yaml"><table><tr><td class="code"><pre><span class="line"><span class="attr">apiVersion:</span> <span class="string">v1</span></span><br><span class="line"><span class="attr">kind:</span> <span class="string">Service</span></span><br><span class="line"><span class="attr">metadata:</span></span><br><span class="line">  <span class="attr">creationTimestamp:</span> <span class="string">&quot;2022-07-12T02:06:00Z&quot;</span></span><br><span class="line">  <span class="attr">labels:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">  <span class="attr">name:</span> <span class="string">nginx</span></span><br><span class="line">  <span class="attr">namespace:</span> <span class="string">default</span></span><br><span class="line">  <span class="attr">resourceVersion:</span> <span class="string">&quot;993540&quot;</span></span><br><span class="line">  <span class="attr">uid:</span> <span class="string">dfc22261-3cac-4222-8fbc-808d52782acb</span></span><br><span class="line"><span class="attr">spec:</span></span><br><span class="line">  <span class="attr">clusterIP:</span> <span class="number">10.96</span><span class="number">.3</span><span class="number">.52</span></span><br><span class="line">  <span class="attr">clusterIPs:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="number">10.96</span><span class="number">.3</span><span class="number">.52</span></span><br><span class="line">  <span class="attr">externalTrafficPolicy:</span> <span class="string">Cluster</span></span><br><span class="line">  <span class="attr">internalTrafficPolicy:</span> <span class="string">Cluster</span></span><br><span class="line">  <span class="attr">ipFamilies:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="string">IPv4</span></span><br><span class="line">  <span class="attr">ipFamilyPolicy:</span> <span class="string">SingleStack</span></span><br><span class="line">  <span class="attr">ports:</span></span><br><span class="line">  <span class="bullet">-</span> <span class="attr">nodePort:</span> <span class="number">31230</span></span><br><span class="line">    <span class="attr">port:</span> <span class="number">80</span></span><br><span class="line">    <span class="attr">protocol:</span> <span class="string">TCP</span></span><br><span class="line">    <span class="attr">targetPort:</span> <span class="number">80</span></span><br><span class="line">  <span class="attr">selector:</span></span><br><span class="line">    <span class="attr">app:</span> <span class="string">web</span></span><br><span class="line">  <span class="attr">sessionAffinity:</span> <span class="string">None</span></span><br><span class="line">  <span class="attr">type:</span> <span class="string">NodePort</span></span><br><span class="line"><span class="attr">status:</span></span><br><span class="line">  <span class="attr">loadBalancer:</span> &#123;&#125;</span><br></pre></td></tr></table></figure>
+
+<h3 id="上传镜像到服务器"><a href="#上传镜像到服务器" class="headerlink" title="上传镜像到服务器"></a>上传镜像到服务器</h3><h4 id="使用另一台含有docker的服务器创建registry"><a href="#使用另一台含有docker的服务器创建registry" class="headerlink" title="使用另一台含有docker的服务器创建registry"></a>使用另一台含有docker的服务器创建registry</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">docker pull registry:latest</span><br><span class="line">docker run -d -p 5000:5000 --restart always --name registry registry:latest</span><br></pre></td></tr></table></figure>
+
+<p>查看registry是否可用</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">curl -I -X GET localhost:5000&#x2F;v2&#x2F;</span><br></pre></td></tr></table></figure>
+
+<h5 id="修改docker-deamon-js配置"><a href="#修改docker-deamon-js配置" class="headerlink" title="修改docker deamon.js配置"></a>修改docker deamon.js配置</h5><p>新增<code>&quot;insecure-registries&quot;:[&quot;192.168.38.140:5000&quot;],</code></p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">vim &#x2F;etc&#x2F;docker&#x2F;daemon.json</span><br><span class="line"></span><br><span class="line">&#123;</span><br><span class="line">  &quot;insecure-registries&quot;:[&quot;192.168.38.140:5000&quot;],</span><br><span class="line">  &quot;registry-mirrors&quot;: [&quot;http:&#x2F;&#x2F;hub-mirror.c.163.com&quot;,&quot;https:&#x2F;&#x2F;registry.docker-cn.com&quot;]</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<h5 id="找到一个镜像并将其推送到仓库"><a href="#找到一个镜像并将其推送到仓库" class="headerlink" title="找到一个镜像并将其推送到仓库"></a>找到一个镜像并将其推送到仓库</h5><p>需要将镜像重新命名标签为 <code>registry_ip:port/镜像mign1:版本</code>的格式</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">docker tag 192.168.0.165:5000&#x2F;ha-cloud-system-server:1.0.0 192.168.38.140:5000&#x2F;kjgh:1.0.0</span><br><span class="line">docker push 192.168.38.140:5000&#x2F;kjgh:1.0.0</span><br></pre></td></tr></table></figure>
+
+<h5 id="查看registry-API"><a href="#查看registry-API" class="headerlink" title="查看registry API"></a>查看registry API</h5><p>查看所有镜像</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;192.168.38.140:5000&#x2F;v2&#x2F;_catalog</span><br></pre></td></tr></table></figure>
+
+<p>获取一个镜像的标签列表</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;192.168.38.140:5000&#x2F;v2&#x2F;&lt;name&gt;&#x2F;tags&#x2F;list</span><br></pre></td></tr></table></figure>
+
+<p>获取镜像信息</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">http:&#x2F;&#x2F;192.168.38.140:5000&#x2F;v2&#x2F;&lt;name&gt;&#x2F;manifests&#x2F;&lt;tag&gt;|&lt;digest&gt;</span><br></pre></td></tr></table></figure>
+
+<p>删除镜像</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">DELETE http:&#x2F;&#x2F;192.168.38.140:5000&#x2F;v2&#x2F;&lt;name&gt;&#x2F;manifests&#x2F;&lt;digest&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="使用harbor作为开启容器管理"><a href="#使用harbor作为开启容器管理" class="headerlink" title="使用harbor作为开启容器管理"></a>使用harbor作为开启容器管理</h3><p>t.zoukankan.com/wangzy-Zj-p-14011228.html</p>
+<p>如果仓库设为私有，则在部署的时候需要设置Sercet 。ontainerd下载也是需要设置格外参数</p>
+<p>步骤 1参考harbor官网配置对HTTPS的访问，根据步骤操作。<a href="https://goharbor.io/docs/2.5.0/install-config/configure-https/">https://goharbor.io/docs/2.5.0/install-config/configure-https/</a></p>
+<p>全部操作完成后会出现一个问题。x509: certificate signed by unknown authority</p>
+<p>此时需要根据<a href="https://www.csdn.net/tags/NtzaAg0sOTAxMjYtYmxvZwO0O0OO0O0O.html">https://www.csdn.net/tags/NtzaAg0sOTAxMjYtYmxvZwO0O0OO0O0O.html</a> 将证书分发到每台节点的<code>/etc/docker/certs.d/&lt;domain&gt;</code>目录下。包含ca.crt、domain.com.key、domain.com.cert</p>
+<p>同时，可能需要在 harbor服务器的docker中设置<code>&quot;insecure-registries&quot;:[&quot;https://domain.com&quot;],</code></p>
+<p>部署时Secret的代码来源 <a href="https://www.jianshu.com/p/e82ea8a47986">https://www.jianshu.com/p/e82ea8a47986</a></p>
+<p>有用的参考：<a href="https://blog.csdn.net/nanhai_happy/article/details/124752168?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_utm_term~default-0-124752168-blog-125163793.pc_relevant_aa&amp;spm=1001.2101.3001.4242.1&amp;utm_relevant_index=3">https://blog.csdn.net/nanhai_happy/article/details/124752168?utm_medium=distribute.pc_relevant.none-task-blog-2~default~baidujs_utm_term~default-0-124752168-blog-125163793.pc_relevant_aa&amp;spm=1001.2101.3001.4242.1&amp;utm_relevant_index=3</a></p>
+<p>额外参考，不确定是否与之有关</p>
+<p>manuals.gfi.com/en/kerio/connect/content/server-configuration/ssl-certificates/adding-trusted-root-certificates-to-the-server-1605.html</p>
+<p><a href="https://blog.csdn.net/Matthew__M/article/details/125163793?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-5-125163793-null-null.pc_agg_new_rank&amp;utm_term=x509%3A%20certificate%20relies%20on%20legacy%20common%20name%20field%2C%20use%20sans%20instead&amp;spm=1000.2123.3001.4430">https://blog.csdn.net/Matthew__M/article/details/125163793?utm_medium=distribute.pc_aggpage_search_result.none-task-blog-2~aggregatepage~first_rank_ecpm_v1~rank_v31_ecpm-5-125163793-null-null.pc_agg_new_rank&amp;utm_term=x509%3A%20certificate%20relies%20on%20legacy%20common%20name%20field%2C%20use%20sans%20instead&amp;spm=1000.2123.3001.4430</a></p>
+<h4 id="使用集群中的服务器作为镜像仓库"><a href="#使用集群中的服务器作为镜像仓库" class="headerlink" title="使用集群中的服务器作为镜像仓库"></a>使用集群中的服务器作为镜像仓库</h4><h2 id="Kuboard可视化安装"><a href="#Kuboard可视化安装" class="headerlink" title="Kuboard可视化安装"></a>Kuboard可视化安装</h2><h2 id="Kubernetes-Dashboard可视化"><a href="#Kubernetes-Dashboard可视化" class="headerlink" title="Kubernetes Dashboard可视化"></a>Kubernetes Dashboard可视化</h2><h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><h3 id="Cluster"><a href="#Cluster" class="headerlink" title="Cluster"></a>Cluster</h3><h4 id="显示集群信息"><a href="#显示集群信息" class="headerlink" title="显示集群信息"></a>显示集群信息</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl cluster-info</span><br><span class="line"></span><br><span class="line">Kubernetes control plane is running at https://apiserver.cluster.local:6443</span><br><span class="line">CoreDNS is running at https://apiserver.cluster.local:6443/api/v1/namespaces/kube-system/services/kube-dns:dns/proxy</span><br><span class="line"></span><br><span class="line">To further debug and diagnose cluster problems, use &#x27;kubectl cluster-info dump&#x27;.</span><br></pre></td></tr></table></figure>
 
 
-<h4 id="命名空间ns"><a href="#命名空间ns" class="headerlink" title="命名空间ns"></a>命名空间ns</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 获取命名空间</span><br><span class="line">kubectl get ns</span><br><span class="line">&#x2F;&#x2F; 创建命名空间</span><br><span class="line">kubectl create ns &lt;NS_NAME&gt;</span><br></pre></td></tr></table></figure>
 
-<h4 id="角色role"><a href="#角色role" class="headerlink" title="角色role"></a>角色role</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get roles</span><br><span class="line">kubectl get roles -n roledemo</span><br></pre></td></tr></table></figure>
+<h3 id="Node"><a href="#Node" class="headerlink" title="Node"></a>Node</h3><h4 id="获取各节点简要信息"><a href="#获取各节点简要信息" class="headerlink" title="获取各节点简要信息"></a>获取各节点简要信息</h4><figure class="highlight shell"><table><tr><td class="code"><pre><span class="line">kubectl get nodes</span><br><span class="line"></span><br><span class="line">NAME         STATUS   ROLES                  AGE     VERSION</span><br><span class="line">k8smaster1   Ready    control-plane,master   2d21h   v1.23.8</span><br><span class="line">k8smaster2   Ready    control-plane,master   2d21h   v1.23.8</span><br><span class="line">k8smaster3   Ready    control-plane,master   2d21h   v1.23.8</span><br><span class="line">k8snode1     Ready    &lt;none&gt;                 2d21h   v1.23.8</span><br></pre></td></tr></table></figure>
 
-<h4 id="角色绑定rolebinding"><a href="#角色绑定rolebinding" class="headerlink" title="角色绑定rolebinding"></a>角色绑定rolebinding</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get roles</span><br><span class="line">kubectl get roles -n roledemo</span><br></pre></td></tr></table></figure>
+<h4 id="查看API细节信息"><a href="#查看API细节信息" class="headerlink" title="查看API细节信息"></a>查看API细节信息</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl describe node k8smaster1</span><br><span class="line"></span><br><span class="line">Name:               k8smaster1</span><br><span class="line">Roles:              control-plane,master</span><br><span class="line">Labels:             beta.kubernetes.io&#x2F;arch&#x3D;amd64</span><br><span class="line">                    beta.kubernetes.io&#x2F;os&#x3D;linux</span><br><span class="line">                    kubernetes.io&#x2F;arch&#x3D;amd64</span><br><span class="line">                    kubernetes.io&#x2F;hostname&#x3D;k8smaster1</span><br><span class="line">                    kubernetes.io&#x2F;os&#x3D;linux</span><br><span class="line">                    node-role.kubernetes.io&#x2F;control-plane&#x3D;</span><br><span class="line">                    node-role.kubernetes.io&#x2F;master&#x3D;</span><br><span class="line">                    node.kubernetes.io&#x2F;exclude-from-external-load-balancers&#x3D;</span><br><span class="line">Annotations:        kubeadm.alpha.kubernetes.io&#x2F;cri-socket: &#x2F;run&#x2F;containerd&#x2F;containerd.sock</span><br><span class="line">                    node.alpha.kubernetes.io&#x2F;ttl: 0</span><br><span class="line">                    projectcalico.org&#x2F;IPv4Address: 192.168.38.150&#x2F;24</span><br><span class="line">                    projectcalico.org&#x2F;IPv4IPIPTunnelAddr: 100.114.218.3</span><br><span class="line">                    volumes.kubernetes.io&#x2F;controller-managed-attach-detach: true</span><br><span class="line">CreationTimestamp:  Fri, 08 Jul 2022 15:15:46 +0800</span><br><span class="line">Taints:             node-role.kubernetes.io&#x2F;master:NoSchedule</span><br><span class="line">Unschedulable:      false</span><br><span class="line">Lease:</span><br><span class="line">  HolderIdentity:  k8smaster1</span><br><span class="line">  AcquireTime:     &lt;unset&gt;</span><br><span class="line">  RenewTime:       Mon, 11 Jul 2022 13:11:29 +0800</span><br><span class="line">Conditions:</span><br><span class="line">  Type                 Status  LastHeartbeatTime                 LastTransitionTime                Reason</span><br><span class="line">        Message</span><br><span class="line">  ----                 ------  -----------------                 ------------------                ------</span><br><span class="line">        -------</span><br><span class="line">  NetworkUnavailable   False   Mon, 11 Jul 2022 11:45:22 +0800   Mon, 11 Jul 2022 11:45:22 +0800   CalicoIsUp</span><br><span class="line">        Calico is running on this node</span><br><span class="line">  MemoryPressure       False   Mon, 11 Jul 2022 13:11:23 +0800   Fri, 08 Jul 2022 15:15:45 +0800   KubeletHasSufficientMemory   kubelet has sufficient memory available</span><br><span class="line">  DiskPressure         False   Mon, 11 Jul 2022 13:11:23 +0800   Fri, 08 Jul 2022 15:15:45 +0800   KubeletHasNoDiskPressure     kubelet has no disk pressure</span><br><span class="line">  PIDPressure          False   Mon, 11 Jul 2022 13:11:23 +0800   Fri, 08 Jul 2022 15:15:45 +0800   KubeletHasSufficientPID      kubelet has sufficient PID available</span><br><span class="line">  Ready                True    Mon, 11 Jul 2022 13:11:23 +0800   Fri, 08 Jul 2022 15:17:53 +0800   KubeletReady</span><br><span class="line">        kubelet is posting ready status</span><br><span class="line">Addresses:</span><br><span class="line">  InternalIP:  192.168.38.150</span><br><span class="line">  Hostname:    k8smaster1</span><br><span class="line">Capacity:</span><br><span class="line">  cpu:                2</span><br><span class="line">  ephemeral-storage:  37750Mi</span><br><span class="line">  hugepages-1Gi:      0</span><br><span class="line">  hugepages-2Mi:      0</span><br><span class="line">  memory:             2000480Ki</span><br><span class="line">  pods:               110</span><br><span class="line">Allocatable:</span><br><span class="line">  cpu:                2</span><br><span class="line">  ephemeral-storage:  35625369542</span><br><span class="line">  hugepages-1Gi:      0</span><br><span class="line">  hugepages-2Mi:      0</span><br><span class="line">  memory:             1898080Ki</span><br><span class="line">  pods:               110</span><br><span class="line">System Info:</span><br><span class="line">  Machine ID:                 fe9d278ac5a649e88872aa1c69ec821a</span><br><span class="line">  System UUID:                62f24d56-a7f0-4b07-9421-401530ec9e2d</span><br><span class="line">  Boot ID:                    7f9fe5cc-6711-4daa-a49b-8b093f27ee43</span><br><span class="line">  Kernel Version:             5.15.11-1.el7.elrepo.x86_64</span><br><span class="line">  OS Image:                   CentOS Linux 7 (Core)</span><br><span class="line">  Operating System:           linux</span><br><span class="line">  Architecture:               amd64</span><br><span class="line">  Container Runtime Version:  containerd:&#x2F;&#x2F;1.6.2</span><br><span class="line">  Kubelet Version:            v1.23.8</span><br><span class="line">  Kube-Proxy Version:         v1.23.8</span><br><span class="line">PodCIDR:                      100.64.0.0&#x2F;24</span><br><span class="line">PodCIDRs:                     100.64.0.0&#x2F;24</span><br><span class="line">Non-terminated Pods:          (10 in total)</span><br><span class="line">  Namespace                   Name                                        CPU Requests  CPU Limits  Memory Requests  Memory Limits  Age</span><br><span class="line">  ---------                   ----                                        ------------  ----------  ---------------  -------------  ---</span><br><span class="line">  calico-system               calico-kube-controllers-67f85d7449-wmnst    0 (0%)        0 (0%)      0 (0%)           0 (0%)         2d21h</span><br><span class="line">  calico-system               calico-node-m5fkj                           0 (0%)        0 (0%)      0 (0%)           0 (0%)         2d21h</span><br><span class="line">  calico-system               calico-typha-85f9b85658-f8f57               0 (0%)        0 (0%)      0 (0%)           0 (0%)         2d21h</span><br><span class="line">  kube-system                 coredns-64897985d-jb9kr                     100m (5%)     0 (0%)      70Mi (3%)        170Mi (9%)     2d21h</span><br><span class="line">  kube-system                 coredns-64897985d-lwcfb                     100m (5%)     0 (0%)      70Mi (3%)        170Mi (9%)     2d21h</span><br><span class="line">  kube-system                 etcd-k8smaster1                             100m (5%)     0 (0%)      100Mi (5%)       0 (0%)         2d21h</span><br><span class="line">  kube-system                 kube-apiserver-k8smaster1                   250m (12%)    0 (0%)      0 (0%)           0 (0%)         2d21h</span><br><span class="line">  kube-system                 kube-controller-manager-k8smaster1          200m (10%)    0 (0%)      0 (0%)           0 (0%)         2d21h</span><br><span class="line">  kube-system                 kube-proxy-57tgf                            0 (0%)        0 (0%)      0 (0%)           0 (0%)         2d21h</span><br><span class="line">  kube-system                 kube-scheduler-k8smaster1                   100m (5%)     0 (0%)      0 (0%)           0 (0%)         2d21h</span><br><span class="line">Allocated resources:</span><br><span class="line">  (Total limits may be over 100 percent, i.e., overcommitted.)</span><br><span class="line">  Resource           Requests     Limits</span><br><span class="line">  --------           --------     ------</span><br><span class="line">  cpu                850m (42%)   0 (0%)</span><br><span class="line">  memory             240Mi (12%)  340Mi (18%)</span><br><span class="line">  ephemeral-storage  0 (0%)       0 (0%)</span><br><span class="line">  hugepages-1Gi      0 (0%)       0 (0%)</span><br><span class="line">  hugepages-2Mi      0 (0%)       0 (0%)</span><br><span class="line">Events:              &lt;none&gt;</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="Pod"><a href="#Pod" class="headerlink" title="Pod"></a>Pod</h3><h4 id="所有pod"><a href="#所有pod" class="headerlink" title="所有pod"></a>所有pod</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get pods</span><br></pre></td></tr></table></figure>
+
+<h4 id="显示pod包含所在节点"><a href="#显示pod包含所在节点" class="headerlink" title="显示pod包含所在节点"></a>显示pod包含所在节点</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get pods -o wide</span><br></pre></td></tr></table></figure>
+
+<h4 id="显示对应pods的标签"><a href="#显示对应pods的标签" class="headerlink" title="显示对应pods的标签"></a>显示对应pods的标签</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get pods --show-labels</span><br></pre></td></tr></table></figure>
+
+<h4 id="查询所有命名空间的资源"><a href="#查询所有命名空间的资源" class="headerlink" title="查询所有命名空间的资源"></a>查询所有命名空间的资源</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get pods -A</span><br></pre></td></tr></table></figure>
+
+<h3 id="Deployment"><a href="#Deployment" class="headerlink" title="Deployment"></a>Deployment</h3><h4 id="检查Deployment的升级历史记录"><a href="#检查Deployment的升级历史记录" class="headerlink" title="检查Deployment的升级历史记录"></a>检查Deployment的升级历史记录</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl rollout history deployment&#x2F;nginx-deployment</span><br></pre></td></tr></table></figure>
+
+<p>要想有详细信息需要再创建Deployment的时候增加<code>--record</code>参数</p>
+<h4 id="回退到历史版本"><a href="#回退到历史版本" class="headerlink" title="回退到历史版本"></a>回退到历史版本</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl rollout undo deployment&#x2F;web</span><br></pre></td></tr></table></figure>
+
+<p>也可以使用 <code>--revision</code>参数指定某个历史版本：</p>
+<figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl rollout undo deployment&#x2F;web --to-revision&#x3D;2</span><br></pre></td></tr></table></figure>
+
+<h4 id="清理-Policy"><a href="#清理-Policy" class="headerlink" title="清理 Policy"></a>清理 Policy</h4><p>您可以通过设置<code>.spec.revisonHistoryLimit</code>项来指定 deployment 最多保留多少 revision 历史记录。默认的会保留所有的 revision；如果将该项设置为0，Deployment就不允许回退了。</p>
+<h4 id="Deployment-扩容"><a href="#Deployment-扩容" class="headerlink" title="Deployment 扩容"></a>Deployment 扩容</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl scale deployment web --replicas&#x3D;10</span><br></pre></td></tr></table></figure>
+
+<h4 id="Deployment-状态"><a href="#Deployment-状态" class="headerlink" title="Deployment 状态"></a>Deployment 状态</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl rollout status deploy&#x2F;nginx</span><br></pre></td></tr></table></figure>
+
+
+
+<h3 id="service"><a href="#service" class="headerlink" title="service"></a>service</h3><h4 id="对外暴露端口的pod"><a href="#对外暴露端口的pod" class="headerlink" title="对外暴露端口的pod"></a>对外暴露端口的pod</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get svc</span><br></pre></td></tr></table></figure>
+
+<h4 id="更新svc，使用vi打开，可进行编辑并保存，自动更新"><a href="#更新svc，使用vi打开，可进行编辑并保存，自动更新" class="headerlink" title="更新svc，使用vi打开，可进行编辑并保存，自动更新"></a>更新svc，使用vi打开，可进行编辑并保存，自动更新</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl edit svc &lt;svc_name&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="命名空间ns"><a href="#命名空间ns" class="headerlink" title="命名空间ns"></a>命名空间ns</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">&#x2F;&#x2F; 获取命名空间</span><br><span class="line">kubectl get ns</span><br><span class="line">&#x2F;&#x2F; 创建命名空间</span><br><span class="line">kubectl create ns &lt;NS_NAME&gt;</span><br></pre></td></tr></table></figure>
+
+<h3 id="角色role"><a href="#角色role" class="headerlink" title="角色role"></a>角色role</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get roles</span><br><span class="line">kubectl get roles -n roledemo</span><br></pre></td></tr></table></figure>
+
+<h3 id="角色绑定rolebinding"><a href="#角色绑定rolebinding" class="headerlink" title="角色绑定rolebinding"></a>角色绑定rolebinding</h3><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">kubectl get roles</span><br><span class="line">kubectl get roles -n roledemo</span><br></pre></td></tr></table></figure>
 
 
 
@@ -5034,7 +5342,6 @@
 <p>yaml属性解释说明</p>
 <p>kind组件类型，第三方</p>
 <p>pod与deployment的关系</p>
-<p><code>--dry-run -o yaml</code>和<code>--dry-run=client -o yaml</code>的区别</p>
 <p>什么事controller,service,pod，关系</p>
 <h2 id="问题"><a href="#问题" class="headerlink" title="问题"></a>问题</h2><h4 id="k8s-node节点上无法使用kubectl命令"><a href="#k8s-node节点上无法使用kubectl命令" class="headerlink" title="k8s node节点上无法使用kubectl命令"></a>k8s node节点上无法使用kubectl命令</h4><figure class="highlight plain"><table><tr><td class="code"><pre><span class="line">[root@k8snode1 chen]# kubectl get pods</span><br><span class="line">The connection to the server localhost:8080 was refused - did you specify the right host or port?</span><br></pre></td></tr></table></figure>
 

@@ -107,7 +107,7 @@
     
     
     <article
-  id="post-SpringBoot/SpringBoot整合Redisson分布式锁"
+  id="post-SpringCloud/openFeign相关问题"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -118,8 +118,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/04/04/SpringBoot/SpringBoot%E6%95%B4%E5%90%88Redisson%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/"
-    >SpringBoot整合Redisson分布式锁</a> 
+  <a class="article-title" href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
+    >openFeign相关问题</a> 
 </h2>
  
 
@@ -127,24 +127,27 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2021/04/04/SpringBoot/SpringBoot%E6%95%B4%E5%90%88Redisson%E5%88%86%E5%B8%83%E5%BC%8F%E9%94%81/" class="article-date">
-  <time datetime="2021-04-04T04:00:00.000Z" itemprop="datePublished">2021-04-04</time>
+      <a href="/2021/04/14/SpringCloud/openFeign%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
+  <time datetime="2021-04-14T04:00:00.000Z" itemprop="datePublished">2021-04-14</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Java/">Java</a> / <a class="article-category-link" href="/categories/Java/SpringBoot/">SpringBoot</a>
+    <a class="article-category-link" href="/categories/SpringCloud/">SpringCloud</a>
   </div>
    
     </div>
       
     <div class="article-entry" itemprop="articleBody">
        
-  <p>使用redisson包</p>
-<figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.redisson<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>redisson<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>3.14.1<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure>
+  <h3 id="全局Feign增加请求头"><a href="#全局Feign增加请求头" class="headerlink" title="全局Feign增加请求头"></a>全局Feign增加请求头</h3><p>增加token的Authorization请求头</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 全局的feign调用使用的配置类</span></span><br><span class="line"><span class="comment"> * 1.无法获取attributes的问题，是hystrix机制的隔离策略。最终发现RequestContextHolder.getRequestAttributes()该方法是从ThreadLocal</span></span><br><span class="line"><span class="comment"> * 需要修改配置即可hystrix.command.default.execution.isolation.strategy: SEMAPHORE,但不推荐设置此值</span></span><br><span class="line"><span class="comment"> * 当隔离策略为 THREAD 时，是没办法拿到 ThreadLocal 中的值的。</span></span><br><span class="line"><span class="comment"> * 2. 可自定义配置策略</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@see</span> FeignHystrixConcurrencyStrategy https://blog.csdn.net/crystalqy/article/details/79083857</span></span><br><span class="line"><span class="comment"> *</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@author</span> cgq_r</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@date</span> 2020/7/9</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">GlobalFeignConfiguration</span> <span class="keyword">implements</span> <span class="title">RequestInterceptor</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">apply</span><span class="params">(RequestTemplate requestTemplate)</span> </span>&#123;</span><br><span class="line">        ServletRequestAttributes attributes = (ServletRequestAttributes)</span><br><span class="line">                RequestContextHolder.getRequestAttributes();</span><br><span class="line">        <span class="keyword">if</span> (attributes != <span class="keyword">null</span>) &#123;</span><br><span class="line">            HttpServletRequest request = attributes.getRequest();</span><br><span class="line">            Enumeration&lt;String&gt; headerNames = request.getHeaderNames();</span><br><span class="line">            <span class="keyword">if</span> (headerNames != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">while</span> (headerNames.hasMoreElements()) &#123;</span><br><span class="line">                    String name = headerNames.nextElement();</span><br><span class="line">                    <span class="keyword">if</span> (Constants.TOKEN_HEADER.toLowerCase().equals(name)) &#123;</span><br><span class="line">                        requestTemplate.header(Constants.TOKEN_HEADER, request.getHeader(name));</span><br><span class="line">                        <span class="keyword">break</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">            requestTemplate.header(Constants.GATEWAY_NAME,<span class="keyword">new</span> String(Base64Utils.encode(Constants.GATEWAY_VALUE.getBytes())));</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
 
-<p>配置RedissClient</p>
-<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">@Slf4j</span></span><br><span class="line"><span class="meta">@Data</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">RedissonConfig</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Autowired</span></span><br><span class="line">    <span class="keyword">private</span> RedisProperties properties;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Bean</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> RedissonClient <span class="title">redissonClient</span><span class="params">()</span></span>&#123;</span><br><span class="line">        RedissonClient redissonClient;</span><br><span class="line">        Config config = <span class="keyword">new</span> Config();</span><br><span class="line">        String url = <span class="string">&quot;redis://&quot;</span> + properties.getHost()</span><br><span class="line">                + <span class="string">&quot;:&quot;</span> + properties.getPort();</span><br><span class="line">        config.useSingleServer().setAddress(url) <span class="comment">//单机</span></span><br><span class="line">                .setPassword(StringUtils.isNotBlank(properties.getPassword())? properties.getPassword() : <span class="keyword">null</span>)</span><br><span class="line">                .setDatabase(properties.getDatabase());</span><br><span class="line"></span><br><span class="line">        <span class="comment">//添加主从配置</span></span><br><span class="line">        <span class="comment">//config.useMasterSlaveServers().setMasterAddress(&quot;&quot;).setPassword(&quot;&quot;).addSlaveAddress(new String[]&#123;&quot;&quot;,&quot;&quot;&#125;);</span></span><br><span class="line">        <span class="comment">//集群</span></span><br><span class="line">        <span class="comment">//config.useClusterServers().addNodeAddress(new String[]&#123;&quot;&quot;,&quot;&quot;&#125;).setPassword(&quot;&quot;);</span></span><br><span class="line">        <span class="keyword">try</span> &#123;</span><br><span class="line">            redissonClient = Redisson.create(config);</span><br><span class="line">            <span class="keyword">return</span> redissonClient;</span><br><span class="line">        &#125; <span class="keyword">catch</span> (Exception e) &#123;</span><br><span class="line">            e.printStackTrace();</span><br><span class="line">            log.error(<span class="string">&quot;RedissonClient init redis url :[&#123;&#125;]&quot;</span>,url,e.getMessage());</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="Feign调用出现中文乱码问题"><a href="#Feign调用出现中文乱码问题" class="headerlink" title="Feign调用出现中文乱码问题"></a>Feign调用出现中文乱码问题</h3><p>可在FeignClient中的请求@GetMapping等注解添加</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">produces &#x3D; MediaType.APPLICATION_JSON_UTF8_VALUE, consumes &#x3D; &quot;application&#x2F;json;charset&#x3D;UTF-8&quot;</span><br></pre></td></tr></table></figure>
 
-<p>使用RedissonClient操作分布式锁</p>
+<p>或者在Configuration中配置</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">/**</span></span><br><span class="line"><span class="comment"> * 解决因sentinel依赖的jackjson-format-xml默认转为xml结果。设置默认结果为json类型。</span></span><br><span class="line"><span class="comment"> * <span class="doctag">@param</span> configurer</span></span><br><span class="line"><span class="comment"> */</span></span><br><span class="line"><span class="meta">@Override</span></span><br><span class="line"><span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">configureContentNegotiation</span><span class="params">(ContentNegotiationConfigurer configurer)</span> </span>&#123;</span><br><span class="line">    configurer.defaultContentType(MediaType.APPLICATION_JSON);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<p>该代码配置默认的上下文类型为JSON，配置默认的内容格式。本来是为了解决意外转换为xml的问题。此处也可以解决。</p>
  
       <!-- reward -->
       
@@ -165,7 +168,7 @@
 
     
     <article
-  id="post-Docker/openjdk8-jdk-alpine镜像相关问题"
+  id="post-Docker/docker-compose相关操作"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -176,8 +179,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/"
-    >openjdk:8-jdk-alpine镜像相关问题</a> 
+  <a class="article-title" href="/2021/04/13/Docker/docker-compose%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/"
+    >docker-compose相关操作</a> 
 </h2>
  
 
@@ -185,36 +188,38 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2021/04/02/Docker/openjdk8-jdk-alpine%E9%95%9C%E5%83%8F%E7%9B%B8%E5%85%B3%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-04-02T04:00:00.000Z" itemprop="datePublished">2021-04-02</time>
+      <a href="/2021/04/13/Docker/docker-compose%E7%9B%B8%E5%85%B3%E6%93%8D%E4%BD%9C/" class="article-date">
+  <time datetime="2021-04-13T04:00:00.000Z" itemprop="datePublished">2021-04-13</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/Docker/">Docker</a> / <a class="article-category-link" href="/categories/Docker/Java/">Java</a>
+    <a class="article-category-link" href="/categories/Docker/">Docker</a>
   </div>
    
     </div>
       
     <div class="article-entry" itemprop="articleBody">
        
-  <p>openjdk:8-jdk-alpine镜像没有字体库字体资源(其他版本也可能会有)。若业务有部分字体渲染，图片渲染情况，将无法使用，并且会导致正常的程序出现空指针等异常情况?</p>
-<p>解决办法：增加字体库字体资源</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">FROM</span> openjdk:<span class="number">8</span>-jdk-alpine</span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> <span class="built_in">echo</span> -e <span class="string">&quot;https://mirror.tuna.tsinghua.edu.cn/alpine/v3.4/main&quot;</span> &gt; /etc/apk/repositories</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add --update ttf-dejavu fontconfig &amp;&amp; rm -rf /var/cache/apk/*</span></span><br></pre></td></tr></table></figure>
+  <h2 id="命令"><a href="#命令" class="headerlink" title="命令"></a>命令</h2><p>启动容器,-d为后台运行</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml up -d [name]</span><br></pre></td></tr></table></figure>
 
 
 
-<p>如果业务使用到定时任务，则需要设置容器的时区，时间?</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">RUN</span><span class="bash"> apk add tzdata &amp;&amp; cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime &amp;&amp;  <span class="built_in">echo</span> <span class="string">&quot;Asia/Shanghai&quot;</span> &gt; /etc/timezone &amp;&amp; apk del tzdata</span></span><br></pre></td></tr></table></figure>
+<p>停止容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml stop [name]</span><br></pre></td></tr></table></figure>
 
-<p>在Dockerfile增加此语句</p>
-<blockquote>
-<p> 以上，感谢<code>https://www.jianshu.com/p/eaac0b8ee385</code>解决了这些问题</p>
-</blockquote>
-<p>部分图片渲染使用宋体等中文字体时，无法正常显示文字，显示为方框的问题?</p>
-<p>解决方法：增加字体文件</p>
-<figure class="highlight dockerfile"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">COPY</span><span class="bash"> SIMSUN.TTC /usr/share/fonts/</span></span><br></pre></td></tr></table></figure>
 
-<p>将window下C:\windows\fonts下的宋体字体文件拷贝到fonts目录下。如果容器在运行中使用cp到容器里命令，则容器需要重启生效。</p>
-<p>如果以上方式不可用，可参照其他博客，将字体库放在$JAVA_HOME/jre/lib/fonts/fallback下。</p>
+
+<p>删除容器，删除前需要先停止容器</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker-compose -f stack.yml rm [name]</span><br></pre></td></tr></table></figure>
+
+<h2 id="docker-compose启动"><a href="#docker-compose启动" class="headerlink" title="docker-compose启动"></a>docker-compose启动</h2><figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;2.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">redis-server</span> <span class="string">/usr/local/etc/redis/redis.conf</span> <span class="string">--appendonly</span> <span class="literal">yes</span> <span class="string">--requirepass</span> <span class="string">&#x27;123456&#x27;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/data:/data&quot;</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;6379:6379&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">postgis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">postgis/postgis:11-3.1-alpine</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">postgis</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">POSTGRES_PASSWORD:</span> <span class="string">postgres</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">           <span class="bullet">-</span> <span class="string">&quot;5432:5432&quot;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">           <span class="bullet">-</span> <span class="string">&quot;/home/postgres/data:/var/lib/postgresql/data&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">    <span class="attr">nacos:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">nacos/nacos-server:latest</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">nacos</span></span><br><span class="line">        <span class="attr">network_mode:</span> <span class="string">bridge</span></span><br><span class="line">        <span class="attr">environment:</span></span><br><span class="line">            <span class="attr">PREFER_HOST_MODE:</span> <span class="string">hostname</span></span><br><span class="line">            <span class="attr">MODE:</span> <span class="string">standalone</span></span><br><span class="line">            <span class="attr">SPRING_DATASOURCE_PLATFORM:</span> <span class="string">mysql</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_HOST:</span> <span class="number">192.168</span><span class="number">.0</span><span class="number">.165</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_DB_NAME:</span> <span class="string">nacos_devtest</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_PORT:</span> <span class="number">3306</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_USER:</span> <span class="string">nacos</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_PASSWORD:</span> <span class="string">nacos</span></span><br><span class="line">            <span class="attr">MYSQL_SERVICE_DB_PARAM:</span> <span class="string">characterEncoding=utf8&amp;connectTimeout=1000&amp;socketTimeout=3000&amp;autoReconnect=true&amp;useSSL=false</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/nacos/standalone-logs/:/home/nacos/logs&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/nacos/plugins/mysql/:/home/nacos/plugins/mysql/&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;8848:8848&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;9555:9555&quot;</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;9848:9848&quot;</span></span><br><span class="line">        <span class="attr">depends_on:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">mysql</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="在docker-compose中使用自定义网关"><a href="#在docker-compose中使用自定义网关" class="headerlink" title="在docker-compose中使用自定义网关"></a>在docker-compose中使用自定义网关</h3><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">docker network create custom_nt --subnet 192.168.137.0/24</span><br></pre></td></tr></table></figure>
+
+
+
+<figure class="highlight yaml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">version:</span> <span class="string">&quot;2.2&quot;</span></span><br><span class="line"></span><br><span class="line"><span class="attr">networks:</span></span><br><span class="line">	<span class="attr">custom_nt:</span></span><br><span class="line">		<span class="attr">external:</span> <span class="literal">true</span></span><br><span class="line"><span class="attr">services:</span></span><br><span class="line">    <span class="attr">redis:</span></span><br><span class="line">        <span class="attr">image:</span> <span class="string">redis</span></span><br><span class="line">        <span class="attr">container_name:</span> <span class="string">redis</span></span><br><span class="line">        <span class="comment">#network_mode: bridge</span></span><br><span class="line">        <span class="attr">command:</span> <span class="string">redis-server</span> <span class="string">/usr/local/etc/redis/redis.conf</span> <span class="string">--appendonly</span> <span class="literal">yes</span> <span class="string">--requirepass</span> <span class="string">&#x27;123456&#x27;</span></span><br><span class="line">        <span class="attr">volumes:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/data:/data&quot;</span> </span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;/home/redis/conf/redis.conf:/usr/local/etc/redis/redis.conf&quot;</span></span><br><span class="line">        <span class="attr">ports:</span></span><br><span class="line">          <span class="bullet">-</span> <span class="string">&quot;6379:6379&quot;</span></span><br><span class="line">        <span class="attr">restart:</span> <span class="string">always</span></span><br><span class="line">        <span class="attr">networks:</span></span><br><span class="line">          <span class="attr">custom_nt:</span></span><br><span class="line">            <span class="attr">ipv4_address:</span> <span class="number">192.168</span><span class="number">.137</span><span class="number">.5</span></span><br></pre></td></tr></table></figure>
+
  
       <!-- reward -->
       
@@ -235,7 +240,7 @@
 
     
     <article
-  id="post-MySQL/mysql常见问题"
+  id="post-Java/Java设计模式"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
@@ -246,8 +251,8 @@
     <header class="article-header">
        
 <h2 itemprop="name">
-  <a class="article-title" href="/2021/03/30/MySQL/mysql%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/"
-    >mysql常见问题</a> 
+  <a class="article-title" href="/2021/04/13/Java/Java%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/"
+    >Java 设计模式</a> 
 </h2>
  
 
@@ -255,22 +260,120 @@
     </header>
      
     <div class="article-meta">
-      <a href="/2021/03/30/MySQL/mysql%E5%B8%B8%E8%A7%81%E9%97%AE%E9%A2%98/" class="article-date">
-  <time datetime="2021-03-30T04:00:00.000Z" itemprop="datePublished">2021-03-30</time>
+      <a href="/2021/04/13/Java/Java%E8%AE%BE%E8%AE%A1%E6%A8%A1%E5%BC%8F/" class="article-date">
+  <time datetime="2021-04-13T04:00:00.000Z" itemprop="datePublished">2021-04-13</time>
 </a> 
   <div class="article-category">
-    <a class="article-category-link" href="/categories/MySQL/">MySQL</a>
+    <a class="article-category-link" href="/categories/Java/">Java</a>
   </div>
    
     </div>
       
     <div class="article-entry" itemprop="articleBody">
        
-  <h3 id="Error-executing-DDL-type-MyISAM-via-JDBC-Statement"><a href="#Error-executing-DDL-type-MyISAM-via-JDBC-Statement" class="headerlink" title="Error executing DDL type=MyISAM via JDBC Statement"></a><a target="_blank" rel="noopener" href="https://blog.csdn.net/shandeai520/article/details/103955014">Error executing DDL type=MyISAM via JDBC Statement</a></h3><p>异常:</p>
-<p>2020-01-09 19:22:42.347 WARN 13276 — [ main] o.h.t.s.i.ExceptionHandlerLoggedImpl : GenerationTarget encountered exception accepting command : Error executing DDL “create table Rfe (id bigint not null, reference varchar(255), title varchar(255), primary key (id)) type=MyISAM” via JDBC Statement</p>
-<p>org.hibernate.tool.schema.spi.CommandAcceptanceException: Error executing DDL “create table Rfe (id bigint not null, reference varchar(255), title varchar(255), primary key (id)) type=MyISAM” via JDBC Statement</p>
-<p>at org.hibernate.tool.schema.internal.exec.GenerationTargetToDatabase.accept(GenerationTargetToDatabase.java:67) ~[hibernate-core-5.4.9.Final.jar:5.4.9.Final]</p>
-<p>解决: org.hibernate.dialect.MySQLDialect 改为 org.hibernate.dialect.MySQL5Dialect</p>
+  <h2 id="单例模式"><a href="#单例模式" class="headerlink" title="单例模式"></a>单例模式</h2><h2 id="工厂方法模式"><a href="#工厂方法模式" class="headerlink" title="工厂方法模式"></a>工厂方法模式</h2><h2 id="适配器模式"><a href="#适配器模式" class="headerlink" title="适配器模式"></a>适配器模式</h2> 
+      <!-- reward -->
+      
+    </div>
+    
+
+    <!-- copyright -->
+    
+    <footer class="article-footer">
+       
+    </footer>
+  </div>
+
+    
+ 
+    
+</article>
+
+    
+    <article
+  id="post-Spring/ObjectMapper相关说明"
+  class="article article-type-post"
+  itemscope
+  itemprop="blogPost"
+  data-scroll-reveal
+>
+  <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/13/Spring/ObjectMapper%E7%9B%B8%E5%85%B3%E8%AF%B4%E6%98%8E/"
+    >jackson ObjectMapper相关说明</a> 
+</h2>
+ 
+
+      
+    </header>
+     
+    <div class="article-meta">
+      <a href="/2021/04/13/Spring/ObjectMapper%E7%9B%B8%E5%85%B3%E8%AF%B4%E6%98%8E/" class="article-date">
+  <time datetime="2021-04-13T04:00:00.000Z" itemprop="datePublished">2021-04-13</time>
+</a> 
+  <div class="article-category">
+    <a class="article-category-link" href="/categories/Spring/">Spring</a>
+  </div>
+   
+    </div>
+      
+    <div class="article-entry" itemprop="articleBody">
+       
+  <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">ObjectMapper om = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line">om.setVisibility(PropertyAccessor.ALL, Visibility.ANY);</span><br><span class="line">om.enableDefaultTyping(DefaultTyping.NON_FINAL);</span><br><span class="line">jackson2JsonRedisSerializer.setObjectMapper(om);</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">[<span class="string">&quot;java.util.ArrayList&quot;</span>,[<span class="string">&quot;asd&quot;</span>,<span class="string">&quot;zxc&quot;</span>]]</span><br></pre></td></tr></table></figure>
+
+<p>ObjectMapper的enableDefaultTyping方法用来指定序列化对象的默认类型，当其值为<code>DefaultTyping.NON_FINAL</code>是，将会为(String、Boolean、Integer、Double)除外的其他类型及非final类型的数组添加反序列化所需要的类型。</p>
+<p>例如List序列化时，会为序列化字符串添加反序列化需要的完全限定名。</p>
+<h2 id="enableDefaultTyping"><a href="#enableDefaultTyping" class="headerlink" title="enableDefaultTyping"></a>enableDefaultTyping</h2><p>可以认为是序列化是，添加复杂类型的默认类型，以便反序列化时可以精确类型。</p>
+<p>其重载方法包含了两个参数DefaultTyping类型和JsonTypeInfo.As类型</p>
+<h3 id="DefaultTyping"><a href="#DefaultTyping" class="headerlink" title="DefaultTyping"></a>DefaultTyping</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">enum</span> <span class="title">DefaultTyping</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">        JAVA_LANG_OBJECT,</span><br><span class="line">        </span><br><span class="line">        OBJECT_AND_NON_CONCRETE,</span><br><span class="line"></span><br><span class="line">        NON_CONCRETE_AND_ARRAYS,</span><br><span class="line">        </span><br><span class="line">        NON_FINAL</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+
+<p>这四个类型的级别从上往下，返回逐渐扩大。</p>
+<p>这几个类型都不会对（String、Boolean、Integer、Double）进行设置默认类型。</p>
+<h4 id="Java-LANG-OBJECT"><a href="#Java-LANG-OBJECT" class="headerlink" title="Java_LANG_OBJECT"></a>Java_LANG_OBJECT</h4><p>表示将Object类型作为声明类型的属性 设置默认类型。</p>
+<p>但尽管设置Object，一般都为复杂类型的值，像基本类型和其包装类型的值(String、Boolean、Integer、Double)不会添加默认类型。像自定义对象，List，map等实际对象的都会被添加。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Person</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">856496198687642675L</span>;</span><br><span class="line">    <span class="comment">// 省略getter/setter</span></span><br><span class="line">    String name;</span><br><span class="line">    Object info;</span><br><span class="line">    </span><br><span class="line">    <span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Info</span></span>&#123;</span><br><span class="line">        <span class="comment">// 省略getter/setter</span></span><br><span class="line">		String age;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">Person person = <span class="keyword">new</span> Person(<span class="string">&quot;小明&quot;</span>,<span class="keyword">new</span> Person.Info());</span><br><span class="line">ObjectMapper objectMapper = <span class="keyword">new</span> ObjectMapper();</span><br><span class="line">objectMapper.enableDefaultTyping(DefaultTyping.JAVA_LANG_OBJECT);</span><br><span class="line">String s = objectMapper.writeValueAsString(person);</span><br><span class="line"><span class="comment">// 打印结果为,此时已经有了默认的类型。但如果只是简单的&quot;123&quot;,则不会指明类型</span></span><br><span class="line">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;小明&quot;</span>,<span class="string">&quot;info&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Info&quot;</span>,&#123;<span class="string">&quot;age&quot;</span>:<span class="keyword">null</span>&#125;]&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="OBJECT-AND-NON-CONCRETE"><a href="#OBJECT-AND-NON-CONCRETE" class="headerlink" title="OBJECT_AND_NON_CONCRETE"></a>OBJECT_AND_NON_CONCRETE</h4><p>当属性为Object或非具体类型(抽象类或接口)，但不包括数组类型。</p>
+<p>当我们定义一个含有接口类的属性时，会设置默认类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 省略getter/setter</span></span><br><span class="line">Sex sex;</span><br><span class="line"><span class="class"><span class="keyword">interface</span> <span class="title">Sex</span></span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">isMan</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="keyword">static</span> <span class="class"><span class="keyword">class</span> <span class="title">Man</span> <span class="keyword">implements</span> <span class="title">Sex</span></span>&#123;</span><br><span class="line">    <span class="meta">@Override</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">boolean</span> <span class="title">isMan</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Person</span><span class="params">(String name, Object info, Sex sex, Sex[] sexs)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">this</span>.info = info;</span><br><span class="line">    <span class="keyword">this</span>.sex = sex;</span><br><span class="line">    <span class="keyword">this</span>.sexs = sexs;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">Person person = <span class="keyword">new</span> Person(<span class="string">&quot;小明&quot;</span>,<span class="keyword">new</span> Person.Info(),<span class="keyword">new</span> Person.Man());</span><br><span class="line">objectMapper.enableDefaultTyping(DefaultTyping.JAVA_LANG_OBJECT);</span><br><span class="line"><span class="comment">// 打印</span></span><br><span class="line">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;小明&quot;</span>,<span class="string">&quot;info&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Info&quot;</span>,&#123;<span class="string">&quot;age&quot;</span>:<span class="keyword">null</span>&#125;],<span class="string">&quot;sex&quot;</span>:&#123;<span class="string">&quot;man&quot;</span>:<span class="keyword">true</span>&#125;&#125;</span><br><span class="line"><span class="comment">// 设置成OBJECT_AND_NON_CONCRETE，打印如下</span></span><br><span class="line">objectMapper.enableDefaultTyping(DefaultTyping.OBJECT_AND_NON_CONCRETE);</span><br><span class="line">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;小明&quot;</span>,<span class="string">&quot;info&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Info&quot;</span>,&#123;<span class="string">&quot;age&quot;</span>:<span class="keyword">null</span>&#125;],<span class="string">&quot;sex&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Man&quot;</span>,&#123;<span class="string">&quot;man&quot;</span>:<span class="keyword">true</span>&#125;]&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="NON-CONCRETE-AND-ARRAYS"><a href="#NON-CONCRETE-AND-ARRAYS" class="headerlink" title="NON_CONCRETE_AND_ARRAYS"></a>NON_CONCRETE_AND_ARRAYS</h4><p>OBJECT_AND_NON_CONCRETE值说明了不包含array类型。此属性专门添加了array类型</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">// 省略setter/getter</span></span><br><span class="line">Sex[] sexs;</span><br><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">Person</span><span class="params">(String name, Object info, Sex sex, Sex[] sexs)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">this</span>.name = name;</span><br><span class="line">    <span class="keyword">this</span>.info = info;</span><br><span class="line">    <span class="keyword">this</span>.sex = sex;</span><br><span class="line">    <span class="keyword">this</span>.sexs = sexs;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Person person = <span class="keyword">new</span> Person(<span class="string">&quot;小明&quot;</span>,<span class="keyword">new</span> Person.Info(),<span class="keyword">new</span> Person.Man(),<span class="keyword">new</span> Person.Sex[]&#123;<span class="keyword">new</span> Person.Man()&#125;);</span><br><span class="line">objectMapper.enableDefaultTyping(DefaultTyping.OBJECT_AND_NON_CONCRETE);</span><br><span class="line">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;小明&quot;</span>,<span class="string">&quot;info&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Info&quot;</span>,&#123;<span class="string">&quot;age&quot;</span>:<span class="keyword">null</span>&#125;],<span class="string">&quot;sex&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Man&quot;</span>,&#123;<span class="string">&quot;man&quot;</span>:<span class="keyword">true</span>&#125;],<span class="string">&quot;sexs&quot;</span>:[[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Man&quot;</span>,&#123;<span class="string">&quot;man&quot;</span>:<span class="keyword">true</span>&#125;]]&#125;</span><br></pre></td></tr></table></figure>
+
+<p>可以看到在sexs中只包含了Sex的类型，并未标注sexs的类型。此时更改为NON_CONCRETE_AND_ARRAYS则包含</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">Person person = <span class="keyword">new</span> Person(<span class="string">&quot;小明&quot;</span>,<span class="keyword">new</span> Person.Info(),<span class="keyword">new</span> Person.Man(),<span class="keyword">new</span> Person.Sex[]&#123;<span class="keyword">new</span> Person.Man()&#125;);</span><br><span class="line">objectMapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);</span><br><span class="line">&#123;<span class="string">&quot;name&quot;</span>:<span class="string">&quot;小明&quot;</span>,<span class="string">&quot;info&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Info&quot;</span>,&#123;<span class="string">&quot;age&quot;</span>:<span class="keyword">null</span>&#125;],<span class="string">&quot;sex&quot;</span>:[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Man&quot;</span>,&#123;<span class="string">&quot;man&quot;</span>:<span class="keyword">true</span>&#125;],<span class="string">&quot;sexs&quot;</span>:[<span class="string">&quot;[Lcom.jeeplus.config.redis.RedisConfig$Person$Sex;&quot;</span>,[[<span class="string">&quot;com.jeeplus.config.redis.RedisConfig$Person$Man&quot;</span>,&#123;<span class="string">&quot;man&quot;</span>:<span class="keyword">true</span>&#125;]]]&#125;</span><br></pre></td></tr></table></figure>
+
+
+
+<h4 id="NON-FINAL"><a href="#NON-FINAL" class="headerlink" title="NON_FINAL"></a>NON_FINAL</h4><p>表示将应用与除final修饰外的所有属性，以及所有非final的数组。</p>
+<p>基本上Object类型和array类型及interface、abstract修饰的类。这些都足以进行序列化。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//省略getter/setter</span></span><br><span class="line"><span class="keyword">final</span> String[] args = <span class="keyword">new</span> String[]&#123;<span class="string">&quot;123&quot;</span>&#125;;</span><br><span class="line"></span><br><span class="line">Person person = <span class="keyword">new</span> Person();</span><br><span class="line">objectMapper.enableDefaultTyping(DefaultTyping.NON_CONCRETE_AND_ARRAYS);</span><br><span class="line">objectMapper.enableDefaultTyping(DefaultTyping.NON_FINAL);</span><br></pre></td></tr></table></figure>
+
+<p>我们可以看到，无论设置什么枚举值，都无法将args添加序列化类型。</p>
+<h3 id="JsonTypeInfo-As"><a href="#JsonTypeInfo-As" class="headerlink" title="JsonTypeInfo.As"></a>JsonTypeInfo.As</h3><h4 id="PROPERTY"><a href="#PROPERTY" class="headerlink" title="PROPERTY"></a>PROPERTY</h4><p>它将包含@class属性，作为序列化的一个属性，值就是完全限定名类型。当前类及其属性都会添加这个名为@class的属性。</p>
+<h4 id="WRAPPER-OBJECT"><a href="#WRAPPER-OBJECT" class="headerlink" title="WRAPPER_OBJECT"></a>WRAPPER_OBJECT</h4><p>将完全限定名类型直接作为key，将值作为序列化值</p>
+<h4 id="WRAPPER-ARRAY"><a href="#WRAPPER-ARRAY" class="headerlink" title="WRAPPER_ARRAY"></a>WRAPPER_ARRAY</h4><p>将序列化的结果变为array类型，格式与不加JsonTypeInfo.As一致</p>
+<h4 id="EXISTING-PROPERTY"><a href="#EXISTING-PROPERTY" class="headerlink" title="EXISTING_PROPERTY"></a>EXISTING_PROPERTY</h4><p>仅包含序列化内容，TypeSerializer将不会执行任何操作。与@JsonTypeId注解相似</p>
+<h3 id="JsonTypeInfo-Id"><a href="#JsonTypeInfo-Id" class="headerlink" title="JsonTypeInfo.Id"></a>JsonTypeInfo.Id</h3><h4 id="NONE"><a href="#NONE" class="headerlink" title="NONE"></a>NONE</h4><p>不包括类型，仅为标准的json序列化值</p>
+<h4 id="CLASS"><a href="#CLASS" class="headerlink" title="CLASS"></a>CLASS</h4><p>使用@class属性标注类型</p>
+<h4 id="MINIMAL-CLASS"><a href="#MINIMAL-CLASS" class="headerlink" title="MINIMAL_CLASS"></a>MINIMAL_CLASS</h4><p>使用@c属性标注类型</p>
+<h4 id="NAME"><a href="#NAME" class="headerlink" title="NAME"></a>NAME</h4><p>使用@type属性标注类型，但只有类名，不是完全限定名，需要将名称单独解析为实际的具体类型（类）。</p>
+<h4 id="CUSTOM"><a href="#CUSTOM" class="headerlink" title="CUSTOM"></a>CUSTOM</h4><p>使用自定义的实现TypeSerializer和TypeDeserializer</p>
  
       <!-- reward -->
       
@@ -291,149 +394,69 @@
 
     
     <article
-  id="post-mysql"
+  id="post-社会统计学"
   class="article article-type-post"
   itemscope
   itemprop="blogPost"
   data-scroll-reveal
 >
   <div class="article-inner">
+    
+    <header class="article-header">
+       
+<h2 itemprop="name">
+  <a class="article-title" href="/2021/04/05/%E7%A4%BE%E4%BC%9A%E7%BB%9F%E8%AE%A1%E5%AD%A6/"
+    >社会统计学</a> 
+</h2>
+ 
+
+      
+    </header>
      
     <div class="article-meta">
-      <a href="/2021/03/30/mysql/" class="article-date">
-  <time datetime="2021-03-30T01:10:21.923Z" itemprop="datePublished">2021-03-30</time>
+      <a href="/2021/04/05/%E7%A4%BE%E4%BC%9A%E7%BB%9F%E8%AE%A1%E5%AD%A6/" class="article-date">
+  <time datetime="2021-04-05T04:00:00.000Z" itemprop="datePublished">2021-04-05</time>
 </a>    
     </div>
       
     <div class="article-entry" itemprop="articleBody">
        
-  <h4 id="技巧"><a href="#技巧" class="headerlink" title="技巧"></a>技巧</h4><p>避免使用blob和text进行排序，否则使用substring(column,length)截取为字符串进行排序，尽量截取的足够短，不会使临时表的大小超过max_heap_table_size或temp_table_size。或mysql默认的max_sort_length配置，并可以减小此配置的值。</p>
-<p>如果explain执行计划中的Extra包含“Using temporay”，说明这个查询使用了隐式临时表。</p>
-<p>枚举数据类型存储常用的字符串类型，应避免枚举值为数字，且排序是按照枚举出的值的先后顺序排序的，与本身枚举值无关。</p>
- 
-      <!-- reward -->
-      
-    </div>
-    
-
-    <!-- copyright -->
-    
-    <footer class="article-footer">
-       
-    </footer>
-  </div>
-
-    
- 
-    
-</article>
-
-    
-    <article
-  id="post-Redis/Redis-RDB与AOF持久化"
-  class="article article-type-post"
-  itemscope
-  itemprop="blogPost"
-  data-scroll-reveal
->
-  <div class="article-inner">
-    
-    <header class="article-header">
-       
-<h2 itemprop="name">
-  <a class="article-title" href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/"
-    >Redis RDB与AOF持久化</a> 
-</h2>
- 
-
-      
-    </header>
-     
-    <div class="article-meta">
-      <a href="/2021/03/22/Redis/Redis-RDB%E4%B8%8EAOF%E6%8C%81%E4%B9%85%E5%8C%96/" class="article-date">
-  <time datetime="2021-03-22T04:00:00.000Z" itemprop="datePublished">2021-03-22</time>
-</a> 
-  <div class="article-category">
-    <a class="article-category-link" href="/categories/Redis/">Redis</a>
-  </div>
-   
-    </div>
-      
-    <div class="article-entry" itemprop="articleBody">
-       
-  <p>持久化操作可分为RDB(Redis DataBase)方式AOF(Append Only File)方式。</p>
-<h2 id="RDB"><a href="#RDB" class="headerlink" title="RDB"></a>RDB</h2><p>RDB文件用于保存和还原Redis服务器所有数据库中的所有键值对，它会在指定时间段内按规则进行一次全量保存。</p>
-<p>RDB文件是一个经过压缩的二进制文件，由多个部分组成。</p>
-<p><strong>指令</strong></p>
+  <h3 id="定比、定距、定类、定序变量"><a href="#定比、定距、定类、定序变量" class="headerlink" title="定比、定距、定类、定序变量"></a>定比、定距、定类、定序变量</h3><p>定比数据：表现为数值，可进行加减以及精确计算数据，如身高、体重。</p>
+<p>定距数据：表现为数值，有单位，可以做加减运算，不能做乘除运算。比如温度。</p>
+<p>定类数据：按事物某种属性分类或分组，数字大小代表类别。如性别(男和女)。</p>
+<p>定序数据：数据的中间级，用数字表示个体在某个有序状态中所处的位置，不能做四则运算。比如：对天猫的满意度如何（非常不满意、比较不满意、一般、比较满意、非常满意）</p>
+<h3 id="四分位差"><a href="#四分位差" class="headerlink" title="四分位差"></a>四分位差</h3><p><strong><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/四分位数/5040599">四分位数</a>是将一组数据由小到大（或由大到小）排序后，用3个点将全部数据分为4等份，与这3个点位置上相对应的数值称为四分位数</strong>，分别记为Q1（第一四分位数），说明数据中有25%的数据小于或等于Q1，Q2（第二四分位数，即中位数）说明数据中有50%的数据小于或等于Q2、Q3（第三四分位数）说明数据中有75%的数据小于或等于Q3。其中，Q3到Q1之间的距离的差的一半又称为分半四分位差，记为（Q3-Q1）/2。</p>
+<h4 id="未分组数据"><a href="#未分组数据" class="headerlink" title="未分组数据"></a>未分组数据</h4><p>首先对数据进行排序，求出<em>Q*</em>l<em>、</em>Q<em>3所在的位置；其次根据位置确定其对应的标志值即</em>Q*<em>l</em>、<em>Q</em>3;最后计算二者差额的一半，即就是四分位差。</p>
+<p>Q1的位置= （n + 1) / 4</p>
+<p>Q3的位置= 3*（n + 1) / 4</p>
+<h4 id="单项式数列"><a href="#单项式数列" class="headerlink" title="单项式数列"></a>单项式数列</h4><p>先计算各组的累计次数，然后确定分位点位置。</p>
+<p>Q1的位置= Σf / 4</p>
+<p>Q3的位置= 3 * Σf / 4</p>
+<h3 id="极差"><a href="#极差" class="headerlink" title="极差"></a>极差</h3><p>范围误差或全距。其最大值与最小值之间的差距，即最大值减最小值所得的数据</p>
+<h3 id="众值"><a href="#众值" class="headerlink" title="众值"></a>众值</h3><p>众数，总体中出现次数最多的数</p>
+<h3 id="偏态系数"><a href="#偏态系数" class="headerlink" title="偏态系数"></a>偏态系数</h3><p>偏差系数，说明随机系列分配不对称程度的统计参数。偏态系数绝对值越大，偏斜越严重。</p>
+<p>偏态系数以平<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/均值">均值</a>与<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/中位数">中位数</a>之差对<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/标准差">标准差</a>之比率来衡量偏斜的程度</p>
 <ul>
-<li>save   直接阻塞服务器进程，服务器不能处理任何请求，等待直到RDB创建完毕</li>
-<li>bgsave   派生出一个子进程，由子进程负责创建RDB文件，父进程继续处理请求</li>
+<li>偏态系数的取值为0时，表示数据为完全的对称分布。</li>
+<li>偏态系数的取值为正数时，表示数据为正偏态或右偏态</li>
+<li>偏态系数的取值为负数时，表示数据为负偏态，或左偏态</li>
 </ul>
-<p><strong>创建</strong></p>
-<p>创建RDB文件实际由rdb.c/rdbSave函数完成,两个命令则以不同的方式调用这个函数。</p>
-<p><strong>载入</strong></p>
-<p>redis没有直接载入RDB文件的命令，只要redis服务启动，则自动 载入RDB文件，服务器会一直处以阻塞状态，直到载入工作完成。</p>
-<p>载入文件的实际工作由rdb.c/rdbLoad函数完成</p>
-<h3 id="客户端save指令保存"><a href="#客户端save指令保存" class="headerlink" title="客户端save指令保存"></a>客户端save指令保存</h3><p>当SAVE执行时，Redis服务器会被阻塞，客户端发送的请求都会被拒绝</p>
-<p>只有执行完SAVE命令后，才能重新开始接收命令请求，客户端发送的命令才会被处理</p>
-<h3 id="间隔性保存-bgsave"><a href="#间隔性保存-bgsave" class="headerlink" title="间隔性保存 bgsave"></a>间隔性保存 bgsave</h3><p>redis <code>bgsave</code>执行命令会在后台子进程执行，所以redis允许用户设置服务器配置save选项，让服务器每隔一段时间bgsave一次。该命令并不会阻塞服务器</p>
-<p>在redis.conf的<code>SNAPSHOTTING</code>注释模块是rdb的配置。其中注释了三行数据</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># save &lt;seconds&gt; &lt;changes&gt;</span><br><span class="line"># Unless specified otherwise, by default Redis will save the DB:</span><br><span class="line">#   * After 3600 seconds (an hour) if at least 1 key changed</span><br><span class="line">#   * After 300 seconds (5 minutes) if at least 100 keys changed</span><br><span class="line">#   * After 60 seconds if at least 10000 keys changed</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"># save 3600 1</span><br><span class="line"># save 300 100</span><br><span class="line"># save 60 10000</span><br></pre></td></tr></table></figure>
-
+<h3 id="异众比率"><a href="#异众比率" class="headerlink" title="异众比率"></a>异众比率</h3><p>总体中非众数次数与总体全部次数之比。换句话说，异众比率指非众数组的频数占总频数的比例。</p>
 <ul>
-<li>900秒内，至少对数据库执行1次命令</li>
-<li>300秒内，至少对数据库执行10次命令</li>
-<li>60秒内，至少对数据库执行10000次命令</li>
+<li>异众比率主要适合测度分类数据的离散程度</li>
+<li>异众比率主要用于衡量众数对一组数据的代表程度。</li>
+<li>异众比率的作用是衡量<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/众数">众数</a>对一组数据的代表程度。</li>
 </ul>
-<p>以上为默认配置，可以进行修改和增加。</p>
-<p>满足以上三个任意的条件将会自动触发bgsave命令，Redis调用bgsaveCommand函数，该函数fork一个子进程执行rdbSave函数进行实际的快照存储工作，而父进程可以继续处理客户端请求。当子进程退出后，父进程调用相关回调函数进行后续处理。</p>
-<p><strong>BGSAVE命令执行时服务器状态</strong></p>
-<ul>
-<li>保存工作有子进程执行，redis服务器仍可以处理命令请求</li>
-<li>在bgsave执行期间，客户端发送save命令会被服务器拒绝。禁止父子进程同时执行rdbSave函数，防止产生竞争</li>
-<li>在bgsave执行期间 ，客户端发送bgsave会被拒绝，防止产生竞争条件</li>
-<li>bgrewriteraof和bgsave不能同时执行<ul>
-<li>如果bgsave正在执行，那么bgrewriteraof会被延迟到在bgsave执行完毕后执行</li>
-<li>如果bgrewriteraof正在执行，那么bgsave会被拒绝</li>
-<li>这两个命令都是由子进程执行，两者并没有冲突的地方，不能同时执行，只是因为性能方面的考虑，因为这个两个子进程都会执行大量磁盘写入操作</li>
-</ul>
-</li>
-</ul>
-<h3 id=""><a href="#" class="headerlink" title=""></a></h3><h2 id="AOF"><a href="#AOF" class="headerlink" title="AOF"></a>AOF</h2><p>AOF持久化是通过保存Redis服务器所执行的<strong>写的命令</strong>来记录的。</p>
-<p>当aof持久化打开时，服务器会以Redis协议格式将被执行的命令追加到服务器状态的aof_buf缓冲区末尾，之后再定期写入并同步到AOF文件中。</p>
-<p>默认不开启AOF，可修改<code>appendonly</code>的值为<code>yes</code>；<code>appendfilename</code>可指定持久化文件名称，默认可不修改。</p>
-<p>AOF保存的是一条条命令，理论上可以做到发生故障时只丢失一条命令。但由于操作系统中执行写文件操作代价很大，Redis提供了配置参数，通过对安全性和性能的折中，我们可以设置不同的策略。</p>
-<p><code>appendfsync</code>配置项配置了策略，可用值分别为:</p>
-<ul>
-<li>always：同步持久化，每次发生改变立即记录到磁盘。性能查数据完整性好</li>
-<li>everysec：默认，每秒触发一次，将aof_buf缓存区中的内容写到aof文件中，这个同步操作由一个线程专门负责</li>
-<li>no：不进行操作</li>
-</ul>
-<h3 id="AOF重写"><a href="#AOF重写" class="headerlink" title="AOF重写"></a>AOF重写</h3><p>随着aof文件越来越大，可能会造成影响，使用AOF还原数据的时间也就越多，因此Redis提供了重写功能。</p>
-<p>假如客户端向服务器执行了5条<code>lpush mylist xxx</code>语句，因此，就要向aof中写入这五条记录，然而重写可以将这5条变成一条，即<code>lpush mylist xxx xxx xxx xxx xxx</code>，这样5条命令就变成了一条，用着一条代替之前记录的多条命令。</p>
-<p>AOF重写会产生一个新的AOF文件，这个新的AOF文件和原有的AOF文件所保存的数据库状态一样，但体积更小。</p>
-<p>重写触发机制会执行<code>bgrewriteaof</code>命令，Redis服务器会维护一个AOF重写缓冲区，该缓冲区会在子进程中创建新AOF文件期间，记录服务器执行的所有命令。当子进程完成创建新的AOF文件之后，服务器会将重写缓冲区的所有内容追加到新的AOF文件中，使得新旧两个AOF文件所保存的数据状态一致。最后服务器用新的AOF文件替换旧的AOF文件。</p>
-<p><strong>重写配置</strong></p>
-<p>Redis会记录上次重写时的AOF大小，当AOF文件大小是上次rewriter后大小的一倍且文件大于64MB时触发</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"># 是否开启重写机制</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"># 百分比</span><br><span class="line">uto-aof-rewrite-percentage 100</span><br><span class="line"># 大小</span><br><span class="line">auto-aof-rewrite-min-size 64mb</span><br></pre></td></tr></table></figure>
+<h3 id="方差"><a href="#方差" class="headerlink" title="方差"></a>方差</h3><p>方差是各个数据与<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/平均数">平均数</a>之差的平方的和的平均数</p>
+<img src="https://bkimg.cdn.bcebos.com/formula/6f45b13ca943244c18d3354f4d386497.svg">
 
-<blockquote>
-<p>注意：在处理重写时,在列表，哈希，集合可能会带有多个元素的键时，会先检查键所包含的数量，超过一定数量后会用多条命令处理重写触发机制=</p>
-</blockquote>
-<h3 id="混合持久化"><a href="#混合持久化" class="headerlink" title="混合持久化"></a>混合持久化</h3><p>混合持久化指进行AOF重写时子进程将当前时间点的数据快照保存为RDB文件格式，而后将父进程累积命令保存为AOF格式。</p>
-<p>加载时，首先会识别AOF文件是否以REDIS字符串开头，如果是，就按RDB格式加载，加载完RDB后继续按AOF格式加载剩余部分。</p>
-<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">aof-use-rdb-preamble yes</span><br></pre></td></tr></table></figure>
-
-
-
-<h2 id="RDB与AOF区别"><a href="#RDB与AOF区别" class="headerlink" title="RDB与AOF区别"></a>RDB与AOF区别</h2><p>AOF更新频率会比RDB高</p>
-<p>如果服务其启动了AOF，则优先通过AOF还原数据，只有在AOF关闭的情况下才使用RDB文件来还原数据库状态</p>
-<p>AOF在载入数据库时会比RDB载入慢很多</p>
-<p>RDB数据可能会出现丢失，比AOF安全性低。</p>
-<p>RDB保存的是最终的结果，AOF保存最终结果之间的过程。</p>
-<h3 id="其他相关配置项"><a href="#其他相关配置项" class="headerlink" title="其他相关配置项"></a>其他相关配置项</h3><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"># 开启该参数后，如果开启了RDB快照（即配置了bgsave指令），并且最近一次快照执行失败，则Redis将停止接收写相关的请求</span><br><span class="line">stop-writes-on-bgsave-error yes</span><br><span class="line"></span><br><span class="line"># 开启该参数后，如果后台正在执行一次RDB快照或者AOF重写，则主进程不再进行fsync操作（即使将appendfsync配置为always或者everysec）</span><br><span class="line">no-appendfsync-on-rewrite no</span><br><span class="line"></span><br><span class="line"># AOF文件以追加日志的方式生成，所以服务端发生故障时可能会有尾部命令不完整的情况。</span><br><span class="line"># 该参数后，在此种情况下，AOF文件会截断尾部不完整的命令然后继续加载，并且会在日志中进行提示。如果不开启该参数，则加载AOF文件时会打印错误日志，然后直接退出</span><br><span class="line"># 在重新启动服务器之前，可以尝试执行bin下的redis-check-AOF工具检查修改AOF</span><br><span class="line">aof-load-truncated yes</span><br></pre></td></tr></table></figure>
-
- 
+<p>其中，x表示<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/样本">样本</a>的平均数，n表示样本的数量，xi表示个体，而s2就表示方差。</p>
+<h3 id="标准差"><a href="#标准差" class="headerlink" title="标准差"></a>标准差</h3><p>方差的算数平方根</p>
+<p>标准差也被称为标准偏差，或者实验标准差，在<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/概率/828845">概率</a>统计中最常使用作为<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/统计分布/8478867">统计分布</a>程度上的测量依据。</p>
+<p>标准差是方差的算术平方根。标准差能反映一个数据集的离散程度。平均数相同的两组数据，标准差未必相同。</p>
+<h3 id="回归直线"><a href="#回归直线" class="headerlink" title="回归直线"></a>回归直线</h3><p>回归直线方程是根据样本资料通过回归分析所得到的反映一个变量（<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/因变量">因变量</a>）对另一个或一组变量（<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/自变量">自变量</a>）的回归关系的数学表达式。指在一组具有相关关系的变量的数据（x与Y）间，一条最好地反映x与Y之间的关系直线。</p>
+<h3 id="标准正态分布"><a href="#标准正态分布" class="headerlink" title="标准正态分布"></a>标准正态分布</h3><p><a target="_blank" rel="noopener" href="https://baike.baidu.com/item/期望值/8664642">期望值</a>μ=0，即曲线图象对称轴为Y轴，<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/标准差/1415772">标准差</a>σ=1条件下的<a target="_blank" rel="noopener" href="https://baike.baidu.com/item/正态分布">正态分布</a>，记为N(0，1)。</p>
+<img src="https://bkimg.cdn.bcebos.com/pic/4bed2e738bd4b31c04ff2c9f85d6277f9f2ff8d7?x-bce-process=image/watermark,image_d2F0ZXIvYmFpa2UyMjA=,g_7,xp_5,yp_5/format,f_auto"> 
       <!-- reward -->
       
     </div>
@@ -458,7 +481,7 @@
   
   <nav class="page-nav">
     
-    <a class="extend prev" rel="prev" href="/page/12/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="page-number" href="/page/12/">12</a><span class="page-number current">13</span><a class="page-number" href="/page/14/">14</a><a class="page-number" href="/page/15/">15</a><span class="space">&hellip;</span><a class="page-number" href="/page/57/">57</a><a class="extend next" rel="next" href="/page/14/">下一页</a>
+    <a class="extend prev" rel="prev" href="/page/12/">上一页</a><a class="page-number" href="/">1</a><span class="space">&hellip;</span><a class="page-number" href="/page/11/">11</a><a class="page-number" href="/page/12/">12</a><span class="page-number current">13</span><a class="page-number" href="/page/14/">14</a><a class="page-number" href="/page/15/">15</a><span class="space">&hellip;</span><a class="page-number" href="/page/58/">58</a><a class="extend next" rel="next" href="/page/14/">下一页</a>
   </nav>
   
 </section>
